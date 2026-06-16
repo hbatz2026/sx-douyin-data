@@ -49,7 +49,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "骄傲的少年 - 南征北战NZBZ",
+  "bgm": "Waka Waka - Shakira",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
@@ -103,7 +103,7 @@ window.___hotspotData = [
       "sub": "标签 #粽子也能很healthy #营业厅温度 #节日快乐"
     }
   ],
-  "bgm": "万江天色 - 刘珂矣",
+  "bgm": "踏遍青山 - 晨夕之家",
   "tags": "#粽子也能很healthy #营业厅温度 #节日快乐 #传统节日",
   "difficulty": 1,
   "needFace": true,
