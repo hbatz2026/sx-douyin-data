@@ -1,5 +1,0 @@
-# Gitee 流水线配置
-pipelines:
-  - path: .gitee/go/pipelines/update-topics.yml
-  - path: .gitee/go/pipelines/update-bgm.yml
-  - path: .gitee/go/pipelines/update-hotspot.yml

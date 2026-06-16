@@ -1,0 +1,50 @@
+# Gitee Go 流水线 - 抖本工坊云端自动化
+# 三个定时任务：选题库(9:00)、BGM(9:00)、热点跟拍(9:30) — 均为北京时间（UTC+8）
+
+schedules:
+  # 选题库更新 & BGM更新 — 每周一 CST 9:00 (UTC 1:00)
+  - cron: '0 1 * * 1'
+    branches: [master]
+  # 热点跟拍更新 — 每周一 CST 9:30 (UTC 1:30)
+  - cron: '30 1 * * 1'
+    branches: [master]
+
+stages:
+  - name: update-topics
+    displayName: 📚 更新选题库
+    image: node:20
+    when:
+      schedule: '0 1 * * 1'
+    script:
+      - node scripts/update-data.mjs topics
+      - git config user.name "douyin-auto-bot"
+      - git config user.email "bot@douyin-lab.local"
+      - git add data/topicPool.js data/t1Presets.js
+      - git diff --staged --quiet || git commit -m "auto: 更新选题库 [$(date +%Y-%m-%d)]"
+      - git push
+
+  - name: update-bgm
+    displayName: 🎵 更新BGM推荐
+    image: node:20
+    when:
+      schedule: '0 1 * * 1'
+    script:
+      - node scripts/update-data.mjs bgm
+      - git config user.name "douyin-auto-bot"
+      - git config user.email "bot@douyin-lab.local"
+      - git add data/bgmList.js
+      - git diff --staged --quiet || git commit -m "auto: 更新BGM推荐 [$(date +%Y-%m-%d)]"
+      - git push
+
+  - name: update-hotspot
+    displayName: 🔥 更新热点跟拍
+    image: node:20
+    when:
+      schedule: '30 1 * * 1'
+    script:
+      - node scripts/update-data.mjs hotspot
+      - git config user.name "douyin-auto-bot"
+      - git config user.email "bot@douyin-lab.local"
+      - git add data/hotspotData.js
+      - git diff --staged --quiet || git commit -m "auto: 更新热点跟拍 [$(date +%Y-%m-%d)]"
+      - git push
