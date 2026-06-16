@@ -1,0 +1,30 @@
+name: update-bgm
+displayName: 🎵 更新BGM推荐
+triggers:
+  schedule:
+    - cron: '0 1 * * 1'
+stages:
+  - name: update
+    displayName: 生成数据
+    jobs:
+      - name: generate
+        displayName: 生成BGM推荐
+        steps:
+          - name: checkout
+            uses: checkout@1
+          - name: setup-node
+            uses: node-setup@1
+            with:
+              node-version: '20'
+          - name: generate-data
+            run: |
+              node scripts/update-data.mjs bgm
+            env:
+              DEEPSEEK_API_KEY: $DEEPSEEK_API_KEY
+          - name: commit-push
+            run: |
+              git config user.name "douyin-auto-bot"
+              git config user.email "bot@douyin-lab.local"
+              git add data/bgmList.js
+              git diff --staged --quiet || git commit -m "auto: 更新BGM推荐 [$(date +%Y-%m-%d)]"
+              git push

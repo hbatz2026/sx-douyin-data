@@ -1,0 +1,30 @@
+name: update-topics
+displayName: 📚 更新选题库
+triggers:
+  schedule:
+    - cron: '0 1 * * 1'
+stages:
+  - name: update
+    displayName: 生成数据
+    jobs:
+      - name: generate
+        displayName: 生成选题库
+        steps:
+          - name: checkout
+            uses: checkout@1
+          - name: setup-node
+            uses: node-setup@1
+            with:
+              node-version: '20'
+          - name: generate-data
+            run: |
+              node scripts/update-data.mjs topics
+            env:
+              DEEPSEEK_API_KEY: $DEEPSEEK_API_KEY
+          - name: commit-push
+            run: |
+              git config user.name "douyin-auto-bot"
+              git config user.email "bot@douyin-lab.local"
+              git add data/topicPool.js data/t1Presets.js
+              git diff --staged --quiet || git commit -m "auto: 更新选题库 [$(date +%Y-%m-%d)]"
+              git push
