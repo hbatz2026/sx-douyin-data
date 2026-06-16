@@ -49,7 +49,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "Waka Waka - Shakira",
+  "bgm": "骄傲的少年 - 南征北战NZBZ",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
@@ -86,8 +86,8 @@ window.___hotspotData = [
   "id": "h4",
   "tier": 1,
   "title": "「粽子也能很healthy」营业厅送福篇",
-  "heat": "抖音热搜#9 · 节日氛围正浓",
-  "why": "「粽子也能很healthy」当前热搜第9名，节日氛围拉满。拍营业厅节日服务/送福利短视频，温暖+正能量=高互动。",
+  "heat": "抖音热搜#8 · 节日氛围正浓",
+  "why": "「粽子也能很healthy」当前热搜第8名，节日氛围拉满。拍营业厅节日服务/送福利短视频，温暖+正能量=高互动。",
   "source": "https://www.douyin.com/search/%E7%B2%BD%E5%AD%90%E4%B9%9F%E8%83%BD%E5%BE%88healthy%E8%90%A5%E4%B8%9A%E5%8E%85?type=general",
   "steps": [
     {
@@ -103,7 +103,7 @@ window.___hotspotData = [
       "sub": "标签 #粽子也能很healthy #营业厅温度 #节日快乐"
     }
   ],
-  "bgm": "踏遍青山 - 晨夕之家",
+  "bgm": "万江天色 - 刘珂矣",
   "tags": "#粽子也能很healthy #营业厅温度 #节日快乐 #传统节日",
   "difficulty": 1,
   "needFace": true,
@@ -140,8 +140,8 @@ window.___hotspotData = [
   "id": "h6",
   "tier": 2,
   "title": "「王宝强新片狠家伙首曝预告」追剧必备千兆宽带",
-  "heat": "抖音热搜#16 · 全民追剧中",
-  "why": "「王宝强新片狠家伙首曝预告」热搜第16名。新剧/新片全民追，4K画质需要好宽带。在营业厅演示千兆下4K秒加载 vs 普通宽带的区别。",
+  "heat": "抖音热搜#14 · 全民追剧中",
+  "why": "「王宝强新片狠家伙首曝预告」热搜第14名。新剧/新片全民追，4K画质需要好宽带。在营业厅演示千兆下4K秒加载 vs 普通宽带的区别。",
   "source": "https://www.douyin.com/search/%E8%BF%BD%E5%89%A7%E5%AE%BD%E5%B8%A6?type=general",
   "steps": [
     {
@@ -166,9 +166,9 @@ window.___hotspotData = [
 {
   "id": "h7",
   "tier": 2,
-  "title": "「佛得角40岁门将全场最佳」你家宽带能看4K吗？",
-  "heat": "抖音热搜#18 · 体育赛事持续霸榜",
-  "why": "「佛得角40岁门将全场最佳」热搜第18名，体育赛事实时关注度极高。在营业厅大屏前测速对比——同样看直播，不同宽带差距明显。三屏同看，无需口播。",
+  "title": "「西班牙的世界杯之路暗藏隐患」你家宽带能看4K吗？",
+  "heat": "抖音热搜#20 · 体育赛事持续霸榜",
+  "why": "「西班牙的世界杯之路暗藏隐患」热搜第20名，体育赛事实时关注度极高。在营业厅大屏前测速对比——同样看直播，不同宽带差距明显。三屏同看，无需口播。",
   "source": "https://www.douyin.com/search/%E5%AE%BD%E5%B8%A6%E6%B5%8B%E9%80%9F?type=general",
   "steps": [
     {
@@ -184,7 +184,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "骄傲的少年 - 南征北战NZBZ",
+  "bgm": "Waka Waka - Shakira",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
