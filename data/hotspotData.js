@@ -22,7 +22,7 @@ window.___hotspotData = [
       "sub": "标签 #端午全国日均出入境将达220万人次 #营业厅温度 #节日快乐"
     }
   ],
-  "bgm": "万江天色 - 刘珂矣",
+  "bgm": "踏遍青山 - 晨夕之家",
   "tags": "#端午全国日均出入境将达220万人次 #营业厅温度 #节日快乐 #传统节日",
   "difficulty": 1,
   "needFace": true,
@@ -76,7 +76,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "Waka Waka - Shakira",
+  "bgm": "枪火 - 宝石Gem",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
@@ -103,7 +103,7 @@ window.___hotspotData = [
       "sub": "标签 #粽子也能很healthy #营业厅温度 #节日快乐"
     }
   ],
-  "bgm": "万江天色 - 刘珂矣",
+  "bgm": "踏遍青山 - 晨夕之家",
   "tags": "#粽子也能很healthy #营业厅温度 #节日快乐 #传统节日",
   "difficulty": 1,
   "needFace": true,
@@ -166,9 +166,9 @@ window.___hotspotData = [
 {
   "id": "h7",
   "tier": 2,
-  "title": "「佛得角40岁门将全场最佳」你家宽带能看4K吗？",
-  "heat": "抖音热搜#18 · 体育赛事持续霸榜",
-  "why": "「佛得角40岁门将全场最佳」热搜第18名，体育赛事实时关注度极高。在营业厅大屏前测速对比——同样看直播，不同宽带差距明显。三屏同看，无需口播。",
+  "title": "「西班牙的世界杯之路暗藏隐患」你家宽带能看4K吗？",
+  "heat": "抖音热搜#20 · 体育赛事持续霸榜",
+  "why": "「西班牙的世界杯之路暗藏隐患」热搜第20名，体育赛事实时关注度极高。在营业厅大屏前测速对比——同样看直播，不同宽带差距明显。三屏同看，无需口播。",
   "source": "https://www.douyin.com/search/%E5%AE%BD%E5%B8%A6%E6%B5%8B%E9%80%9F?type=general",
   "steps": [
     {
@@ -184,7 +184,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "Waka Waka - Shakira",
+  "bgm": "枪火 - 宝石Gem",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
