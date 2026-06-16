@@ -22,7 +22,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "枪火 - 宝石Gem",
+  "bgm": "骄傲的少年 - 南征北战NZBZ",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
@@ -184,7 +184,7 @@ window.___hotspotData = [
       "sub": "标签 #宽带测速 #看球不卡 #世界杯 #营业厅实测"
     }
   ],
-  "bgm": "Waka Waka - Shakira",
+  "bgm": "骄傲的少年 - 南征北战NZBZ",
   "tags": "#宽带测速 #看球不卡 #营业厅实测 #FTTR",
   "difficulty": 1,
   "needFace": false,
