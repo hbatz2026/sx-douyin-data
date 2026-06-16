@@ -1,0 +1,1024 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>山西电信抖本内容工坊 · 选题&脚本填空</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- External data files (updated weekly by WorkBuddy auto-sync) -->
+  <script src="data/topicPool.js"></script>
+  <script src="data/t1Presets.js"></script>
+  <script src="data/phonePool.js"></script>
+  <script src="data/techDB.js"></script>
+  <script src="data/t2Presets.js"></script>
+  <script src="data/t4Presets.js"></script>
+  <script src="data/hotspotData.js"></script>
+  <script src="data/bgmList.js"></script>
+
+</head>
+<body>
+
+<!-- Toast notification container -->
+<div id="toast" class="toast"></div>
+<!-- Back to top button -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>🎬 山西电信 · 抖本内容工坊</h1>
+    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布</div>
+    <div id="storeBar" style="margin-top:8px;">
+      <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
+      <span id="storePrompt">
+        <input id="storeInput" placeholder="输入你的营业厅名称（如：太原迎泽区柳巷电信营业厅）" style="padding:6px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;width:260px;max-width:70%;">
+        <button onclick="bindStore()" style="padding:6px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">✓ 绑定</button>
+        <span style="font-size:11px;color:#999;margin-left:8px;">填一次，以后自动带出</span>
+      </span>
+    </div>
+    <div class="week" id="weekLabel">📅 加载中...</div>
+    <span id="adminLock" style="position:absolute;top:8px;right:16px;cursor:pointer;font-size:16px;opacity:0.4;transition:opacity 0.2s;" title="管理员入口" onclick="unlockAdmin()">🔒</span>
+  </div>
+
+  <!-- Navigation -->
+  <button class="hamburger" id="hamburgerBtn" onclick="var n=document.querySelector('.nav-tabs');n.classList.toggle('nav-collapsed');this.innerHTML=n.classList.contains('nav-collapsed')?'☰ 展开全部菜单':'✕ 收起菜单'">✕ 收起菜单</button>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
+    
+    <span class="nav-group-label">📱 短视频</span>
+    <button class="nav-tab" onclick="switchPage('template1', this)">📊 决策指南<small>帮用户做选择题，拉收藏率</small></button>
+    <button class="nav-tab" onclick="switchPage('template2', this)">🎬 一线场景<small>真实服务故事替代广告</small></button>
+    <button class="nav-tab" onclick="switchPage('template3', this)">🔍 深度测评<small>产品知识截搜索流量</small></button>
+    <button class="nav-tab" onclick="switchPage('template4', this)">📍 本地事件<small>绑定地点打同城推荐</small></button>
+    <button class="nav-tab" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>跟拍抖音热门，蹭流量</small></button>
+
+    <span class="nav-group-label">📺 直播</span>
+    <button class="nav-tab" onclick="switchPage('live', this)">📺 直播脚本<small>10分钟循环话术，防冷场</small></button>
+    
+    <span class="nav-group-label">创作资源</span>
+    <button class="nav-tab" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
+    <button class="nav-tab" onclick="switchPage('history', this)">📜 历史<small>复用过往成功内容</small></button>
+    <button class="nav-tab" id="nav-stats" style="display:none;" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
+  </div>
+
+  <!-- ==================== PAGE 0: Weekly Schedule ==================== -->
+  <div class="page active" id="page-schedule">
+    <h2 style="margin-bottom:16px;">📅 本周（<span id="weekRange">---</span>）排期</h2>
+    <div class="schedule-grid" id="scheduleGrid"></div>
+    <div class="tips-bar" style="margin-top:20px;">
+      <strong>💡 快速上手：</strong>点击上方排期卡片直达模板 → 填3个空 → 点「预览脚本」→ 截图或复制发给营业员。每个营业厅填空内容不同（地名、店名、具体数据），规避同质化。<br>
+      <span style="font-size:11px;color:#999;margin-top:4px;display:inline-block;">⌨ 快捷键：Ctrl+1~6 切换页面 · 模板页 Ctrl+Enter 生成预览</span>
+    </div>
+    <div class="btn-group" style="margin-top:12px;" id="scheduleActions"></div>
+    <div class="card" style="margin-top:16px;">
+      <h3>🎵 本周BGM推荐（来源：酷狗热歌榜，每周一自动更新）<span style="font-size:11px;color:#999;font-weight:400;"> — 点击歌名直达抖音搜索</span></h3>
+      <div style="font-size:12px;color:var(--orange);margin-bottom:8px;" id="weekDevice">📱 本周评测设备：加载中...</div>
+      <div id="bgmRecommendGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; font-size:13px;">加载中...</div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 1: 决策指南型（双模式） ==================== -->
+  <div class="page" id="page-template1">
+    <div class="card">
+      <h3><span class="icon">📊</span> 决策指南型 — 双模式（拉收藏率）</h3>
+      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">帮用户做选择 | 三种拍摄方式，厅店按自身情况选</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:8px;">💡 对比数据是天然收藏内容 — 别人念给你听的你划走，一张对比图你肯定截图保存</p>
+
+      <div class="price-warning">
+        <span class="pw-icon">⚠️</span>
+        <div><strong>重要提醒：</strong>脚本中的套餐价格/资费仅为示例模板，<strong style="color:#D84315;">发布前务必根据本厅店实际资费修改！</strong>各地市套餐政策不同，擅自使用不实价格可能引发客诉。标题和标签中涉及的品牌/价格也需核对。</div>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-tab active" onclick="switchT1Mode('talk')" id="t1-mtab-talk">🗣 口播对比 · 一镜到底</button>
+        <button class="mode-tab" onclick="switchT1Mode('card')" id="t1-mtab-card">🖼 对比图卡 + BGM</button>
+        <button class="mode-tab" onclick="switchT1Mode('calc')" id="t1-mtab-calc">🧮 场景化算账</button>
+      </div>
+
+      <!-- Shared fields -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>地名 <span class="hint">（如：太原、临汾、榆次）</span></label>
+          <input id="t1_city" placeholder="太原">
+        </div>
+        <div class="form-group">
+          <label>本周选题 <span class="hint">（从选题库选一个）</span></label>
+          <select id="t1_topic" onchange="fillT1Presets()">
+            <option value="宽带选多少兆最划算">宽带选多少兆最划算</option>
+            <option value="手机卡套餐横向对比">手机卡套餐横向对比</option>
+            <option value="不同人群宽带怎么选">一个人/家庭/合租宽带怎么选</option>
+            <option value="5G套餐vs4G套餐实际体验">5G套餐vs4G套餐实际体验差多少</option>
+            <option value="宽带避坑指南">宽带避坑：3个最容易踩的坑</option>
+            <option value="光猫路由网线哪个最影响网速">光猫/路由/网线——哪个最影响网速</option>
+            <option value="本月最值得办的3个活动">本月最值得办的3个活动</option>
+            <option value="老用户vs新用户套餐差在哪">老用户vs新用户套餐差在哪</option>
+            <option value="融合套餐vs单宽带哪个更划算">融合套餐vs单宽带哪个更划算</option>
+            <option value="100/300/1000兆看视频实测差距">100/300/1000兆看视频实测差距</option>
+            <option value="暑假学生宽带怎么选最省钱">暑假学生宽带怎么选最省钱</option>
+            <option value="租房宽带避坑指南">租房宽带避坑指南</option>
+            <option value="二宽半价到底值不值">二宽半价到底值不值</option>
+            <option value="流量不够用3种加包方案对比">流量不够用 3种加包方案对比</option>
+            <option value="全家桶套餐真的划算吗">全家桶套餐真的划算吗</option>
+            <option value="携号转网实际体验全流程">携号转网实际体验全流程</option>
+            <option value="宽带+手机+电视三合一方案">宽带+手机+电视三合一方案</option>
+            <option value="异地宽带怎么办理最方便">异地宽带怎么办理最方便</option>
+            <option value="新装宽带送路由器活动解析">新装宽带送路由器活动解析</option>
+            <option value="宽带提速该不该升一档">宽带提速该不该升一档</option>
+            <option value="电话卡副卡怎么用最省钱">电话卡副卡怎么用最省钱</option>
+            <option value="世界杯看球宽带怎么选不卡顿不掉线">世界杯看球宽带怎么选</option>
+            <option value="毕业季大学生手机卡套餐怎么选最划算">毕业季大学生手机卡怎么选</option>
+            <option value="暑假学生流量包大对比">暑假学生流量包大对比</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row form-row-3">
+        <div class="form-group">
+          <label>场景A — 用户类型+兆数+月租</label>
+          <input id="t1_a" placeholder="一个人住，刷抖音看视频，100兆够用，月租59元">
+        </div>
+        <div class="form-group">
+          <label>场景B — 用户类型+兆数+月租</label>
+          <input id="t1_b" placeholder="三口之家，手机+平板+电视，300兆起步，月租99元">
+        </div>
+        <div class="form-group">
+          <label>场景C — 用户类型+兆数+月租</label>
+          <input id="t1_c" placeholder="重度游戏/直播/4K，直接上1000兆，月租169元">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>🎵 BGM <span class="hint">（已推荐近期热门，抖音App内可直接搜到）</span></label>
+        <select id="t1_bgm">
+          <optgroup label="🏆 本周主推（数据对比类首选）">
+            <option value="Memory Reboot - VØJ & Narvent" selected>⚡ Memory Reboot (科技感电子·数据对比首选)</option>
+            <option value="Metamorphosis - Interworld">⚡ Metamorphosis (节奏递进·对比切换)</option>
+            <option value="Time Back - 抖音版">⚡ Time Back (轻电子卡点·数据切换)</option>
+          </optgroup>
+          <optgroup label="💡 备选（轻快数据风）">
+            <option value="Nevada - Vicetone">Nevada (经典科技风)</option>
+            <option value="The Spectre - Alan Walker">The Spectre (节奏鼓点强)</option>
+            <option value="On My Way - Alan Walker">On My Way (轻快递进)</option>
+            <option value="奔腾 - 周深">奔腾 (力量感·大气数据)</option>
+            <option value="非凡 - 刘德华">非凡 (品质感·品牌数据)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>话题标签 <span class="hint">（空格分隔，至少含一个精准关键词）</span></label>
+        <input id="t1_tags" placeholder="#太原宽带 #宽带对比 #省钱攻略" value="">
+      </div>
+
+      <!-- Mode 1: 口播对比 -->
+      <div class="mode-content active" id="t1-mode-talk">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🎬 一镜到底要点：</strong>全程一个镜头，像跟朋友算账一样自然。三个场景A→B→C顺次说完，手势配合强调价格差。<span style="color:var(--blue);">结尾必须让观众截图保存。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT1Talk()">👁 预览口播脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview1-talk')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview1-talk" style="display:none;"></div>
+      </div>
+
+      <!-- Mode 2: 对比图卡 -->
+      <div class="mode-content" id="t1-mode-card">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🖼 图卡模式要点：</strong>不需要真人出镜。三种方案做成对比卡片，用剪映加BGM和转场。用户看到对比表会本能截图收藏——<span style="color:var(--blue);">这是这个形态收藏率最高的拍法。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT1Card()">👁 预览图卡指令</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview1-card')">📥 下载图卡指令</button>
+        </div>
+        <div class="talk-script" id="preview1-card" style="display:none;"></div>
+      </div>
+
+      <!-- Mode 3: 场景化算账 -->
+      <div class="mode-content" id="t1-mode-calc">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🧮 算账模式要点：</strong>模拟一个具体用户，从头到尾算一笔账。适合一个人拍——打开手机计算器录屏，边说边按数字。<span style="color:var(--blue);">观众看完会转发给"正在纠结办宽带的朋友"。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT1Calc()">👁 预览算账脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview1-calc')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview1-calc" style="display:none;"></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn btn-outline btn-sm" onclick="clearT1()">🔄 清空重填</button>
+      </div>
+
+      <!-- AI Video Bar -->
+      <div id="ai_bar_t1" class="ai-video-bar" style="margin-top:12px;padding:12px;background:#F5F5F5;border-radius:8px;color:#666;border:1.5px dashed #ddd;transition:all 0.3s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;">🎬 AI生成演示画面</span>
+          <span style="font-size:11px;opacity:0.7;">先预览脚本后可用</span>
+          <button onclick="genAIVideo('t1')" id="ai_btn_t1" disabled style="padding:6px 16px;background:#ccc;color:#999;border:none;border-radius:6px;cursor:not-allowed;font-size:13px;font-weight:600;">✨ 生成</button>
+        </div>
+        <div id="ai_hint_t1" style="display:none;margin-top:8px;font-size:11px;color:#2E7D32;background:#E8F5E9;padding:8px;border-radius:6px;"></div>
+      </div>
+    </div>
+
+    <!-- Publishing Checklist -->
+    <div class="checklist" id="template1-checklist"></div>
+    <div class="fw-warn-bar" id="template1-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
+    <div class="fw-clean" id="template1-fw-clean">✅ 未检测到违禁词</div>
+  </div>
+
+  <!-- ==================== PAGE 2: 一线场景型（双模式） ==================== -->
+  <div class="page" id="page-template2">
+    <div class="card">
+      <h3><span class="icon">🎬</span> 一线场景型 — 双模式（拉完播+信任）</h3>
+      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">真实故事最能留住人 | 三种拍法，越自然越好</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 场景型的核心是真实感——脚本越详细拍出来越假。选个拍法，讲真事就行。</p>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-tab active" onclick="switchT2Mode('tell')" id="t2-mtab-tell">🗣 单人讲述 · 一镜到底</button>
+        <button class="mode-tab" onclick="switchT2Mode('doc')" id="t2-mtab-doc">🎥 微纪录 · 跟拍</button>
+        <button class="mode-tab" onclick="switchT2Mode('short')" id="t2-mtab-short">⚡ 一句话故事</button>
+      </div>
+
+      <div class="form-group">
+        <label>🎵 BGM <span class="hint">（强烈建议不加，用现场原声；如需可选用温情感）</span></label>
+        <select id="t2_bgm">
+          <option value="" selected>🔇 不加BGM，用现场原声（推荐）</option>
+          <optgroup label="如需温情感BGM">
+            <option value="我记得 - 赵雷">我记得 - 赵雷 (叙事温暖)</option>
+            <option value="可能 - 程响">可能 - 程响 (生活感)</option>
+            <option value="小美满 - 周深">小美满 - 周深 (温暖治愈)</option>
+            <option value="雨过后的风景 - 蔡诗芸">雨过后的风景 (治愈叙事)</option>
+            <option value="一半一半 - Top Barry">一半一半 (生活共鸣感)</option>
+            <option value="人间共鸣 - 李健">人间共鸣 (温暖叙事)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📋 故事模板 <span class="hint">（选模板自动填框架，真相关键词你改）</span></label>
+        <select id="t2_preset" onchange="fillT2Presets()" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
+          <option value="">-- 选择真实场景一键填充（已扩至15个） --</option>
+          <optgroup label="▸ 上门服务类">
+            <option value="上门维修">🔧 上门维修 — 路由器位置不对导致网慢</option>
+            <option value="装机故事">📦 装机故事 — 老小区布线装宽带</option>
+          </optgroup>
+          <optgroup label="▸ 柜台服务类">
+            <option value="柜台服务">💻 柜台服务 — 老套餐该升级了</option>
+            <option value="突发状况">⚠️ 突发状况 — 客户流量告急</option>
+            <option value="投诉化解">🔥 投诉化解 — 怒气客户变回头客</option>
+          </optgroup>
+          <optgroup label="▸ 温情故事类">
+            <option value="温暖瞬间">💛 温暖瞬间 — 帮老人连上视频通话</option>
+            <option value="老客户情谊">🤝 老客户情谊 — 十年老客户成街坊</option>
+            <option value="银发服务">👴 银发服务 — 帮老人跨过数字鸿沟</option>
+            <option value="突发事件">🌧 突发事件 — 暴雨天帮外卖小哥</option>
+          </optgroup>
+          <optgroup label="▸ 社区&校园类">
+            <option value="社区营销">🏘 社区营销 — 进社区便民服务</option>
+            <option value="校园迎新">🎓 校园迎新 — 帮新生办第一张卡</option>
+            <option value="数字课堂">📱 数字课堂 — 银发族防诈骗教学</option>
+          </optgroup>
+          <optgroup label="▸ 政企&活动类">
+            <option value="政企服务">🏢 政企服务 — 单位网络改造一站式</option>
+            <option value="节日活动">🎊 节日活动 — 中秋送温暖</option>
+            <option value="公益服务">💝 公益服务 — 关爱环卫工人</option>
+          </optgroup>
+        </select>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>时间 <span class="hint">（今天/昨天/上午/下午）</span></label>
+          <input id="t2_time" placeholder="今天下午">
+        </div>
+        <div class="form-group">
+          <label>客户类型 <span class="hint">（阿姨/大叔/年轻人/学生）</span></label>
+          <input id="t2_customer" placeholder="阿姨">
+        </div>
+        <div class="form-group">
+          <label>客户遇到的问题</label>
+          <input id="t2_problem" placeholder="说家里网慢了3年，看视频一直转圈">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>上门发现的具体问题</label>
+          <input id="t2_finding" placeholder="路由器塞在电视柜最里面，旁边还有微波炉">
+        </div>
+        <div class="form-group">
+          <label>操作步骤（不超过3步）</label>
+          <textarea id="t2_steps" placeholder="1. 描述第一步操作&#10;2. 描述第二步操作&#10;3. 描述第三步操作"></textarea>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>客户反应</label>
+          <input id="t2_reaction" placeholder="客户当时的真实反应">
+        </div>
+        <div class="form-group">
+          <label>一句话总结原因</label>
+          <input id="t2_summary" placeholder="用一句话总结这个故事的启发">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>话题标签</label>
+        <input id="t2_tags" placeholder="#真实故事 #装维日常 #宽带小知识" value="">
+      </div>
+
+      <!-- Mode 1: 单人讲述 -->
+      <div class="mode-content active" id="t2-mode-tell">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🎬 一镜到底要点：</strong>镜头对着自己，边走边说——像跟朋友分享今天遇到的事。开头抛悬念，中间说发现，结尾给结论。<span style="color:var(--blue);">一定要留出"客户真实反应"的镜头。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT2Tell()">👁 预览口播脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview2-tell')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview2-tell" style="display:none;"></div>
+      </div>
+
+      <!-- Mode 2: 微纪录 -->
+      <div class="mode-content" id="t2-mode-doc">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🎥 微纪录要点：</strong>零口播或极少口播。用镜头跟拍过程——从上门敲门开始，拍到问题、操作、客户表情变化。字幕补充你不敢说的细节。<span style="color:var(--blue);">镜头是旁观者视角，不要对着镜头说话。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT2Doc()">👁 预览拍摄指令</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview2-doc')">📥 下载指令卡</button>
+        </div>
+        <div class="talk-script" id="preview2-doc" style="display:none;"></div>
+      </div>
+
+      <!-- Mode 3: 一句话故事 -->
+      <div class="mode-content" id="t2-mode-short">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>⚡ 一句话故事要点：</strong>1个画面+1行字幕+1段BGM=15秒。不叙事，只传递情绪。适合没时间精心准备的场景，完播率极高。<span style="color:var(--blue);">画面选最有冲击力的那个瞬间。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT2Short()">👁 预览一句话脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview2-short')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview2-short" style="display:none;"></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn btn-outline btn-sm" onclick="clearT2()">🔄 清空重填</button>
+      </div>
+      <div id="ai_bar_t2" class="ai-video-bar" style="margin-top:12px;padding:12px;background:#F5F5F5;border-radius:8px;color:#666;border:1.5px dashed #ddd;transition:all 0.3s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;">🎬 AI生成演示画面</span>
+          <span style="font-size:11px;opacity:0.7;">先预览脚本后可用</span>
+          <button onclick="genAIVideo('t2')" id="ai_btn_t2" disabled style="padding:6px 16px;background:#ccc;color:#999;border:none;border-radius:6px;cursor:not-allowed;font-size:13px;font-weight:600;">✨ 生成</button>
+        </div>
+        <div id="ai_hint_t2" style="display:none;margin-top:8px;font-size:11px;color:#2E7D32;background:#E8F5E9;padding:8px;border-radius:6px;"></div>
+      </div>
+    </div>
+
+    <div class="checklist" id="template2-checklist"></div>
+    <div class="fw-warn-bar" id="template2-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
+    <div class="fw-clean" id="template2-fw-clean">✅ 未检测到违禁词</div>
+  </div>
+
+  <!-- ==================== PAGE 3: 深度测评型（双模式） ==================== -->
+  <div class="page" id="page-template3">
+    <div class="card">
+      <h3><span class="icon">🔍</span> 深度测评型 — 双模式智能生成器（截搜索流量）</h3>
+      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">两种拍摄方式，厅店按自身情况选择 — 都能出片</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 选设备+选题 → 自动填入技术内容 → 选模式 → 获取脚本/拍摄指令</p>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-tab active" onclick="switchT3Mode('talk')" id="t3-mtab-talk">🗣 真人出镜 · 一镜到底</button>
+        <button class="mode-tab" onclick="switchT3Mode('silent')" id="t3-mtab-silent">🤫 无声演示 · 字幕卡</button>
+      </div>
+
+      <!-- === Shared Fields (both modes) === -->
+      <div class="form-group">
+        <label>🎵 BGM <span class="hint">（轻声纯音乐·口播不压人声；无声模式当背景）</span></label>
+        <select id="t3_bgm">
+          <optgroup label="🏆 本周主推（测评教学类首选）">
+            <option value="Windy Hill - 羽肿" selected>🎹 Windy Hill (钢琴轻音乐·教学首选)</option>
+            <option value="River Flows In You - Yiruma">🎹 River Flows In You (经典钢琴)</option>
+            <option value="觅光 - 张韶涵">🎹 觅光 (轻电子治愈·测评氛围)</option>
+          </optgroup>
+          <optgroup label="💡 备选（科技测评风）">
+            <option value="A Thousand Miles - Piano">A Thousand Miles (钢琴版)</option>
+            <option value="Time Back - 抖音版">Time Back (轻电子·抖音版)</option>
+            <option value="告白之夜 - AYASA">告白之夜 (小提琴·BGM音量调30%)</option>
+            <option value="One Spot - 沈佳润Nina">One Spot (轻快电子·科技感)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📱 选择设备 <span class="hint">（选完设备，选题自动加载）</span></label>
+        <select id="t3_device" onchange="loadTopicsByDevice()">
+          <option value="">-- 请先选择设备 --</option>
+          <optgroup label="📡 电信设备">
+            <option value="光猫">🖥 光猫</option>
+            <option value="路由器">📡 路由器</option>
+            <option value="机顶盒">📺 IPTV机顶盒</option>
+            <option value="宽带">🌐 宽带/WiFi</option>
+          </optgroup>
+          <optgroup label="📱 手机评测">
+            <option value="华为畅享90 Plus">华为畅享90 Plus (麒麟8系·1499起)</option>
+            <option value="荣耀畅玩80 Plus">荣耀畅玩80 Plus (骁龙4Gen4·999起)</option>
+            <option value="华为Pura 90">华为Pura 90 (麒麟9100·2亿像素·4999起)</option>
+            <option value="iPhone 18 Pro Max">iPhone 18 Pro Max (A20 Pro·9999起)</option>
+            <option value="OPPO Find X9 Pro">OPPO Find X9 Pro (骁龙8Gen5·5999起)</option>
+            <option value="vivo X300 Pro">vivo X300 Pro (天玑9400·5499起)</option>
+            <option value="小米16 Ultra">小米16 Ultra (骁龙8Gen5·5999起)</option>
+            <option value="荣耀Magic8 Pro">荣耀Magic8 Pro (骁龙8Gen5·4999起)</option>
+            <option value="三星Galaxy S27 Ultra">三星S27 Ultra (Exynos2600·8999起)</option>
+            <option value="Redmi K90 Pro">Redmi K90 Pro (骁龙8Gen5·2999起)</option>
+            <option value="一加14">一加14 (骁龙8Gen5·4299起)</option>
+            <option value="iQOO 14 Pro">iQOO 14 Pro (骁龙8Gen5·3999起)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>📋 选择选题 <span class="hint">（选完自动填好所有技术内容）</span></label>
+        <select id="t3_topic" onchange="autoFillTech()">
+          <option value="">-- 请先选设备，再选选题 --</option>
+        </select>
+      </div>
+
+      <div id="t3_autofill_info" style="display:none;margin-top:12px;">
+        <div class="card" style="background:#F0FFF4; border:1px solid #81C784; margin-bottom:8px;">
+          <div style="font-size:12px;color:#2E7D32;">
+            ✅ 以下内容已自动填充（无需手动填）：<br>
+            <span id="t3_fill_summary" style="font-weight:700;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden fields for autofill -->
+      <input type="hidden" id="t3_item" value="光猫">
+      <input type="hidden" id="t3_func" value="指示灯">
+      <input type="hidden" id="t3_p1" value="">
+      <input type="hidden" id="t3_p2" value="">
+      <input type="hidden" id="t3_p3" value="">
+      <input type="hidden" id="t3_title" value="">
+
+      <div class="form-group">
+        <label>🏙 地名（填本地地名，用于标题和话题）</label>
+        <input id="t3_city" placeholder="太原">
+      </div>
+
+      <div class="form-group">
+        <label>话题标签 <span class="hint">（自动生成，可修改）</span></label>
+        <input id="t3_tags" value="">
+      </div>
+
+      <!-- ===== MODE 1: 口播 一镜到底 ===== -->
+      <div class="mode-content active" id="t3-mode-talk">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🎬 一镜到底要点：</strong>全程一个镜头不剪辑，手持设备边走边聊。像给朋友介绍手机一样自然，不要念稿。重点：<span style="color:var(--blue);">身体语言+实物展示</span>，不是播音腔。
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT3Talk()">👁 预览口播脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview3-talk')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview3-talk" style="display:none;"></div>
+      </div>
+
+      <!-- ===== MODE 2: 无声演示 四选一 ===== -->
+      <div class="mode-content" id="t3-mode-silent">
+        <p style="font-size:13px;color:var(--body);margin-bottom:8px;">▶ 选好设备和选题后，从以下四种拍摄方案中选一种最适合你厅店的：</p>
+        <div class="silent-options" id="silentOptions">
+          <!-- Card A -->
+          <div class="silent-option-card" onclick="previewT3Silent('A')">
+            <span class="option-badge badge-A">方案A · 零难度</span>
+            <h4>📱 实操演示 + 字幕卡</h4>
+            <div class="option-desc">手机固定桌面，按步骤展示设备功能。画面上方弹出字幕解释，全程BGM。不出镜不说话。</div>
+            <div class="option-difficulty">难度：★☆☆☆☆ | 需真人：❌ | 拍摄时间：10分钟</div>
+          </div>
+          <!-- Card B -->
+          <div class="silent-option-card" onclick="previewT3Silent('B')">
+            <span class="option-badge badge-B">方案B · 最省事</span>
+            <h4>🖼 一图流 + BGM</h4>
+            <div class="option-desc">零拍摄！用下方「💎 生成卖点卡」导出PNG，剪映导入+BGM渲染成15-20秒视频即可。</div>
+            <div class="option-difficulty">难度：★☆☆☆☆ | 需真人：❌ | 拍摄时间：0分钟</div>
+          </div>
+          <!-- Card C -->
+          <div class="silent-option-card" onclick="previewT3Silent('C')">
+            <span class="option-badge badge-C">方案C · 收藏最强</span>
+            <h4>⚖ 对比画面 + 字幕</h4>
+            <div class="option-desc">两台手机并排，同一个操作同时展示。通过对比直接展示差异，天然收藏属性。</div>
+            <div class="option-difficulty">难度：★★★☆☆ | 需真人：❌ | 拍摄时间：15分钟</div>
+          </div>
+          <!-- Card D -->
+          <div class="silent-option-card" onclick="previewT3Silent('D')">
+            <span class="option-badge badge-D">方案D · 最生动</span>
+            <h4>🎭 场景化微对话</h4>
+            <div class="option-desc">两个员工15-20秒。A问问题，B不回答——用手机画面+字幕展示答案。全程自然不尴尬。</div>
+            <div class="option-difficulty">难度：★★☆☆☆ | 需真人：👥 2人 | 拍摄时间：10分钟</div>
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:12px;">
+          <button class="btn btn-green" onclick="generateInfographic()">🖼 生成一图流图解</button>
+          <button class="btn btn-orange" onclick="generateSellingPointCard()">💎 生成卖点卡</button>
+        </div>
+        <div class="silent-preview" id="preview3-silent" style="display:none;margin-top:12px;"></div>
+        <div class="btn-group" id="silentDownloadBtns" style="display:none;margin-top:8px;">
+          <button class="btn btn-orange btn-sm" onclick="downloadAsImage('preview3-silent')">📥 下载拍摄指令卡</button>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn btn-outline btn-sm" onclick="clearTemplate3()">🔄 重新选择</button>
+      </div>
+
+      <div id="ai_bar_t3" class="ai-video-bar" style="margin-top:12px;padding:12px;background:#F5F5F5;border-radius:8px;color:#666;border:1.5px dashed #ddd;transition:all 0.3s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;">🎬 AI生成演示画面</span>
+          <span style="font-size:11px;opacity:0.7;">先预览脚本后可用</span>
+          <button onclick="genAIVideo('t3')" id="ai_btn_t3" disabled style="padding:6px 16px;background:#ccc;color:#999;border:none;border-radius:6px;cursor:not-allowed;font-size:13px;font-weight:600;">✨ 生成</button>
+        </div>
+        <div id="ai_hint_t3" style="display:none;margin-top:8px;font-size:11px;color:#2E7D32;background:#E8F5E9;padding:8px;border-radius:6px;"></div>
+      </div>
+
+      <div id="infographicPanel" style="display:none; margin-top:16px;"></div>
+    </div>
+
+    <div class="checklist" id="template3-checklist"></div>
+    <div class="fw-warn-bar" id="template3-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
+    <div class="fw-clean" id="template3-fw-clean">✅ 未检测到违禁词</div>
+  </div>
+
+  <!-- ==================== PAGE 4: 本地化事件型（双模式） ==================== -->
+  <div class="page" id="page-template4">
+    <div class="card">
+      <h3><span class="icon">📍</span> 本地化事件型 — 双模式（打同城流量）</h3>
+      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">把同城的人拉到店里 | 三种拍法，搜本地的人都能看到</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 地标+POI定位是本地事件型的核心武器——一定要拍到地标、一定要加位置。</p>
+
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-tab active" onclick="switchT4Mode('walk')" id="t4-mtab-walk">🚶 探店口播 · 边走边说</button>
+        <button class="mode-tab" onclick="switchT4Mode('mix')" id="t4-mtab-mix">🎬 海报+实拍混剪</button>
+        <button class="mode-tab" onclick="switchT4Mode('countdown')" id="t4-mtab-countdown">⏰ 倒计时福利卡</button>
+      </div>
+
+      <div class="form-group">
+        <label>🎵 BGM <span class="hint">（本地生活/探店类热门，轻松愉快）</span></label>
+        <select id="t4_bgm">
+          <optgroup label="🏆 本周主推（本地生活类首选）">
+            <option value="我会一直顺 - 黄子弘凡" selected>🎉 我会一直顺 (积极向上·探店首选)</option>
+            <option value="记忆点 - 陈卓璇">🎯 记忆点 (强节奏感·探店打卡)</option>
+            <option value="小美满 - 周深">☀️ 小美满 (温暖轻快·本地生活)</option>
+          </optgroup>
+          <optgroup label="💡 备选（轻松探店风）">
+            <option value="街角的晚风 - 陈小春">街角的晚风 (都市感)</option>
+            <option value="一半一半 - Top Barry">一半一半 (轻松节奏)</option>
+            <option value="奔腾 - 周深">奔腾 (有力量感)</option>
+            <option value="龙耀华夏 - 龙友林">龙耀华夏 (国风大气·文旅探店)</option>
+            <option value="爱人啊 - 言承旭/五月天阿信">爱人啊 (甜蜜氛围·情侣探店)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>🎁 活动类型 <span class="hint">（选活动自动填福利+标签，地名地址自己填）</span></label>
+        <select id="t4_preset" onchange="fillT4Presets()">
+          <option value="">-- 可选：选一个活动类型快速填充 --</option>
+          <option value="免费贴膜">📱 免费贴膜 — 苹果安卓曲面直屏都能贴</option>
+          <option value="免费测速">📡 免费测速 — 上门或到店测你家WiFi到底多快</option>
+          <option value="办业务送礼">🎁 办业务送礼 — 新装/续约/升级都有好礼</option>
+          <option value="以旧换新">🔄 以旧换新 — 旧手机旧光猫抵钱换新机</option>
+          <option value="手机清洁">🧹 手机清洁 — 免费清洁+贴膜+系统优化</option>
+          <option value="宽带体验">🌐 宽带体验 — 千兆宽带免费体验3天</option>
+          <option value="暑期特惠">☀️ 暑期特惠 — 学生/教师专属优惠</option>
+          <option value="社区服务">🏘 社区服务 — 进小区摆摊办业务</option>
+        </select>
+      </div>
+      
+      <div class="form-row form-row-3">
+        <div class="form-group">
+          <label>地名 <span class="hint">（必填，用于同城搜索）</span></label>
+          <input id="t4_city" placeholder="太原">
+        </div>
+        <div class="form-group">
+          <label>地标/街道名</label>
+          <input id="t4_landmark" placeholder="柳巷">
+        </div>
+        <div class="form-group">
+          <label>营业厅名</label>
+          <input id="t4_shop" placeholder="柳巷电信营业厅">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>意外福利/亮点</label>
+          <input id="t4_benefit" placeholder="免费贴膜" value="免费贴膜">
+        </div>
+        <div class="form-group">
+          <label>福利说明/服务内容</label>
+          <input id="t4_desc" placeholder="苹果安卓、曲面直屏都能贴，比外面30块的还好" value="苹果安卓、曲面直屏都能贴，比外面30块的还好">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>详细地址</label>
+          <input id="t4_addr" placeholder="柳巷南路128号">
+        </div>
+        <div class="form-group">
+          <label>营业时间</label>
+          <input id="t4_hours" placeholder="早9点到晚8点" value="早9点到晚8点">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>话题标签 <span class="hint">（必加#地名 和 #地标，确保同城搜索命中）</span></label>
+        <input id="t4_tags" placeholder="#太原 #柳巷 #免费贴膜 #同城发现" value="">
+      </div>
+
+      <!-- Mode 1: 探店口播 -->
+      <div class="mode-content active" id="t4-mode-walk">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🚶 探店要点：</strong>从店门外开始拍——先拍地标，再推到店门口。边走边介绍福利，像带朋友逛店。<span style="color:var(--blue);">一定要在发布时加POI位置标签。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT4Walk()">👁 预览口播脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview4-walk')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview4-walk" style="display:none;"></div>
+      </div>
+
+      <!-- Mode 2: 海报混剪 -->
+      <div class="mode-content" id="t4-mode-mix">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>🎬 混剪要点：</strong>零口播。几张活动海报+店门口实拍+店内环境+BGM。剪映5分钟搞定。<span style="color:var(--blue);">字幕突出福利和时间，让人一眼看到重点。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT4Mix()">👁 预览混剪指令</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview4-mix')">📥 下载指令卡</button>
+        </div>
+        <div class="talk-script" id="preview4-mix" style="display:none;"></div>
+      </div>
+
+      <!-- Mode 3: 倒计时 -->
+      <div class="mode-content" id="t4-mode-countdown">
+        <div class="tips-bar" style="margin-bottom:12px;">
+          <strong>⏰ 倒计时要点：</strong>适合有限期活动。"最后3天""仅限周末"。紧迫感让用户立刻行动。<span style="color:var(--blue);">数字大字+福利信息+地址，三段式信息卡轮播。</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="previewT4Countdown()">👁 预览倒计时脚本</button>
+          <button class="btn btn-orange" onclick="downloadAsImage('preview4-countdown')">📥 下载脚本卡</button>
+        </div>
+        <div class="talk-script" id="preview4-countdown" style="display:none;"></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn btn-outline btn-sm" onclick="clearT4()">🔄 清空重填</button>
+      </div>
+      <div id="ai_bar_t4" class="ai-video-bar" style="margin-top:12px;padding:12px;background:#F5F5F5;border-radius:8px;color:#666;border:1.5px dashed #ddd;transition:all 0.3s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;">🎬 AI生成演示画面</span>
+          <span style="font-size:11px;opacity:0.7;">先预览脚本后可用</span>
+          <button onclick="genAIVideo('t4')" id="ai_btn_t4" disabled style="padding:6px 16px;background:#ccc;color:#999;border:none;border-radius:6px;cursor:not-allowed;font-size:13px;font-weight:600;">✨ 生成</button>
+        </div>
+        <div id="ai_hint_t4" style="display:none;margin-top:8px;font-size:11px;color:#2E7D32;background:#E8F5E9;padding:8px;border-radius:6px;"></div>
+      </div>
+    </div>
+
+    <div class="checklist" id="template4-checklist"></div>
+    <div class="fw-warn-bar" id="template4-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
+    <div class="fw-clean" id="template4-fw-clean">✅ 未检测到违禁词</div>
+  </div>
+
+  <!-- ==================== PAGE LIVE: Live Streaming Scripts ==================== -->
+  <div class="page" id="page-live">
+    <div class="card">
+      <h3><span class="icon">📺</span> 直播脚本 v1.4.1 — 填空即播（抖音本地生活·小房子）</h3>
+      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">四大直播场景 × 每场景5分钟话术 √ 防冷场应急包 √ 真实货盘数据</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:8px;">⚠️ 直播使用抖音本地生活「小房子」挂载商品，不是小黄车。禁止挂载号卡类商品，禁止提及月租/套餐。</p>
+
+      <div class="price-warning">
+        <span class="pw-icon">⚠️</span>
+        <div>
+          <strong>合规红线（必须遵守）：</strong><br>
+          1. 仅使用抖音本地生活「小房子」挂载商品，不使用小黄车<br>
+          2. <strong style="color:#D84315;">禁止直播号卡类商品</strong>（号卡服务、合约服务全类目禁止）<br>
+          3. <strong style="color:#D84315;">禁止提及月租、套餐、话费</strong>等号卡相关表述<br>
+          4. 可播内容：纯宽带业务、终端购机补贴、便民服务、福利品<br>
+          5. 直播间必须挂出门店标识牌
+        </div>
+      </div>
+
+      <!-- Scene Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-tab active" onclick="switchLiveMode('store')" id="lv-mtab-store">🏪 厅店带货</button>
+        <button class="mode-tab" onclick="switchLiveMode('community')" id="lv-mtab-community">🏘 小区活动</button>
+        <button class="mode-tab" onclick="switchLiveMode('outdoor')" id="lv-mtab-outdoor">🚶 户外探店</button>
+        <button class="mode-tab" onclick="switchLiveMode('home')" id="lv-mtab-home">🔧 入户服务</button>
+      </div>
+
+      <!-- Shared fields -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店名称 <span class="hint">（必填，直播间标题使用）</span></label>
+          <input id="lv_store" placeholder="太原市XX路电信营业厅">
+        </div>
+        <div class="form-group">
+          <label>主打产品 <span class="hint">（从下方产品清单中选择）</span></label>
+          <select id="lv_product" onchange="updateLiveProductDesc()">
+            <option value="" disabled selected>-- 请选择主打产品 --</option>
+            <option value="__custom__">✏️ 自定义产品（手动输入）</option>
+            <optgroup label="宽带类">
+              <option value="1元宽带提速礼包">1元宽带提速礼包</option>
+              <option value="30元宽带提速礼包">30元宽带提速礼包</option>
+              <option value="618福利宽带礼包">618福利宽带礼包</option>
+              <option value="千兆宽带礼包预约">千兆宽带礼包预约</option>
+              <option value="FTTR全光礼包(老用户专享)">FTTR全光礼包(老用户专享)</option>
+            </optgroup>
+            <optgroup label="终端类">
+              <option value="华为畅享90m Plus购机补贴">华为畅享90m Plus购机补贴</option>
+              <option value="荣耀畅玩80Plus购机补贴">荣耀畅玩80Plus购机补贴</option>
+              <option value="荣耀600元气版购机补贴">荣耀600元气版购机补贴</option>
+              <option value="华为nova16购机补贴">华为nova16购机补贴</option>
+            </optgroup>
+            <optgroup label="服务类">
+              <option value="宽带网络优化服务">宽带网络优化服务</option>
+              <option value="免费贴膜">免费贴膜</option>
+              <option value="免费WiFi测速">免费WiFi测速</option>
+            </optgroup>
+            <optgroup label="福利品">
+              <option value="小度智能屏">小度智能屏</option>
+              <option value="数据线/手机支架">数据线/手机支架</option>
+            </optgroup>
+          </select>
+          <input id="lv_product_custom" placeholder="输入自定义产品名称" style="display:none;margin-top:8px;width:100%;">
+        </div>
+      </div>
+
+      <div class="form-row form-row-3">
+        <div class="form-group">
+          <label>产品价格 <span class="hint">（显示在直播间）</span></label>
+          <input id="lv_price" placeholder="1元/30元/50元">
+        </div>
+        <div class="form-group">
+          <label>直播日期 <span class="hint">（自动填入今天）</span></label>
+          <input id="lv_date" placeholder="6月12日">
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="lv_use_deadline" onchange="toggleDeadline()" style="width:auto;"> 
+            启用「限时福利倒计时」
+            <span class="hint">（勾选后显示倒计时字段，不勾选则生成长期在售话术）</span>
+          </label>
+          <div id="lv-deadline-row" style="display:none;">
+            <input id="lv_deadline" placeholder="今晚24点截止">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row form-row-3" id="lv-extra-fields" style="display:none;">
+        <div class="form-group">
+          <label>活动/探店地名</label>
+          <input id="lv_location" placeholder="XX小区/XX商圈">
+        </div>
+        <div class="form-group">
+          <label>活动亮点/特色服务</label>
+          <input id="lv_highlight" placeholder="免费网络检测/贴膜">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>🎵 直播间BGM <span class="hint">（推荐背景音乐）</span></label>
+        <select id="lv_bgm">
+          <optgroup label="🏆 直播带货首选">
+            <option value="好运来 - 祖海" selected>🎊 好运来 (直播间热场经典)</option>
+            <option value="恭喜发财 - 刘德华">🧧 恭喜发财 (带货氛围)</option>
+            <option value="奔腾 - 周深">⚡ 奔腾 (节奏热场·正能量)</option>
+          </optgroup>
+          <optgroup label="🎵 轻快节奏">
+            <option value="我会一直顺 - 黄子弘凡">我会一直顺 (轻松正能量)</option>
+            <option value="小美满 - 周深">小美满 (温暖亲切)</option>
+            <option value="记忆点 - 陈卓璇">记忆点 (带货快节奏)</option>
+          </optgroup>
+          <optgroup label="🏮 国风品质">
+            <option value="龙耀华夏 - 龙友林">龙耀华夏 (国风大气)</option>
+            <option value="非凡 - 刘德华">非凡 (品质直播·高端感)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label># 直播标签 <span class="hint">（抖音话题标签，多个用空格分隔）</span></label>
+        <input id="lv_tags" placeholder="#同城 #电信宽带 #宽带办理 #直播福利">
+      </div>
+
+      <!-- Product list checklist (from Tencent Docs) -->
+      <div class="form-group">
+        <label>🛒 今日可上架商品清单 <span class="hint">（开播前5分钟核对）</span></label>
+        <div id="lv-product-list" style="background:#FAFBFC;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;color:var(--body);">
+          ☐ 宽带体验券（1元抵用）<br>
+          ☐ 宽带提速礼包<br>
+          ☐ 融合套餐福利（宽带+手机+电视打包优惠）<br>
+          ☐ FTTR全光礼包（老用户专享）<br>
+          ☐ 免费贴膜/网检（到店礼）<br>
+          ☐ 合约机直降补贴（华为/荣耀/vivo/OPPO）<br>
+          <span style="font-size:11px;color:#D84315;">⚠️ 小房子上架确认：以上商品需提前在抖音来客后台创建团购券</span>
+        </div>
+      </div>
+
+      <!-- Compliance quick-check -->
+      <div style="background:#FFF8E1;border:1px solid #FFCC02;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;">
+        <strong>🚫 直播话术避雷：</strong>全程不能说「月租」「套餐」「话费」「靓号」「办卡」「号卡」。
+        可以说「宽带」「网速」「购机」「补贴」「福利」「到店礼」「限时活动」。
+      </div>
+
+      <!-- Mode-specific tips -->
+      <div class="tips-bar" id="lv-tips" style="margin-bottom:12px;">
+        <strong>🏪 厅店带货要点：</strong>开播先做福利预告，展示实物或价签，引导点击小房子查看商品。话术结构：福利钩子→产品介绍→引导下单→限时逼单。<br>
+        <span style="font-size:11px;color:#999;">💡 数据验证：78%的一线认为「福利促销」是最吸引人的直播内容（临汾问卷）</span>
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="previewLiveScript()">👁 预览直播脚本</button>
+        <button class="btn btn-green" onclick="showEmergencyScripts()">🆘 防冷场应急包</button>
+        <button class="btn btn-orange" onclick="downloadLiveScript()">📥 下载脚本卡</button>
+      </div>
+
+      <!-- Preview Area -->
+      <div class="preview-panel" id="live-preview" style="display:none;"></div>
+
+      <!-- Checklist -->
+      <div class="checklist" id="live-checklist"></div>
+      <div class="fw-warn-bar" id="live-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或封禁。</div>
+      <div class="fw-clean" id="live-fw-clean">✅ 未检测到违禁词</div>
+    </div>
+
+    <!-- Emergency Scripts Card -->
+    <div class="card" id="live-emergency-card" style="display:none;">
+      <h3>🆘 防冷场应急话术包（源自6月真实直播话术）</h3>
+      <p style="color:var(--body);font-size:12px;margin-bottom:12px;">当直播间在线人数<5人或长时间没人评论时使用。每条话术说完保持3-5秒微笑等待。</p>
+      <div id="live-emergency-content"></div>
+    </div>
+
+    <!-- Best Time Recommendation -->
+    <div class="card">
+      <h3>⏰ 最佳开播时段参考（基于1-6月15238场直播数据）</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">
+        <div style="background:#E8F5E9;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#2E7D32;">12-14点</div>
+          <div style="font-size:12px;color:#666;margin-top:4px;">午休时段 🥇 县城推荐</div>
+          <div style="font-size:11px;color:#999;margin-top:2px;">竞争少，用户有空刷直播</div>
+        </div>
+        <div style="background:#FFF3E0;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#E65100;">15-16点</div>
+          <div style="font-size:12px;color:#666;margin-top:4px;">下午茶时段 🥈 太原推荐</div>
+          <div style="font-size:11px;color:#999;margin-top:2px;">避开17-19点踩踏高峰</div>
+        </div>
+        <div style="background:#E3F2FD;border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#1565C0;">19-21点</div>
+          <div style="font-size:12px;color:#666;margin-top:4px;">晚间黄金档 🥉</div>
+          <div style="font-size:11px;color:#999;margin-top:2px;">流量大但竞争也大</div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#999;margin-top:12px;">💡 1-6月数据：17-18点两小时集中了全天20%的直播场次，内部互相抢流量。15-16点是太原最佳避开高峰时段。</p>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 5: Topic Bank ==================== -->
+  <div class="page" id="page-bank">
+    <h2 style="margin-bottom:8px;">📚 选题库（96个选题 · 24周不重复）</h2>
+    <p style="color:var(--body);font-size:12px;margin-bottom:12px;">按你的情况筛选，找到最适合的选题。⭐ 标记为本周轮转选题。</p>
+
+    <!-- Filter Pills -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;" id="bankFilters">
+      <button class="bank-filter active" onclick="filterBank('all', this)">全部选题</button>
+      <button class="bank-filter" onclick="filterBank('solo', this)">👤 一个人能拍</button>
+      <button class="bank-filter" onclick="filterBank('noface', this)">🙈 不用露脸</button>
+      <button class="bank-filter" onclick="filterBank('quick', this)">⚡ 10分钟搞定</button>
+      <button class="bank-filter" onclick="filterBank('thisweek', this)">⭐ 只看本周</button>
+    </div>
+    <div id="bankContextHint" style="display:none;background:#E3F2FD;border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#1565C0;">
+      🔍 已自动筛选为当前页面匹配的选题类型 · <a href="#" onclick="filterBank('all', document.querySelector('.bank-filter[onclick*=all]'));return false;" style="color:var(--blue);font-weight:700;text-decoration:underline;">点击查看全部选题</a>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
+      <div class="card">
+        <h3>📊 决策指南型 ×24</h3>
+        <div class="topic-list" id="bank1"></div>
+      </div>
+      <div class="card">
+        <h3>🎬 一线场景型 ×24</h3>
+        <div class="topic-list" id="bank2"></div>
+      </div>
+      <div class="card">
+        <h3>🔍 深度测评型 ×24</h3>
+        <div class="topic-list" id="bank3"></div>
+      </div>
+      <div class="card">
+        <h3>📍 本地化事件型 ×24</h3>
+        <div class="topic-list" id="bank4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PAGE 6: Hotspot Follow-Templates ==================== -->
+  <div class="page" id="page-hotspot">
+    <h2 style="margin-bottom:4px;">🔥 本周热点跟拍</h2>
+    <p style="color:var(--body);font-size:12px;margin-bottom:12px;">
+      每周一自动搜索抖音热点，筛选适合营业厅跟拍的内容。分三层：专业翻拍 / 行业套用 / 纯跟拍。
+      <span style="color:var(--orange);" id="hotspotUpdateTime"></span>
+    </p>
+
+    <!-- Difficulty Filter -->
+    <div class="hs-filter">
+      <button class="bank-filter active" onclick="filterHotspot('all', this)">全部</button>
+      <button class="bank-filter" onclick="filterHotspot('tier1', this)">🥇 专业翻拍</button>
+      <button class="bank-filter" onclick="filterHotspot('tier2', this)">🥈 行业套用</button>
+      <button class="bank-filter" onclick="filterHotspot('tier3', this)">🥉 纯跟拍</button>
+      <button class="bank-filter" onclick="filterHotspot('easy', this)">⭐ 零基础</button>
+    </div>
+
+    <div class="hotspot-grid" id="hotspotGrid"></div>
+  </div>
+
+  <!-- ==================== PAGE 7: History Archive ==================== -->
+  <div class="page" id="page-history">
+    <h2 style="margin-bottom:8px;">📜 选题历史追溯</h2>
+    <p style="color:var(--body);font-size:13px;margin-bottom:16px;">
+      过去8周 + 本周已用选题自动归档。专题库共96个选题（24×4形态），按周号自动轮转，24周（约6个月）不重复。
+      <span style="color:var(--orange);">⭐ 标记为本周选题</span>
+    </p>
+    <div id="historyContent"></div>
+  </div>
+
+  <!-- ==================== PAGE 8: Admin Stats ==================== -->
+  <div class="page" id="page-stats">
+    <h2 style="margin-bottom:4px;">📊 使用统计（管理员可见）</h2>
+    <p style="color:var(--body);font-size:12px;margin-bottom:16px;">数据存储在本机浏览器 · <span id="statsLastUpdate" style="color:#999;">加载中...</span></p>
+    <p id="statsMeta" style="font-size:11px;color:#999;margin-bottom:12px;"></p>
+    
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="bank-filter active" onclick="switchStatsPeriod('week', this)">本周</button>
+      <button class="bank-filter" onclick="switchStatsPeriod('month', this)">本月</button>
+      <button class="bank-filter" onclick="switchStatsPeriod('all', this)">累计</button>
+      <button class="bank-filter" onclick="switchStatsPeriod('daily', this)" style="background:#FFF3E0;border-color:#FF9800;color:#E65100;">📈 近30天趋势</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;" id="statsCards"></div>
+
+    <!-- Charts row 1 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card">
+        <h3>📋 模块使用排行</h3>
+        <div id="statsModuleChart" style="margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <h3>🎯 操作类型分布</h3>
+        <div id="statsActionChart" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Charts row 2: Store usage + Weekly compare -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+      <div class="card">
+        <h3>🏪 厅店使用排行 <span style="font-size:11px;color:#999;font-weight:400;">（需绑定门店）</span></h3>
+        <div id="statsStoreChart" style="margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <h3>📊 本周 vs 上周</h3>
+        <div id="statsWeekCompare" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Daily Trend -->
+    <div class="card" style="margin-top:16px;" id="statsDailyCard" style="display:none;">
+      <h3>📈 近30天使用趋势</h3>
+      <div id="statsDailyChart" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- Top Topics -->
+    <div class="card" style="margin-top:16px;">
+      <h3>🔥 热门选题 TOP15</h3>
+      <div id="statsTopics" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- Raw data export -->
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <button class="btn btn-outline btn-sm" onclick="exportStats()">📥 导出 JSON</button>
+      <button class="btn btn-outline btn-sm" onclick="exportStatsCSV()">📊 导出 CSV</button>
+      <button class="btn btn-outline btn-sm" style="color:#C62828;border-color:#C62828;" onclick="clearStats()">🗑 清除数据</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SCRIPTS ==================== -->
+  <script src="app.js"></script>

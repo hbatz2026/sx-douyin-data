@@ -1,0 +1,14 @@
+{
+  "name": "douyin-cloud-auto",
+  "version": "1.0.0",
+  "description": "山西电信抖本内容工坊 · 云端自动化更新",
+  "type": "module",
+  "scripts": {
+    "update:hotspot": "node scripts/update-hotspot.mjs",
+    "update:topics": "node scripts/update-topics.mjs",
+    "update:bgm": "node scripts/update-bgm.mjs"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
