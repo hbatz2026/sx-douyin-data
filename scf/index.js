@@ -42,8 +42,8 @@ exports.main_handler = async (event, context) => {
       console.log(`[${ts()}] Updated: ${filename}`);
     }
 
-    const deployed = await triggerDeploy();
-    if (deployed) console.log(`[${ts()}] EdgeOne deploy triggered`);
+    const deployed = await deployViaEdgeOne(token, user);
+    console.log(`[${ts()}] EdgeOne deploy: ${deployed ? 'OK' : 'skipped'}`);
 
     return { success: true, mode, files: updated, deployed, timestamp: ts() };
   } catch (err) {
@@ -731,18 +731,82 @@ function getT1Presets(month, day) {
 }
 
 // ============================================================
-// Utils
+// EdgeOne Pages direct deploy via CLI (npx)
 // ============================================================
 
-async function triggerDeploy() {
-  const hookUrl = process.env.DEPLOY_HOOK_URL;
-  if (!hookUrl) { console.log('No DEPLOY_HOOK_URL'); return false; }
+const SITE_FILES = [
+  'index.html', 'app.js', 'styles.css', 'package.json',
+  'data/hotspotData.js', 'data/topicPool.js', 'data/t1Presets.js',
+  'data/t2Presets.js', 'data/t4Presets.js', 'data/techDB.js',
+  'data/phonePool.js', 'data/bgmList.js'
+];
+
+async function deployViaEdgeOne(token, user) {
+  const eoToken = process.env.EDGEONE_TOKEN;
+  if (!eoToken) { console.log('No EDGEONE_TOKEN, skipping deploy'); return false; }
+
   try {
-    const res = await fetch(hookUrl, { method: 'POST', signal: AbortSignal.timeout(30000) });
-    console.log(`Deploy hook: ${res.status}`);
-    return res.ok || res.status < 400;
-  } catch (e) { console.error('Deploy hook failed:', e.message); return false; }
+    const siteDir = '/tmp/site';
+    await ensureDir(siteDir);
+
+    // Download all site files from Gitee
+    const baseUrl = `https://gitee.com/api/v5/repos/${user}/sx-douyin-data/contents`;
+    let downloaded = 0;
+
+    for (const f of SITE_FILES) {
+      try {
+        const res = await fetch(`${baseUrl}/${encodeURIComponent(f)}?ref=master`, {
+          headers: { 'Authorization': `token ${token}` },
+          signal: AbortSignal.timeout(15000)
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (!data.content) continue;
+
+        const content = Buffer.from(data.content, 'base64').toString('utf-8');
+        const dest = siteDir + '/' + f;
+        await ensureDir(dest.substring(0, dest.lastIndexOf('/')));
+        await writeTextFile(dest, content);
+        downloaded++;
+      } catch (e) { /* skip missing files */ }
+    }
+
+    if (downloaded === 0) {
+      console.log('No site files downloaded');
+      return false;
+    }
+
+    console.log(`Downloaded ${downloaded} site files, deploying...`);
+
+    const cmd = `cd ${siteDir} && PAGES_SOURCE=skills npx edgeone pages deploy -n sxdouyingongfang -t ${eoToken}`;
+    const { exec } = require('child_process');
+    const result = await new Promise((resolve, reject) => {
+      exec(cmd, { timeout: 120000, maxBuffer: 5 * 1024 * 1024 }, (err, stdout) => {
+        if (err) { console.log('CLI stdout:', (stdout || '').slice(-300)); reject(err); }
+        else resolve(stdout);
+      });
+    });
+    console.log('Deploy OK:', (result || '').slice(-200));
+    return true;
+  } catch (e) {
+    console.error('Deploy failed:', e.message);
+    return false;
+  }
 }
+
+async function ensureDir(dirPath) {
+  const fs = require('fs');
+  try { fs.mkdirSync(dirPath, { recursive: true }); } catch (e) {}
+}
+
+async function writeTextFile(filePath, content) {
+  const fs = require('fs');
+  fs.writeFileSync(filePath, content, 'utf-8');
+}
+
+// ============================================================
+// Gitee file update
+// ============================================================
 
 async function updateGiteeFile(filePath, content, token, user) {
   const apiUrl = `https://gitee.com/api/v5/repos/${user}/sx-douyin-data/contents/${encodeURIComponent(filePath)}`;
