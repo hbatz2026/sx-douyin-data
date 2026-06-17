@@ -9,6 +9,11 @@ function sanitizeHTML(html) {
     .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
 }
 
+// Sanitize filename: remove illegal characters for filesystem
+function sanitizeFilename(name) {
+  return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
+}
+
 // Safe innerHTML setter — applies sanitizeHTML then sets innerHTML and shows element
 function safeSetHTML(id, html) {
   var el = document.getElementById(id);
@@ -234,6 +239,8 @@ function getPeriodStart(period) {
     var d = new Date(now); d.setDate(now.getDate() - now.getDay() + 1); d.setHours(0,0,0,0); return d.getTime();
   } else if (period === 'month') {
     return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  } else if (period === 'daily') {
+    var d = new Date(now); d.setDate(now.getDate() - 30); d.setHours(0,0,0,0); return d.getTime();
   }
   return 0;
 }
@@ -484,8 +491,8 @@ function autoFillStore() {
   var cityMatch = name.match(/^([^\s区县]+)/);
   var city = cityMatch ? cityMatch[1] : name;
   // Extract district & landmark for t4
-  var districtMatch = name.match(/^[^\s]+([^\s]+区)[^\s]*/);
-  var landmarkMatch = name.match(/[区县]([^\s路街巷]+)/);
+  var districtMatch = name.match(/([^\s]+?区)/);
+  var landmarkMatch = name.match(/[区县]([^\s]+?(?:路|街|巷|里|坊|广场|大厦|中心))/);
   var district = districtMatch ? districtMatch[1] : '';
   var landmark = landmarkMatch ? landmarkMatch[1] : '';
   // Template 1: t1_city
@@ -618,6 +625,8 @@ function genAIVideo(t) {
 }
 
 function refreshAIBars() {
+  // Only scan templates that could have previews (skip schedule/bank/hotspot/live/history/stats)
+  if (['schedule','bank','hotspot','live','history','stats'].indexOf(currentPage) >= 0) return;
   ['t1','t2','t3','t4'].forEach(function(t) {
     var bar = document.getElementById('ai_bar_'+t);
     var btn = document.getElementById('ai_btn_'+t);
@@ -736,6 +745,13 @@ function switchPage(name, el, noPush) {
   }
   // Re-inject BGM buttons in case they were cleared
   setTimeout(injectBGMButtons, 100);
+  // Mobile: auto-collapse nav after selecting a page
+  var nav = document.querySelector('.nav-tabs');
+  var ham = document.getElementById('hamburgerBtn');
+  if (nav && ham && !nav.classList.contains('nav-collapsed') && window.innerWidth <= 640) {
+    nav.classList.add('nav-collapsed');
+    ham.innerHTML = '☰ 展开全部菜单';
+  }
   // Push to browser history (except for initial load)
   if (!noPush && name !== currentPage) {
     pageHistory.push(name);
@@ -747,11 +763,12 @@ function switchPage(name, el, noPush) {
 // Handle browser back/forward
 window.addEventListener('popstate', function(e) {
   if (e.state && e.state.page) {
-    switchPage(e.state.page, null, true);
-    currentPage = e.state.page;
+    var pageId = e.state.page;
+    switchPage(pageId, document.querySelector('.nav-tab[onclick*=' + pageId + ']'), true);
+    currentPage = pageId;
   } else {
-    // Go back to schedule if no state
-    switchPage('schedule', null, true);
+    var btn = document.querySelector('.nav-tab[onclick*=schedule]');
+    switchPage('schedule', btn, true);
     currentPage = 'schedule';
   }
 });
@@ -782,7 +799,7 @@ const currentWeekNum = Math.floor((new Date() - WEEK_ZERO) / (7*24*60*60*1000)) 
 // [Data] Loaded from data/topicPool.js (auto-updated weekly)
 const topicPool = (function() {
   try { if (window.___topicPool) return window.___topicPool; } catch(e) {}
-  return window.___topicPool || {};
+  return { decision: [], scene: [], review: [], local: [] };
 })();
 
 
@@ -799,12 +816,13 @@ const t1Presets = (function() {
 // [Data] Loaded from data/phonePool.js (auto-updated weekly)
 const phonePool = (function() {
   try { if (window.___phonePool) return window.___phonePool; } catch(e) {}
-  return window.___phonePool || {};
+  return window.___phonePool || [];
 })();
 
 
 // Get this week's items
 function pickFromPool(pool, offset) {
+  if (!pool || !pool.length) return '暂无选题，请等待数据更新';
   return pool[(currentWeekNum + offset - 1) % pool.length];
 }
 
@@ -840,8 +858,12 @@ function buildSchedule() {
   // Update week device
   const devSpan = document.getElementById('weekDevice');
   if (devSpan) {
-    const phone = phonePool[currentWeekNum % phonePool.length];
-    devSpan.innerHTML = `📱 本周评测设备：${phone.model}（${phone.chip} | ${phone.battery} | ${phone.screen}）— ${phone.highlight}`;
+    if (phonePool.length > 0) {
+      const phone = phonePool[currentWeekNum % phonePool.length];
+      devSpan.innerHTML = `📱 本周评测设备：${phone.model}（${phone.chip} | ${phone.battery} | ${phone.screen}）— ${phone.highlight}`;
+    } else {
+      devSpan.innerHTML = '📱 本周评测设备：数据加载中...';
+    }
   }
   
   // Populate quick action buttons
@@ -926,7 +948,7 @@ function updateBankFilterButtons() {
 
 function buildTopicBank() {
   const bankIds = ['bank1', 'bank2', 'bank3', 'bank4'];
-  const pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
+  const pools = [topicPool.decision || [], topicPool.scene || [], topicPool.review || [], topicPool.local || []];
   const modeNames = [['口播','图卡','算账'], ['讲述','纪录','短故事'], ['口播','无声A','无声B','无声C','无声D'], ['探店','混剪','倒计时']];
 
   // Show/hide context hint
@@ -1166,7 +1188,7 @@ function downloadCardImage() {
   if (typeof html2canvas !== 'undefined') {
     html2canvas(card, { backgroundColor: '#1a1a2e', scale: 2 }).then(canvas => {
       const link = document.createElement('a');
-      link.download = '对比图卡_' + week.label.replace(/\//g,'-') + '.png';
+      link.download = '对比图卡_' + sanitizeFilename(week.label) + '.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
@@ -1698,7 +1720,8 @@ function switchT3Mode(mode) {
   // Hide all previews on switch
   document.getElementById('preview3-talk').style.display = 'none';
   document.getElementById('preview3-silent').style.display = 'none';
-  document.getElementById('silentDownloadBtns').style.display = 'none';
+  var sdBtns = document.getElementById('silentDownloadBtns');
+  if (sdBtns) sdBtns.style.display = 'none';
 }
 
 // ===== MODE 1: 口播脚本（分设备类型） =====
@@ -1972,7 +1995,8 @@ function previewT3Silent(option) {
   el.style.display = 'block';
   el.innerHTML = html;
   addCopyButton('preview3-silent');
-  document.getElementById('silentDownloadBtns').style.display = 'flex';
+  var sdBtns = document.getElementById('silentDownloadBtns');
+  if (sdBtns) sdBtns.style.display = 'flex';
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template3');
 }
@@ -2059,7 +2083,7 @@ function downloadInfographic() {
   if (typeof html2canvas !== 'undefined') {
     html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
       const link = document.createElement('a');
-      link.download = '一图流_' + (document.getElementById('t3_title').value || '图解') + '.png';
+      link.download = '一图流_' + sanitizeFilename((document.getElementById('t3_title').value || '图解')) + '.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
@@ -2185,7 +2209,7 @@ function downloadSellingPointCard() {
     html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
       const link = document.createElement('a');
       const phone = phonePool[currentWeekNum % phonePool.length];
-      link.download = '卖点卡_' + phone.model + '.png';
+      link.download = '卖点卡_' + sanitizeFilename(phone.model) + '.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
@@ -2377,8 +2401,10 @@ window['clearTemplate3'] = function() {
   });
   document.getElementById('preview3-talk').style.display = 'none';
   document.getElementById('preview3-silent').style.display = 'none';
-  document.getElementById('silentDownloadBtns').style.display = 'none';
-  document.getElementById('infographicPanel').style.display = 'none';
+  var sdBtns = document.getElementById('silentDownloadBtns');
+  if (sdBtns) sdBtns.style.display = 'none';
+  var infoPanel = document.getElementById('infographicPanel');
+  if (infoPanel) infoPanel.style.display = 'none';
 };
 
 // ===== Download as Image =====
@@ -2402,7 +2428,7 @@ function downloadAsImage(previewId) {
   if (typeof html2canvas !== 'undefined') {
     html2canvas(card, { backgroundColor: '#1a1a2e', scale: 2 }).then(canvas => {
       const link = document.createElement('a');
-      link.download = `脚本_${previewId}_${week.label}.png`;
+      link.download = '脚本_' + sanitizeFilename(previewId) + '_' + sanitizeFilename(week.label) + '.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
       document.body.removeChild(card);
@@ -2643,7 +2669,7 @@ function labelDropdownOptions() {
       const badges = getTopicBadges(opt.value);
       if (badges.length > 0) {
         const label = badges.map(b => b.text).join('');
-        opt.textContent = opt.textContent.replace(/^\w+/, '') + '  ' + label;
+        opt.textContent = opt.textContent.replace(/^[^\u4e00-\u9fa5\w]+/, '') + '  ' + label;
       }
     }
   }
@@ -2697,14 +2723,29 @@ document.querySelectorAll('input[id$="_city"]').forEach(el => {
 // ===== Keyboard shortcut =====
 document.addEventListener('keydown', function(e) {
   if (e.ctrlKey || e.metaKey) {
-    const map = { '1': 'schedule', '2': 'template1', '3': 'template2', '4': 'template3', '5': 'template4', '6': 'bank', '7': 'hotspot', '8': 'stats' };
-    if (map[e.key]) { e.preventDefault(); switchPage(map[e.key]); }
-    // Ctrl+Enter: trigger preview on current template page
+    const map = { '1': 'schedule', '2': 'template1', '3': 'template2', '4': 'template3', '5': 'template4', '6': 'bank', '7': 'hotspot', '8': 'live', '9': 'history', '0': 'stats' };
+    if (map[e.key]) { e.preventDefault(); var pageId = map[e.key]; switchPage(pageId, document.querySelector('.nav-tab[onclick*=' + pageId + ']')); }
+    // Ctrl+Enter: trigger preview on current template page based on active mode
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      var pageMap = { 'template1': 'showT1Preview', 'template2': 'showT2Preview', 'template3': 'generatePreview', 'template4': 'showT4Preview' };
-      var fn = pageMap[currentPage];
-      if (fn && typeof window[fn] === 'function') window[fn]();
+      if (currentPage === 'template1') {
+        if (document.getElementById('t1-mode-talk') && document.getElementById('t1-mode-talk').classList.contains('active')) previewT1Talk();
+        else if (document.getElementById('t1-mode-card') && document.getElementById('t1-mode-card').classList.contains('active')) previewT1Card();
+        else if (document.getElementById('t1-mode-calc') && document.getElementById('t1-mode-calc').classList.contains('active')) previewT1Calc();
+      } else if (currentPage === 'template2') {
+        if (document.getElementById('t2-mode-tell') && document.getElementById('t2-mode-tell').classList.contains('active')) previewT2Tell();
+        else if (document.getElementById('t2-mode-doc') && document.getElementById('t2-mode-doc').classList.contains('active')) previewT2Doc();
+        else if (document.getElementById('t2-mode-short') && document.getElementById('t2-mode-short').classList.contains('active')) previewT2Short();
+      } else if (currentPage === 'template3') {
+        if (document.getElementById('t3-mode-talk') && document.getElementById('t3-mode-talk').classList.contains('active')) previewT3Talk();
+        else if (document.getElementById('t3-mode-silent') && document.getElementById('t3-mode-silent').classList.contains('active')) previewT3Silent();
+      } else if (currentPage === 'template4') {
+        if (document.getElementById('t4-mode-walk') && document.getElementById('t4-mode-walk').classList.contains('active')) previewT4Walk();
+        else if (document.getElementById('t4-mode-mix') && document.getElementById('t4-mode-mix').classList.contains('active')) previewT4Mix();
+        else if (document.getElementById('t4-mode-countdown') && document.getElementById('t4-mode-countdown').classList.contains('active')) previewT4Countdown();
+      } else if (currentPage === 'live') {
+        if (typeof previewLiveScript === 'function') previewLiveScript();
+      }
     }
   }
 });
