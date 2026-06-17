@@ -1,0 +1,33 @@
+{
+  "_comment": "BGM情绪分类规则。关键词匹配歌名和艺人名。修改后SCF下次运行自动生效。",
+  "fast": ["DJ", "劲爆", "摇滚", "rap", "RAP", "嘻哈", "蹦迪", "电音", "炸裂", "蹦", "嗨"],
+  "slow": ["慢", "抒情", "钢琴", "治愈", "温柔", "安静", "纯音", "民谣", "古风", "轻", "眠"],
+  "defaultAssignments": {
+    "决策指南": {
+      "轻快对比": {"mood": "fast", "fallback": ["枪火 - 宝石Gem", "骄傲的少年 - 南征北战NZBZ", "左转灯 - 派伟俊"]},
+      "算账节奏": {"mood": "medium", "fallback": ["人生路漫漫 - 白小白", "零距离的思念 - TINY7"]},
+      "温馨推荐": {"mood": "slow", "fallback": ["恋人 - 李荣浩", "起风了 - 买辣椒也用券", "孤勇者 - 陈奕迅"]}
+    },
+    "一线场景": {
+      "温情叙事": {"mood": "slow", "fallback": ["我记得 - 赵雷", "阴天 - 莫文蔚", "起风了 - 买辣椒也用券"]},
+      "轻纪录片": {"mood": "medium", "fallback": ["Star Crossing Night - 徐明浩", "踏遍青山 - 晨夕之家"]},
+      "快节奏爽片": {"mood": "fast", "fallback": ["为爱痴狂 - 金志文", "枪火 - 宝石Gem", "骄傲的少年 - 南征北战NZBZ"]},
+      "原声不加BGM": {"mood": "none", "fallback": ["🔇 现场原声（推荐）"]}
+    },
+    "深度测评": {
+      "科技感": {"mood": "medium", "fallback": ["Star Crossing Night - 徐明浩"]},
+      "冷静专业": {"mood": "slow", "fallback": ["静音恋人 - 礼越"]},
+      "干货教学": {"mood": "medium", "fallback": ["骄傲的少年 - 南征北战NZBZ"]}
+    },
+    "本地事件": {
+      "探店活力": {"mood": "fast", "fallback": ["人生路漫漫 - 白小白", "枪火 - 宝石Gem"]},
+      "福利快闪": {"mood": "fast", "fallback": ["骄傲的少年 - 南征北战NZBZ", "为爱痴狂 - 金志文"]},
+      "温馨服务": {"mood": "slow", "fallback": ["阴天 - 莫文蔚", "踏遍青山 - 晨夕之家"]}
+    },
+    "直播": {
+      "暖场": {"mood": "slow", "fallback": ["人生路漫漫 - 白小白", "零距离的思念 - TINY7"]},
+      "逼单": {"mood": "fast", "fallback": ["枪火 - 宝石Gem", "为爱痴狂 - 金志文"]},
+      "福利": {"mood": "slow", "fallback": ["恋人 - 李荣浩", "踏遍青山 - 晨夕之家"]}
+    }
+  }
+}
