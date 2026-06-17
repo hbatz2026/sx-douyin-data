@@ -113,7 +113,6 @@ async function genHotspot(token, user) {
   console.log(`Relevant: ${relevant.length} (score>=${minScore}) / ${trends.length} total`);
 
   // 4. Generate entries — AI first, template fallback
-  const aiCfg = await loadAIConfig(token, user);
   const apiKey = process.env.SILICONFLOW_API_KEY;
   const useAI = aiCfg.enabled && apiKey;
 
