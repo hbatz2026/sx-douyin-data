@@ -1,0 +1,25 @@
+{
+  "_comment": "酷狗爬取失败时的备用 BGM 列表。修改后SCF下次运行自动生效。格式: {title: 歌名, artist: 艺人}",
+  "songs": [
+    {"title": "人生路漫漫", "artist": "白小白"},
+    {"title": "枪火", "artist": "宝石Gem"},
+    {"title": "恋人", "artist": "李荣浩"},
+    {"title": "为爱痴狂", "artist": "金志文"},
+    {"title": "阴天", "artist": "莫文蔚"},
+    {"title": "骄傲的少年", "artist": "南征北战NZBZ"},
+    {"title": "我记得", "artist": "赵雷"},
+    {"title": "起风了", "artist": "买辣椒也用券"},
+    {"title": "踏遍青山", "artist": "晨夕之家"},
+    {"title": "西厢寻他", "artist": ""},
+    {"title": "万江天色", "artist": "刘珂矣"},
+    {"title": "左转灯", "artist": "派伟俊"},
+    {"title": "Star Crossing Night", "artist": "徐明浩"},
+    {"title": "孤勇者", "artist": "陈奕迅"},
+    {"title": "静音恋人", "artist": "礼越"},
+    {"title": "零距离的思念", "artist": "TINY7"},
+    {"title": "失眠了", "artist": "吴琳珂Moske"},
+    {"title": "孤独Person", "artist": "Herme4"},
+    {"title": "小气鬼", "artist": "王澳楠EVE"},
+    {"title": "你知道天空有多蓝", "artist": "椅子乐团"}
+  ]
+}
