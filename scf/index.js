@@ -89,16 +89,28 @@ async function genHotspot(token, user) {
   const rules = catConfig.rules;
 
   // 3. Filter & rank by relevance
+  const aiCfg = await loadAIConfig(token, user);
+  const minScore = aiCfg.relevanceMinScore || 2;
+
   const scored = trends.map(t => ({
     ...t,
     cat: matchCategory(t.title, rules),
     score: scoreRelevance(t.title)
   }));
-  const relevant = scored
-    .filter(t => t.score >= 4)
+
+  // Primary: score >= threshold. Fallback: use top-scored if threshold yields nothing.
+  let relevant = scored
+    .filter(t => t.score >= minScore)
     .sort((a, b) => b.score - a.score);
 
-  console.log(`Relevant: ${relevant.length} (score>=4) / ${trends.length} total`);
+  if (relevant.length === 0) {
+    console.log(`No trends pass score>=${minScore}, using all trends (fallback)`);
+    relevant = scored
+      .filter(t => t.score >= 0)
+      .sort((a, b) => b.score - a.score);
+  }
+
+  console.log(`Relevant: ${relevant.length} (score>=${minScore}) / ${trends.length} total`);
 
   // 4. Generate entries — AI first, template fallback
   const aiCfg = await loadAIConfig(token, user);
