@@ -778,11 +778,16 @@ async function deployViaEdgeOne(token, user) {
 
     console.log(`Downloaded ${downloaded} site files, deploying...`);
 
-    const cmd = `cd ${siteDir} && PAGES_SOURCE=skills npx edgeone pages deploy -n sxdouyingongfang -t ${eoToken}`;
+    const cmd = `npx --cache /tmp/npm-cache edgeone pages deploy -n sxdouyingongfang -t ${eoToken}`;
     const { exec } = require('child_process');
     const result = await new Promise((resolve, reject) => {
-      exec(cmd, { timeout: 120000, maxBuffer: 5 * 1024 * 1024 }, (err, stdout) => {
-        if (err) { console.log('CLI stdout:', (stdout || '').slice(-300)); reject(err); }
+      exec(cmd, {
+        cwd: siteDir,
+        env: { ...process.env, HOME: '/tmp', PAGES_SOURCE: 'skills' },
+        timeout: 180000,
+        maxBuffer: 5 * 1024 * 1024
+      }, (err, stdout) => {
+        if (err) { console.log('CLI stdout:', (stdout || '').slice(-400)); reject(err); }
         else resolve(stdout);
       });
     });
