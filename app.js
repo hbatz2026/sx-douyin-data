@@ -1302,7 +1302,7 @@ function showT1Preview(id, html) {
 // ===== T1 Clear =====
 function clearT1() {
   document.getElementById('t1_city').value = '';
-  document.getElementById('t1_topic').selectedIndex = 0;
+  document.getElementById('t1_topic').value = '';
   document.getElementById('t1_a').value = '';
   document.getElementById('t1_b').value = '';
   document.getElementById('t1_c').value = '';
@@ -1312,21 +1312,93 @@ function clearT1() {
   });
 }
 
-// ===== T1 Auto-fill presets on topic change =====
+// ===== T1 Auto-fill / Auto-generate presets on topic change =====
 function fillT1Presets() {
   const topic = document.getElementById('t1_topic').value;
-  if (!topic || !t1Presets[topic]) return;
-  const presets = t1Presets[topic];
+  if (!topic) return;
+
+  // 1. Try exact match
+  if (t1Presets[topic]) {
+    applyT1Presets(t1Presets[topic]);
+    return;
+  }
+
+  // 2. Try fuzzy match (strip symbols, compare first meaningful chars)
+  var tClean = topic.replace(/[「」\?？!！、，。\s\d\-\/—]/g, '').substring(0, 8);
+  for (var key in t1Presets) {
+    var kClean = key.replace(/[「」\?？!！、，。\s\d\-\/—]/g, '').substring(0, 8);
+    if (kClean === tClean) {
+      applyT1Presets(t1Presets[key]);
+      return;
+    }
+  }
+
+  // 3. Auto-generate 3 scenarios based on topic keywords
+  var generated = generateT1Scenarios(topic);
+  applyT1Presets(generated);
+}
+
+function applyT1Presets(presets) {
   document.getElementById('t1_a').value = presets[0] || '';
   document.getElementById('t1_b').value = presets[1] || '';
   document.getElementById('t1_c').value = presets[2] || '';
-  // Flash effect to show it was auto-filled
-  ['t1_a','t1_b','t1_c'].forEach(id => {
-    const el = document.getElementById(id);
+  // Flash effect
+  ['t1_a','t1_b','t1_c'].forEach(function(id) {
+    var el = document.getElementById(id);
     el.style.borderColor = '#008A5C';
     el.style.background = '#F0FFF4';
-    setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 1200);
+    setTimeout(function(){ el.style.borderColor = ''; el.style.background = ''; }, 1200);
   });
+}
+
+function generateT1Scenarios(topic) {
+  var lower = topic.toLowerCase();
+  // Broadband topics
+  if (/宽带|光纤|千兆|百兆|兆/i.test(topic)) {
+    return [
+      '一个人住，刷抖音看视频，100兆够用，月租59元',
+      '三口之家，手机+Pad+电视，300兆起步，月租99元',
+      '重度游戏/直播/4K，直接上FTTR全屋千兆，月租169元'
+    ];
+  }
+  // Phone / contract topics
+  if (/手机|合约|购机|以旧换新|nova|荣耀|华为|小米|OPPO|vivo/i.test(topic)) {
+    return [
+      '合约机方案：首付低+月租含话费流量，3年比裸机省500-1500元',
+      '裸机方案：一次付清自由换套餐，适合已有满意套餐的用户',
+      '以旧换新：旧机折价+电信补贴，新机半价到手'
+    ];
+  }
+  // Package / plan topics
+  if (/套餐|月租|话费|流量|分钟/i.test(topic)) {
+    return [
+      '轻度用户：每月5G流量+100分钟通话，月租29元封顶',
+      '中度用户：每月30G流量+500分钟通话+会员，月租59元',
+      '全家桶：3张卡+宽带+IPTV，人均30-50元/月'
+    ];
+  }
+  // Student / grad / school topics
+  if (/学生|毕业|校园|暑假|寒假|开学|考生|高考/i.test(topic)) {
+    return [
+      '学生专享套餐：大流量+低月租，校园全覆盖，月租29元起',
+      '毕业换号方案：保留老号+新办学生卡，两个号码一个套餐',
+      '暑假短期宽带：按季度付费，不用不花钱，3个月299元'
+    ];
+  }
+  // Comparison / selection topics
+  if (/对比|怎么选|哪个|值得|横评|避坑|指南/i.test(topic)) {
+    return [
+      '方案一：省钱优先——基础配置，满足日常，月费最低',
+      '方案二：体验优先——中配方案，多设备不卡，性价比最优',
+      '方案三：一步到位——顶配全包，未来3年不用换，长期最划算'
+    ];
+  }
+  // Fallback: generic 3-tier
+  return [
+    '方案一：基础入门，适合一个人，月费最低',
+    '方案二：进阶配置，适合家庭，月费适中',
+    '方案三：旗舰顶配，适合多人/重度使用，长期最划算'
+  ];
 }
 
 // ===== Topic Bank → Template Jump =====
