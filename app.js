@@ -449,7 +449,6 @@ switchPage = function(name, el, noPush) {
   var result = origSwitchPage(name, el, noPush);
   // Auto-fill store after page switch (slight delay for DOM to settle)
   setTimeout(autoFillStore, 80);
-  setTimeout(refreshAIBars, 120);
   return result;
 };
 
@@ -526,136 +525,6 @@ function autoFillStore() {
     if (prompt) prompt.style.display = '';
   }
 })();
-
-// ===== AI Video Generation (Demo) =====
-var AI_VIDEO_TEMPLATES = {
-  t1: {
-    label: '决策指南',
-    build: function() {
-      var topic = (document.getElementById('t1_topic')||{}).value || '';
-      var city = (document.getElementById('t1_city')||{}).value || '本地';
-      return '短视频B-roll素材，竖屏9:16，科技商务风格。'+city+'电信营业厅宽带对比场景，主题：'+topic+'。网速测试动画、对比表格、路由器特写，电信蓝配色。15秒，无水印。';
-    }
-  },
-  t2: {
-    label: '一线场景',
-    build: function() {
-      var prob = (document.getElementById('t2_problem')||{}).value || '宽带问题';
-      var cust = (document.getElementById('t2_customer')||{}).value || '客户';
-      return '短视频B-roll素材，竖屏9:16，温馨真实风格。装维师傅上门服务场景：'+cust+'遇到了'+prob+'。检查路由器、调试宽带、信号测试，室内明亮光线下拍摄。15秒。';
-    }
-  },
-  t3: {
-    label: '深度测评',
-    build: function() {
-      var dev = (document.getElementById('t3_device')||{}).value || '电信设备';
-      var tp = (document.getElementById('t3_topic')||{}).value || '产品展示';
-      return '短视频B-roll素材，竖屏9:16，科技评测风格。'+dev+'产品特写：旋转展示、接口细节、安装过程、使用场景。白色/浅灰简约背景，产品质感突出。15秒。';
-    }
-  },
-  t4: {
-    label: '本地事件',
-    build: function() {
-      var shop = (document.getElementById('t4_shop')||{}).value || '电信营业厅';
-      var city = (document.getElementById('t4_city')||{}).value || '本地';
-      return '短视频B-roll素材，竖屏9:16，本地生活探店风格。'+city+shop+'门店外观、店内环境、工作人员服务、顾客到店。明亮温馨，活动促销氛围。15秒，无水印。';
-    }
-  }
-};
-
-function genAIVideo(t) {
-  var tmpl = AI_VIDEO_TEMPLATES[t];
-  if (!tmpl) return;
-  var bar = document.getElementById('ai_bar_'+t);
-  var btn = document.getElementById('ai_btn_'+t);
-  var hintEl = document.getElementById('ai_hint_'+t);
-  
-  // Collect form data
-  var data = { t: t };
-  if (t === 't1') { data.topic = (document.getElementById('t1_topic')||{}).value || ''; data.city = (document.getElementById('t1_city')||{}).value || ''; }
-  if (t === 't2') { data.topic = (document.getElementById('t2_problem')||{}).value || ''; data.city = ''; }
-  if (t === 't3') { data.topic = (document.getElementById('t3_topic')||{}).value || ''; data.city = (document.getElementById('t3_city')||{}).value || ''; }
-  if (t === 't4') { data.topic = ''; data.city = (document.getElementById('t4_city')||{}).value || ''; }
-  data.prompt = tmpl.build();
-  
-  // Show loading state
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ 生成中...'; btn.style.background = '#FFB74D'; btn.style.color = '#fff'; }
-  if (hintEl) { hintEl.style.display = ''; hintEl.textContent = '⏳ 正在匹配演示视频...'; hintEl.style.background = '#FFF3E0'; hintEl.style.color = '#E65100'; }
-  
-  // Call EdgeOne Function API
-  fetch('/api/gen-video', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(result) {
-    if (btn) { btn.disabled = false; btn.textContent = '✨ 生成'; btn.style.background = '#fff'; btn.style.color = '#764ba2'; }
-    if (result.status === 'ok' && result.video) {
-      var v = result.video;
-      var vidHtml = '<div style="margin-top:8px;"><div style="font-weight:600;margin-bottom:4px;">✅ '+esc(v.name)+'</div>';
-      vidHtml += '<video controls style="width:100%;max-width:360px;border-radius:8px;" poster=""><source src="'+esc(v.url)+'" type="video/mp4"></video>';
-      vidHtml += '<div style="margin-top:6px;font-size:11px;"><a href="'+esc(v.url)+'" download style="color:#fff;text-decoration:underline;">📥 下载视频</a></div>';
-      if (result.all_videos && result.all_videos.length > 1) {
-        vidHtml += '<div style="margin-top:6px;font-size:11px;">🔄 其他可选：';
-        result.all_videos.forEach(function(av) {
-          if (av.url !== v.url) vidHtml += ' <a href="'+esc(av.url)+'" download style="color:#fff;opacity:0.7;">'+esc(av.name)+'</a>';
-        });
-        vidHtml += '</div>';
-      }
-      vidHtml += '</div>';
-      if (hintEl) { hintEl.innerHTML = vidHtml; hintEl.style.background = 'rgba(255,255,255,0.15)'; hintEl.style.color = '#fff'; }
-      track('ai_video_matched', t);
-    } else if (result.status === 'no_match') {
-      copyText(data.prompt);
-      if (hintEl) { hintEl.innerHTML = '暂无匹配视频。提示词已复制，可粘贴到AI工具中生成。<br><span style="font-size:10px;opacity:0.7;">'+esc(data.prompt.substring(0,60))+'…</span>'; hintEl.style.background = 'rgba(255,255,255,0.15)'; hintEl.style.color = '#fff'; }
-    } else {
-      copyText(data.prompt);
-      if (hintEl) { hintEl.textContent = '服务暂不可用，提示词已复制。'; hintEl.style.background = '#FFEBEE'; hintEl.style.color = '#C62828'; }
-    }
-  })
-  .catch(function(err) {
-    if (btn) { btn.disabled = false; btn.textContent = '✨ 生成'; btn.style.background = '#fff'; btn.style.color = '#764ba2'; }
-    copyText(data.prompt);
-    if (hintEl) { hintEl.textContent = '服务暂不可用，提示词已复制。'; hintEl.style.background = '#FFEBEE'; hintEl.style.color = '#C62828'; }
-    console.error('gen-video API error:', err);
-  });
-  
-  track('ai_video_request', t);
-}
-
-function refreshAIBars() {
-  // Only scan templates that could have previews (skip schedule/bank/hotspot/live/history/stats)
-  if (['schedule','bank','hotspot','live','history','stats'].indexOf(currentPage) >= 0) return;
-  ['t1','t2','t3','t4'].forEach(function(t) {
-    var bar = document.getElementById('ai_bar_'+t);
-    var btn = document.getElementById('ai_btn_'+t);
-    if (!bar) return;
-    var hasPreview = false;
-    try {
-      var pfxs = {t1:'preview1', t2:'preview2', t3:'preview3', t4:'preview4'};
-      var sfxs = ['-talk','-card','-calc','-tell','-doc','-short','-silent','-walk','-mix','-countdown'];
-      sfxs.forEach(function(s) {
-        var el = document.getElementById(pfxs[t]+s);
-        if (el && el.style.display!=='none' && el.innerHTML.trim()) hasPreview = true;
-      });
-    } catch(e) {}
-    if (hasPreview) {
-      bar.style.background = 'linear-gradient(135deg,#667eea,#764ba2)';
-      bar.style.color = '#fff';
-      bar.style.border = 'none';
-      bar.querySelector('span').nextElementSibling.textContent = '基于你的脚本自动生成B-roll素材';
-      if (btn) { btn.disabled = false; btn.style.background = '#fff'; btn.style.color = '#764ba2'; btn.style.cursor = 'pointer'; }
-    } else {
-      bar.style.background = '#F5F5F5';
-      bar.style.color = '#666';
-      bar.style.border = '1.5px dashed #ddd';
-      bar.querySelector('span').nextElementSibling.textContent = '先预览脚本后可用';
-      if (btn) { btn.disabled = true; btn.style.background = '#ccc'; btn.style.color = '#999'; btn.style.cursor = 'not-allowed'; }
-    }
-  });
-}
-
 // ===== Week Calculation =====
 function getWeekRange() {
   const now = new Date();
@@ -841,16 +710,40 @@ function buildSchedule() {
   const times = ['14:00-15:00', '12:00-13:00', '9:00-10:00', '14:00-16:00', '15:00-16:00'];
   const dayNames = ['周一', '周二', '周三', '周四', '周五'];
   
+  // Smart time recommendation based on bound store city
+  var storeCity = '';
+  try {
+    var store = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if (store && store.city) storeCity = store.city;
+  } catch(e) {}
+  
+  function getRecommendedTime(city) {
+    // 省会城市：推荐中午到下午早段，避开晚高峰 17-19
+    if (/太原|石家庄|郑州|济南|西安|武汉|长沙|南昌|合肥|南京|杭州|福州|广州|南宁|海口|昆明|贵阳|成都|重庆|拉萨|西宁|兰州|银川|呼和浩特|乌鲁木齐|沈阳|长春|哈尔滨|北京|天津|上海/i.test(city)) {
+      return '11:00-13:00';
+    }
+    // 县城：午休时段观看高峰
+    if (/县|乡镇|村|旗/i.test(city)) {
+      return '12:00-14:00';
+    }
+    // 其他城市：下午工作时间较好
+    return '14:00-16:00';
+  }
+  
+  var recTime = getRecommendedTime(storeCity);
+  
   let html = '';
   for (let i = 0; i < 5; i++) {
     const d = new Date(week.monday);
     d.setDate(week.monday.getDate() + i);
+    var recDisplay = recTime !== times[i] ? '<div class="day-time-rec">💡 推荐发布：' + recTime + '</div>' : '';
     html += `<div class="schedule-day clickable" onclick="switchPage('${pageIds[i]}', document.querySelector('.nav-tab[onclick*=${pageIds[i]}]'));jumpToTemplate('${weekTopics[i].replace(/'/g, "\\'")}',${i})" title="点击跳转到${types[i]}模板">
       <div class="day-name">${dayNames[i]}</div>
       <div class="day-date">${d.getMonth()+1}/${d.getDate()}</div>
       <div class="day-type ${typeColors[types[i]]}">${typeIcons[types[i]]} ${types[i]}</div>
       <div class="day-topic">${weekTopics[i]}</div>
       <div class="day-time">⏰ ${times[i]}</div>
+      ${recDisplay}
     </div>`;
   }
   grid.innerHTML = html;
@@ -1578,38 +1471,52 @@ function jumpToTemplate(topic, typeIdx) {
     }
   }
   if (typeIdx === 1) {
-    // Scene: fill problem field with topic as story starter
+    // Scene: fill problem field with topic as story starter and auto-match preset
     document.getElementById('t2_problem').value = topic;
     document.getElementById('t2_problem').style.borderColor = '#008A5C';
     document.getElementById('t2_problem').style.background = '#F0FFF4';
-    setTimeout(() => { document.getElementById('t2_problem').style.borderColor = ''; document.getElementById('t2_problem').style.background = ''; }, 1200);
+    setTimeout(function() { document.getElementById('t2_problem').style.borderColor = ''; document.getElementById('t2_problem').style.background = ''; }, 1200);
+    setTimeout(function() { matchT2Preset(); }, 100);
   }
   if (typeIdx === 2) {
-    // Review: select topic in dropdown (user still needs to pick device, but we pre-fill the topic if possible)
-    // First ensure device is selected (default: 光猫), then try to select topic
+    // Review: auto-fill device → load topics → select best match
     const devSel = document.getElementById('t3_device');
     if (!devSel.value) { devSel.value = '光猫'; loadTopicsByDevice(); }
-    // Small delay to let topics load, then select
-    setTimeout(() => {
+    setTimeout(function() {
       const topicSel = document.getElementById('t3_topic');
-      for (let i = 0; i < topicSel.options.length; i++) {
-        if (topicSel.options[i].textContent.includes(topic.substring(0,4))) {
-          topicSel.selectedIndex = i;
-          autoFillTech();
-          break;
+      // Fuzzy match: try different strategies
+      var bestIdx = -1, bestScore = 0;
+      for (var i = 0; i < topicSel.options.length; i++) {
+        var optText = topicSel.options[i].textContent;
+        // Strategy 1: topic appears in option text
+        if (optText.includes(topic.substring(0, 6))) { bestIdx = i; break; }
+        // Strategy 2: keyword overlap score
+        var score = 0;
+        var kw = topic.replace(/[?？，,！!]/g, '').split(/\s+/);
+        for (var k = 0; k < kw.length; k++) {
+          if (kw[k].length >= 2 && optText.includes(kw[k])) score++;
         }
+        if (score > bestScore) { bestScore = score; bestIdx = i; }
+      }
+      if (bestIdx >= 0 && bestScore >= 1) {
+        topicSel.selectedIndex = bestIdx;
+        autoFillTech();
+      } else if (bestIdx >= 0) {
+        topicSel.selectedIndex = bestIdx;
+        autoFillTech();
       }
     }, 200);
   }
   if (typeIdx === 3) {
-    // Local: fill benefit + desc fields
+    // Local: fill benefit + desc fields, then auto-match activity type
     document.getElementById('t4_benefit').value = topic;
     document.getElementById('t4_desc').value = topic + '，来店里看看，就在附近';
     document.getElementById('t4_benefit').style.borderColor = '#008A5C';
     document.getElementById('t4_benefit').style.background = '#F0FFF4';
-    setTimeout(() => { 
+    setTimeout(function() { 
       document.getElementById('t4_benefit').style.borderColor = ''; 
       document.getElementById('t4_benefit').style.background = ''; 
+      matchT4Preset();
     }, 1200);
   }
 }
@@ -1783,6 +1690,48 @@ function fillT2Presets() {
   autoFillBGM('template2', 't2_bgm', '一线场景', subCat);
 }
 
+// Auto-match T2 preset based on problem/customer text keywords
+function matchT2Preset() {
+  var problemEl = document.getElementById('t2_problem');
+  var customerEl = document.getElementById('t2_customer');
+  var presetEl = document.getElementById('t2_preset');
+  if (!problemEl || !presetEl) return;
+  
+  var text = ((problemEl.value || '') + ' ' + (customerEl ? customerEl.value : '')).toLowerCase();
+  if (text.length < 2) return; // too short to match
+  
+  // Keyword → preset key mapping (order matters: more specific first)
+  var rules = [
+    { kw: /投诉|不满|生气|态度|服务差|解决|赔偿/i, preset: '投诉化解' },
+    { kw: /装机|新装|安装|拉线|布线|新迁|搬新家|装修/i, preset: '装机故事' },
+    { kw: /中秋|春节|端午|节日|过年|送|福利|慰问/i, preset: '节日活动' },
+    { kw: /暴雨|风雪|台风|晚上|半夜|凌晨|抢修|紧急/i, preset: '突发事件' },
+    { kw: /环卫|外卖|快递|骑手|小哥|失物|找|免费|爱心|帮助/i, preset: '公益服务' },
+    { kw: /单位|企业|公司|政府|改造|项目|网络部署/i, preset: '政企服务' },
+    { kw: /学生|迎新|报到|新生|校园|开学|大学|高考/i, preset: '校园迎新' },
+    { kw: /小区|社区|广场|摆摊|便民|服务点|宣传|活动/i, preset: '社区营销' },
+    { kw: /老人.*(手机|智能|教|学|不会|怕|微信)|防诈骗|数字/i, preset: '数字课堂' },
+    { kw: /老人|帮|谢谢|感动|视频通话|联系|子女|孙子|哭了|银发/i, preset: '银发服务' },
+    { kw: /老街坊|多年|回头客|认识|熟悉|老顾客|十年前|老客户/i, preset: '老客户情谊' },
+    { kw: /网慢|网卡|WiFi|路由器|宽带|信号|光猫|报修|不能上网|断网/i, preset: '上门维修' },
+    { kw: /套餐|办业务|升级|降档|资费|缴费|换套餐/i, preset: '柜台服务' },
+    { kw: /流量|超了|突然|紧急|超支|用完|没流量/i, preset: '突发状况' },
+    { kw: /温暖|感动|温馨|治愈|感谢/i, preset: '温暖瞬间' },
+  ];
+  
+  for (var i = 0; i < rules.length; i++) {
+    if (rules[i].kw.test(text)) {
+      for (var j = 0; j < presetEl.options.length; j++) {
+        if (presetEl.options[j].value === rules[i].preset) {
+          presetEl.selectedIndex = j;
+          fillT2Presets();
+          return;
+        }
+      }
+    }
+  }
+}
+
 // Auto-fill BGM based on category and sub-category from bgmList
 function autoFillBGM(pageId, bgmElId, category, subCategory) {
   var bgmEl = document.getElementById(bgmElId);
@@ -1906,21 +1855,78 @@ function autoFillTech() {
     data = techDB[device].topics[topic];
   }
   
+  // Fallback: fuzzy match by topic keyword
+  if (!data && topic) {
+    data = fuzzyTechFill(device, topic);
+  }
+  
   if (!data) {
     infoDiv.style.display = 'none';
     return;
   }
   
-  document.getElementById('t3_item').value = data.item;
-  document.getElementById('t3_func').value = data.func;
-  document.getElementById('t3_p1').value = data.p1;
-  document.getElementById('t3_p2').value = data.p2;
-  document.getElementById('t3_p3').value = data.p3;
-  document.getElementById('t3_title').value = data.title;
-  document.getElementById('t3_tags').value = data.tags;
+  document.getElementById('t3_item').value = data.item || device;
+  document.getElementById('t3_func').value = data.func || '详解';
+  document.getElementById('t3_p1').value = data.p1 || '';
+  document.getElementById('t3_p2').value = data.p2 || '';
+  document.getElementById('t3_p3').value = data.p3 || '';
+  document.getElementById('t3_title').value = data.title || '';
+  document.getElementById('t3_tags').value = data.tags || '';
   
-  summary.textContent = '设备: ' + data.item + ' | 选题: ' + topic + ' | 标题: ' + data.title + ' | 3个部位说明已自动填入';
+  summary.textContent = '设备: ' + (data.item || device) + ' | 选题: ' + topic + ' | 标题: ' + data.title + ' | 3个要点已自动填入';
   infoDiv.style.display = 'block';
+}
+
+// Fuzzy tech fill: generate content from topic keywords when no exact match found
+function fuzzyTechFill(device, topic) {
+  var t = topic.toLowerCase();
+  var item = device;
+  var func = '详解';
+  var title = topic;
+  var tags = '#宽带科普 #电信营业厅 #实用知识';
+  var p1 = '', p2 = '', p3 = '';
+  
+  // Detect topic type
+  if (/实测|对比|测试|速度/i.test(t)) {
+    func = '实测对比';
+    if (/FTTR|全屋/i.test(t)) {
+      p1 = 'FTTR每个房间实测：主路由放在客厅，卧室隔两堵墙WiFi信号格数对比';
+      p2 = 'Speedtest实测数据：普通路由器卧室50M，FTTR光纤到屋卧室900M+';
+      p3 = '结论：FTTR多花的月租值不值？算一笔账，月均多30元换来全屋满速';
+    } else if (/5G|网速|下载/i.test(t)) {
+      p1 = '实测环境：电信5G网络，市区/室内/室外三个场景分别测试';
+      p2 = '下载速度：王者荣耀1.5GB下载仅需12秒，4G需要3分钟';
+      p3 = '对比友商：同样位置电信5G快30%，延迟低15ms';
+    } else {
+      p1 = '实测条件：统一环境、统一时间、三次测量取平均值';
+      p2 = '核心数据：列举3个关键指标的实测数值对比表';
+      p3 = '选购建议：就你日常使用场景，选性价比最高的方案';
+    }
+    tags = '#实测 #网速测试 #对比评测';
+  } else if (/图|指示|灯|接口|说明/i.test(t)) {
+    func = '图解说明';
+    p1 = '正面/前面板：从左到右逐一标注，功能一句话说明';
+    p2 = '背面接口：网口/电源/光纤口/复位键，用箭头标注每个的作用';
+    p3 = '指示灯含义：不同颜色/闪烁代表什么状态，一张图秒懂';
+  } else if (/值不值|划算|价格|省钱|费用/i.test(t)) {
+    func = '成本分析';
+    p1 = '月费：基础套餐XX元，算上所有优惠实际月均多少钱';
+    p2 = '对比：同档位移动/联通套餐，电信多送了哪些权益';
+    p3 = '长期算账：3年合约期总花费 vs 单买设备+单办宽带，省了多少';
+    tags = '#省钱攻略 #宽带套餐 #电信优惠';
+  } else if (/装|DIY|教程|步骤|怎么|如何/i.test(t)) {
+    func = '安装教程';
+    p1 = '第一步：准备工具和材料（光猫/路由器/网线/光纤/工具刀）';
+    p2 = '第二步：连接顺序详解（光纤→光猫→路由器→设备），每种线的颜色标记';
+    p3 = '第三步：通电测试，指示灯是否正常，手机搜WiFi连接测速';
+  } else {
+    func = '核心卖点';
+    p1 = '产品定位：适合什么人群、什么使用场景，一句话说清楚';
+    p2 = '核心优势：对比同类产品的3个差异化卖点';
+    p3 = '注意事项：购买/安装/使用中容易踩的坑，提前避雷';
+  }
+  
+  return { item: item, func: func, title: title, tags: tags, p1: p1, p2: p2, p3: p3 };
 }
 
 // ===== T3 Mode Switcher =====
@@ -2597,8 +2603,48 @@ function fillT4Presets() {
   ['t4_benefit','t4_desc','t4_tags'].forEach(id => {
     const el = document.getElementById(id);
     el.style.borderColor = '#008A5C'; el.style.background = '#F0FFF4';
-    setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 1200);
+    setTimeout(function() { el.style.borderColor = ''; el.style.background = ''; }, 1200);
   });
+  // Auto-fill BGM based on activity type
+  var subCat = '探店活力';
+  if (/清洁|贴膜/i.test(key)) subCat = '温馨服务';
+  else if (/体验|测速/i.test(key)) subCat = '福利快闪';
+  else if (/送礼|特惠|换新/i.test(key)) subCat = '福利快闪';
+  else if (/社区/i.test(key)) subCat = '温馨服务';
+  autoFillBGM('template4', 't4_bgm', '本地事件', subCat);
+}
+
+// Auto-match T4 activity type from topic keywords (for schedule→T4 routing)
+function matchT4Preset() {
+  var benefitEl = document.getElementById('t4_benefit');
+  var presetEl = document.getElementById('t4_preset');
+  if (!benefitEl || !presetEl) return;
+  
+  var text = (benefitEl.value || '').toLowerCase();
+  if (text.length < 2) return;
+  
+  var rules = [
+    { kw: /贴膜|膜/i, preset: '免费贴膜' },
+    { kw: /测速|网速|网.*测/i, preset: '免费测速' },
+    { kw: /送礼|办业务|新装|宽带.*办|优惠/i, preset: '办业务送礼' },
+    { kw: /以旧换新|换新|旧.*换|抵|回收/i, preset: '以旧换新' },
+    { kw: /清洁|消毒|保养|除尘/i, preset: '手机清洁' },
+    { kw: /体验|试用|试.*宽带|尝鲜/i, preset: '宽带体验' },
+    { kw: /暑假|暑期|毕业|学生|应届/i, preset: '暑期特惠' },
+    { kw: /社区|小区|便民|上门|服务点/i, preset: '社区服务' },
+  ];
+  
+  for (var i = 0; i < rules.length; i++) {
+    if (rules[i].kw.test(text)) {
+      for (var j = 0; j < presetEl.options.length; j++) {
+        if (presetEl.options[j].value === rules[i].preset) {
+          presetEl.selectedIndex = j;
+          fillT4Presets();
+          return;
+        }
+      }
+    }
+  }
 }
 
 // ===== Clear Functions =====
@@ -2659,9 +2705,31 @@ function downloadAsImage(previewId) {
 // ===== HOTSPOT DATA (weekly updated · 2026-06-15 · 世界杯+毕业季特辑) =====
 // [Data] Loaded from data/hotspotData.js (auto-updated weekly)
 const hotspotData = (function() {
-  try { if (window.___hotspotData) return window.___hotspotData; } catch(e) {}
-  return window.___hotspotData || {};
+  try { if (window.___hotspotData) return padHotspotData(window.___hotspotData); } catch(e) {}
+  return padHotspotData(window.___hotspotData || []);
 })();
+
+// Hotspot data padding: ensure 7 entries, fill missing with generic telecom templates
+function padHotspotData(data) {
+  if (!Array.isArray(data)) data = [];
+  if (data.length >= 7) return data;
+  
+  var fallbacks = [
+    { id: '_pad_1', tier: 3, title: '你的宽带每月花多少钱？全网比价挑战', heat: '全网热门', why: '宽带资费是全民痛点，对比三家运营商套餐性价比。', source: 'https://www.douyin.com/search/宽带比价', steps: [{ shot: '展示本月宽带账单', sub: '特写账单金额，露出惊讶表情' }, { shot: '对比三家同档位套餐', sub: '用表格展示电信vs联通vs移动' }, { shot: '实测速度+稳定性', sub: '同时开视频/游戏/下载测试' }, { shot: '算出结论推荐最优选', sub: '最终推荐电信套餐，扫码可办' }], bgm: '为爱痴狂 - 金志文', tags: '#宽带比价 #省钱攻略 #电信宽带', difficulty: 1, needFace: true, time: '8分钟' },
+    { id: '_pad_2', tier: 3, title: '手机信号大比拼：电梯+地库+山区三场景实测', heat: '全网热门', why: '信号痛点场景最能打动人，真实测试有说服力。', source: 'https://www.douyin.com/search/手机信号测试', steps: [{ shot: '进电梯看信号格变化', sub: '电信vs友商，谁先掉信号' }, { shot: '地下车库测网速', sub: 'Speedtest实测数值对比' }, { shot: '郊区边缘地带测试', sub: '信号盲区谁还能打电话' }, { shot: '总结+营业厅信息', sub: '电信综合覆盖最优，到店可办' }], bgm: '悬溺 - 葛东琪', tags: '#信号测试 #5G #电梯挑战', difficulty: 1, needFace: true, time: '10分钟' },
+    { id: '_pad_3', tier: 3, title: 'FTTR到底值不值得装？入户实景对比', heat: '全网热门', why: 'FTTR是新款宽带主力产品，实景对比最有说服力。', source: 'https://www.douyin.com/search/FTTR实测', steps: [{ shot: '普通路由器测速：客厅→卧室', sub: '隔两堵墙后速度腰斩' }, { shot: 'FTTR安装过程快放', sub: '15分钟从装机到全屋覆盖' }, { shot: 'FTTR全屋测速对比', sub: '每个房间都跑满千兆' }, { shot: '算一笔账：月均多花多少钱', sub: '多花的钱值不值，算给用户看' }], bgm: '卡农 - DJ版', tags: '#FTTR #全屋WiFi #千兆宽带', difficulty: 1, needFace: true, time: '8分钟' }
+  ];
+  
+  var padded = data.slice(); // copy original
+  var nextId = data.length + 1;
+  for (var i = 0; i < fallbacks.length && padded.length < 7; i++) {
+    var fb = fallbacks[i];
+    fb.id = 'h' + nextId++;
+    padded.push(fb);
+  }
+  console.log('Hotspot padded: ' + data.length + ' → ' + padded.length);
+  return padded;
+}
 
 
 let hotspotFilter = 'all';

@@ -5,17 +5,17 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>山西电信抖本内容工坊 · 选题&脚本填空</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=1.9.2">
 
   <!-- External data files (updated weekly by WorkBuddy auto-sync) -->
-  <script src="data/topicPool.js"></script>
-  <script src="data/t1Presets.js"></script>
-  <script src="data/phonePool.js"></script>
-  <script src="data/techDB.js"></script>
-  <script src="data/t2Presets.js"></script>
-  <script src="data/t4Presets.js"></script>
-  <script src="data/hotspotData.js"></script>
-  <script src="data/bgmList.js"></script>
+  <script src="data/topicPool.js?v=1.9.2"></script>
+  <script src="data/t1Presets.js?v=1.9.2"></script>
+  <script src="data/phonePool.js?v=1.9.2"></script>
+  <script src="data/techDB.js?v=1.9.2"></script>
+  <script src="data/t2Presets.js?v=1.9.2"></script>
+  <script src="data/t4Presets.js?v=1.9.2"></script>
+  <script src="data/hotspotData.js?v=1.9.2"></script>
+  <script src="data/bgmList.js?v=1.9.2"></script>
 
 </head>
 <body>
@@ -29,7 +29,7 @@
   <!-- Header -->
   <div class="header">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布</div>
+    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v1.9</span></div>
     <div id="storeBar" style="margin-top:8px;">
       <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
       <span id="storePrompt">
@@ -292,14 +292,14 @@
         </div>
         <div class="form-group">
           <label>客户遇到的问题</label>
-          <input id="t2_problem" placeholder="说家里网慢了3年，看视频一直转圈">
+          <input id="t2_problem" placeholder="说家里网慢了3年，看视频一直转圈" oninput="matchT2Preset()">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label>上门发现的具体问题</label>
-          <input id="t2_finding" placeholder="路由器塞在电视柜最里面，旁边还有微波炉">
+          <input id="t2_finding" placeholder="路由器塞在电视柜最里面，旁边还有微波炉" oninput="matchT2Preset()">
         </div>
         <div class="form-group">
           <label>操作步骤（不超过3步）</label>
@@ -593,7 +593,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>意外福利/亮点</label>
-          <input id="t4_benefit" placeholder="免费贴膜" value="免费贴膜">
+          <input id="t4_benefit" placeholder="免费贴膜" value="免费贴膜" oninput="matchT4Preset()">
         </div>
         <div class="form-group">
           <label>福利说明/服务内容</label>
@@ -986,4 +986,4 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js"></script>
+  <script src="app.js?v=1.9.2"></script>
