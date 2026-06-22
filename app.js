@@ -1352,52 +1352,82 @@ function applyT1Presets(presets) {
 }
 
 function generateT1Scenarios(topic) {
-  var lower = topic.toLowerCase();
-  // Broadband topics
-  if (/宽带|光纤|千兆|百兆|兆/i.test(topic)) {
+  // Extract context keywords from the topic
+  var isWorldCup = /世界杯|看球|球赛|足球/i.test(topic);
+  var isStudent = /学生|毕业|校园|考生|高考|中考|暑假|寒假|开学/i.test(topic);
+  var isRental = /租房|合租|独居/i.test(topic);
+  var isElderly = /老人|银发|爸妈|父母|长辈/i.test(topic);
+  var isGame = /游戏|电竞|直播|主播/i.test(topic);
+  var isFamily = /家庭|全家|三口|四口/i.test(topic);
+  var msgPrefix = '';
+
+  // --- Broadband ---
+  if (/宽带|光纤|千兆|百兆|兆|网速|FTTR|WiFi/i.test(topic)) {
+    var ctxA = isRental ? '租房一个人住' : (isStudent ? '学生宿舍/一个人住' : '一个人住');
+    var ctxB = isFamily ? '三口/四口之家' : '两口/三口之家';
+    var ctxC = isWorldCup ? '4K看球直播' : (isGame ? '电竞直播/高清连麦' : '重度游戏/4K视频/直播');
+    var extraA = isWorldCup ? '看1080P球赛流畅' : (isRental ? '搬家方便移机' : '刷视频看剧够用');
+    var extraB = isWorldCup ? '两台设备同时看不同赛事不卡' : (isFamily ? '多台手机+电视同时在线不卡' : '多设备同时在线不卡');
+    var extraC = isWorldCup ? '4K超清球赛直播零延迟' : '上传下载极速不等待';
+    msgPrefix = isWorldCup ? '看球专用' : (isStudent ? '学生刚需' : '');
     return [
-      '一个人住，刷抖音看视频，100兆够用，月租59元',
-      '三口之家，手机+Pad+电视，300兆起步，月租99元',
-      '重度游戏/直播/4K，直接上FTTR全屋千兆，月租169元'
+      (msgPrefix ? msgPrefix + '｜' : '') + ctxA + '，100兆入门，' + extraA + '，月租59元',
+      (msgPrefix ? msgPrefix + '｜' : '') + ctxB + '，300兆起步，' + extraB + '，月租99元',
+      (msgPrefix ? msgPrefix + '｜' : '') + ctxC + '，千兆FTTR全屋覆盖，' + extraC + '，月租169元'
     ];
   }
-  // Phone / contract topics
-  if (/手机|合约|购机|以旧换新|nova|荣耀|华为|小米|OPPO|vivo/i.test(topic)) {
+  // --- Phone / 合约机 ---
+  if (/手机|合约|购机|以旧换新|nova|荣耀|华为|小米|OPPO|vivo|iPhone|苹果/i.test(topic)) {
+    var phoneCtx = isWorldCup ? '看球大屏' : (isStudent ? '学生党' : (isElderly ? '长辈用机' : ''));
+    var phonePrefix = phoneCtx ? phoneCtx + '｜' : '';
     return [
-      '合约机方案：首付低+月租含话费流量，3年比裸机省500-1500元',
-      '裸机方案：一次付清自由换套餐，适合已有满意套餐的用户',
-      '以旧换新：旧机折价+电信补贴，新机半价到手'
+      phonePrefix + '合约机方案：首付低+月租含话费流量，3年比裸机省500-1500元' + (phoneCtx ? '，' + phoneCtx + '首选' : ''),
+      phonePrefix + '裸机全款：一次付清不绑定套餐，适合已有满意套餐的用户',
+      phonePrefix + '以旧换新：旧手机折价' + (isStudent ? '，学生再减100元' : '+电信补贴') + '，新机半价到手'
     ];
   }
-  // Package / plan topics
-  if (/套餐|月租|话费|流量|分钟/i.test(topic)) {
+  // --- 套餐/话费/流量 ---
+  if (/套餐|月租|话费|流量|分钟|资费|话费/i.test(topic)) {
+    var planA = isStudent ? '学生轻量版：每月20G+200分钟，校园流量免费，月租29元' : '轻度用户：每月5G流量+100分钟通话，月租29元';
+    var planB = isFamily ? '家庭共享版：3人共用60G+1000分钟+宽带，人均月租39元' : '中度用户：每月30G流量+500分钟通话+App会员，月租59元';
+    var planC = isWorldCup ? '看球王炸版：100G超大流量+千兆宽带+体育会员，月租129元' : '全家桶：3张卡+宽带+IPTV，人均30-50元/月';
+    return [planA, planB, planC];
+  }
+  // --- 疑难杂症/避坑 ---
+  if (/避坑|指南|问题|故障|怎么办|卡顿|慢|连不上|掉线/i.test(topic)) {
+    if (/路由器|WiFi|无线/i.test(topic)) {
+      return [
+        '坑1：路由器放墙角→信号衰减60%，正确：放客厅中央高出1米',
+        '坑2：用了5年前的老路由→跑不满千兆，正确：换WiFi6路由器',
+        '坑3：2.4G和5G混用→手机自动连错频段，正确：分开命名，主力设备锁5G'
+      ];
+    }
+    if (/光猫|宽带|网速|网络/i.test(topic)) {
+      return [
+        '问题1：光猫指示灯全闪→可能是线路故障，先重启再报修',
+        '问题2：测速达标但刷视频卡→路由老化或连接设备过多，换路由解决',
+        '问题3：晚上8-10点网速变慢→小区带宽高峰期，升级千兆可解'
+      ];
+    }
     return [
-      '轻度用户：每月5G流量+100分钟通话，月租29元封顶',
-      '中度用户：每月30G流量+500分钟通话+会员，月租59元',
-      '全家桶：3张卡+宽带+IPTV，人均30-50元/月'
+      '问题1：最常见的误操作——' + topic.slice(0,6) + '，先重启设备试试',
+      '问题2：第二步排查——检查线路连接和指示灯状态',
+      '问题3：终极方案——打10000号或到营业厅，免费上门检测'
     ];
   }
-  // Student / grad / school topics
-  if (/学生|毕业|校园|暑假|寒假|开学|考生|高考/i.test(topic)) {
+  // --- 对比/选择类（通用优化版）---
+  if (/对比|怎么选|哪个|值得|横评/i.test(topic)) {
     return [
-      '学生专享套餐：大流量+低月租，校园全覆盖，月租29元起',
-      '毕业换号方案：保留老号+新办学生卡，两个号码一个套餐',
-      '暑假短期宽带：按季度付费，不用不花钱，3个月299元'
+      '方案A 省钱党：基础配置够用不浪费，月费最低，平时刷视频看微信完全OK',
+      '方案B 性价比：中配方案黄金比例，多设备同时用不卡顿，90%人选这一档',
+      '方案C 旗舰党：顶配一步到位，未来3年不用愁升级，钱花在体验上'
     ];
   }
-  // Comparison / selection topics
-  if (/对比|怎么选|哪个|值得|横评|避坑|指南/i.test(topic)) {
-    return [
-      '方案一：省钱优先——基础配置，满足日常，月费最低',
-      '方案二：体验优先——中配方案，多设备不卡，性价比最优',
-      '方案三：一步到位——顶配全包，未来3年不用换，长期最划算'
-    ];
-  }
-  // Fallback: generic 3-tier
+  // --- Fallback ---
   return [
-    '方案一：基础入门，适合一个人，月费最低',
-    '方案二：进阶配置，适合家庭，月费适中',
-    '方案三：旗舰顶配，适合多人/重度使用，长期最划算'
+    '方案一：基础入门款，适合一个人，月费最低，日常够用',
+    '方案二：进阶体验款，适合多设备家庭，性价比最优',
+    '方案三：旗舰全能款，适合重度使用，一步到位长期划算'
   ];
 }
 
