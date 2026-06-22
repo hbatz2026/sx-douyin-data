@@ -133,11 +133,35 @@ async function genHotspot(token, user) {
     }
 
     // Template fallback
-    if (!t.cat) continue;
+    if (!t.cat) t.cat = 'lifestyle'; // safeguard: assign default category
     const entry = buildEntry(t.cat, t, entries.length + 1, variant);
     if (entry) {
       entries.push(entry);
       console.log(`  TPL: ${t.title.slice(0, 20)} (score=${t.score}, cat=${t.cat})`);
+    }
+  }
+
+  // Safety: ensure exact totalSlots entries
+  if (entries.length < totalSlots) {
+    console.warn(`Only ${entries.length} entries generated, padding to ${totalSlots}`);
+    while (entries.length < totalSlots) {
+      const idx = entries.length + 1;
+      entries.push({
+        id: `h${idx}`, tier: 3,
+        title: '你的宽带每月花多少钱？全网比价挑战',
+        heat: '全网热门 · 自动补位',
+        why: '宽带资费是全民痛点，对比三家运营商的套餐性价比最吸引人。',
+        source: 'https://www.douyin.com/search/宽带比价',
+        steps: [
+          { shot: '展示本月宽带账单，露出惊讶表情', sub: '特写账单金额，引起用户共鸣' },
+          { shot: '对比三家运营商同档位套餐', sub: '用表格清晰展示电信vs联通vs移动' },
+          { shot: '实测网速+稳定性对比', sub: '同时开视频/游戏/下载测试最终结论' },
+          { shot: '推荐最优方案+办理入口', sub: '扫码到店可办理，限时福利' }
+        ],
+        bgm: '为爱痴狂 - 金志文',
+        tags: '#宽带比价 #省钱攻略 #电信宽带',
+        difficulty: 1, needFace: true, time: '8分钟'
+      });
     }
   }
 
@@ -263,7 +287,7 @@ function matchCategory(title, rules) {
   for (const rule of rules) {
     if (rule.kw.some(k => title.includes(k))) return rule.cat;
   }
-  return null;
+  return 'lifestyle'; // fallback: default to lifestyle category
 }
 
 // Template variant rotation: variant=0 uses A, variant=1 uses B
