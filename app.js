@@ -1631,10 +1631,17 @@ function previewT2Tell() {
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
   var isOnsite = /上门|装机|维修/i.test(preset); // service at customer's location
-  var isCounter = /柜台|投诉|突发|社区|校园|政企|节日|公益|数字|银发|老客户|温暖/i.test(preset); // service at store/counter
-  var findPhrase = isCounter ? '一问才知道——' : '一到他家一看，就发现问题了——';
-  var usePhrase = isOnsite ? '在他家弄完以后' : isCounter ? '聊完以后' : '弄完以后';
-  var ctaPhrase = isOnsite ? '你们家WiFi卡吗？评论区说说' : isCounter ? '你们遇到过类似的事吗？评论区聊聊' : '你有什么想说的？评论区告诉我';
+  var isCounter = /柜台|投诉|突发|节日|公益|数字|银发|老客户|温暖/i.test(preset); // service at store counter
+  var isOutreach = /社区|校园|政企/i.test(preset); // outdoor event / visit
+  // Opening line per scene
+  var openLine = isOutreach ? c('time') + '，我们去' + (preset.indexOf('社区') >= 0 ? '社区' : preset.indexOf('校园') >= 0 ? '学校' : '客户那里') + '做活动，' + c('customer') + '过来了——' + c('problem')
+    : isOnsite ? c('time') + '，接到' + c('customer') + '的电话说——' + c('problem') + '。我说行，我过去看看。'
+    : c('time') + '，来了个' + c('customer') + '，进门就说——' + c('problem') + '。我说行，我去看看。';
+  var findPhrase = isOutreach ? '跟' + c('customer') + '聊完发现——' : isCounter ? '一问才知道——' : '一到他家一看，就发现问题了——';
+  var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '在他家弄完以后' : isCounter ? '聊完以后' : '弄完以后';
+  var ctaPhrase = isOutreach ? '你们社区有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : isCounter ? '你们遇到过类似的事吗？评论区聊聊' : '你有什么想说的？评论区告诉我';
+  // 拍摄建议
+  var shootTip = isOutreach ? '镜头拍活动现场/摊位，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
   
   const html = `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
@@ -1643,13 +1650,13 @@ function previewT2Tell() {
 ${hookLine ? hookLine + `
 <div class="stage">【3-8秒】进入故事</div>
 <div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
-<div class="dialogue">"${c('time')}，来了个${c('customer')}，进门就说——${c('problem')}。我说行，我去看看。"</div>
+<div class="dialogue">"${openLine}"</div>
 ` : `<div class="stage">【0-5秒】抛出悬念</div>
 <div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
-<div class="dialogue">"${c('time')}，来了个${c('customer')}，进门就说——${c('problem')}。我说行，我去看看。"</div>`}
+<div class="dialogue">"${openLine}"</div>`}
 
 <div class="stage">${hookLine ? '【8-25秒】' : '【5-25秒】'}发现问题+操作</div>
-<div class="action-note">→ ${isOnsite?'镜头转向环境/设备，手指向问题所在':'镜头对着自己和客户，自然交流'}。语速放慢，让观众看清。</div>
+<div class="action-note">→ ${shootTip}。语速放慢，让观众看清。</div>
 <div class="dialogue">"${findPhrase}${c('finding')}。"</div>
 <div class="action-note">→ 拍操作过程，每个步骤配一个画面切换</div>
 <div class="dialogue">"${c('steps').replace(/\n/g, '。')}"</div>
@@ -1678,6 +1685,12 @@ function previewT2Doc() {
   if (hookEl && hookEl.value.trim()) {
     hookSubtitle = esc(hookEl.value.trim());
   }
+  // Context-aware shooting instruction
+  var preset = '';
+  try { preset = document.getElementById('t2_preset').value; } catch(e) {}
+  var isOutreach = /社区|校园|政企/i.test(preset);
+  var meetAction = isOutreach ? '布置活动现场，摆摊位/拉横幅' : c('customer') + '开门/引你进屋。拍背影或手部，不要拍正脸（保护隐私）';
+  var problemShot = isOutreach ? '镜头拍到' + c('customer') + '正在咨询的场景' : '镜头贴到问题处——' + c('finding').substring(0,15) + '...';
   const html = `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎥 微纪录 · 拍摄指令（零口播/极少口播）</div>
 
@@ -1696,13 +1709,13 @@ ${hookSubtitle ? `
 
 <div class="shot-step">
   <span class="shot-time">${hookSubtitle ? '6-11秒' : '3-8秒'}</span>
-  <span class="shot-action">🎬 ${c('customer')}开门/引你进屋。拍背影或手部，不要拍正脸（保护隐私）</span>
+  <span class="shot-action">🎬 ${meetAction}</span>
   <span class="shot-subtitle">字幕：${c('problem')}</span>
 </div>
 
 <div class="shot-step">
   <span class="shot-time">${hookSubtitle ? '11-23秒' : '8-20秒'}</span>
-  <span class="shot-action">🎬 镜头贴到问题处——${c('finding').substring(0,15)}...</span>
+  <span class="shot-action">🎬 ${problemShot}</span>
   <span class="shot-subtitle">字幕："问题在这——${c('finding')}"</span>
   <span class="shot-note">→ 用第一人称POV，仿佛观众就在现场看</span>
 </div>
