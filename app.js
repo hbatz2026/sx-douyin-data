@@ -1,25 +1,16 @@
 // ===== Utility Helpers =====
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
 
-// Sanitize user-generated HTML before injecting into DOM
-// Strips <script> tags and inline event handlers to prevent XSS
-function sanitizeHTML(html) {
-  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
-}
-
 // Sanitize filename: remove illegal characters for filesystem
 function sanitizeFilename(name) {
   return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
 }
 
-// Safe innerHTML setter — applies sanitizeHTML then sets innerHTML and shows element
-function safeSetHTML(id, html) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = sanitizeHTML(html);
-  el.style.display = 'block';
+// HTML sanitizer — strips <script> and inline handlers (used for external data)
+function sanitizeHTML(html) {
+  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
 }
 
 function toast(msg, type) {
@@ -134,7 +125,8 @@ function checkPublishForm(pageId) {
 }
 
 function checkHasHook(text) {
-  var hooks = ['你知道吗','教你','干货','分享一个','别再','千万不要','竟然','原来','终于','实测','揭秘','避坑','攻略','怎么选','怎么用','该不该','值不值'];
+  var hooks = ['你知道吗','教你','干货','分享一个','别再','千万不要','竟然','原来','终于','实测','揭秘','避坑','攻略','怎么选','怎么用','该不该','值不值',
+    '注意','记住','关键','秘密','省钱','免费','白交','亏了','划算','为什么','？','!','别买','先别','等等','不会','没人','骗','真相','99%','90%','80%','一半'];
   return hooks.some(function(h) { return text.indexOf(h) !== -1; });
 }
 function checkHasCollect(text) {
@@ -149,7 +141,7 @@ function renderChecklist(pageId, results) {
   var el = document.getElementById(pageId + '-checklist');
   if (!el) return;
   var items = [
-    {label:'3秒钩子到位', hint:'开头用"你知道吗/教你/别再/实测"等吸引词', pass:results.hasHook, icon:results.hasHook?'✅':'⚠️'},
+    {label:'3秒钩子到位', hint:'开头用问句/感叹/数字/冲突词(？/！/省钱/秘密/别再等)', pass:results.hasHook, icon:results.hasHook?'✅':'⚠️'},
     {label:'收藏诱饵明显', hint:'含"截图保存/收藏/转发给XX/对比"等引导词', pass:results.hasCollect, icon:results.hasCollect?'✅':'⚠️'},
     {label:'关键词在标题前15字', hint:'宽带/套餐/电信/WiFi/信号等关键词靠前', pass:results.hasKeyword, icon:results.hasKeyword?'✅':'⚠️'},
     {label:'无违禁词', hint:'绝对化用语、功效承诺、诱导互动等零出现', pass:results.noFw, icon:results.noFw?'✅':'❌'},
@@ -596,6 +588,9 @@ let currentPage = 'schedule';
 const pageHistory = ['schedule'];
 
 function switchPage(name, el, noPush) {
+  // Save current template form before leaving
+  saveTemplateForm(currentPage);
+  
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const pageEl = document.getElementById('page-' + name);
@@ -627,6 +622,9 @@ function switchPage(name, el, noPush) {
     currentPage = name;
     history.pushState({ page: name, historyIndex: pageHistory.length - 1 }, '', '#' + name);
   }
+  
+  // Restore form data for the new template page
+  setTimeout(function() { restoreTemplateForm(name); }, 50);
 }
 
 // Handle browser back/forward
@@ -695,6 +693,71 @@ function pickFromPool(pool, offset) {
   return pool[(currentWeekNum + offset - 1) % pool.length];
 }
 
+// ===== v2.0: Today Hero Card — 今日一拍 =====
+function buildTodayHero() {
+  var hero = document.getElementById('todayHero');
+  if (!hero) return;
+  
+  var today = new Date().getDay(); // 0=Sun, 1=Mon, ... 6=Sat
+  var todayIdx = today === 0 ? 4 : Math.min(today - 1, 4); // Fri for weekend
+  if (today === 0 || today === 6) { hero.innerHTML = ''; return; } // weekend
+  
+  var types = ['决策指南型', '一线场景型', '深度测评型', '本地化事件型'];
+  var pageIds = ['template1', 'template2', 'template3', 'template4'];
+  var pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
+  var icons = ['📊', '🎬', '🔍', '📍'];
+  var times = ['14:00-15:00', '12:00-13:00', '9:00-10:00', '14:00-16:00'];
+  var dayNames = ['周一', '周二', '周三', '周四', '周五'];
+  
+  var topic = pickFromPool(pools[todayIdx], 0);
+  var type = types[todayIdx];
+  var pageId = pageIds[todayIdx];
+  var icon = icons[todayIdx];
+  var time = times[todayIdx];
+  
+  // Get recommended time
+  var storeCity = '';
+  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.city) storeCity = s.city; } catch(e) {}
+  
+  var html = '<div onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + todayIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
+  html += '<div style="flex:1;min-width:200px;">';
+  html += '<div style="font-size:13px;opacity:0.8;margin-bottom:4px;">📅 ' + dayNames[todayIdx] + ' · 今天拍什么？</div>';
+  html += '<div style="font-size:20px;font-weight:700;margin-bottom:8px;">' + icon + ' ' + type + '</div>';
+  html += '<div style="font-size:14px;opacity:0.9;margin-bottom:6px;line-height:1.5;">' + esc(topic) + '</div>';
+  html += '<div style="font-size:12px;opacity:0.7;">⏰ 推荐发布：' + time + '</div>';
+  html += '</div>';
+  html += '<span style="padding:14px 28px;background:#fff;color:#0052CC;border-radius:12px;font-size:16px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:inline-block;">📝 开始拍摄 →</span>';
+  html += '</div>';
+  
+  // BGM suggestion
+  if (window.___bgmList) {
+    var catNames = ['决策指南', '一线场景', '深度测评', '本地事件'];
+    var cat = window.___bgmList[catNames[todayIdx]];
+    if (cat) {
+      var keys = Object.keys(cat);
+      var song = keys.length > 0 ? cat[keys[0]][0] || '本周推荐BGM' : '查看BGM推荐';
+      html += '<div style="margin-top:12px;font-size:11px;opacity:0.6;">🎵 推荐BGM：' + song + '</div>';
+    }
+  }
+  html += '</div>';
+  
+  hero.innerHTML = html;
+}
+
+function toggleSchedule() {
+  var grid = document.getElementById('scheduleGrid');
+  var icon = document.getElementById('scheduleToggleIcon');
+  if (!grid || !icon) return;
+  if (grid.style.display === 'none') {
+    grid.style.display = '';
+    icon.textContent = '▼';
+  } else {
+    grid.style.display = 'none';
+    icon.textContent = '▶';
+  }
+}
+
 function buildSchedule() {
   const grid = document.getElementById('scheduleGrid');
   if (!grid) { console.warn('buildSchedule: #scheduleGrid not found'); return; }
@@ -741,7 +804,7 @@ function buildSchedule() {
       <div class="day-name">${dayNames[i]}</div>
       <div class="day-date">${d.getMonth()+1}/${d.getDate()}</div>
       <div class="day-type ${typeColors[types[i]]}">${typeIcons[types[i]]} ${types[i]}</div>
-      <div class="day-topic">${weekTopics[i]}</div>
+      <div class="day-topic">${esc(weekTopics[i])}</div>
       <div class="day-time">⏰ ${times[i]}</div>
       ${recDisplay}
     </div>`;
@@ -753,7 +816,7 @@ function buildSchedule() {
   if (devSpan) {
     if (phonePool.length > 0) {
       const phone = phonePool[currentWeekNum % phonePool.length];
-      devSpan.innerHTML = `📱 本周评测设备：${phone.model}（${phone.chip} | ${phone.battery} | ${phone.screen}）— ${phone.highlight}`;
+      devSpan.textContent = `📱 本周评测设备：${phone.model}（${phone.chip} | ${phone.battery} | ${phone.screen}）— ${phone.highlight}`;
     } else {
       devSpan.innerHTML = '📱 本周评测设备：数据加载中...';
     }
@@ -762,12 +825,7 @@ function buildSchedule() {
   // Populate quick action buttons
   var act = document.getElementById('scheduleActions');
   if (act) {
-    var today = new Date().getDay();
-    var todayIdx = today === 0 ? 4 : Math.min(today - 1, 4); // Sunday→Fri, clamp
-    var todayPageId = pageIds[todayIdx];
-    var todayTopic = weekTopics[todayIdx];
-    act.innerHTML = '<button class="btn btn-primary btn-sm" onclick="switchPage(\'' + todayPageId + '\', document.querySelector(\'.nav-tab[onclick*=' + todayPageId + ']\'));jumpToTemplate(\'' + todayTopic.replace(/'/g, "\\'") + '\',' + todayIdx + ')">📝 一键打开今日模板（' + dayNames[todayIdx] + '）</button> ' +
-      '<button class="btn btn-outline btn-sm" onclick="copySchedule()">📋 复制本周排期</button>';
+    act.innerHTML = '<button class="btn btn-outline btn-sm" onclick="copySchedule()">📋 复制本周排期</button>';
   }
 }
 
@@ -848,6 +906,10 @@ function buildTopicBank() {
   const hint = document.getElementById('bankContextHint');
   if (hint) hint.style.display = (bankFilter === 'context') ? 'block' : 'none';
 
+  // Apply search filter
+  var searchEl = document.getElementById('bankSearch');
+  var searchText = searchEl ? searchEl.value.toLowerCase() : '';
+  
   pools.forEach((pool, idx) => {
     const el = document.getElementById(bankIds[idx]);
     if (!el) return;
@@ -863,6 +925,8 @@ function buildTopicBank() {
       if (bankFilter === 'thisweek' && !isThisWeek) return;
       // Context filter: when coming from a template page, only show matching pool
       if (bankFilter === 'context' && idx !== currentTab) return;
+      // Search filter
+      if (searchText && t.toLowerCase().indexOf(searchText) < 0) return;
 
       const marker = isThisWeek ? 'style="background:var(--orange);font-weight:700;"' : '';
       const idxClass = idx===0 ? '' : (idx===1 ? 'g' : (idx===2 ? 'o' : 'p'));
@@ -879,7 +943,7 @@ function buildTopicBank() {
 
       html += `<div class="topic-item" style="cursor:pointer;${isThisWeek ? 'border-color:var(--orange);background:#FFF8E1;' : ''}" onclick="jumpToTemplate('${t.replace(/'/g, "\\'")}',${idx})" title="点击跳转到对应模板">
         <span class="idx ${idxClass}" ${marker}>${i+1}</span>
-        ${isThisWeek ? '⭐ ' : ''}${t}
+        ${isThisWeek ? '⭐ ' : ''}${esc(t)}
         ${isThisWeek ? '<span style="font-size:10px;color:var(--orange);margin-left:4px;">本周</span>' : ''}
         <div class="topic-meta">${badges}</div>
       </div>`;
@@ -945,6 +1009,7 @@ function switchT1Mode(mode) {
   ['preview1-talk','preview1-card','preview1-calc'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
+  updateMobileBarAction();
 }
 
 // ===== MODE 1: 口播对比 一镜到底 =====
@@ -955,13 +1020,17 @@ function previewT1Talk() {
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
   const bgm = c('bgm'), tags = c('tags');
+  var hookText = '';
+  var hookEl = document.getElementById('t1_hook_text');
+  if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
 
   const html = `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
 <div class="info-tag">📱 全程一个镜头，手持或桌面支架 | ⏱ 约40秒 | 不剪辑</div>
 <div class="info-tag">🎵 BGM: ${bgm}（音量调25-30%，铺底不压人声）</div>
 
-<div class="stage">【开场 0-5秒】</div>
+<div class="stage">${hookText ? '【开场 0-5秒】🎯 黄金钩子' : '【开场 0-5秒】'}</div>
+${hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说出下面这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>\n' : ''}
 <div class="action-note">→ 手里拿一张纸或手机屏幕，上面写着三个关键词（对应三个场景）。</div>
 <div class="dialogue">"${city}的朋友，${topic}？别纠结，我30秒给你算清楚——先收藏，后面有用。"</div>
 
@@ -993,6 +1062,9 @@ function previewT1Card() {
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
   const bgm = c('bgm'), tags = c('tags');
+  var hookText = '';
+  var hookEl = document.getElementById('t1_hook_text');
+  if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
 
   // Extract price and speed from scenario text
   function extPrice(t) { const m = t.match(/(\d+)元/); return m ? m[1]+'元' : '?元'; }
@@ -1006,6 +1078,7 @@ function previewT1Card() {
   ];
 
   const cardHTML = `
+${hookText ? '<div class="stage">🎯 黄金钩子</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>\n' : ''}
 <div id="t1-card-visual" style="background:#1a1a2e;border-radius:12px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;">
   <div style="text-align:center;color:#FFD54F;font-size:18px;font-weight:700;margin-bottom:4px;">${topic}</div>
   <div style="text-align:center;color:#81C784;font-size:12px;margin-bottom:16px;">${city}电信 · 一张图看懂</div>
@@ -1103,6 +1176,9 @@ function previewT1Calc() {
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
   const bgm = c('bgm'), tags = c('tags');
+  var hookText = '';
+  var hookEl = document.getElementById('t1_hook_text');
+  if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
 
   // Parse scenario: try to extract user type and price
   function extractPrice(txt) {
@@ -1120,6 +1196,7 @@ function previewT1Calc() {
   const html = `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🧮 场景化算账（模拟真实用户·高转发率）</div>
 
+${hookText ? '<div class="stage">🎯 黄金钩子</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>\n' : ''}
 <div class="stage">🎬 拍摄方式</div>
 <div class="action-note">→ 手机屏幕录屏：打开计算器App。录屏+人声讲解就可以。</div>
 
@@ -1186,7 +1263,10 @@ function addCopyButton(panelId) {
 function showT1Preview(id, html) {
   const el = document.getElementById(id);
   el.style.display = 'block';
-  el.innerHTML = html;
+  // Get city/topic for footer
+  var city = (document.getElementById('t1_city')||{}).value || '';
+  var topic = (document.getElementById('t1_topic')||{}).value || '';
+  el.innerHTML = html + buildPreviewFooter('t1', city, topic);
   addCopyButton(id);
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template1');
@@ -1209,6 +1289,9 @@ function clearT1() {
 function fillT1Presets() {
   const topic = document.getElementById('t1_topic').value;
   if (!topic) return;
+  
+  // Auto-select hook type based on topic
+  autoSelectHook('t1', topic);
 
   // 1. Try exact match
   if (t1Presets[topic]) {
@@ -1532,33 +1615,52 @@ function switchT2Mode(mode) {
   ['preview2-tell','preview2-doc','preview2-short'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
+  updateMobileBarAction();
 }
 
 // ===== MODE 1: 单人讲述 一镜到底 =====
 function previewT2Tell() {
   const c = id => document.getElementById('t2_'+id).value;
   if (!c('time') || !c('customer')) { alert('请至少填写时间和客户类型！'); return; }
+  var hookLine = '';
+  var hookEl = document.getElementById('t2_hook_text');
+  if (hookEl && hookEl.value.trim()) {
+    hookLine = '<div class="stage">【0-5秒】🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="action-note">→ 镜头对着自己脸，语气坚定。这句话决定了80%的完播率。</div>\n<div class="dialogue">"' + esc(hookEl.value.trim()) + '"</div>\n';
+  }
+  // Context-aware wording based on preset type
+  var preset = '';
+  try { preset = document.getElementById('t2_preset').value; } catch(e) {}
+  var isOnsite = /上门|装机|维修/i.test(preset); // service at customer's location
+  var isCounter = /柜台|投诉|突发|社区|校园|政企|节日|公益|数字|银发|老客户|温暖/i.test(preset); // service at store/counter
+  var findPhrase = isCounter ? '一问才知道——' : '一到他家一看，就发现问题了——';
+  var usePhrase = isOnsite ? '在他家弄完以后' : isCounter ? '聊完以后' : '弄完以后';
+  var ctaPhrase = isOnsite ? '你们家WiFi卡吗？评论区说说' : isCounter ? '你们遇到过类似的事吗？评论区聊聊' : '你有什么想说的？评论区告诉我';
+  
   const html = `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
 <div class="info-tag">📱 镜头对着自己，边走边说 | ⏱ 约40秒 | 不剪辑 | 现场原声</div>
 
-<div class="stage">【0-5秒】抛出悬念</div>
+${hookLine ? hookLine + `
+<div class="stage">【3-8秒】进入故事</div>
 <div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
 <div class="dialogue">"${c('time')}，来了个${c('customer')}，进门就说——${c('problem')}。我说行，我去看看。"</div>
+` : `<div class="stage">【0-5秒】抛出悬念</div>
+<div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
+<div class="dialogue">"${c('time')}，来了个${c('customer')}，进门就说——${c('problem')}。我说行，我去看看。"</div>`}
 
-<div class="stage">【5-25秒】发现问题+操作</div>
-<div class="action-note">→ 镜头转向环境/设备，手指向问题所在。语速放慢，让观众看清。</div>
-<div class="dialogue">"结果一到他家一看，就发现问题了——${c('finding')}。"</div>
+<div class="stage">${hookLine ? '【8-25秒】' : '【5-25秒】'}发现问题+操作</div>
+<div class="action-note">→ ${isOnsite?'镜头转向环境/设备，手指向问题所在':'镜头对着自己和客户，自然交流'}。语速放慢，让观众看清。</div>
+<div class="dialogue">"${findPhrase}${c('finding')}。"</div>
 <div class="action-note">→ 拍操作过程，每个步骤配一个画面切换</div>
 <div class="dialogue">"${c('steps').replace(/\n/g, '。')}"</div>
 
 <div class="stage">【25-35秒】客户真实反应</div>
 <div class="action-note">→ 关键！必须拍到客户的表情。如果客户说话用原声，不说话就用字幕。</div>
-<div class="dialogue">"弄完以后，${c('customer')}试了一下——</div>
+<div class="dialogue">"${usePhrase}，${c('customer')}试了一下——</div>
 <div class="action-note">→ 画面切到客户，${c('reaction')}。停2秒给反应镜头。</div>
 
 <div class="stage">【35-40秒】总结+引导</div>
-<div class="dialogue">"其实${c('summary')}。你们家WiFi卡吗？评论区说说，说不定我能帮你看看。"</div>
+<div class="dialogue">"其实${c('summary')}。${ctaPhrase}，说不定我能帮你看看。"</div>
 
 <div class="info-tag" style="margin-top:12px;">🎵 BGM: ${c('bgm') || '🔇 现场原声（推荐）'}</div>
 <div class="info-tag">🏷 标签: ${c('tags') || '#真实故事 #装维日常 #宽带小知识'}</div>
@@ -1571,47 +1673,59 @@ function previewT2Tell() {
 function previewT2Doc() {
   const c = id => document.getElementById('t2_'+id).value;
   if (!c('time') || !c('customer')) { alert('请至少填写时间和客户类型！'); return; }
+  var hookSubtitle = '';
+  var hookEl = document.getElementById('t2_hook_text');
+  if (hookEl && hookEl.value.trim()) {
+    hookSubtitle = esc(hookEl.value.trim());
+  }
   const html = `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎥 微纪录 · 拍摄指令（零口播/极少口播）</div>
 
+${hookSubtitle ? `
+<div class="shot-step" style="border-left:4px solid var(--orange);">
+  <span class="shot-time">0-3秒 🎯</span>
+  <span class="shot-action">🎬 拍门牌号/楼栋外观（不拍具体号码，拍环境）</span>
+  <span class="shot-subtitle">字幕："${hookSubtitle}"</span>
+  <span style="font-size:10px;color:#E65100;">⚡ 黄金钩子 · 3秒决定完播率</span>
+</div>` : ''}
 <div class="shot-step">
-  <span class="shot-time">0-3秒</span>
+  <span class="shot-time">${hookSubtitle ? '3-6秒' : '0-3秒'}</span>
   <span class="shot-action">🎬 拍门牌号/楼栋外观（不拍具体号码，拍环境）</span>
   <span class="shot-subtitle">字幕："${c('time')}，${c('customer')}说家里网卡了好久了"</span>
 </div>
 
 <div class="shot-step">
-  <span class="shot-time">3-8秒</span>
+  <span class="shot-time">${hookSubtitle ? '6-11秒' : '3-8秒'}</span>
   <span class="shot-action">🎬 ${c('customer')}开门/引你进屋。拍背影或手部，不要拍正脸（保护隐私）</span>
   <span class="shot-subtitle">字幕：${c('problem')}</span>
 </div>
 
 <div class="shot-step">
-  <span class="shot-time">8-20秒</span>
+  <span class="shot-time">${hookSubtitle ? '11-23秒' : '8-20秒'}</span>
   <span class="shot-action">🎬 镜头贴到问题处——${c('finding').substring(0,15)}...</span>
   <span class="shot-subtitle">字幕："问题在这——${c('finding')}"</span>
   <span class="shot-note">→ 用第一人称POV，仿佛观众就在现场看</span>
 </div>
 
 <div class="shot-step">
-  <span class="shot-time">20-32秒</span>
+  <span class="shot-time">${hookSubtitle ? '23-35秒' : '20-32秒'}</span>
   <span class="shot-action">🎬 拍操作过程——手入镜操作，动作清晰可见</span>
   <span class="shot-subtitle">${c('steps').split('\n').map((s,i) => '字幕'+(i+1)+'：'+s).join('<br>')}</span>
 </div>
 
 <div class="shot-step">
-  <span class="shot-time">32-38秒</span>
+  <span class="shot-time">${hookSubtitle ? '35-41秒' : '32-38秒'}</span>
   <span class="shot-action">🎬 ${c('customer')}试用，拍表情变化——从怀疑到惊喜</span>
   <span class="shot-subtitle">字幕："${c('reaction')}"</span>
 </div>
 
 <div class="shot-step">
-  <span class="shot-time">38-42秒</span>
+  <span class="shot-time">${hookSubtitle ? '41-45秒' : '38-42秒'}</span>
   <span class="shot-action">🎬 你收拾工具离开的背影，${c('customer')}在远处挥手</span>
   <span class="shot-subtitle">字幕："${c('summary')} | 你家WiFi怎么样？评论区说说"</span>
 </div>
 
-<div class="shot-note" style="margin-top:8px;">🎵 BGM: ${c('bgm') || '🔇 现场原声'} | ⏱ 约42秒 | 👤 1人跟拍 | 🎬 POV视角</div>
+<div class="shot-note" style="margin-top:8px;">🎵 BGM: ${c('bgm') || '🔇 现场原声'} | ⏱ 约${hookSubtitle ? '45' : '42'}秒 | 👤 1人跟拍 | 🎬 POV视角</div>
 <div class="shot-note">💡 微纪录的核心：镜头是旁观者，不是讲解者。让画面说话，字幕只说必要信息。</div>`;
 
   showT2Preview('preview2-doc', html);
@@ -1621,6 +1735,14 @@ function previewT2Doc() {
 function previewT2Short() {
   const c = id => document.getElementById('t2_'+id).value;
   if (!c('customer') || !c('reaction')) { alert('请至少填写客户类型和客户反应！'); return; }
+  var hookTitle = '';
+  var hookEl = document.getElementById('t2_hook_text');
+  if (hookEl && hookEl.value.trim()) hookTitle = esc(hookEl.value.trim());
+  
+  // Build a one-sentence story from all form fields
+  var storyLine = c('time') + '，' + c('customer') + '——' + c('problem');
+  var storyEnd = c('reaction').replace(/[。！!？?]$/, '') + '。' + c('summary');
+  
   const html = `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">⚡ 一句话故事（15秒·高完播）</div>
 
@@ -1630,16 +1752,19 @@ function previewT2Short() {
 <div class="stage">📱 画面选择</div>
 <div class="action-note">→ 选${c('customer')}最打动人的那个瞬间：</div>
 <div class="dialogue">${c('reaction')} —— 就定格在这个画面上，2-3秒</div>
+${c('finding') ? '<div class="shot-note">💡 关键信息（字幕展示）：' + esc(c('finding')) + '</div>' : ''}
+${c('steps') ? '<div class="shot-note">🔧 操作要点：' + esc(c('steps').split('\n')[0]) + '</div>' : ''}
 
 <div class="stage">📝 字幕内容（画面底部大字）</div>
-<div class="shot-step">
-  <span class="shot-subtitle">"${c('customer')}的网卡了3年，今天终于不卡了。"</span>
-  <span class="shot-note">→ 或者更简洁："${c('summary')}"</span>
+<div class="shot-step"${hookTitle?' style="border-left:4px solid var(--orange);"':''}>
+  ${hookTitle ? '<span class="shot-subtitle">"' + hookTitle + '"</span><span class="shot-note">⚡ 钩子先抓眼球，下面跟着故事</span>' : ''}
+  <span class="shot-subtitle">"${storyLine}"</span>
+  <span class="shot-note">→ 第二行字幕（3秒后淡入）："${storyEnd}"</span>
 </div>
 
 <div class="stage">📱 发布信息</div>
 <div class="info-tag">🎵 BGM: ${c('bgm') || '我记得 - 赵雷'}（音量20%，温柔铺底）</div>
-<div class="info-tag">⏱ 时长: 15秒 | 👤 出镜: 不用 | 📱 格式: 1张照片/3秒视频片段</div>
+<div class="info-tag">⏱ 时长: 15-18秒 | 👤 出镜: 不用 | 📱 格式: 1张照片/3秒视频片段</div>
 <div class="info-tag">🏷 标签: ${c('tags') || '#平凡故事 #装维小哥 #中国电信'}</div>
 <div class="info-tag">💡 一句话故事的完播率通常是其他形态的2-3倍——因为太短了，观众来不及划走。</div>`;
 
@@ -1649,7 +1774,11 @@ function previewT2Short() {
 function showT2Preview(id, html) {
   const el = document.getElementById(id);
   el.style.display = 'block';
-  el.innerHTML = html;
+  var storeCity = '';
+  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.city) storeCity = s.city; } catch(e) {}
+  var preset = '';
+  try { preset = document.getElementById('t2_preset').value || '上门服务'; } catch(e) {}
+  el.innerHTML = html + buildPreviewFooter('t2', storeCity, preset);
   addCopyButton(id);
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template2');
@@ -1681,13 +1810,29 @@ function fillT2Presets() {
   ['time','customer','problem','finding','steps','reaction','summary','tags'].forEach(f => {
     const el = document.getElementById('t2_'+f);
     if (el && p[f]) { el.value = p[f]; el.style.borderColor = '#008A5C'; el.style.background = '#F0FFF4'; }
-    if (el) setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 1200);
+    if (el) setTimeout(function() { el.style.borderColor = ''; el.style.background = ''; }, 1200);
   });
   // Auto-fill BGM based on scene type
   var subCat = '温情叙事';
   if (p.tags && (p.tags.indexOf('装维') > -1 || p.tags.indexOf('装机') > -1)) subCat = '快节奏爽片';
   else if (p.tags && (p.tags.indexOf('突发') > -1 || p.tags.indexOf('投诉') > -1)) subCat = '轻纪录片';
   autoFillBGM('template2', 't2_bgm', '一线场景', subCat);
+  
+  // v2.0: Auto-select best hook type for this story template
+  autoSelectHook('t2', key);
+  
+  // Dynamic label: change "上门发现的具体问题" → scene-appropriate wording
+  var labelMap = {
+    '上门维修': '现场发现的具体问题', '装机故事': '装维现场发现的问题',
+    '柜台服务': '沟通中了解到的真实情况', '突发状况': '当时的具体情况',
+    '投诉化解': '客户投诉的具体问题', '温暖瞬间': '当时的真实情况',
+    '银发服务': '聊天中发现的问题', '数字课堂': '课堂中遇到的问题',
+    '校园迎新': '迎新中发现的问题', '社区营销': '社区走访了解的情况',
+    '政企服务': '政企客户反映的问题', '节日活动': '活动现场的情况',
+    '公益服务': '公益服务中的情况', '老客户情谊': '老客户反映的问题'
+  };
+  var lbl = document.getElementById('t2_finding_label');
+  if (lbl) lbl.textContent = labelMap[key] || '发现的具体问题';
 }
 
 // Auto-match T2 preset based on problem/customer text keywords
@@ -1940,6 +2085,7 @@ function switchT3Mode(mode) {
   document.getElementById('preview3-silent').style.display = 'none';
   var sdBtns = document.getElementById('silentDownloadBtns');
   if (sdBtns) sdBtns.style.display = 'none';
+  updateMobileBarAction();
 }
 
 // ===== MODE 1: 口播脚本（分设备类型） =====
@@ -1959,20 +2105,26 @@ function previewT3Talk() {
   
   var html = '';
   if (phone) {
-    html = buildPhoneTalkScript(phone, topic, city, bgm, title, tags);
+    var t3hookText = (document.getElementById('t3_hook_text')||{}).value || '';
+    html = buildPhoneTalkScript(phone, topic, city, bgm, title, tags, t3hookText);
   } else {
     html = buildDeviceTalkScript(item, c, city, bgm, title, tags);
   }
   
   const el = document.getElementById('preview3-talk');
   el.style.display = 'block';
-  el.innerHTML = html;
+  var t3hook = '';
+  var t3hookEl = document.getElementById('t3_hook_text');
+  if (t3hookEl && t3hookEl.value.trim()) {
+    t3hook = '<div class="stage">🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(t3hookEl.value.trim()) + '"</div>\n';
+  }
+  el.innerHTML = t3hook + html + buildPreviewFooter('t3', city, topic);
   addCopyButton('preview3-talk');
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template3');
 }
 
-function buildPhoneTalkScript(phone, topic, city, bgm, title, tags) {
+function buildPhoneTalkScript(phone, topic, city, bgm, title, tags, userHook) {
   const model = phone.model;
   const chip = phone.chip;
   const battery = phone.battery;
@@ -2006,9 +2158,16 @@ function buildPhoneTalkScript(phone, topic, city, bgm, title, tags) {
   } else {
     // 卖点展示/通用
     hook = '最近好多人问我：' + model + '到底值不值得买？我今天不念参数，就说三点。';
-    p1 = '第一，处理器' + chip + '——性能这块你完全不用担心。刷抖音、打游戏、开好几个App来回切，它不卡。我这么说吧，日常使用两年内你不会觉得慢。';
-    p2 = '第二，续航和充电——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
-    p3 = '第三，最打动人的——' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+    // If userHook suggests a "缺点" structure, flip p1 to lead with flaw first
+    if (userHook && /缺点|先说|不足/i.test(userHook)) {
+      p1 = '先说缺点——' + chip + '虽然日常完全够用，但重度游戏党可能会觉得不如旗舰机。不过说实话，这个价格段你找不出更好的了。';
+      p2 = '但优点太强了。第一是续航——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
+      p3 = '第二是' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+    } else {
+      p1 = '第一，处理器' + chip + '——性能这块你完全不用担心。刷抖音、打游戏、开好几个App来回切，它不卡。我这么说吧，日常使用两年内你不会觉得慢。';
+      p2 = '第二，续航和充电——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
+      p3 = '第三，最打动人的——' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+    }
   }
   
   return '<div class="stage">🎬 口播脚本 · 直接念就行</div>' +
@@ -2017,7 +2176,7 @@ function buildPhoneTalkScript(phone, topic, city, bgm, title, tags) {
     '<div class="info-tag" style="color:#E65100;">💡 重点是念顺嘴——不用测续航/拍照，话术已经帮你写好了</div>' +
     '<div class="stage">【开场 0-5秒】拿出' + model + '，眼睛看镜头</div>' +
     '<div class="action-note">→ 手机自然拿在手里，不要挡脸。对着镜头像跟朋友聊天。</div>' +
-    '<div class="dialogue">"' + hook + '先收藏，我给你一个一个说清楚。"</div>' +
+    '<div class="dialogue">"' + (userHook || hook) + '先收藏，我给你一个一个说清楚。"</div>' +
     '<div class="stage">【话术一 5-18秒】' +
     '<div class="dialogue">' + p1 + '</div>' +
     '<div class="action-note">→ 说到这里把手机翻个面，展示后背/侧面设计，手指在对应的位置点一下</div>' +
@@ -2211,7 +2370,14 @@ function previewT3Silent(option) {
   
   const el = document.getElementById('preview3-silent');
   el.style.display = 'block';
-  el.innerHTML = html;
+  var t3city = (document.getElementById('t3_city')||{}).value || '';
+  var t3topic = (document.getElementById('t3_topic')||{}).value || '';
+  var t3hook = '';
+  var t3hookEl = document.getElementById('t3_hook_text');
+  if (t3hookEl && t3hookEl.value.trim()) {
+    t3hook = '<div class="shot-step" style="border-left:4px solid var(--orange);margin-bottom:8px;">\n  <span class="shot-time">0-3秒 🎯</span>\n  <span class="shot-action">🎬 黑屏+大字幕出现</span>\n  <span class="shot-subtitle">"' + esc(t3hookEl.value.trim()) + '"</span>\n  <span style="font-size:10px;color:#E65100;">⚡ 黄金钩子 · 3秒决定完播率</span>\n</div>';
+  }
+  el.innerHTML = t3hook + html + buildPreviewFooter('t3', t3city, t3topic);
   addCopyButton('preview3-silent');
   var sdBtns = document.getElementById('silentDownloadBtns');
   if (sdBtns) sdBtns.style.display = 'flex';
@@ -2451,6 +2617,7 @@ function switchT4Mode(mode) {
   ['preview4-walk','preview4-mix','preview4-countdown'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
+  updateMobileBarAction();
 }
 
 // ===== MODE 1: 探店口播 =====
@@ -2566,7 +2733,14 @@ function previewT4Countdown() {
 function showT4Preview(id, html) {
   const el = document.getElementById(id);
   el.style.display = 'block';
-  el.innerHTML = html;
+  var t4city = (document.getElementById('t4_city')||{}).value || '';
+  var t4benefit = (document.getElementById('t4_benefit')||{}).value || '';
+  var t4hook = '';
+  var t4hookEl = document.getElementById('t4_hook_text');
+  if (t4hookEl && t4hookEl.value.trim()) {
+    t4hook = '<div class="stage">🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(t4hookEl.value.trim()) + '"</div>\n';
+  }
+  el.innerHTML = t4hook + html + buildPreviewFooter('t4', t4city, t4benefit);
   addCopyButton(id);
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template4');
@@ -2612,6 +2786,9 @@ function fillT4Presets() {
   else if (/送礼|特惠|换新/i.test(key)) subCat = '福利快闪';
   else if (/社区/i.test(key)) subCat = '温馨服务';
   autoFillBGM('template4', 't4_bgm', '本地事件', subCat);
+  // v2.0: Auto-select best hook type based on activity
+  var t4Hooks = {'免费贴膜':'value','免费测速':'value','办业务送礼':'conflict','以旧换新':'value','手机清洁':'empathy','宽带体验':'conflict','暑期特惠':'conflict','社区服务':'empathy'};
+  autoSelectHook('t4', key);
 }
 
 // Auto-match T4 activity type from topic keywords (for schedule→T4 routing)
@@ -2649,7 +2826,7 @@ function matchT4Preset() {
 
 // ===== Clear Functions =====
 // Template 3 special clear (dropdowns + hidden fields + dual previews)
-window['clearTemplate3'] = function() {
+function clearTemplate3() {
   document.getElementById('t3_device').value = '';
   document.getElementById('t3_topic').innerHTML = '<option value="">-- 请先选设备，再选选题 --</option>';
   document.getElementById('t3_city').value = '';
@@ -2761,7 +2938,7 @@ function renderHotspots() {
       <div class="hs-header" onclick="toggleHotspot('${h.id}')">
         <span class="hs-tier ${tierClasses[h.tier]}">${'🥇🥈🥉'.charAt(h.tier-1)} ${tiers[h.tier]}</span>
         <div style="flex:1;">
-          <div class="hs-title">${h.title}</div>
+          <div class="hs-title">${esc(h.title)}</div>
           <div class="hs-meta">🔥 ${h.heat} · ⏱ ${h.time} · ${'★'.repeat(h.difficulty)}☆</div>
         </div>
         <span style="color:#999;font-size:12px;">展开▼</span>
@@ -2780,7 +2957,10 @@ function renderHotspots() {
           <span class="hs-tag">⏱ ${h.time}</span>
           ${h.source ? '<a href="' + h.source + '" target="_blank" rel="noopener" class="hs-tag" style="background:#E3F2FD;color:#1565C0;text-decoration:none;font-weight:600;">📺 看原版视频 →</a>' : '<span class="hs-tag" style="background:#FFF3E0;color:#E65100;">📺 抖音App内搜同名话题</span>'}
         </div>
-        <div style="margin-top:8px;font-size:11px;color:#999;">🏷 ${h.tags}</div>
+        <div style="margin-top:8px;font-size:11px;color:#999;">🏷 ${esc(h.tags)}</div>
+        <div style="margin-top:10px;padding:10px;background:#FFF8E1;border-radius:6px;font-size:11px;color:#E65100;">
+          <strong>💬 评论引导：</strong>发布后发「${genHotspotComment(h)}」— 带问题的评论能多拿40%回复
+        </div>
       </div>
     </div>`;
   });
@@ -2806,7 +2986,7 @@ function addHotspotSummary() {
     cards.innerHTML = hotspotData.slice(0, 4).map(h => `
       <div style="background:#FAFBFC;border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;" onclick="switchPage('hotspot', document.querySelector('.nav-tab[onclick*=hotspot]'));setTimeout(()=>document.getElementById('hsc-${h.id}').classList.add('open'),300)">
         <span style="font-size:10px;font-weight:700;color:${h.tier===1?'#C62828':h.tier===2?'#E65100':'#2E7D32'};">${'🥇🥈🥉'.charAt(h.tier-1)}</span>
-        <div style="font-size:13px;font-weight:600;margin:4px 0;">${h.title}</div>
+        <div style="font-size:13px;font-weight:600;margin:4px 0;">${esc(h.title)}</div>
         <div style="font-size:10px;color:#999;">⏱${h.time} · ${'★'.repeat(h.difficulty)}</div>
       </div>
     `).join('');
@@ -2928,6 +3108,7 @@ function syncTopicDropdown() {
 
 (function initAll() {
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
+  try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
   try { buildHistory(); } catch(e) { console.error('buildHistory:', e); }
   try { renderHotspots(); } catch(e) { console.error('renderHotspots:', e); }
@@ -2937,6 +3118,7 @@ function syncTopicDropdown() {
   try { tryRenderBgm(); } catch(e) { console.error('tryRenderBgm:', e); }
   try { syncBgmDropdowns(); } catch(e) { console.error('syncBgmDropdowns:', e); }
   try { syncTopicDropdown(); } catch(e) { console.error('syncTopicDropdown:', e); }
+  try { loadNavGroupStates(); } catch(e) { console.error('loadNavGroupStates:', e); }
 })();
 
 // ===== Label dropdown options with classification badges =====
@@ -3137,6 +3319,32 @@ function updateLiveProductDesc() {
     priceEl.style.background = '#F0FFF4';
     setTimeout(function(){ priceEl.style.borderColor=''; priceEl.style.background=''; }, 1200);
   }
+}
+
+// ===== Template Form Persistence =====
+function saveTemplateForm(pageName) {
+  var prefixMap = { template1: 't1', template2: 't2', template3: 't3', template4: 't4' };
+  var pf = prefixMap[pageName];
+  if (!pf) return;
+  var data = {};
+  document.querySelectorAll('#page-' + pageName + ' input, #page-' + pageName + ' textarea, #page-' + pageName + ' select').forEach(function(el) {
+    if (el.id && el.id.indexOf(pf + '_') === 0) data[el.id] = el.value;
+  });
+  try { localStorage.setItem('douyin_lab_form_' + pf, JSON.stringify(data)); } catch(e) {}
+}
+
+function restoreTemplateForm(pageName) {
+  var prefixMap = { template1: 't1', template2: 't2', template3: 't3', template4: 't4' };
+  var pf = prefixMap[pageName];
+  if (!pf) return;
+  try {
+    var data = JSON.parse(localStorage.getItem('douyin_lab_form_' + pf));
+    if (!data) return;
+    Object.keys(data).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = data[id];
+    });
+  } catch(e) {}
 }
 // ===== Form persistence =====
 var LIVE_STORAGE_KEY = 'douyin_lab_live_form';
@@ -3413,7 +3621,7 @@ function showEmergencyScripts() {
     html += '<div class="scene">💬 ' + scripts[i].s + '</div>';
     html += '</div>';
   }
-  content.innerHTML = html;
+  content.innerHTML = html + buildChecklist('live');
   card.style.display = 'block';
   addCopyButton('live-emergency-content');
   card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3485,3 +3693,641 @@ function checkLiveCompliance() {
   var el = document.getElementById('lv_date');
   if (el && !el.value) el.value = dateStr;
 })();
+
+// ===== v2.0: 黄金3秒钩子库 + 拍摄清单 + 评论运营 + 搜索SEO =====
+
+// Hook types and template generation
+var HOOK_TYPES = {
+  conflict: { label: '⚡ 冲突型', desc: '制造对比/反差', examples: ['你家宽带199？那你可能白交了一半','这个免费服务90%的人不知道','2900的手机今天只要9块9？'] },
+  value:    { label: '💰 价值型', desc: '直接告诉看这个有什么好处', examples: ['花3分钟看完，办宽带至少省300','学会这招WiFi速度翻倍','2026年最划算的宽带套餐清单'] },
+  suspense: { label: '❓ 悬念型', desc: '说一半留一半', examples: ['我在电信营业厅干了5年，发现一个秘密','装宽带的师傅偷偷告诉我一件事','为什么懂行的人都选这种套餐？'] },
+  empathy:  { label: '💬 共鸣型', desc: '说中用户痛处', examples: ['每次刷视频到关键地方就卡？我也是','月底流量告急的绝望，你懂吗','家里WiFi死角能逼疯人，我受不了了'] }
+};
+
+// Inject hook selector into current template page
+function injectHookSelector() {
+  if (['template1','template2','template3','template4'].indexOf(currentPage) < 0) return;
+  
+  var templateMap = { template1: 't1', template2: 't2', template3: 't3', template4: 't4' };
+  var t = templateMap[currentPage];
+  if (!t) return;
+  
+  // Check if already injected IN THIS PAGE (use page-scoped ID)
+  var hookId = 'hook_selector_' + t;
+  if (document.getElementById(hookId)) return;
+  
+  // Find the mode-selector as insertion point, or first card
+  var target = document.querySelector('#page-' + currentPage + ' .card');
+  if (!target) return;
+  
+  var html = '<div id="' + hookId + '" style="margin:12px 0;padding:12px;background:#FFF8E1;border-radius:8px;border:1px solid #FFB74D;">';
+  html += '<div style="font-weight:700;font-size:14px;margin-bottom:8px;">🎯 黄金3秒钩子 <span style="font-size:11px;color:#E65100;font-weight:400;">— 开头第一句决定80%的完播率</span></div>';
+  html += '<select id="' + t + '_hook_type" onchange="applyHook(\'' + t + '\')" style="padding:8px 12px;border:1px solid #FFB74D;border-radius:6px;width:100%;font-size:14px;margin-bottom:8px;">';
+  html += '<option value="">-- 选故事模板后自动匹配，也可手动改 --</option>';
+  for (var k in HOOK_TYPES) {
+    html += '<option value="' + k + '">' + HOOK_TYPES[k].label + ' — ' + HOOK_TYPES[k].desc + '</option>';
+  }
+  html += '</select>';
+  html += '<input id="' + t + '_hook_text" placeholder="钩子台词会自动填充，也可以自己改" style="width:100%;padding:8px;border:1px dashed #FFB74D;border-radius:6px;font-size:13px;display:none;" oninput="triggerCheck(\'' + t + '\')">';
+  html += '</div>';
+  
+  // For T2: insert after story template; For others: insert after mode-selector
+  if (currentPage === 'template2') {
+    var presetContainer = document.getElementById('t2_preset').parentNode;
+    if (presetContainer) {
+      presetContainer.insertAdjacentHTML('afterend', html);
+      var hEl = document.getElementById(hookId);
+      if (hEl) { hEl.style.opacity = '0.6'; hEl.style.background = '#fafafa'; hEl.style.borderColor = '#ddd'; }
+      return;
+    }
+  }
+  // Default: insert at card top
+  target.insertAdjacentHTML('afterbegin', html);
+}
+
+// Apply hook text based on selected type and template context
+function applyHook(t) {
+  var typeEl = document.getElementById(t + '_hook_type');
+  var textEl = document.getElementById(t + '_hook_text');
+  if (!typeEl || !textEl) return;
+  
+  var type = typeEl.value;
+  if (!type) { textEl.style.display = 'none'; triggerCheck(t); return; }
+  
+  // Generate rich context-aware hooks based on template type + hook type
+  var hooks = generateContextHooks(t, type);
+  var hook = hooks[Math.floor(Math.random() * hooks.length)];
+  
+  textEl.style.display = 'block';
+  textEl.value = hook;
+  textEl.style.borderColor = '#008A5C';
+  textEl.style.background = '#F0FFF4';
+  setTimeout(function() { textEl.style.borderColor = '#FFB74D'; textEl.style.background = '#fff'; }, 1500);
+  
+  // Also trigger the publish checklist refresh
+  triggerCheck(t);
+}
+
+// Trigger checkPublishForm for the matching template
+function triggerCheck(t) {
+  var map = { t1: 'template1', t2: 'template2', t3: 'template3', t4: 'template4' };
+  var pageId = map[t];
+  if (pageId) checkPublishForm(pageId);
+}
+
+// Generate 3 rich hooks per template × hook type combination
+function generateContextHooks(t, type) {
+  var topic = '';
+  var device = '';
+  var city = '';
+  var problem = '';
+  try { city = (document.getElementById(t + '_city') || {}).value || '本地'; } catch(e) {}
+  try { topic = (document.getElementById(t + '_topic') || {}).value || ''; } catch(e) {}
+  try { device = (document.getElementById('t3_device') || {}).value || '设备'; } catch(e) {}
+  try { problem = (document.getElementById('t2_problem') || {}).value || ''; } catch(e) {}
+  
+  // ===== T1: Decision Guide (决策指南) — context-aware =====
+  if (t === 't1') {
+    var tp = topic || '';
+    var isCard = /手机卡|副卡|号卡|流量卡|电话卡/i.test(tp);
+    var isBroadband = /宽带|兆|网速|路由|WiFi|光猫|网线|mesh/i.test(tp);
+    var isPorting = /携号转网|转网|换运营商|不换号/i.test(tp);
+    var isPlan = /套餐|资费|月租/i.test(tp);
+    var subject = isCard ? '电话卡套餐' : isPorting ? '携号转网' : isPlan ? '套餐' : '宽带';
+    var unit = isCard ? '话费' : '宽带费';
+    var pain = isCard ? '话费越用越多' : isBroadband ? '网速慢还贵' : '钱花得不明不白';
+    var save = isCard ? '电话费' : isBroadband ? '宽带费' : '冤枉钱';
+    
+    if (type === 'conflict') return [
+      '你的' + subject + '一个月多少钱？看完这条你可能会去找客服',
+      '同一个' + subject + '，有人交99有人交199，你是哪一个？',
+      '别再被' + subject + '坑了！教你一眼看出哪个是真划算'
+    ];
+    if (type === 'value') return [
+      '花3分钟看完，办' + subject + '至少省300块——内部员工才知道的',
+      '2026年最全' + subject + '攻略，收藏这篇就够了',
+      (city||'太原') + '人注意！来营业厅前先看这个，能少花冤枉钱'
+    ];
+    if (type === 'suspense') return [
+      '我在电信营业厅干了5年，今天告诉你一个' + subject + '的秘密——',
+      '90%的人办' + subject + '都多花了' + unit + '，你知道是哪吗？',
+      '为什么懂行的人都选这个' + subject + '？看完你就明白了'
+    ];
+    if (type === 'empathy') return [
+      pain + '？别急，其实有更好的办法',
+      '每个月' + unit + '交了这么多，你算过到底值不值吗？',
+      '是不是觉得' + unit + '越来越贵？今天帮你看一下'
+    ];
+  }
+  
+  // ===== T2: Scene Story (一线场景) =====
+  if (t === 't2') {
+    var preset = '';
+    try { preset = document.getElementById('t2_preset').value; } catch(e) {}
+    
+    // Hooks matched to specific story templates
+    var presetHooks = {
+      '上门维修': { conflict: ['客户说网慢了3年，我一检查才发现根本不是宽带的问题','上门修个路由器，结果发现一个让所有人震惊的问题'], value: ['今天上门修宽带，发现80%的人家里都有这个坑','花30秒看完，你也能学会自己排查WiFi慢的原因'], suspense: ['这个路由器位置放错了3年，移动半米网速翻倍','修完宽带准备走，客户突然拉住我说了一句话——'], empathy: ['你家网是不是也一到晚上就卡？我帮你看看到底怎么回事','每次加载视频转圈的时候是不是想摔手机？问题不在手机'] },
+      '装机故事': { conflict: ['老小区装个宽带这么难？你猜我最后怎么搞定的','搬新家最崩溃的不是搬家，而是没有网！'], value: ['新家装宽带别踩这3个坑，装维师傅的真心话','刚搬' + (city||'家') + '装宽带的看过来，这几点提前准备好省大事'], suspense: ['老楼的外墙走线把我都难住了，最后想到一个办法——','装完宽带测速，数值一出来客户傻眼了'], empathy: ['搬家的痛苦我都懂，至少宽带这件事可以帮你搞定','老小区装宽带不用愁，看看我们是怎么从外墙走线的'] },
+      '柜台服务': { conflict: ['来营业厅缴费才发现——你的套餐可能3年没换过！','同样是办宽带，为什么你比别人多花钱？'], value: ['来营业厅顺便查了一下套餐，结果省了每月30块','每个人到店都应该做的第一件事：查套餐升级'], suspense: ['系统里跳出来一个红色提示，我一看客户的套餐——','查完这位小哥的套餐，我和他都沉默了'], empathy: ['是不是觉得话费越来越贵？今天来店我帮你看一下','每次月底流量告急的时候，是不是特想换个套餐？'] },
+      '突发状况': { conflict: ['大爷冲进营业厅满头大汗：我孙子要上网课，快帮我！','手机突然没网了，一看原因大爷差点急哭'], value: ['流量突然没了先别慌，有3个急救办法','流量告急怎么办？教你临时救急的3个妙招'], suspense: ['大爷的手机余额只剩3毛钱——接下来发生的事','他拿着手机跑进来的时候，所有人都以为出大事了'], empathy: ['月底流量告急的绝望，这位大爷比我们都懂','家里老人流量总是不够用的，举手我看看'] },
+      '投诉化解': { conflict: ['客户冲进来就拍桌子——宽带断了3次你们还不管？','报修说等48小时？客户直接冲到营业厅了！'], value: ['遇到宽带故障怎么办？教你先查3个地方再打电话','宽带突然断了别急着投诉，可能是你家的这个原因'], suspense: ['客户气冲冲来找我，但我查了一下后台数据——','他以为我是推脱，但我一查发现事情没那么简单'], empathy: ['宽带断了谁都着急，但冲动解决不了问题','被客户吼完我差点哭了——但我还是给他解决了问题'] },
+      '温暖瞬间': { conflict: [''], value: ['今天营业厅发生了一件事，让我觉得这份工作很值得','帮一位阿姨做了件小事，她感动得不行'], suspense: ['帮老人连上视频通话后，她对着屏幕哭了——','一个简单的操作，让这对祖孙相隔千里终于见面'], empathy: ['你有多久没和家里人视频了？今天帮一位阿姨打给女儿','在外打工的人，看到这个阿姨的视频通话你也会想家'] },
+      '银发服务': { conflict: ['智能手机对年轻人是工具，对老人是一座翻不过的山','今天花了1小时，只教会了李阿姨一件事'], value: ['帮银发族跨过数字鸿沟，我们营业厅每天都在做这件事','李阿姨半年没学会的事，今天来营业厅终于搞定了'], suspense: ['李阿姨掏出一个写满步骤的小本子——我看了差点哭出来','教了10遍微信视频，最后一次她自己打出去了'], empathy: ['你家老人会打微信视频吗？不会的话来营业厅，我手把手教','看到李阿姨学会发朋友圈那一刻，什么都值了'] },
+      '数字课堂': { conflict: ['一位大爷说：上次差点被假冒客服骗走养老钱！','老人最怕的不是手机难学，是你根本不知道骗子在哪'], value: ['今天我们开课教老人防诈骗，这5种骗术一定要警惕','给家里有老人的必看！3分钟学会保护爸妈不被骗'], suspense: ['我问老人们最怕什么，答案不是学不会，而是——','一台投影仪、几个老人、一本手册，改变正在发生'], empathy: ['你爸妈接过冒充客服的诈骗电话吗？来看看这个','如果我不教你，你就可能成为下一个被骗的老人'] },
+    };
+    
+    // Try preset-specific hooks first
+    if (preset && presetHooks[preset] && presetHooks[preset][type] && presetHooks[preset][type].length > 1) {
+      return presetHooks[preset][type];
+    }
+    
+    // Fallback: context-aware hooks based on problem field
+    var ctx = buildT2HookContext();
+    if (type === 'conflict') return [
+      ctx.scene + '，' + ctx.actor + '遇到了' + ctx.trouble + '——',
+      ctx.scene + ctx.action + '，发现' + ctx.surprise
+    ];
+    if (type === 'value') return [
+      ctx.scene + '，帮你省心省钱的' + ctx.tip + '分享给你',
+      ctx.helpful || '花30秒看完，以后碰到这种事不再慌'
+    ];
+    if (type === 'suspense') return [
+      ctx.scene + ctx.action + '，结果让我没想到的是——',
+      ctx.actor + ctx.situation + '，最后' + (ctx.turn || '让我特别意外')
+    ];
+    if (type === 'empathy') return [
+      ctx.scene + ctx.actor + '，我帮' + (ctx.pronoun || '他') + '做完之后' + ctx.ending,
+      ctx.empathy || '你是不是也遇到过类似的情况？评论区说说'
+    ];
+  }
+  
+  // ===== T3: Deep Review (深度测评) =====
+  if (t === 't3') {
+    var devName = device || '这款手机';
+    var isPhone = !/光猫|路由|机顶盒|宽带|mesh|AP|接入点/i.test(device);
+    var devType = isPhone ? '手机' : '设备';
+    var devAct = isPhone ? '买' : '换';
+    if (type === 'conflict') return [
+      devName + '值不值？我先说缺点——但优点太强我忍了',
+      '别被广告骗了！' + devName + '的真实体验和官网写的不一样',
+      isPhone ? '2900块的手机和9900块的比，差距在哪？实测结果很意外' : '你家的' + devName + '该不该换？看完再决定'
+    ];
+    if (type === 'value') return [
+      isPhone ? '花2分钟看完，买' + devName + '不踩坑——全干货无废话' : '花2分钟看完，选' + devName + '不踩坑——全干货无废话',
+      devName + '的5个隐藏功能，90%的人都不知道',
+      isPhone ? '准备换手机的先别买！看完这个真实续航测试再决定' : '准备换' + devName + '的先别急！看完这个实测再决定'
+    ];
+    if (type === 'suspense') return [
+      '我测了7天' + devName + '，最后发现一个问题——',
+      devName + '最让我意外的不是相机，不是外观，而是——',
+      isPhone ? '信号/续航/发热，' + devName + '哪个翻车了？结果出乎意料' : '信号/速度/稳定性，' + devName + '哪个翻车了？结果出乎意料'
+    ];
+    if (type === 'empathy') return [
+      isPhone ? '打工人选手机太难了？我用' + devName + '一周的真实感受' : '家里网卡到崩溃的人举手！换了' + devName + '之后终于解脱',
+      isPhone ? '旧手机卡到崩溃的人举手！换了' + devName + '之后终于解脱' : '你以为宽带慢是运营商的问题？可能是你' + devName + '在拖后腿',
+      isPhone ? '学生党预算有限？这个' + devName + '可能正适合你' : '不想多花钱又想要好网络？这个' + devName + '可能正适合你'
+    ];
+  }
+  
+  // ===== T4: Local Event (本地事件) =====
+  if (t === 't4') {
+    if (type === 'conflict') return [
+      city + '的朋友注意了！这个福利只剩3天，错过真没了',
+      '别人办宽带花599，你来店里只要99？真的假的？',
+      (city||'这里') + '的营业厅疯了？免费贴膜还送流量？'
+    ];
+    if (type === 'value') return [
+      '来' + (city||'我们店') + '办宽带，送你一个路由器值200块',
+      (city||'同城') + '福利！免费贴膜+测速+清洁，一分钱不花',
+      '就在' + (city||'附近') + '！营业厅重新装修开业，前50名有惊喜'
+    ];
+    if (type === 'suspense') return [
+      (city||'本地') + '这家营业厅有个隐藏福利——来的人都知道',
+      '今天路过' + (city||'柳巷') + '发现电信在搞事情——',
+      '这个活动只能到店办，网上查不到——'
+    ];
+    if (type === 'empathy') return [
+      '住在' + (city||'附近') + '的朋友，你家宽带该续费了吗？',
+      '下雨天不想出门？这个业务手机上就能办，教你',
+      (city||'同城') + '最热的时候来了，来营业厅吹空调+免费上网'
+    ];
+  }
+  
+  // Fallback
+  return ['花2分钟看完这条视频，绝对不会亏', '这条视频可能帮你省不少钱', '分享一个你可能不知道的事'];
+}
+
+// Context-aware hook building for T2 — reads problem field to detect scene
+function buildT2HookContext() {
+  var problem = '';
+  var customer = '';
+  try { problem = (document.getElementById('t2_problem')||{}).value || ''; } catch(e) {}
+  try { customer = (document.getElementById('t2_customer')||{}).value || '客户'; } catch(e) {}
+  var p = problem.toLowerCase();
+  
+  // Detect scene type
+  var isInStore = /营业厅|进店|进来|进来躲|冲进|跑进|来厅|厅里/.test(p);
+  var isRain = /下雨|暴雨|淋湿|淋雨|湿透/.test(p);
+  var isPhone = /打电话|接到.*电话|来电|客服/.test(p);
+  var isHome = /上门|到他家|家里|去.*家/.test(p);
+  var isDelivery = /外卖|小哥|骑手|配送/.test(p);
+  var isElderly = /老人|大爷|阿姨|爷爷|奶奶|爸妈|父母|婆婆/.test(p);
+  var isStudent = /学生|同学|学校|校园/.test(p);
+  
+  var ctx = {};
+  
+  if (isInStore && isRain && isDelivery) {
+    ctx.scene = '暴雨天';
+    ctx.actor = '一位浑身湿透的外卖小哥冲进营业厅';
+    ctx.trouble = '手机快没电，还有单没送完';
+    ctx.action = '正准备关门，突然跑进来一个人——';
+    ctx.surprise = '他不是来躲雨的';
+    ctx.situation = '手机只剩5%电却还有3单没送——';
+    ctx.tip = '手机没电急救法';
+    ctx.turn = '办完业务后他做了件暖心的事';
+    ctx.ending = '，他回头特意来办了张流量卡';
+    ctx.helpful = '如果你也在路上的话，记住这几个应急办法';
+    ctx.empathy = '风里来雨里去的外卖骑手，看到这一幕你会感动';
+    ctx.pronoun = '他';
+  } else if (isInStore && isElderly) {
+    ctx.scene = '今天在营业厅值班';
+    ctx.actor = '一位' + customer;
+    ctx.trouble = '智能手机上的功能都不会用';
+    ctx.action = '正在柜台整理资料，' + customer + '走了进来——';
+    ctx.surprise = '她掏出一个写满步骤的小本子';
+    ctx.situation = '她拿着手机犹豫了半天——';
+    ctx.tip = '银发族用手机小技巧';
+    ctx.turn = '她学会后特别开心';
+    ctx.ending = '，她脸上笑得特别暖';
+    ctx.helpful = '家里有老人的，这几步一定要教会他们';
+    ctx.empathy = '你家老人也会用智能手机吗？';
+    ctx.pronoun = '她';
+  } else if (isInStore) {
+    ctx.scene = '今天在营业厅柜台值班';
+    ctx.actor = customer;
+    ctx.trouble = problem.substring(0, 12);
+    ctx.action = '正准备下班，' + customer + '急匆匆走了进来——';
+    ctx.surprise = '事情不像表面那么简单';
+    ctx.situation = '正在犹豫要不要开口——';
+    ctx.tip = '到店办理的小秘诀';
+    ctx.turn = '结果让所有人都很意外';
+    ctx.ending = '，事情圆满解决';
+    ctx.helpful = '来营业厅前先看这个，能省不少时间';
+    ctx.empathy = '你在营业厅遇到过类似的事吗？';
+    ctx.pronoun = '他';
+  } else if (isPhone) {
+    ctx.scene = '刚处理完一个工单';
+    ctx.actor = customer + '打来电话';
+    ctx.trouble = problem.substring(0, 12);
+    ctx.action = '接了个电话，' + customer + '声音很急——';
+    ctx.surprise = '电话里说的事让我坐不住了';
+    ctx.situation = '电话那头的' + customer + '特别焦急——';
+    ctx.tip = '宽带问题的应急排查法';
+    ctx.turn = '最后解决的办法很简单';
+    ctx.ending = '，' + customer + '在电话里连声说谢谢';
+    ctx.helpful = '以后遇到这种情况，先试试这几步';
+    ctx.empathy = '接过这种求救电话的举手！';
+    ctx.pronoun = '他';
+  } else if (isHome && isRain) {
+    ctx.scene = '大雨天上门维修';
+    ctx.actor = customer;
+    ctx.trouble = problem.substring(0, 12);
+    ctx.action = '冒雨赶到' + customer + '家';
+    ctx.surprise = '进门一看问题完全不是说的那样';
+    ctx.situation = '我全身淋湿了但顾不上——';
+    ctx.tip = '雨天WiFi变慢的应对法';
+    ctx.turn = '弄完后' + customer + '的反应让我觉得一切都值了';
+    ctx.ending = '，虽然衣服全湿了但心里很暖';
+    ctx.helpful = '下雨天信号变差？试试这几招';
+    ctx.empathy = '雨天还在跑上跑下的打工人，说多了都是泪';
+    ctx.pronoun = '他';
+  } else if (isHome) {
+    ctx.scene = '今天上门';
+    ctx.actor = customer;
+    ctx.trouble = problem.substring(0, 12);
+    ctx.action = '背上工具包去了' + customer + '家';
+    ctx.surprise = '一检查发现根本不是他说的那个问题';
+    ctx.situation = '他在旁边看着我将信将疑——';
+    ctx.tip = '自己就能排查的小技巧';
+    ctx.turn = '弄完之后' + customer + '试了试笑了';
+    ctx.ending = '，' + customer + '说原来这么简单';
+    ctx.helpful = '花30秒看完，你也能学会自己排查';
+    ctx.empathy = '你家是不是也这样？评论区说说';
+    ctx.pronoun = '他';
+  } else {
+    // Generic fallback
+    ctx.scene = '今天';
+    ctx.actor = customer;
+    ctx.trouble = problem.substring(0, 12) || '碰到了一个棘手的问题';
+    ctx.action = '碰到了' + customer;
+    ctx.surprise = '发现的事情让我很意外';
+    ctx.situation = '一开始我还以为是什么大事——';
+    ctx.tip = '解决问题的实用办法';
+    ctx.turn = '最后的结局让我特别感动';
+    ctx.ending = '，' + customer + '很满意地笑了';
+    ctx.helpful = '下次遇到这种情况可以试试这个方法';
+    ctx.empathy = '你有没有遇到过类似的事？评论区告诉我';
+    ctx.pronoun = '他';
+  }
+  
+  return ctx;
+}
+
+// Shared: build shooting checklist HTML
+function buildChecklist(template) {
+  var html = '<div class="shoot-checklist" style="margin-top:16px;padding:16px;background:#F8FBFF;border-radius:12px;border:2px solid #BBDEFB;">';
+  html += '<div style="font-weight:700;font-size:15px;margin-bottom:12px;color:#1565C0;">📋 拍摄清单 — 拍一条勾一条</div>';
+  
+  var items = [
+    '📱 打开相机，竖屏 9:16 拍摄',
+    '🎤 说第一句钩子（看上面的金色框）',
+    '🎬 按分镜顺序逐条拍，每条停留3-5秒',
+    '✏️ 拍完后加字幕（一定要加，很多人静音看）',
+    '🎵 选BGM，音量调到25%，不压人声',
+    '🏷 加话题标签和POI位置',
+    '📤 发布！然后来评论区发第一条引导评论'
+  ];
+  
+  for (var i = 0; i < items.length; i++) {
+    html += '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;border-bottom:1px solid #E3F2FD;">';
+    html += '<input type="checkbox" style="margin-top:2px;width:18px;height:18px;accent-color:#1565C0;">';
+    html += '<span>' + items[i] + '</span>';
+    html += '</label>';
+  }
+  
+  html += '<div style="margin-top:8px;font-size:11px;color:#999;">💡 全部勾完 = 出片完成。下次打开清单还在（浏览器会记住）。</div>';
+  html += '</div>';
+  return html;
+}
+
+// Shared: build comment strategy + SEO section
+function buildCommentSEO(t, city, topic) {
+  var html = '<div style="margin-top:16px;padding:16px;background:#FFF3E0;border-radius:12px;border:2px solid #FFB74D;">';
+  html += '<div style="font-weight:700;font-size:15px;margin-bottom:8px;color:#E65100;">💬 评论区运营 — 复制这3条发到评论区</div>';
+  
+  var comments = [
+    '🤔 ' + (city||'本地') + '的朋友，你家宽带一个月多少钱？评论区说说，我帮你看划不划算',
+    '👍 觉得有用的话点个赞，让更多' + (city||'同城') + '人看到',
+    '📩 想了解具体套餐的，评论区留「' + (city||'本地') + '」，我私信发你'
+  ];
+  
+  for (var i = 0; i < comments.length; i++) {
+    var safe = esc(comments[i]);
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid #FFE0B2;">';
+    html += '<span style="background:#E65100;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;">复制</span>';
+    html += '<span onclick="copyText(\'' + safe.replace(/'/g, '&#39;') + '\');toast(\'已复制到剪贴板\',\'success\')" style="cursor:pointer;color:#E65100;text-decoration:underline;">' + safe + '</span>';
+    html += '</div>';
+  }
+  
+  // SEO section — context-aware per template
+  html += '<div style="margin-top:12px;padding-top:12px;border-top:2px solid #FFE0B2;">';
+  html += '<div style="font-weight:700;font-size:14px;margin-bottom:6px;color:#BF360C;">🔍 搜索优化 — 发布时填这些能上同城搜索</div>';
+  html += '<div style="font-size:11px;color:#666;margin-bottom:4px;">📝 标题建议（复制到抖音发布标题栏）：</div>';
+  var loc = city || '同城';
+  var seoTitles = {
+    t1: loc + '宽带怎么选？2026年三大运营商实测对比',
+    t2: loc + '电信营业厅真实故事：' + (topic ? esc(topic) : '上门服务') + '的一天',
+    t3: loc + (topic||'设备') + '真实评测：到底值不值得入手？',
+    t4: loc + '电信福利来了！' + (topic||'限时活动') + '，就在' + loc + '营业厅'
+  };
+  var seoTitle = esc(seoTitles[t] || seoTitles['t1']);
+  html += '<div style="background:#fff;padding:8px;border-radius:6px;font-size:12px;margin-bottom:8px;cursor:pointer;" onclick="copyText(\'' + seoTitle.replace(/'/g,'&#39;') + '\');toast(\'标题已复制\',\'success\')">' + seoTitle + ' <span style="color:#E65100;font-size:10px;">点击复制</span></div>';
+  
+  html += '<div style="font-size:11px;color:#666;margin-bottom:4px;">🔑 搜索关键词（复制到抖音搜索栏测试效果）：</div>';
+  var seoKW = esc('#' + loc + '宽带 #宽带办理 #WiFi慢怎么办 #' + loc + '电信营业厅 #' + loc + '同城');
+  html += '<div style="background:#fff;padding:8px;border-radius:6px;font-size:12px;cursor:pointer;" onclick="copyText(\'' + seoKW.replace(/'/g,'&#39;') + '\');toast(\'关键词已复制\',\'success\')">' + seoKW + ' <span style="color:#E65100;font-size:10px;">点击复制</span></div>';
+  html += '</div>';
+  
+  html += '</div>';
+  return html;
+}
+
+// Combined footer for all previews
+function buildPreviewFooter(t, city, topic) {
+  return buildChecklist(t) + buildCommentSEO(t, city || '本地', topic || '');
+}
+
+// Auto-inject hook selector when entering template pages
+var _origSwitchPage2 = switchPage;
+switchPage = function(name, el, noPush) {
+  var result = _origSwitchPage2(name, el, noPush);
+  setTimeout(injectHookSelector, 100);
+  setTimeout(injectMobileBar, 200);
+  return result;
+};
+
+// v2.0 Mobile: inject bottom action bar for template pages
+// v2.0: Auto-select best hook type based on story template / topic
+function autoSelectHook(t, presetKey) {
+  var typeEl = document.getElementById(t + '_hook_type');
+  var textEl = document.getElementById(t + '_hook_text');
+  if (!typeEl || !textEl) return;
+  
+  // Hook type mapping per template
+  var t1HookMap = {
+    '宽带选多少兆最划算': 'value', '手机卡套餐横向对比': 'conflict',
+    '不同人群宽带怎么选': 'empathy', '5G套餐vs4G套餐实际体验': 'suspense',
+    '宽带避坑指南': 'conflict', '光猫路由网线哪个最影响网速': 'suspense',
+    '本月最值得办的3个活动': 'value', '老用户vs新用户套餐差在哪': 'conflict',
+    '融合套餐vs单宽带哪个更划算': 'value', '100/300/1000兆看视频实测差距': 'value',
+    '暑假学生宽带怎么选最省钱': 'empathy', '租房宽带避坑指南': 'conflict',
+    '二宽半价到底值不值': 'suspense', '携号转网不换号改套餐全攻略': 'suspense',
+    '携号转网实际体验全流程': 'suspense',
+    '全屋WiFi覆盖mesh路由值不值': 'value', '家庭宽带该选多大带宽': 'empathy',
+    '千兆宽带实际网速有多快': 'suspense', '一个人租房上网该怎么选': 'empathy',
+    '父母家用什么宽带最划算': 'empathy', '流量卡和宽带哪个划算': 'conflict'
+  };
+  var t2HookMap = {
+    '上门维修': 'empathy', '装机故事': 'suspense', '柜台服务': 'value',
+    '突发状况': 'conflict', '投诉化解': 'empathy', '温暖瞬间': 'empathy',
+    '银发服务': 'value', '数字课堂': 'conflict', '校园迎新': 'empathy',
+    '社区营销': 'value', '政企服务': 'value', '节日活动': 'empathy',
+    '突发事件': 'empathy', '公益服务': 'empathy', '老客户情谊': 'empathy'
+  };
+  
+  var t4HookMap = {
+    '免费贴膜': 'value', '免费测速': 'value', '办业务送礼': 'conflict',
+    '以旧换新': 'value', '手机清洁': 'empathy', '宽带体验': 'suspense',
+    '暑期特惠': 'conflict', '社区服务': 'empathy'
+  };
+  
+  var hookType = null;
+  if (t === 't1') {
+    hookType = t1HookMap[presetKey] || null;
+    // Fuzzy fallback for unlisted T1 topics
+    if (!hookType) {
+      var tt = presetKey || '';
+      if (/对比|测评|pk|vs|实测/i.test(tt)) hookType = 'value';
+      else if (/避坑|坑|防坑|别.*买|骗|翻车/i.test(tt)) hookType = 'conflict';
+      else if (/值不值|实际.*体验|到底|究竟|真的|秘密/i.test(tt)) hookType = 'suspense';
+      else if (/怎么选|选哪|选什么|省钱|划算|一个人|家庭/i.test(tt)) hookType = 'empathy';
+      else hookType = 'value'; // default to value for comparison/guide content
+    }
+  } else if (t === 't2') hookType = t2HookMap[presetKey] || null;
+  else if (t === 't4') hookType = t4HookMap[presetKey] || null;
+  else if (t === 't3') {
+    if (/测评|对比|续航|信号|发热/.test(presetKey || '')) hookType = 'value';
+    else if (/避坑|翻车|差评|踩雷/.test(presetKey || '')) hookType = 'conflict';
+    else if (/隐藏|秘密|发现/.test(presetKey || '')) hookType = 'suspense';
+    else if (/学生|打工|预算|省钱/.test(presetKey || '')) hookType = 'empathy';
+  }
+  if (!hookType) return; // don't force-match unknown presets
+  
+  // Find matching option
+  for (var i = 0; i < typeEl.options.length; i++) {
+    if (typeEl.options[i].value === hookType) {
+      typeEl.selectedIndex = i;
+      applyHook(t);
+      // Highlight: show the auto-matched hook clearly
+      var hs = document.getElementById('hook_selector_' + t);
+      if (hs) {
+        hs.style.opacity = '1';
+        hs.style.background = '#FFF8E1';
+        hs.style.borderColor = '#FFB74D';
+        hs.querySelector('div').innerHTML = '🎯 黄金3秒钩子 <span style="font-size:11px;color:#E65100;font-weight:400;">— 根据模板自动匹配，开头第一句决定80%完播率</span>';
+      }
+      return;
+    }
+  }
+}
+
+function injectMobileBar() {
+  var templatePages = ['template1','template2','template3','template4','live'];
+  if (templatePages.indexOf(currentPage) < 0) return;
+  
+  var existing = document.getElementById('mobileActionBar');
+  if (existing) return;
+  
+  var bar = document.createElement('div');
+  bar.id = 'mobileActionBar';
+  bar.className = 'mobile-action-bar';
+  
+  // Determine the primary action for this template — use active mode
+  var act = getMobileAction();
+  
+  bar.innerHTML = '<button class="mab-secondary mab-btn" onclick="toggleMobileNav()" style="font-size:20px;padding:8px 16px;">☰</button>' +
+    '<button class="mab-primary mab-btn" id="mabActionBtn">' + act.label + '</button>' +
+    '<button class="mab-secondary mab-btn" onclick="copyScriptFromPreview()">📋</button>';
+  
+  document.body.appendChild(bar);
+  
+  // Set onclick via direct reference (no eval)
+  document.getElementById('mabActionBtn').onclick = act.fn;
+}
+
+// Get current preview action based on active mode tab
+function getMobileAction() {
+  if (currentPage === 'template1') {
+    if (document.querySelector('#t1-mtab-card.active')) return { fn: previewT1Card, label: '👁 预览图卡脚本' };
+    if (document.querySelector('#t1-mtab-calc.active')) return { fn: previewT1Calc, label: '👁 预览算账脚本' };
+    return { fn: previewT1Talk, label: '👁 预览口播脚本' };
+  }
+  if (currentPage === 'template2') {
+    if (document.querySelector('#t2-mtab-doc.active')) return { fn: previewT2Doc, label: '👁 预览微纪录' };
+    if (document.querySelector('#t2-mtab-short.active')) return { fn: previewT2Short, label: '👁 预览一句话' };
+    return { fn: previewT2Tell, label: '👁 预览故事脚本' };
+  }
+  if (currentPage === 'template3') {
+    if (document.querySelector('#t3-mtab-silent.active')) return { fn: function(){previewT3Silent('A');}, label: '👁 预览无声脚本' };
+    return { fn: previewT3Talk, label: '👁 预览评测脚本' };
+  }
+  if (currentPage === 'template4') {
+    if (document.querySelector('#t4-mtab-mix.active')) return { fn: previewT4Mix, label: '👁 预览混剪脚本' };
+    if (document.querySelector('#t4-mtab-countdown.active')) return { fn: previewT4Countdown, label: '👁 预览倒计时' };
+    return { fn: previewT4Walk, label: '👁 预览探店脚本' };
+  }
+  if (currentPage === 'live') return { fn: previewLiveScript, label: '📺 生成直播话术' };
+  return { fn: function(){}, label: '👁 预览脚本' };
+}
+
+// Update mobile bar action button when mode switches (called from switchTXMode)
+function updateMobileBarAction() {
+  var btn = document.getElementById('mabActionBtn');
+  if (!btn) return;
+  var act = getMobileAction();
+  btn.textContent = act.label;
+  btn.onclick = function() { act.fn(); };
+}
+
+function toggleMobileNav() {
+  var nav = document.querySelector('.nav-tabs');
+  if (nav) nav.style.display = nav.style.display === 'none' ? '' : 'none';
+}
+
+function toggleHamburger() {
+  var n = document.querySelector('.nav-tabs');
+  n.classList.toggle('nav-collapsed');
+  document.getElementById('hamburgerBtn').innerHTML = n.classList.contains('nav-collapsed') ? '☰ 展开全部菜单' : '✕ 收起菜单';
+}
+
+// Nav group accordion (mobile: collapse/expand)
+function toggleNavGroup(group) {
+  var el = document.querySelector('.nav-group[data-group="' + group + '"]');
+  if (!el) return;
+  el.classList.toggle('expanded');
+  // Save state to localStorage
+  try {
+    var states = {};
+    document.querySelectorAll('.nav-group').forEach(function(g) {
+      if (g.dataset.group) states[g.dataset.group] = g.classList.contains('expanded');
+    });
+    localStorage.setItem('navGroupStates', JSON.stringify(states));
+  } catch(e) {}
+}
+
+function loadNavGroupStates() {
+  if (window.innerWidth > 640) return; // PC: always expanded
+  try {
+    var states = JSON.parse(localStorage.getItem('navGroupStates'));
+    if (states) {
+      document.querySelectorAll('.nav-group').forEach(function(g) {
+        if (states[g.dataset.group]) g.classList.add('expanded');
+      });
+    }
+  } catch(e) {}
+}
+
+function copyScriptFromPreview() {
+  // Try to find any visible preview and copy its text
+  var previews = document.querySelectorAll('[id^="preview"]');
+  for (var i = 0; i < previews.length; i++) {
+    if (previews[i].style.display !== 'none' && previews[i].textContent.trim()) {
+      copyText(previews[i].textContent);
+      toast('脚本已复制', 'success');
+      return;
+    }
+  }
+  toast('请先生成预览脚本', 'error');
+}
+
+// Generate contextual comment prompt for hotspot cards
+function genHotspotComment(h) {
+  var title = h.title || '';
+  var tags = h.tags || '';
+  // Detect category and generate fitting comment
+  if (/挑战|舞|跳舞|跟拍|翻拍/i.test(title)) {
+    return '拍完的兄弟评论区交作业！我看看谁跳得最魔性 👇';
+  }
+  if (/世界杯|看球|比赛|进球|亚马尔|马宁/i.test(title)) {
+    return '你押谁赢？评论区留下你的预测，赛后回来挖坟 ⚽';
+  }
+  if (/手机|nova|荣耀|iPhone|换机|购机/i.test(title)) {
+    return '正在用的什么手机？评论区晒型号，我帮你看看值不值得换 📱';
+  }
+  if (/宽带|网速|WiFi|套餐|FTTR|光纤/i.test(title)) {
+    return '你家宽带多少兆？一个月多少钱？评论区告诉我，我帮你看划不划算 🏠';
+  }
+  if (/福利|优惠|限时|免费|送|特惠|618|双11/i.test(title)) {
+    return '这波福利你赶上了吗？评论区扣1，我告诉你还能不能领 🎁';
+  }
+  if (/AI|科技|揭秘|辟谣|实测|真相/i.test(title)) {
+    return '你之前听过这个说法吗？评论区说说，我看看多少人被骗了 🤔';
+  }
+  if (/父亲|端午|节日|中秋|过年|春节/i.test(title)) {
+    return '这个节日你怎么过的？评论区晒晒，点赞最高的送小礼物 🎊';
+  }
+  // Default: use actual title
+  var snippet = esc(title.slice(0, 25));
+  return snippet + '... 你们遇到过吗？评论区聊聊 👇';
+}
