@@ -1627,21 +1627,17 @@ function previewT2Tell() {
   if (hookEl && hookEl.value.trim()) {
     hookLine = '<div class="stage">【0-5秒】🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="action-note">→ 镜头对着自己脸，语气坚定。这句话决定了80%的完播率。</div>\n<div class="dialogue">"' + esc(hookEl.value.trim()) + '"</div>\n';
   }
-  // Context-aware wording based on preset type
+  // Narrative framework: only 3 categories, let user content drive the story
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
-  var isOnsite = /上门|装机|维修/i.test(preset); // service at customer's location
-  var isCounter = /柜台|投诉|突发|节日|公益|数字|银发|老客户|温暖/i.test(preset); // service at store counter
-  var isOutreach = /社区|校园|政企/i.test(preset); // outdoor event / visit
-  // Opening line per scene
-  var openLine = isOutreach ? c('time') + '，我们去' + (preset.indexOf('社区') >= 0 ? '社区' : preset.indexOf('校园') >= 0 ? '学校' : '客户那里') + '做活动，' + c('customer') + '过来了——' + c('problem')
-    : isOnsite ? c('time') + '，接到' + c('customer') + '的电话说——' + c('problem') + '。我说行，我过去看看。'
-    : c('time') + '，来了个' + c('customer') + '，进门就说——' + c('problem') + '。我说行，我去看看。';
-  var findPhrase = isOutreach ? '跟' + c('customer') + '聊完发现——' : isCounter ? '一问才知道——' : '一到他家一看，就发现问题了——';
-  var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '在他家弄完以后' : isCounter ? '聊完以后' : '弄完以后';
-  var ctaPhrase = isOutreach ? '你们社区有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : isCounter ? '你们遇到过类似的事吗？评论区聊聊' : '你有什么想说的？评论区告诉我';
-  // 拍摄建议
-  var shootTip = isOutreach ? '镜头拍活动现场/摊位，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
+  var isOnsite = /上门|装机|维修/i.test(preset);
+  var isOutreach = /社区|校园|政企/i.test(preset);
+  // Opening line: user fills time/customer/problem, we just stitch them
+  var openLine = c('time') + '，' + c('customer') + '——' + c('problem');
+  var findPhrase = isOutreach ? '聊完发现——' : isOnsite ? '一到现场就发现问题了——' : '一问才知道——';
+  var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '弄完以后' : '聊完以后';
+  var ctaPhrase = isOutreach ? '你们社区/学校有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : '你们遇到过类似的事吗？评论区聊聊';
+  var shootTip = isOutreach ? '镜头拍活动现场，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
   
   const html = `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
@@ -1685,31 +1681,33 @@ function previewT2Doc() {
   if (hookEl && hookEl.value.trim()) {
     hookSubtitle = esc(hookEl.value.trim());
   }
-  // Context-aware shooting instruction
+  // User content drives everything; only differentiate broad setting
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
   var isOutreach = /社区|校园|政企/i.test(preset);
-  var meetAction = isOutreach ? '布置活动现场，摆摊位/拉横幅' : c('customer') + '开门/引你进屋。拍背影或手部，不要拍正脸（保护隐私）';
-  var problemShot = isOutreach ? '镜头拍到' + c('customer') + '正在咨询的场景' : '镜头贴到问题处——' + c('finding').substring(0,15) + '...';
+  var isOnsite = /上门|装机|维修/i.test(preset);
+  var openShot = isOutreach ? '布置活动现场，摆摊/拉横幅' : isOnsite ? '拍楼栋外观/门牌号（不拍具体号码）' : '拍门牌号/营业厅外观';
+  var meetShot = isOutreach ? c('customer') + '走过来咨询，拍交流场景' : c('customer') + '开门引路，拍背影或手部';
+  var problemShot = c('finding') ? c('finding').substring(0, 20) : '正在处理中的场景';
   const html = `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎥 微纪录 · 拍摄指令（零口播/极少口播）</div>
 
 ${hookSubtitle ? `
 <div class="shot-step" style="border-left:4px solid var(--orange);">
   <span class="shot-time">0-3秒 🎯</span>
-  <span class="shot-action">🎬 拍门牌号/楼栋外观（不拍具体号码，拍环境）</span>
+  <span class="shot-action">🎬 ${openShot}</span>
   <span class="shot-subtitle">字幕："${hookSubtitle}"</span>
   <span style="font-size:10px;color:#E65100;">⚡ 黄金钩子 · 3秒决定完播率</span>
 </div>` : ''}
 <div class="shot-step">
   <span class="shot-time">${hookSubtitle ? '3-6秒' : '0-3秒'}</span>
-  <span class="shot-action">🎬 拍门牌号/楼栋外观（不拍具体号码，拍环境）</span>
+  <span class="shot-action">🎬 ${openShot}</span>
   <span class="shot-subtitle">字幕："${c('time')}，${c('customer')}说家里网卡了好久了"</span>
 </div>
 
 <div class="shot-step">
   <span class="shot-time">${hookSubtitle ? '6-11秒' : '3-8秒'}</span>
-  <span class="shot-action">🎬 ${meetAction}</span>
+  <span class="shot-action">🎬 ${meetShot}</span>
   <span class="shot-subtitle">字幕：${c('problem')}</span>
 </div>
 
