@@ -72,7 +72,7 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
     
     // Check localStorage cache first (per store+persona+topic+week)
     var weekNum = getWeekNumber();
-    var cacheKey = 'dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
+    var cacheKey = CACHE_VERSION + '_dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
     try {
       var cached = localStorage.getItem(cacheKey);
       if (cached) { return JSON.parse(cached).script; }
@@ -115,10 +115,23 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
   }
 }
 
-// Read current template form fields
+// Cache version — bump to invalidate all old localStorage entries
+var CACHE_VERSION = 'v2';
+
+// Read current template form fields (ALL relevant fields, per template type)
 function readFormFields(prefix) {
   var fields = {};
-  var ids = ['a','b','c','problem','finding','steps','reaction','summary','customer','time','benefit','landmark'];
+  // Common fields across all templates
+  var commonIds = ['city','topic','bgm','tags','title'];
+  // Template-specific fields
+  var extraIds = {
+    t1: ['a','b','c'],
+    t2: ['time','customer','problem','finding','steps','reaction','summary','preset'],
+    t3: ['item','func','p1','p2','p3','hook_text'],
+    t4: ['benefit','desc','addr','hours','landmark','shop','preset']
+  };
+  
+  var ids = commonIds.concat(extraIds[prefix] || []);
   for (var i = 0; i < ids.length; i++) {
     var el = document.getElementById(prefix + '_' + ids[i]);
     if (el && el.value) fields[ids[i]] = el.value;
