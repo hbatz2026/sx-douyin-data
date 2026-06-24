@@ -2,7 +2,7 @@
 // 环境变量: GITEE_TOKEN, GITEE_USERNAME, SILICONFLOW_API_KEY
 // 部署: v=2026-06-24
 
-const CACHE_VER = 'v3'; // bump to invalidate all old caches
+const CACHE_VER = 'v4'; // bump to invalidate all old caches
 
 const http = require('http');
 
