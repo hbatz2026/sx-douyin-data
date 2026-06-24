@@ -87,12 +87,15 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
       templateType: templateType
     };
     console.log('🔗 calling personalize API:', profile.name, topicKey);
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 45000);
     var res = await fetch(PERSONALIZE_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(45000)
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     console.log('📡 API response:', res.status);
     if (!res.ok) throw new Error('API ' + res.status);
     var data = await res.json();
