@@ -36,6 +36,241 @@ function safeCall(fn) {
   }
 }
 
+// ===== 千人千面 · 厅店人设引擎（6种风格） =====
+var PERSONA_KEY = 'douyin_lab_persona';
+var personaDB = {
+  sweet:   { label: '甜美学姐', icon: '🌸', tone: '亲切网感',   tags: '年轻女性 抖音原生 活泼语速 会用热梗',
+             desc: '轻声快语、有网感、用抖音流行口吻拉近距离',
+             prompt: '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"之类称呼。语速活泼，善于用emoji和热梗拉近距离。' },
+  tech:    { label: '技术专家', icon: '🔧', tone: '数据硬核',   tags: '不分性别 参数对比 测试数据 专业术语',
+             desc: '用数据说话，实测对比，专业但不生硬',
+             prompt: '你是电信营业厅的技术专家。用实测数据说话，喜欢对比参数和性能。专业但不死板，能用通俗方式解释技术。"今天测了""直接上数据""建议截图"是你的口头禅。' },
+  biz:     { label: '商务精英', icon: '💼', tone: '简洁干练',   tags: '不分性别 信息密度 数字前置 直奔主题',
+             desc: '直奔主题、信息密度高，适合政企商务场景',
+             prompt: '你是电信营业厅的商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。"建议""结论明确""数据来源"是你的风格。不讲废话。' },
+  young:   { label: '活力小哥', icon: '😎', tone: '吐槽有梗',   tags: '年轻男性 快节奏 有情绪 夸张对比',
+             desc: '口语化接地气、快节奏、有网感有情绪起伏',
+             prompt: '你是电信营业厅的年轻男员工。说话口语化、接地气，有网感。爱用"兄弟们"开头，喜欢吐槽、夸张对比。"你敢信""直接打脸""看了你就懂"是你的风格。' },
+  master:  { label: '资深师傅', icon: '👔', tone: '经验稳重',   tags: '成熟男性 案例切入 娓娓道来 让人信任',
+             desc: '经验感、用真实案例说话，稳重有分量',
+             prompt: '你是电信营业厅的资深老师傅。干了二十年装维，经验丰富。用真实案例说话，说话稳重有分量。"干了这么多年""信我一次""经验之谈"是你的口头禅。不吹不黑，实事求是。' },
+  sister:  { label: '暖心姐姐', icon: '💝', tone: '温暖共情',   tags: '成熟女性 故事切入 生活场景 亲切自然',
+             desc: '用生活场景和真实故事打动客户，温暖有温度',
+             prompt: '你是电信营业厅的暖心姐姐。用客户故事和生活场景切入，温暖亲切。喜欢说"昨天来了个阿姨""门口的王姐"这种开头。让观众感觉你不是在推销，是在真心帮忙。' }
+};
+var personaOrder = ['sweet','tech','biz','young','master','sister'];
+
+// ===== 个性化 API 调用（懒生成 + localStorage 缓存） =====
+// API endpoint — EdgeOne Edge Function, same-origin deploy
+var PERSONALIZE_API = '/personalize';
+
+// Call personalize API or use cache/fallback
+async function callPersonalizeAPI(templateType, topicKey, fields) {
+  var profile = getStoreProfile();
+  if (!profile) return null;
+  
+  // Check localStorage cache first (per store+persona+topic+week)
+  var weekNum = getWeekNumber();
+  var cacheKey = 'dy_personalize_' + profile.hash + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
+  try {
+    var cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached).script;
+  } catch(e) {}
+
+  // Try API
+  try {
+    var body = {
+      store: profile.name, persona: profile.persona,
+      topic: topicKey, city: profile.city,
+      fields: fields || readFormFields(templateType),
+      templateType: templateType
+    };
+    var res = await fetch(PERSONALIZE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    var data = await res.json();
+    if (data.script) {
+      // Cache for next time
+      try { localStorage.setItem(cacheKey, JSON.stringify({ script: data.script })); } catch(e) {}
+      return data.script;
+    }
+  } catch(e) {
+    console.warn('Personalize API failed, falling back:', e.message);
+  }
+
+  // Fallback: static variant pool
+  var variant = selectVariant(topicKey);
+  return variant ? composeScript(variant) : null;
+}
+
+// Read current template form fields
+function readFormFields(prefix) {
+  var fields = {};
+  var ids = ['a','b','c','problem','finding','steps','reaction','summary','customer','time','benefit','landmark'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(prefix + '_' + ids[i]);
+    if (el && el.value) fields[ids[i]] = el.value;
+  }
+  return fields;
+}
+
+// Deterministic hash for variant selection (same store always gets same variant)
+function hashStore(str) {
+  var h = 0;
+  for (var i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+  return Math.abs(h);
+}
+
+// Get stored persona, default to 'warm' if not set
+function getPersona() {
+  return localStorage.getItem(PERSONA_KEY) || 'sister';
+}
+
+// Set persona from UI
+function setPersona(key) {
+  localStorage.setItem(PERSONA_KEY, key);
+  // Visual feedback on labels
+  var labels = document.querySelectorAll('.persona-opt');
+  for (var i = 0; i < labels.length; i++) {
+    var radio = labels[i].querySelector('input');
+    if (radio && radio.value === key) {
+      labels[i].style.borderColor = 'var(--blue)';
+      labels[i].style.background = '#E8F0FE';
+    } else {
+      labels[i].style.borderColor = 'var(--border)';
+      labels[i].style.background = '';
+    }
+  }
+}
+
+// Initialize persona radio UI on load
+function initPersonaPicker() {
+  var key = getPersona();
+  var radio = document.querySelector('input[name="persona"][value="' + key + '"]');
+  if (radio) { radio.checked = true; setPersona(key); }
+}
+
+// Get full store profile (name + persona + city)
+function getStoreProfile() {
+  var raw = localStorage.getItem(STORE_KEY);
+  var name = '';
+  try {
+    var obj = JSON.parse(raw);
+    name = obj && obj.name ? obj.name : (typeof raw === 'string' ? raw : '');
+  } catch(e) {
+    name = (typeof raw === 'string') ? raw : '';
+  }
+  if (!name) return null;
+  var cityMatch = name.match(/^([^\s区县]+)/);
+  return {
+    name: name,
+    city: cityMatch ? cityMatch[1] : name,
+    persona: getPersona(),
+    hash: hashStore(name)
+  };
+}
+
+// Select a variant from the weekly pool for this store
+function selectVariant(topicKey) {
+  var pool = window.___variantPool;
+  if (!pool || !pool[topicKey]) return null;
+  var profile = getStoreProfile();
+  if (!profile) return null;
+  var group = pool[topicKey];
+  var persona = profile.persona;
+  // Fallback: if no variants for this persona, use 'warm'
+  var variants = group[persona] || group['sister'];
+  if (!variants || !variants.length) return null;
+  var weekNum = getWeekNumber();
+
+// ISO week number for deterministic variant selection
+function getWeekNumber() {
+  var d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  var yearStart = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+}
+  var idx = (profile.hash + weekNum + topicKey.length) % variants.length;
+  return variants[idx];
+}
+
+// Compose final script: replace placeholders with store data + form fields
+function composeScript(variant) {
+  var script = typeof variant === 'string' ? variant : (variant.script || variant.text || '');
+  var profile = getStoreProfile();
+  if (profile) {
+    script = script.replace(/\{user_store\}/g, profile.name);
+    script = script.replace(/\{user_city\}/g, profile.city);
+  }
+  // Auto-inject form fields from all templates (T1 scenes, T2 story, etc.)
+  for (var t = 1; t <= 4; t++) {
+    var prefix = 't' + t + '_';
+    var fields = ['a','b','c','problem','finding','steps','reaction','summary','customer','time','benefit','landmark'];
+    for (var fi = 0; fi < fields.length; fi++) {
+      var el = document.getElementById(prefix + fields[fi]);
+      if (el && el.value) {
+        script = script.replace(new RegExp('\\{' + fields[fi] + '\\}', 'g'), esc(el.value));
+      }
+    }
+  }
+  return script;
+}
+
+// Get personalized opening hook (compact card, doesn't overlap with template)
+function tryVariantInjection(topicKey, bgm) {
+  if (!topicKey) return '';
+  var variant = selectVariant(topicKey);
+  if (!variant) return '';
+  var persona = getPersona();
+  var p = personaDB[persona] || personaDB['sister'];
+  var script = composeScript(variant);
+  var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
+  // Fire async enrichment: if API returns better script, replace card content
+  enrichVariantAsync(cardId, topicKey);
+  return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+    '<span style="font-size:0.9em;">' + p.icon + '</span>' +
+    '<span style="font-size:12px;font-weight:700;color:var(--blue);">' + p.label + '风格 · 开场灵感</span>' +
+    '<span id="' + cardId + '-status" style="font-size:10px;color:#999;margin-left:auto;"></span></div>' +
+    '<div id="' + cardId + '-body" style="font-size:13px;line-height:1.6;color:var(--dark);font-style:italic;">"' + esc(script) + '"</div>' +
+    '<div style="font-size:10px;color:#999;margin-top:4px;">💡 可引用上方开场，或参考风格自己改下面模板的钩子</div></div>';
+}
+
+// Async: try to get a better script from the personalize API
+async function enrichVariantAsync(cardId, topicKey) {
+  var statusEl = document.getElementById(cardId + '-status');
+  var bodyEl = document.getElementById(cardId + '-body');
+  if (!bodyEl) return;
+  
+  try {
+    var profile = getStoreProfile();
+    if (!profile) return;
+    
+    statusEl.textContent = '⏳ 生成中…';
+    var script = await callPersonalizeAPI(null, topicKey, null);
+    
+    if (script && script.length > 20) {
+      bodyEl.innerHTML = '"' + esc(script) + '"';
+      statusEl.textContent = '✨ AI 生成';
+      statusEl.style.color = '#E65100';
+    } else {
+      statusEl.textContent = '';
+    }
+  } catch(e) {
+    statusEl.textContent = '';
+  }
+}
+
+// Get topic key from template form field
+function getTemplateTopic(tpl) {
+  var sel = document.getElementById(tpl + '_topic');
+  return sel ? sel.value : '';
+}
+
 function copyText(text, btn) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function() {
@@ -459,24 +694,25 @@ switchPage = function(name, el, noPush) {
   return result;
 };
 
-// ===== Store Binding (v1.6) =====
+// ===== Store Binding (v1.6 + persona) =====
 var STORE_KEY = 'douyin_lab_bound_store';
 function bindStore() {
   var input = document.getElementById('storeInput');
   if (!input) return;
   var name = (input.value || '').trim();
   if (!name) { toast('请输入营业厅名称'); return; }
-  localStorage.setItem(STORE_KEY, name);
-  showBoundStore(name);
+  var persona = getPersona(); // already saved from selector
+  localStorage.setItem(STORE_KEY, JSON.stringify({ name: name, persona: persona }));
+  showBoundStore(name, persona);
   autoFillStore();
-  toast('已绑定：' + name, 'success');
+  toast('已绑定：' + name + ' · ' + (personaDB[persona]||{}).label, 'success');
   track('store_bind');
 }
-function showBoundStore(name) {
+function showBoundStore(name, persona) {
   var badge = document.getElementById('storeBadge');
   var prompt = document.getElementById('storePrompt');
   var nameEl = document.getElementById('storeNameDisplay');
-  if (nameEl) nameEl.textContent = name;
+  if (nameEl) nameEl.textContent = (name || '') + ' · ' + ((personaDB[persona||getPersona()]||{}).icon||'') + ((personaDB[persona||getPersona()]||{}).label||'');
   if (badge) badge.style.display = '';
   if (prompt) prompt.style.display = 'none';
 }
@@ -490,8 +726,15 @@ function changeStore() {
   if (prompt) prompt.style.display = '';
   if (input) { input.value = ''; input.focus(); }
 }
+// Read store name from localStorage (handles both old string and new JSON format)
+function readStoreName() {
+  var raw = localStorage.getItem(STORE_KEY);
+  if (!raw) return '';
+  try { var obj = JSON.parse(raw); return (obj && obj.name) || ''; } catch(e) { return raw; }
+}
+
 function autoFillStore() {
-  var name = localStorage.getItem(STORE_KEY);
+  var name = readStoreName();
   if (!name) return;
   // City fields: extract city from store name (e.g. "太原迎泽区柳巷..." → "太原")
   var cityMatch = name.match(/^([^\s区县]+)/);
@@ -732,7 +975,7 @@ function buildTodayHero() {
   
   // Get recommended time
   var storeCity = '';
-  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.city) storeCity = s.city; } catch(e) {}
+  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); var storeCity; if (s && s.name) s = s.name; if (s && s.city) storeCity = s.city; } catch(e) {}
   
   var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + todayIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
@@ -792,6 +1035,7 @@ function buildSchedule() {
   var storeCity = '';
   try {
     var store = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    var storeName = (store && store.name) ? store.name : readStoreName();
     if (store && store.city) storeCity = store.city;
   } catch(e) {}
   
@@ -1038,8 +1282,9 @@ function previewT1Talk() {
   var hookText = '';
   var hookEl = document.getElementById('t1_hook_text');
   if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
+  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm);
 
-  const html = `
+  const html = (variantHtml || '') + `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
 <div class="info-tag">📱 全程一个镜头，手持或桌面支架 | ⏱ 约40秒 | 不剪辑</div>
 <div class="info-tag">🎵 BGM: ${bgm}（音量调25-30%，铺底不压人声）</div>
@@ -1207,8 +1452,9 @@ function previewT1Calc() {
     const m = txt.match(/(\d+)兆/);
     return m ? m[1]+'兆' : 'XX兆';
   }
+  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), c('bgm'));
 
-  const html = `
+  const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🧮 场景化算账（模拟真实用户·高转发率）</div>
 
 ${hookText ? '<div class="stage">🎯 黄金钩子</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>\n' : ''}
@@ -1653,8 +1899,9 @@ function previewT2Tell() {
   var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '弄完以后' : '聊完以后';
   var ctaPhrase = isOutreach ? '你们社区/学校有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : '你们遇到过类似的事吗？评论区聊聊';
   var shootTip = isOutreach ? '镜头拍活动现场，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
-  
-  const html = `
+  var variantHtml = tryVariantInjection(getTemplateTopic('t2'), c('bgm'));
+
+  const html = (variantHtml || '') + `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
 <div class="info-tag">📱 镜头对着自己，边走边说 | ⏱ 约40秒 | 不剪辑 | 现场原声</div>
 
@@ -1704,7 +1951,8 @@ function previewT2Doc() {
   var openShot = isOutreach ? '布置活动现场，摆摊/拉横幅' : isOnsite ? '拍楼栋外观/门牌号（不拍具体号码）' : '拍门牌号/营业厅外观';
   var meetShot = isOutreach ? c('customer') + '走过来咨询，拍交流场景' : c('customer') + '开门引路，拍背影或手部';
   var problemShot = c('finding') ? c('finding').substring(0, 20) : '正在处理中的场景';
-  const html = `
+  var variantHtml = tryVariantInjection(getTemplateTopic('t2'), c('bgm'));
+  const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎥 微纪录 · 拍摄指令（零口播/极少口播）</div>
 
 ${hookSubtitle ? `
@@ -1768,8 +2016,9 @@ function previewT2Short() {
   // Build a one-sentence story from all form fields
   var storyLine = c('time') + '，' + c('customer') + '——' + c('problem');
   var storyEnd = c('reaction').replace(/[。！!？?]$/, '') + '。' + c('summary');
-  
-  const html = `
+  var variantHtml = tryVariantInjection(getTemplateTopic('t2'), c('bgm'));
+
+  const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">⚡ 一句话故事（15秒·高完播）</div>
 
 <div class="stage">🎬 拍摄指南</div>
@@ -1801,7 +2050,7 @@ function showT2Preview(id, html) {
   const el = document.getElementById(id);
   el.style.display = 'block';
   var storeCity = '';
-  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.city) storeCity = s.city; } catch(e) {}
+  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); var storeCity; if (s && s.name) s = s.name; if (s && s.city) storeCity = s.city; } catch(e) {}
   var preset = '';
   try { preset = document.getElementById('t2_preset').value || '上门服务'; } catch(e) {}
   el.innerHTML = html + buildPreviewFooter('t2', storeCity, preset);
@@ -3170,6 +3419,7 @@ function checkDataFiles() {
   try { syncBgmDropdowns(); } catch(e) { console.error('syncBgmDropdowns:', e); }
   try { syncTopicDropdown(); } catch(e) { console.error('syncTopicDropdown:', e); }
   try { loadNavGroupStates(); } catch(e) { console.error('loadNavGroupStates:', e); }
+  try { initPersonaPicker(); } catch(e) { console.error('initPersonaPicker:', e); }
 })();
 
 // ===== Label dropdown options with classification badges =====

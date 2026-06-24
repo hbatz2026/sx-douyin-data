@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -17,6 +17,8 @@
   <script src="data/hotspotData.js?v=2.0.2"></script>
   <script src="data/bgmList.js?v=2.0.2"></script>
 
+  <script src="data/variantPool.js?v=2.0.2"></script>
+
 </head>
 <body>
 
@@ -34,7 +36,28 @@
       <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
       <span id="storePrompt">
         <input id="storeInput" placeholder="输入你的营业厅名称（如：太原迎泽区柳巷电信营业厅）" style="padding:6px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;width:260px;max-width:70%;">
-        <button onclick="bindStore()" style="padding:6px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">✓ 绑定</button>
+        <div id="personaPicker" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:#999;width:100%;margin-bottom:2px;">🎭 选最像你的风格（影响脚本语气，一次选好不用改）：</span>
+          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
+            <input type="radio" name="persona" value="sweet" onclick="setPersona('sweet')" style="display:none;"><span style="font-size:13px;">🌸</span><span>甜美学姐</span>
+          </label>
+          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
+            <input type="radio" name="persona" value="tech" onclick="setPersona('tech')" style="display:none;"><span style="font-size:13px;">🔧</span><span>技术专家</span>
+          </label>
+          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
+            <input type="radio" name="persona" value="biz" onclick="setPersona('biz')" style="display:none;"><span style="font-size:13px;">💼</span><span>商务精英</span>
+          </label>
+          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
+            <input type="radio" name="persona" value="young" onclick="setPersona('young')" style="display:none;"><span style="font-size:13px;">😎</span><span>活力小哥</span>
+          </label>
+          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
+            <input type="radio" name="persona" value="master" onclick="setPersona('master')" style="display:none;"><span style="font-size:13px;">👔</span><span>资深师傅</span>
+          </label>
+          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;border-color:var(--blue);background:#E8F0FE;">
+            <input type="radio" name="persona" value="sister" onclick="setPersona('sister')" checked style="display:none;"><span style="font-size:13px;">💝</span><span>暖心姐姐</span>
+          </label>
+        </div>
+        <button onclick="bindStore()" style="margin-top:8px;padding:6px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">✓ 绑定</button>
         <span style="font-size:11px;color:#999;margin-left:8px;">填一次，以后自动带出</span>
       </span>
     </div>
