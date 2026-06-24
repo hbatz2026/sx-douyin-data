@@ -38,6 +38,19 @@ function safeCall(fn) {
 
 // ===== 千人千面 · 厅店人设引擎（6种风格） =====
 var PERSONA_KEY = 'douyin_lab_persona';
+
+// Auto-clean stale localStorage caches from older code versions
+(function cleanOldCaches() {
+  try {
+    var keys = Object.keys(localStorage);
+    for (var i = 0; i < keys.length; i++) {
+      if (keys[i].indexOf('dy_personalize_') === 0 && keys[i].indexOf('v2_dy_personalize_') !== 0 && keys[i].indexOf('v3_dy_personalize_') !== 0) {
+        localStorage.removeItem(keys[i]);
+      }
+    }
+  } catch(e) {}
+})();
+
 var personaDB = {
   sweet:   { label: '甜美学姐', icon: '🌸', tone: '亲切网感',   tags: '年轻女性 抖音原生 活泼语速 会用热梗',
              desc: '轻声快语、有网感、用抖音流行口吻拉近距离',
