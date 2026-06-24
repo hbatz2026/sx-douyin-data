@@ -232,8 +232,8 @@ function tryVariantInjection(topicKey, bgm) {
   var p = personaDB[persona] || personaDB['sister'];
   var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
   
-  // Fire async: call API immediately, no variant pool dependency
-  enrichVariantAsync(cardId, topicKey);
+  // Fire async: call API after DOM renders
+  setTimeout(function() { enrichVariantAsync(cardId, topicKey); }, 100);
   
   return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
