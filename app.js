@@ -66,16 +66,15 @@ var PERSONALIZE_API = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com
 
 // Call personalize API or use cache/fallback
 async function callPersonalizeAPI(templateType, topicKey, fields) {
-  console.log('🔵 callPersonalizeAPI START:', templateType, topicKey);
   var profile = getStoreProfile();
-  if (!profile) { console.log('🔴 no profile'); return null; }
+  if (!profile) { return null; }
   
   // Check localStorage cache first (per store+persona+topic+week)
   var weekNum = getWeekNumber();
   var cacheKey = 'dy_personalize_' + profile.hash + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
   try {
     var cached = localStorage.getItem(cacheKey);
-    if (cached) { console.log('🟡 cache HIT, returning cached'); return JSON.parse(cached).script; }
+    if (cached) { return JSON.parse(cached).script; }
   } catch(e) {}
 
   // Try API
@@ -86,7 +85,6 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
       fields: fields || readFormFields(templateType),
       templateType: templateType
     };
-    console.log('🔗 calling personalize API:', profile.name, topicKey);
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 45000);
     var res = await fetch(PERSONALIZE_API, {
@@ -96,10 +94,8 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
-    console.log('📡 API response:', res.status);
     if (!res.ok) throw new Error('API ' + res.status);
     var data = await res.json();
-    console.log('✅ AI script received,', data.script ? data.script.length + ' chars' : 'empty');
     if (data.script) {
       // Cache for next time
       try { localStorage.setItem(cacheKey, JSON.stringify({ script: data.script })); } catch(e) {}
@@ -248,10 +244,9 @@ function tryVariantInjection(topicKey, bgm) {
 
 // Async: call personalize API and render AI-generated script
 async function enrichVariantAsync(cardId, topicKey) {
-  console.log('🟢 enrichVariantAsync START:', cardId, topicKey);
   var statusEl = document.getElementById(cardId + '-status');
   var bodyEl = document.getElementById(cardId + '-body');
-  if (!bodyEl) { console.log('🔴 bodyEl not found'); return; }
+  if (!bodyEl) { return; }
   
   try {
     var profile = getStoreProfile();
@@ -2414,6 +2409,8 @@ function previewT3Talk() {
     html = buildDeviceTalkScript(item, c, city, bgm, title, tags);
   }
   
+  var variantHtml = tryVariantInjection(topic, bgm);
+
   const el = document.getElementById('preview3-talk');
   el.style.display = 'block';
   var t3hook = '';
@@ -2421,7 +2418,7 @@ function previewT3Talk() {
   if (t3hookEl && t3hookEl.value.trim()) {
     t3hook = '<div class="stage">🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(t3hookEl.value.trim()) + '"</div>\n';
   }
-  el.innerHTML = t3hook + html + buildPreviewFooter('t3', city, topic);
+  el.innerHTML = (variantHtml || '') + t3hook + html + buildPreviewFooter('t3', city, topic);
   addCopyButton('preview3-talk');
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template3');
@@ -2545,7 +2542,8 @@ function previewT3Silent(option) {
   const bgm = c('bgm');
   const title = c('title');
   const tags = c('tags');
-  
+  const topic = document.getElementById('t3_topic').value;
+
   const p1raw = c('p1') || '';
   const p2raw = c('p2') || '';
   const p3raw = c('p3') || '';
@@ -2680,7 +2678,8 @@ function previewT3Silent(option) {
   if (t3hookEl && t3hookEl.value.trim()) {
     t3hook = '<div class="shot-step" style="border-left:4px solid var(--orange);margin-bottom:8px;">\n  <span class="shot-time">0-3秒 🎯</span>\n  <span class="shot-action">🎬 黑屏+大字幕出现</span>\n  <span class="shot-subtitle">"' + esc(t3hookEl.value.trim()) + '"</span>\n  <span style="font-size:10px;color:#E65100;">⚡ 黄金钩子 · 3秒决定完播率</span>\n</div>';
   }
-  el.innerHTML = t3hook + html + buildPreviewFooter('t3', t3city, t3topic);
+  var variantHtml = tryVariantInjection(topic, bgm);
+  el.innerHTML = (variantHtml || '') + t3hook + html + buildPreviewFooter('t3', t3city, t3topic);
   addCopyButton('preview3-silent');
   var sdBtns = document.getElementById('silentDownloadBtns');
   if (sdBtns) sdBtns.style.display = 'flex';
@@ -2927,7 +2926,9 @@ function switchT4Mode(mode) {
 function previewT4Walk() {
   const c = id => document.getElementById('t4_'+id).value;
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
-  const html = `
+  var topic = c('preset') || c('benefit');
+  var variantHtml = tryVariantInjection(topic, c('bgm'));
+  const html = (variantHtml || '') + `
 <div class="stage">🚶 探店口播 · 一镜到底</div>
 <div class="info-tag">📱 手持从地标拍到店门口 | ⏱ 约30秒 | 🎵 BGM: ${c('bgm')}</div>
 
@@ -2956,7 +2957,9 @@ function previewT4Walk() {
 function previewT4Mix() {
   const c = id => document.getElementById('t4_'+id).value;
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
-  const html = `
+  var topic = c('preset') || c('benefit');
+  var variantHtml = tryVariantInjection(topic, c('bgm'));
+  const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎬 海报+实拍混剪（零口播·快速出片）</div>
 
 <div class="shot-step">
@@ -2999,7 +3002,9 @@ function previewT4Mix() {
 function previewT4Countdown() {
   const c = id => document.getElementById('t4_'+id).value;
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
-  const html = `
+  var topic = c('preset') || c('benefit');
+  var variantHtml = tryVariantInjection(topic, c('bgm'));
+  const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">⏰ 倒计时福利卡（紧迫感·限期活动专用）</div>
 
 <div class="shot-step">
