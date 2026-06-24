@@ -72,7 +72,7 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
     
     // Check localStorage cache first (per store+persona+topic+week)
     var weekNum = getWeekNumber();
-    var cacheKey = 'dy_personalize_' + profile.hash + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
+    var cacheKey = 'dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
     try {
       var cached = localStorage.getItem(cacheKey);
       if (cached) { return JSON.parse(cached).script; }
@@ -1926,7 +1926,7 @@ function previewT2Tell() {
   var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '弄完以后' : '聊完以后';
   var ctaPhrase = isOutreach ? '你们社区/学校有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : '你们遇到过类似的事吗？评论区聊聊';
   var shootTip = isOutreach ? '镜头拍活动现场，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
-  var variantHtml = tryVariantInjection(getTemplateTopic('t2'), c('bgm'));
+  var variantHtml = tryVariantInjection(c('preset'), c('bgm'));
 
   const html = (variantHtml || '') + `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
@@ -1978,7 +1978,7 @@ function previewT2Doc() {
   var openShot = isOutreach ? '布置活动现场，摆摊/拉横幅' : isOnsite ? '拍楼栋外观/门牌号（不拍具体号码）' : '拍门牌号/营业厅外观';
   var meetShot = isOutreach ? c('customer') + '走过来咨询，拍交流场景' : c('customer') + '开门引路，拍背影或手部';
   var problemShot = c('finding') ? c('finding').substring(0, 20) : '正在处理中的场景';
-  var variantHtml = tryVariantInjection(getTemplateTopic('t2'), c('bgm'));
+  var variantHtml = tryVariantInjection(c('preset'), c('bgm'));
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎥 微纪录 · 拍摄指令（零口播/极少口播）</div>
 
@@ -2043,7 +2043,7 @@ function previewT2Short() {
   // Build a one-sentence story from all form fields
   var storyLine = c('time') + '，' + c('customer') + '——' + c('problem');
   var storyEnd = c('reaction').replace(/[。！!？?]$/, '') + '。' + c('summary');
-  var variantHtml = tryVariantInjection(getTemplateTopic('t2'), c('bgm'));
+  var variantHtml = tryVariantInjection(c('preset'), c('bgm'));
 
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">⚡ 一句话故事（15秒·高完播）</div>
