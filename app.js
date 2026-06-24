@@ -66,48 +66,53 @@ var PERSONALIZE_API = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com
 
 // Call personalize API or use cache/fallback
 async function callPersonalizeAPI(templateType, topicKey, fields) {
-  var profile = getStoreProfile();
-  if (!profile) { return null; }
-  
-  // Check localStorage cache first (per store+persona+topic+week)
-  var weekNum = getWeekNumber();
-  var cacheKey = 'dy_personalize_' + profile.hash + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
   try {
-    var cached = localStorage.getItem(cacheKey);
-    if (cached) { return JSON.parse(cached).script; }
-  } catch(e) {}
+    var profile = getStoreProfile();
+    if (!profile) { return null; }
+    
+    // Check localStorage cache first (per store+persona+topic+week)
+    var weekNum = getWeekNumber();
+    var cacheKey = 'dy_personalize_' + profile.hash + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
+    try {
+      var cached = localStorage.getItem(cacheKey);
+      if (cached) { return JSON.parse(cached).script; }
+    } catch(e) {}
 
-  // Try API
-  try {
-    var body = {
-      store: profile.name, persona: profile.persona,
-      topic: topicKey, city: profile.city,
-      fields: fields || readFormFields(templateType),
-      templateType: templateType
-    };
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function() { controller.abort(); }, 45000);
-    var res = await fetch(PERSONALIZE_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error('API ' + res.status);
-    var data = await res.json();
-    if (data.script) {
-      // Cache for next time
-      try { localStorage.setItem(cacheKey, JSON.stringify({ script: data.script })); } catch(e) {}
-      return data.script;
+    // Try API
+    try {
+      var body = {
+        store: profile.name, persona: profile.persona,
+        topic: topicKey, city: profile.city,
+        fields: fields || readFormFields(templateType),
+        templateType: templateType
+      };
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function() { controller.abort(); }, 45000);
+      var res = await fetch(PERSONALIZE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error('API ' + res.status);
+      var data = await res.json();
+      if (data.script) {
+        // Cache for next time
+        try { localStorage.setItem(cacheKey, JSON.stringify({ script: data.script })); } catch(e) {}
+        return data.script;
+      }
+    } catch(e) {
+      console.warn('Personalize API failed:', e.message);
     }
-  } catch(e) {
-    console.warn('Personalize API failed:', e.message);
-  }
 
-  // Fallback: static variant pool
-  var variant = selectVariant(topicKey);
-  return variant ? composeScript(variant) : null;
+    // Fallback: static variant pool
+    var variant = selectVariant(topicKey);
+    return variant ? composeScript(variant) : null;
+  } catch(e) {
+    console.warn('callPersonalizeAPI error:', e.message);
+    return null;
+  }
 }
 
 // Read current template form fields
@@ -177,6 +182,15 @@ function getStoreProfile() {
   };
 }
 
+// ISO week number for deterministic variant selection / cache key
+function getWeekNumber() {
+  var d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  var yearStart = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+}
+
 // Select a variant from the weekly pool for this store
 function selectVariant(topicKey) {
   var pool = window.___variantPool;
@@ -185,19 +199,9 @@ function selectVariant(topicKey) {
   if (!profile) return null;
   var group = pool[topicKey];
   var persona = profile.persona;
-  // Fallback: if no variants for this persona, use 'warm'
   var variants = group[persona] || group['sister'];
   if (!variants || !variants.length) return null;
   var weekNum = getWeekNumber();
-
-// ISO week number for deterministic variant selection
-function getWeekNumber() {
-  var d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-  var yearStart = new Date(d.getFullYear(), 0, 1);
-  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-}
   var idx = (profile.hash + weekNum + topicKey.length) % variants.length;
   return variants[idx];
 }
