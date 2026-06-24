@@ -2,6 +2,8 @@
 // 环境变量: GITEE_TOKEN, GITEE_USERNAME, SILICONFLOW_API_KEY
 // 部署: v=2026-06-24
 
+const CACHE_VER = 'v3'; // bump to invalidate all old caches
+
 const http = require('http');
 
 let _configCache = {};
@@ -91,10 +93,10 @@ async function personalize(params) {
   if (!apiKey) throw new Error('SILICONFLOW_API_KEY not configured');
   if (!token) throw new Error('GITEE_TOKEN not configured');
 
-  // Cache key: deterministic per (store + topic + persona + templateType + week)
+  // Cache key: deterministic per (version + store + topic + persona + templateType + week)
   const weekNum = getISOWeek();
   const cacheKey = require('crypto').createHash('md5')
-    .update(`${store}|${topic}|${persona}|${templateType || 'unknown'}|${weekNum}`).digest('hex').slice(0, 12);
+    .update(`${CACHE_VER}|${store}|${topic}|${persona}|${templateType || 'unknown'}|${weekNum}`).digest('hex').slice(0, 12);
   const cachePath = `cache/${cacheKey}.json`;
 
   console.log(`[${ts()}] personalize cache=${cacheKey} topic="${topic.slice(0,30)}" persona=${persona}`);
