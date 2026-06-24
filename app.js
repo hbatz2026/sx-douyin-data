@@ -66,15 +66,16 @@ var PERSONALIZE_API = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com
 
 // Call personalize API or use cache/fallback
 async function callPersonalizeAPI(templateType, topicKey, fields) {
+  console.log('🔵 callPersonalizeAPI START:', templateType, topicKey);
   var profile = getStoreProfile();
-  if (!profile) return null;
+  if (!profile) { console.log('🔴 no profile'); return null; }
   
   // Check localStorage cache first (per store+persona+topic+week)
   var weekNum = getWeekNumber();
   var cacheKey = 'dy_personalize_' + profile.hash + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
   try {
     var cached = localStorage.getItem(cacheKey);
-    if (cached) return JSON.parse(cached).script;
+    if (cached) { console.log('🟡 cache HIT, returning cached'); return JSON.parse(cached).script; }
   } catch(e) {}
 
   // Try API
@@ -244,9 +245,10 @@ function tryVariantInjection(topicKey, bgm) {
 
 // Async: call personalize API and render AI-generated script
 async function enrichVariantAsync(cardId, topicKey) {
+  console.log('🟢 enrichVariantAsync START:', cardId, topicKey);
   var statusEl = document.getElementById(cardId + '-status');
   var bodyEl = document.getElementById(cardId + '-body');
-  if (!bodyEl) return;
+  if (!bodyEl) { console.log('🔴 bodyEl not found'); return; }
   
   try {
     var profile = getStoreProfile();
