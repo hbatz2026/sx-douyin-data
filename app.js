@@ -61,7 +61,7 @@ var personaDB = {
 var personaOrder = ['sweet','tech','biz','young','master','sister'];
 
 // ===== 个性化 API 调用（懒生成 + localStorage 缓存） =====
-// SCF Web 函数公网地址
+// API endpoint — EdgeOne Edge Function, same-origin deploy
 var PERSONALIZE_API = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
 
 // Call personalize API or use cache/fallback
@@ -220,27 +220,25 @@ function composeScript(variant) {
   return script;
 }
 
-// Get personalized opening hook (compact card, doesn't overlap with template)
+// AI 开场灵感卡片 — 无 variant 依赖，直接调接口
 function tryVariantInjection(topicKey, bgm) {
   if (!topicKey) return '';
-  var variant = selectVariant(topicKey);
-  if (!variant) return '';
   var persona = getPersona();
   var p = personaDB[persona] || personaDB['sister'];
-  var script = composeScript(variant);
   var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
-  // Fire async enrichment: if API returns better script, replace card content
+  
+  // Fire async: call API immediately, no variant pool dependency
   enrichVariantAsync(cardId, topicKey);
+  
   return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
     '<span style="font-size:0.9em;">' + p.icon + '</span>' +
-    '<span style="font-size:12px;font-weight:700;color:var(--blue);">' + p.label + '风格 · 开场灵感</span>' +
-    '<span id="' + cardId + '-status" style="font-size:10px;color:#999;margin-left:auto;"></span></div>' +
-    '<div id="' + cardId + '-body" style="font-size:13px;line-height:1.6;color:var(--dark);font-style:italic;">"' + esc(script) + '"</div>' +
-    '<div style="font-size:10px;color:#999;margin-top:4px;">💡 可引用上方开场，或参考风格自己改下面模板的钩子</div></div>';
+    '<span style="font-size:12px;font-weight:700;color:var(--blue);">' + p.label + '风格 · AI 实时生成</span>' +
+    '<span id="' + cardId + '-status" style="font-size:10px;color:#999;margin-left:auto;">⏳ 生成中…</span></div>' +
+    '<div id="' + cardId + '-body" style="font-size:15px;line-height:1.8;color:var(--dark);min-height:60px;padding:8px 0;"></div></div>';
 }
 
-// Async: try to get a better script from the personalize API
+// Async: call personalize API and render AI-generated script
 async function enrichVariantAsync(cardId, topicKey) {
   var statusEl = document.getElementById(cardId + '-status');
   var bodyEl = document.getElementById(cardId + '-body');
@@ -248,21 +246,42 @@ async function enrichVariantAsync(cardId, topicKey) {
   
   try {
     var profile = getStoreProfile();
-    if (!profile) return;
+    if (!profile) {
+      bodyEl.innerHTML = '<span style="color:#999;">⚠️ 请先绑定营业厅</span>';
+      if (statusEl) statusEl.textContent = '';
+      return;
+    }
     
-    statusEl.textContent = '⏳ 生成中…';
-    var script = await callPersonalizeAPI(null, topicKey, null);
+    if (statusEl) statusEl.textContent = '⏳ 生成中…';
+    
+    // Determine template type from current page
+    var tpl = detectTemplateType();
+    var fields = readFormFields(tpl);
+    var script = await callPersonalizeAPI(tpl, topicKey, fields);
     
     if (script && script.length > 20) {
-      bodyEl.innerHTML = '"' + esc(script) + '"';
-      statusEl.textContent = '✨ AI 生成';
-      statusEl.style.color = '#E65100';
+      bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(script) + '</div>' +
+        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
+        '<span style="font-size:10px;background:#E65100;color:#fff;padding:2px 8px;border-radius:10px;">🤖 AI 生成</span>' +
+        '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制脚本</span></div>';
+      if (statusEl) { statusEl.textContent = '✅ 已生成'; statusEl.style.color = '#0d7c0d'; }
     } else {
-      statusEl.textContent = '';
+      bodyEl.innerHTML = '<span style="color:#999;">生成失败，请重试</span>';
+      if (statusEl) statusEl.textContent = '';
     }
   } catch(e) {
-    statusEl.textContent = '';
+    bodyEl.innerHTML = '<span style="color:#999;">网络错误，请重试</span>';
+    if (statusEl) statusEl.textContent = '';
   }
+}
+
+// Detect which template is currently active
+function detectTemplateType() {
+  if (document.querySelector('.template-page[style*="block"]') || document.getElementById('page-template1')?.style.display !== 'none') return 't1';
+  if (document.getElementById('page-template2')?.style.display !== 'none') return 't2';
+  if (document.getElementById('page-template3')?.style.display !== 'none') return 't3';
+  if (document.getElementById('page-template4')?.style.display !== 'none') return 't4';
+  return 't2'; // default
 }
 
 // Get topic key from template form field
