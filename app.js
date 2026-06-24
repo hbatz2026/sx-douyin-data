@@ -61,8 +61,8 @@ var personaDB = {
 var personaOrder = ['sweet','tech','biz','young','master','sister'];
 
 // ===== 个性化 API 调用（懒生成 + localStorage 缓存） =====
-// API endpoint — EdgeOne Edge Function, same-origin deploy
-var PERSONALIZE_API = '/personalize';
+// SCF Web 函数公网地址
+var PERSONALIZE_API = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
 
 // Call personalize API or use cache/fallback
 async function callPersonalizeAPI(templateType, topicKey, fields) {
