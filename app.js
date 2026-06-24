@@ -1,3 +1,4 @@
+'use strict';
 // ===== Utility Helpers =====
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
 
@@ -19,6 +20,20 @@ function toast(msg, type) {
   requestAnimationFrame(function() { t.classList.add('show'); });
   clearTimeout(t._tid);
   t._tid = setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+// Safe wrapper: catches errors in preview/generate functions gracefully
+function safeCall(fn) {
+  try { fn(); }
+  catch(e) {
+    console.error('safeCall error:', fn.name || 'anonymous', e);
+    var msg = e.message || String(e);
+    if (msg.indexOf('undefined') > -1 || msg.indexOf('null') > -1) {
+      toast('请先完成表单填写后再预览', 'error');
+    } else {
+      toast('预览生成失败，请检查填写是否完整', 'error');
+    }
+  }
 }
 
 function copyText(text, btn) {
@@ -719,7 +734,7 @@ function buildTodayHero() {
   var storeCity = '';
   try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && s.city) storeCity = s.city; } catch(e) {}
   
-  var html = '<div onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + todayIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
+  var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + todayIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
   html += '<div style="flex:1;min-width:200px;">';
   html += '<div style="font-size:13px;opacity:0.8;margin-bottom:4px;">📅 ' + dayNames[todayIdx] + ' · 今天拍什么？</div>';
@@ -2915,7 +2930,6 @@ function padHotspotData(data) {
     fb.id = 'h' + nextId++;
     padded.push(fb);
   }
-  console.log('Hotspot padded: ' + data.length + ' → ' + padded.length);
   return padded;
 }
 
@@ -3117,7 +3131,33 @@ function syncTopicDropdown() {
   if (html) { sel.innerHTML = html; try { labelDropdownOptions(); } catch(e) {} }
 }
 
+// Check external data file loading — returns number of missing files
+function checkDataFiles() {
+  var map = {
+    '___topicPool': '选题库', '___t1Presets': '决策指南预设', '___t2Presets': '一线场景预设',
+    '___t4Presets': '本地事件预设', '___phonePool': '手机评测池', '___techDB': '技术知识库',
+    '___hotspotData': '热点跟拍', '___bgmList': 'BGM推荐'
+  };
+  var missing = [];
+  for (var k in map) { if (typeof window[k] === 'undefined') missing.push(map[k]); }
+  var banner = document.getElementById('dataErrorBanner');
+  if (missing.length > 0) {
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'dataErrorBanner';
+      banner.style.cssText = 'background:#C62828;color:#fff;padding:10px 16px;text-align:center;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:99999;line-height:1.5;';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+    banner.style.display = '';
+    banner.innerHTML = '&#9888; 数据加载失败：' + missing.join('、') + '。请刷新页面重试，如持续出现请联系管理员。';
+  } else if (banner) {
+    banner.style.display = 'none';
+  }
+  return missing.length;
+}
+
 (function initAll() {
+  checkDataFiles();
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
@@ -3201,6 +3241,7 @@ document.addEventListener('keydown', function(e) {
     // Ctrl+Enter: trigger preview on current template page based on active mode
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      safeCall(function() {
       if (currentPage === 'template1') {
         if (document.getElementById('t1-mode-talk') && document.getElementById('t1-mode-talk').classList.contains('active')) previewT1Talk();
         else if (document.getElementById('t1-mode-card') && document.getElementById('t1-mode-card').classList.contains('active')) previewT1Card();
@@ -3219,14 +3260,21 @@ document.addEventListener('keydown', function(e) {
       } else if (currentPage === 'live') {
         if (typeof previewLiveScript === 'function') previewLiveScript();
       }
+      });
     }
   }
 });
 
-console.log('🎬 山西电信抖本内容工坊已就绪');
-console.log('   Ctrl+1-6 切换页面');
-console.log('   本周:', week.label);
-console.log('   各模板填完点击"预览脚本"→确认后"下载脚本卡"');
+// Keyboard accessibility: Activate clickable elements on Enter/Space
+document.addEventListener('keydown', function(e) {
+  if ((e.key === 'Enter' || e.key === ' ') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    var el = document.activeElement;
+    if (el && el.getAttribute('tabindex') === '0' && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT') {
+      e.preventDefault();
+      if (typeof el.click === 'function') el.click();
+    }
+  }
+});
 
 // ===== Live Streaming Module v1.4.1 =====
 var liveMode = 'store';
@@ -3419,7 +3467,6 @@ function restoreLiveForm() {
 
 function previewLiveScript() {
   try {
-  console.log('previewLiveScript called');
   var storeEl = document.getElementById('lv_store');
   var prodEl = document.getElementById('lv_product');
   var priceEl = document.getElementById('lv_price');
@@ -3652,7 +3699,7 @@ function downloadLiveScript() {
   var panel = document.getElementById('live-preview');
   if (!panel || panel.style.display === 'none') { alert('请先点击「预览直播脚本」生成内容后再下载'); return; }
   if (typeof track === 'function') track('live_download');
-  downloadAsImage('live-preview');
+  safeCall(function(){ downloadAsImage('live-preview'); });
 }
 
 function checkLiveCompliance() {
@@ -4230,25 +4277,25 @@ function injectMobileBar() {
 // Get current preview action based on active mode tab
 function getMobileAction() {
   if (currentPage === 'template1') {
-    if (document.querySelector('#t1-mtab-card.active')) return { fn: previewT1Card, label: '👁 预览图卡脚本' };
-    if (document.querySelector('#t1-mtab-calc.active')) return { fn: previewT1Calc, label: '👁 预览算账脚本' };
-    return { fn: previewT1Talk, label: '👁 预览口播脚本' };
+    if (document.querySelector('#t1-mtab-card.active')) return { fn: function(){ safeCall(previewT1Card); }, label: '👁 预览图卡脚本' };
+    if (document.querySelector('#t1-mtab-calc.active')) return { fn: function(){ safeCall(previewT1Calc); }, label: '👁 预览算账脚本' };
+    return { fn: function(){ safeCall(previewT1Talk); }, label: '👁 预览口播脚本' };
   }
   if (currentPage === 'template2') {
-    if (document.querySelector('#t2-mtab-doc.active')) return { fn: previewT2Doc, label: '👁 预览微纪录' };
-    if (document.querySelector('#t2-mtab-short.active')) return { fn: previewT2Short, label: '👁 预览一句话' };
-    return { fn: previewT2Tell, label: '👁 预览故事脚本' };
+    if (document.querySelector('#t2-mtab-doc.active')) return { fn: function(){ safeCall(previewT2Doc); }, label: '👁 预览微纪录' };
+    if (document.querySelector('#t2-mtab-short.active')) return { fn: function(){ safeCall(previewT2Short); }, label: '👁 预览一句话' };
+    return { fn: function(){ safeCall(previewT2Tell); }, label: '👁 预览故事脚本' };
   }
   if (currentPage === 'template3') {
-    if (document.querySelector('#t3-mtab-silent.active')) return { fn: function(){previewT3Silent('A');}, label: '👁 预览无声脚本' };
-    return { fn: previewT3Talk, label: '👁 预览评测脚本' };
+    if (document.querySelector('#t3-mtab-silent.active')) return { fn: function(){ safeCall(function(){ previewT3Silent('A'); }); }, label: '👁 预览无声脚本' };
+    return { fn: function(){ safeCall(previewT3Talk); }, label: '👁 预览评测脚本' };
   }
   if (currentPage === 'template4') {
-    if (document.querySelector('#t4-mtab-mix.active')) return { fn: previewT4Mix, label: '👁 预览混剪脚本' };
-    if (document.querySelector('#t4-mtab-countdown.active')) return { fn: previewT4Countdown, label: '👁 预览倒计时' };
-    return { fn: previewT4Walk, label: '👁 预览探店脚本' };
+    if (document.querySelector('#t4-mtab-mix.active')) return { fn: function(){ safeCall(previewT4Mix); }, label: '👁 预览混剪脚本' };
+    if (document.querySelector('#t4-mtab-countdown.active')) return { fn: function(){ safeCall(previewT4Countdown); }, label: '👁 预览倒计时' };
+    return { fn: function(){ safeCall(previewT4Walk); }, label: '👁 预览探店脚本' };
   }
-  if (currentPage === 'live') return { fn: previewLiveScript, label: '📺 生成直播话术' };
+  if (currentPage === 'live') return { fn: function(){ safeCall(previewLiveScript); }, label: '📺 生成直播话术' };
   return { fn: function(){}, label: '👁 预览脚本' };
 }
 

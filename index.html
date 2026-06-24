@@ -1,21 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>山西电信抖本内容工坊 · 选题&脚本填空</title>
-  <link rel="stylesheet" href="styles.css?v=2.0.3">
+  <link rel="stylesheet" href="styles.css?v=2.0.2">
 
   <!-- External data files (updated weekly by WorkBuddy auto-sync) -->
-  <script src="data/topicPool.js?v=2.0.3"></script>
-  <script src="data/t1Presets.js?v=2.0.3"></script>
-  <script src="data/phonePool.js?v=2.0.3"></script>
-  <script src="data/techDB.js?v=2.0.3"></script>
-  <script src="data/t2Presets.js?v=2.0.3"></script>
-  <script src="data/t4Presets.js?v=2.0.3"></script>
-  <script src="data/hotspotData.js?v=2.0.3"></script>
-  <script src="data/bgmList.js?v=2.0.3"></script>
+  <script src="data/topicPool.js?v=2.0.2"></script>
+  <script src="data/t1Presets.js?v=2.0.2"></script>
+  <script src="data/phonePool.js?v=2.0.2"></script>
+  <script src="data/techDB.js?v=2.0.2"></script>
+  <script src="data/t2Presets.js?v=2.0.2"></script>
+  <script src="data/t4Presets.js?v=2.0.2"></script>
+  <script src="data/hotspotData.js?v=2.0.2"></script>
+  <script src="data/bgmList.js?v=2.0.2"></script>
 
 </head>
 <body>
@@ -27,9 +27,9 @@
 
 <div class="container">
   <!-- Header -->
-  <div class="header">
+  <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v1.9</span></div>
+    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v2.0</span></div>
     <div id="storeBar" style="margin-top:8px;">
       <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
       <span id="storePrompt">
@@ -40,11 +40,11 @@
     </div>
     <div class="week" id="weekLabel">📅 加载中...</div>
     <span id="adminLock" style="position:absolute;top:8px;right:16px;cursor:pointer;font-size:16px;opacity:0.4;transition:opacity 0.2s;" title="管理员入口" onclick="unlockAdmin()">🔒</span>
-  </div>
+  </header>
 
   <!-- Navigation -->
   <button class="hamburger" id="hamburgerBtn" onclick="toggleHamburger()">✕ 收起菜单</button>
-  <div class="nav-tabs">
+  <nav class="nav-tabs" role="navigation" aria-label="主导航">
     <button class="nav-tab active" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
     
     <div class="nav-group" data-group="video">
@@ -73,14 +73,16 @@
         <button class="nav-tab" id="nav-stats" style="display:none;" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
       </div>
     </div>
-  </div>
+  </nav>
+
+  <main role="main">
 
   <!-- ==================== PAGE 0: Weekly Schedule ==================== -->
   <div class="page active" id="page-schedule">
     <h2 style="margin-bottom:12px;">📅 本周（<span id="weekRange">---</span>）排期</h2>
     <!-- v2.0 Today Hero Card -->
     <div id="todayHero"></div>
-    <div class="schedule-toggle" onclick="toggleSchedule()" id="scheduleToggle" style="display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer;font-size:13px;color:var(--blue);font-weight:600;margin-bottom:8px;">
+    <div class="schedule-toggle" onclick="toggleSchedule()" id="scheduleToggle" tabindex="0" role="button" aria-expanded="true" style="display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer;font-size:13px;color:var(--blue);font-weight:600;margin-bottom:8px;">
       <span id="scheduleToggleIcon">▼</span> <span>查看本周完整排期</span>
     </div>
     <div class="schedule-grid" id="scheduleGrid"></div>
@@ -1002,7 +1004,10 @@
       <button class="btn btn-outline btn-sm" style="color:#C62828;border-color:#C62828;" onclick="clearStats()">🗑 清除数据</button>
     </div>
   </div>
+  </main>
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.0.3"></script>
+  <script src="app.js?v=2.0.2"></script>
+</body>
+</html>
