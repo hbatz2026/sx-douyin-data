@@ -85,20 +85,24 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
       fields: fields || readFormFields(templateType),
       templateType: templateType
     };
+    console.log('🔗 calling personalize API:', profile.name, topicKey);
     var res = await fetch(PERSONALIZE_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(45000)
     });
+    console.log('📡 API response:', res.status);
     if (!res.ok) throw new Error('API ' + res.status);
     var data = await res.json();
+    console.log('✅ AI script received,', data.script ? data.script.length + ' chars' : 'empty');
     if (data.script) {
       // Cache for next time
       try { localStorage.setItem(cacheKey, JSON.stringify({ script: data.script })); } catch(e) {}
       return data.script;
     }
   } catch(e) {
-    console.warn('Personalize API failed, falling back:', e.message);
+    console.warn('Personalize API failed:', e.message);
   }
 
   // Fallback: static variant pool
