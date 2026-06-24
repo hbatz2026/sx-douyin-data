@@ -2413,7 +2413,7 @@ function previewT3Talk() {
     html = buildDeviceTalkScript(item, c, city, bgm, title, tags);
   }
   
-  var variantHtml = tryVariantInjection(topic, bgm);
+  var variantHtml = tryVariantInjection(item + ' ' + topic, bgm);
 
   const el = document.getElementById('preview3-talk');
   el.style.display = 'block';
@@ -2682,7 +2682,7 @@ function previewT3Silent(option) {
   if (t3hookEl && t3hookEl.value.trim()) {
     t3hook = '<div class="shot-step" style="border-left:4px solid var(--orange);margin-bottom:8px;">\n  <span class="shot-time">0-3秒 🎯</span>\n  <span class="shot-action">🎬 黑屏+大字幕出现</span>\n  <span class="shot-subtitle">"' + esc(t3hookEl.value.trim()) + '"</span>\n  <span style="font-size:10px;color:#E65100;">⚡ 黄金钩子 · 3秒决定完播率</span>\n</div>';
   }
-  var variantHtml = tryVariantInjection(topic, bgm);
+  var variantHtml = tryVariantInjection(item + ' ' + topic, bgm);
   el.innerHTML = (variantHtml || '') + t3hook + html + buildPreviewFooter('t3', t3city, t3topic);
   addCopyButton('preview3-silent');
   var sdBtns = document.getElementById('silentDownloadBtns');
