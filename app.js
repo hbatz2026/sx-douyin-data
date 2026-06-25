@@ -266,15 +266,18 @@ function composeScript(variant) {
   return script;
 }
 
-// AI 开场灵感卡片 — 无 variant 依赖，直接调接口
-function tryVariantInjection(topicKey, bgm) {
+// AI 润色卡片 — 读取已渲染的模板脚本，提交给AI做优化+违禁词检查
+function tryVariantInjection(topicKey, bgm, previewDivId) {
   if (!topicKey) return '';
   var persona = getPersona();
   var p = personaDB[persona] || personaDB['sister'];
   var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
   
-  // Fire async: call API after DOM renders
-  setTimeout(function() { enrichVariantAsync(cardId, topicKey); }, 100);
+  // Store preview div ID so enrichVariantAsync can read the content
+  window['__preview_' + cardId] = previewDivId;
+  
+  // Fire async: read preview content after DOM renders, then call API
+  setTimeout(function() { enrichVariantAsync(cardId, topicKey); }, 200);
   
   return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
@@ -287,15 +290,14 @@ function tryVariantInjection(topicKey, bgm) {
 // Store retry callbacks per card
 var _retryCallbacks = {};
 
-// Async: call personalize API and render AI-generated script
+// Async: read template preview, send to AI for polish + sensitive word check
 async function enrichVariantAsync(cardId, topicKey, isRetry) {
   var statusEl = document.getElementById(cardId + '-status');
   var bodyEl = document.getElementById(cardId + '-body');
   if (!bodyEl) { return; }
-  
-  // Skip localStorage cache on retry
+
   var isRetry = isRetry === true;
-  
+
   try {
     var profile = getStoreProfile();
     if (!profile) {
@@ -303,22 +305,65 @@ async function enrichVariantAsync(cardId, topicKey, isRetry) {
       if (statusEl) statusEl.textContent = '';
       return;
     }
-    
-    if (statusEl) statusEl.textContent = '⏳ 生成中…';
-    
-    // Determine template type from current page
+
+    if (statusEl) statusEl.textContent = '⏳ 读取模板…';
+
+    // Read the already-rendered template preview content
+    var previewDivId = window['__preview_' + cardId] || '';
+    var previewEl = document.getElementById(previewDivId);
+    var originalScript = '';
+    if (previewEl) {
+      // Strip HTML tags, keep text content (dialogue lines, stage instructions, etc)
+      originalScript = previewEl.textContent || previewEl.innerText || '';
+      originalScript = originalScript.replace(/\s{3,}/g, '\n').trim().slice(0, 3000);
+    }
+
+    if (!originalScript) {
+      bodyEl.innerHTML = '<span style="color:#999;">模板未生成，请先点预览</span>';
+      if (statusEl) statusEl.textContent = '';
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = '⏳ AI 优化中…';
+
+    // Call SCF polish mode
     var tpl = detectTemplateType();
-    var fields = readFormFields(tpl);
-    var script = await callPersonalizeAPI(tpl, topicKey, fields, isRetry);
-    
-    if (script && script.length > 20) {
-      bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(script) + '</div>' +
+    var body = {
+      store: profile.name, persona: profile.persona,
+      topic: topicKey, city: profile.city,
+      templateType: tpl,
+      script: originalScript  // ← triggers polish mode
+    };
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 45000);
+    var res = await fetch(PERSONALIZE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) throw new Error('API ' + res.status);
+    var data = await res.json();
+
+    if (data.dialogue && data.dialogue.length > 10) {
+      // Show optimized dialogue
+      bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(data.dialogue) + '</div>' +
         '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
-        '<span style="font-size:10px;background:#E65100;color:#fff;padding:2px 8px;border-radius:10px;">🤖 AI 生成</span>' +
-        '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制脚本</span></div>';
-      if (statusEl) { statusEl.textContent = '✅ 已生成'; statusEl.style.color = '#0d7c0d'; }
+        '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ AI 优化版</span>' +
+        '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制</span></div>';
+
+      // Show warnings if any
+      if (data.warnings && data.warnings.length > 0) {
+        bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 违禁词提醒：' + esc(data.warnings.join('、')) + '</div>';
+      } else if (data.safe !== false) {
+        bodyEl.innerHTML += '<div style="margin-top:4px;font-size:10px;color:#0d7c0d;">✅ 未检测到违禁词</div>';
+      }
+      if (statusEl) { statusEl.textContent = '✅ 已优化'; statusEl.style.color = '#0d7c0d'; }
     } else {
-      bodyEl.innerHTML = '<span style="color:#999;">生成失败</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
+      bodyEl.innerHTML = '<span style="color:#999;">优化失败</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
       if (statusEl) statusEl.textContent = '';
     }
   } catch(e) {
@@ -1353,7 +1398,7 @@ function previewT1Talk() {
   var hookText = '';
   var hookEl = document.getElementById('t1_hook_text');
   if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
-  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm);
+  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
 
   const html = (variantHtml || '') + `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
@@ -1523,7 +1568,7 @@ function previewT1Calc() {
     const m = txt.match(/(\d+)兆/);
     return m ? m[1]+'兆' : 'XX兆';
   }
-  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), c('bgm'));
+  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), c('bgm'), 'preview1-calc');
 
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🧮 场景化算账（模拟真实用户·高转发率）</div>
@@ -1970,7 +2015,7 @@ function previewT2Tell() {
   var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '弄完以后' : '聊完以后';
   var ctaPhrase = isOutreach ? '你们社区/学校有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : '你们遇到过类似的事吗？评论区聊聊';
   var shootTip = isOutreach ? '镜头拍活动现场，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
-  var variantHtml = tryVariantInjection(c('preset'), c('bgm'));
+  var variantHtml = tryVariantInjection(c('preset'), c('bgm'), 'preview2-tell');
 
   const html = (variantHtml || '') + `
 <div class="stage">🎬 一镜到底 · 拍摄指南</div>
@@ -2022,7 +2067,7 @@ function previewT2Doc() {
   var openShot = isOutreach ? '布置活动现场，摆摊/拉横幅' : isOnsite ? '拍楼栋外观/门牌号（不拍具体号码）' : '拍门牌号/营业厅外观';
   var meetShot = isOutreach ? c('customer') + '走过来咨询，拍交流场景' : c('customer') + '开门引路，拍背影或手部';
   var problemShot = c('finding') ? c('finding').substring(0, 20) : '正在处理中的场景';
-  var variantHtml = tryVariantInjection(c('preset'), c('bgm'));
+  var variantHtml = tryVariantInjection(c('preset'), c('bgm'), 'preview2-doc');
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎥 微纪录 · 拍摄指令（零口播/极少口播）</div>
 
@@ -2087,7 +2132,7 @@ function previewT2Short() {
   // Build a one-sentence story from all form fields
   var storyLine = c('time') + '，' + c('customer') + '——' + c('problem');
   var storyEnd = c('reaction').replace(/[。！!？?]$/, '') + '。' + c('summary');
-  var variantHtml = tryVariantInjection(c('preset'), c('bgm'));
+  var variantHtml = tryVariantInjection(c('preset'), c('bgm'), 'preview2-short');
 
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">⚡ 一句话故事（15秒·高完播）</div>
@@ -2457,7 +2502,7 @@ function previewT3Talk() {
     html = buildDeviceTalkScript(item, c, city, bgm, title, tags);
   }
   
-  var variantHtml = tryVariantInjection(item + ' ' + topic, bgm);
+  var variantHtml = tryVariantInjection(item + ' ' + topic, bgm, 'preview3-talk');
 
   const el = document.getElementById('preview3-talk');
   el.style.display = 'block';
@@ -2726,7 +2771,7 @@ function previewT3Silent(option) {
   if (t3hookEl && t3hookEl.value.trim()) {
     t3hook = '<div class="shot-step" style="border-left:4px solid var(--orange);margin-bottom:8px;">\n  <span class="shot-time">0-3秒 🎯</span>\n  <span class="shot-action">🎬 黑屏+大字幕出现</span>\n  <span class="shot-subtitle">"' + esc(t3hookEl.value.trim()) + '"</span>\n  <span style="font-size:10px;color:#E65100;">⚡ 黄金钩子 · 3秒决定完播率</span>\n</div>';
   }
-  var variantHtml = tryVariantInjection(item + ' ' + topic, bgm);
+  var variantHtml = tryVariantInjection(item + ' ' + topic, bgm, 'preview3-silent');
   el.innerHTML = (variantHtml || '') + t3hook + html + buildPreviewFooter('t3', t3city, t3topic);
   addCopyButton('preview3-silent');
   var sdBtns = document.getElementById('silentDownloadBtns');
@@ -2975,7 +3020,7 @@ function previewT4Walk() {
   const c = id => document.getElementById('t4_'+id).value;
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
   var topic = c('preset') || c('benefit');
-  var variantHtml = tryVariantInjection(topic, c('bgm'));
+  var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-walk');
   const html = (variantHtml || '') + `
 <div class="stage">🚶 探店口播 · 一镜到底</div>
 <div class="info-tag">📱 手持从地标拍到店门口 | ⏱ 约30秒 | 🎵 BGM: ${c('bgm')}</div>
@@ -3006,7 +3051,7 @@ function previewT4Mix() {
   const c = id => document.getElementById('t4_'+id).value;
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
   var topic = c('preset') || c('benefit');
-  var variantHtml = tryVariantInjection(topic, c('bgm'));
+  var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-mix');
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">🎬 海报+实拍混剪（零口播·快速出片）</div>
 
@@ -3051,7 +3096,7 @@ function previewT4Countdown() {
   const c = id => document.getElementById('t4_'+id).value;
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
   var topic = c('preset') || c('benefit');
-  var variantHtml = tryVariantInjection(topic, c('bgm'));
+  var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-countdown');
   const html = (variantHtml || '') + `
 <div style="font-weight:700;color:#FFD54F;font-size:14px;margin-bottom:12px;">⏰ 倒计时福利卡（紧迫感·限期活动专用）</div>
 
