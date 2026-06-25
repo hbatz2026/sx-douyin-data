@@ -85,7 +85,9 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
     
     // Check localStorage cache first (per store+persona+topic+week)
     var weekNum = getWeekNumber();
-    var cacheKey = CACHE_VERSION + '_dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicKey.replace(/[^\w]/g,'');
+    // Simple hash for topicKey (supports Chinese & special chars)
+    var topicHash = simpleHash(topicKey);
+    var cacheKey = CACHE_VERSION + '_dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicHash;
     try {
       var cached = localStorage.getItem(cacheKey);
       if (cached) { return JSON.parse(cached).script; }
@@ -130,6 +132,13 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
 
 // Cache version — bump to invalidate all old localStorage entries
 var CACHE_VERSION = 'v4';
+
+// Deterministic hash for cache keys (supports Unicode / Chinese)
+function simpleHash(str) {
+  var h = 0;
+  for (var i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; }
+  return Math.abs(h).toString(36);
+}
 
 // Read current template form fields (ALL relevant fields, per template type)
 function readFormFields(prefix) {
