@@ -363,34 +363,61 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
 
   try {
     var tpl = detectTemplateType();
-    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
+    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},90000);
     var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,templateType:tpl,script:src}),signal:ctrl.signal});
     clearTimeout(tid);
     if (!res.ok) throw new Error('API '+res.status);
     var data = await res.json();
 
+    // Check for backend error
+    if (data.error) throw new Error(data.error);
+
     // New SCF returns {lines: [{orig,new},...]}, old returns {script} or {dialogue}
     var rewrites = (data.lines && data.lines.length > 0) ? data.lines : null;
     var fallbackScript = data.dialogue || data.script || '';
 
+    // Declare polishedText at function scope level
+    var polishedText = '';
+    var warns = data.warnings || [];
+    
     if (rewrites) {
-      var polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || r.rewritten || ''; }).filter(Boolean).join('\n\n');
+      polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || (r.rewritten || ''); }).filter(Boolean).join('\n\n');
     } else if (fallbackScript && fallbackScript.length > 10) {
-      var polishedText = fallbackScript;
+      polishedText = fallbackScript;
+      warns = data.warnings || [];
     } else {
       throw new Error('empty');
     }
 
     // Consume global quota (failure also counts)
     var rem = useDailyQuota();
-    renderVariantResult(cardId, polishedText, data.warnings || [], rem, btn, bodyEl, quotaEl);
+    renderVariantResult(cardId, polishedText, warns, rem, btn, bodyEl, quotaEl);
   } catch(e) {
-    var rem = useDailyQuota();
-    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl);
+    // Distinguish error types; don't consume quota for network errors
+    var errType = 'unknown';
+    var errMsg = e.message || '';
+    if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
+      errType = 'timeout';
+    } else if (errMsg.indexOf('API ' ) === 0) {
+      errType = 'api';
+    } else if (errMsg === 'empty') {
+      errType = 'empty';
+    }
+
+    // Only consume quota for real failures (not network issues)
+    var rem;
+    if (errType === 'timeout' || errType === 'api') {
+      // Network/system error — free retry, don't consume quota
+      rem = quotaRemaining();
+    } else {
+      rem = useDailyQuota();
+    }
+    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType);
   }
 }
 
-function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl) {
+function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType) {
+  errType = errType || '';
   if (dlg) {
     var usageCount = getDailyQuota().used;
     bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>'+
@@ -401,7 +428,12 @@ function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl) {
       bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 广告法违禁词：'+esc(warns.join(', '))+'</div>';
     }
   } else {
-    bodyEl.innerHTML = '<span style="color:#999;">优化失败，可重试（无需重新生成预览）</span>';
+    var errText = '优化失败';
+    if (errType === 'timeout') errText = '⏱ 生成超时（模型繁忙），建议稍后重试';
+    else if (errType === 'api') errText = '🔧 服务端异常，正在恢复中，稍后重试';
+    else if (errType === 'empty') errText = '📭 模型返回为空，可能是输入太短或内容冲突，修改后重试';
+    else errText = '⚠️ 优化失败，可重试（无需重新生成预览）';
+    bodyEl.innerHTML = '<span style="color:#999;">'+errText+'</span>';
   }
   quotaEl.textContent = '全站剩余' + rem + '次';
   if (rem > 0) { btn.disabled = false; btn.textContent = rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）'; btn.style.display = ''; }
