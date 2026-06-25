@@ -2,7 +2,7 @@
 // 环境变量: GITEE_TOKEN, GITEE_USERNAME, SILICONFLOW_API_KEY
 // 部署: v=2026-06-24
 
-const CACHE_VER = 'v6'; // prompt overhaul for T3 accuracy
+const CACHE_VER = 'v7'; // stronger T2 story constraint
 
 const http = require('http');
 
@@ -78,7 +78,7 @@ const PERSONA_PROMPTS = {
 // Template-specific constraints for AI generation
 const TEMPLATE_GUIDES = {
   t1: '这是决策指南类内容。帮用户对比选择，要说清楚"谁适合什么/为什么"。数据要有对比有结论。',
-  t2: '这是一线服务场景。讲一个真实发生的故事：时间、地点、人物、问题、怎么解决的、客户什么反应。像跟朋友讲今天的经历。',
+  t2: '**这是一线服务场景，只能讲故事。** 不管选题关键词是什么（宽带/手机/投诉/故障），你必须只讲一个真实发生的服务故事。结构：时间→地点→人物→遇到了什么问题→你是如何一步步解决的→客户什么反应→最后总结。禁止出现"对比""选择""哪个好""100M 300M 1000M"等决策指南用语。禁止做产品推荐。就像跟朋友聊天分享今天的经历。',
   t3: '这是深度评测。你面前有一台具体设备，需要你上手实测并出报告。围绕设备的实际参数来写，讲体验不讲推销。禁止对比宽带套餐，禁止讲"100M/300M/1000M"。你就是科技博主在出评测视频。',
   t4: '这是本地探店/福利活动。重点讲清：在哪、有什么福利、怎么参与。要营造紧迫感或亲切感。引导到店。'
 };
@@ -86,6 +86,81 @@ const TEMPLATE_GUIDES = {
 // ============================================================
 // Core: personalize script generation (懒生成 + 永久缓存)
 // ============================================================
+
+async function polishScript(params, token, user, apiKey) {
+  const ts = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const { store, persona, topic, city, templateType, script } = params;
+  const templateNames = { t1: '决策指南', t2: '一线场景', t3: '深度测评', t4: '本地事件' };
+
+  // Cache key for polish results
+  const weekNum = getISOWeek();
+  const rawKey = `${store}|${topic}|${persona}|${templateType || 'unknown'}|${weekNum}`;
+  const cacheKey = require('crypto').createHash('md5').update(CACHE_VER + '|' + rawKey + '|polish').digest('hex').slice(0, 12);
+  const cachePath = `cache/${cacheKey}.json`;
+
+  console.log(`[${ts()}] polish cache=${cacheKey} topic="${(topic||'').slice(0,30)}"`);
+
+  // Check cache
+  try {
+    const cached = await readGiteeFile(cachePath, token, user);
+    const parsed = JSON.parse(cached);
+    console.log(`[${ts()}] Polish Cache HIT: ${cacheKey}`);
+    return parsed;
+  } catch(e) {}
+
+  console.log(`[${ts()}] Polish Cache MISS, generating...`);
+
+  const cfg = await loadAIConfig(token, user);
+  const p = (PERSONA_PROMPTS[persona] || PERSONA_PROMPTS.sister);
+  const personaRole = p.role || p;
+
+  // Trim script to avoid token overflow
+  const trimmed = (script||'').trim().slice(0, 2500);
+
+  const systemPrompt = `${personaRole}
+你是短视频脚本优化专家。收到一个完整的拍摄脚本（含分镜、字幕、台词），你要做三件事：
+1. 提取并改写台词部分，让人物对话更口语化、更自然（保留原意，不编造新信息）
+2. 检查是否有违规违禁词（极限词、虚假宣传、敏感词），标注出来
+3. 不要动分镜描述和拍摄指引——只优化台词部分
+
+输出JSON格式：{"dialogue": "优化后的台词", "warnings": ["发现的违禁词1", "违禁词2"], "safe": true/false}`;
+
+  const userPrompt = `【原始脚本】
+${trimmed}
+
+请优化这个脚本的台词部分，保持原意不变，让对话更自然。同时检查违禁词。
+只输出JSON，不要其他内容。`;
+
+  const result = await callSiliconFlow(systemPrompt, userPrompt, apiKey, {
+    ...cfg,
+    temperature: 0.5,
+    maxTokens: 1500
+  });
+
+  let output = { dialogue: '', warnings: [], safe: true, cached: false, cacheKey };
+  
+  if (result) {
+    try {
+      const parsed = JSON.parse(result.replace(/```json|```/g, '').trim());
+      output.dialogue = parsed.dialogue || '';
+      output.warnings = parsed.warnings || [];
+      output.safe = parsed.safe !== false;
+    } catch(e) {
+      // AI returned non-JSON — use as raw optimized script
+      output.dialogue = result.trim();
+    }
+  }
+
+  // Save cache
+  try {
+    output.cached = true;
+    await createOrUpdateGiteeFile(cachePath, JSON.stringify(output), token, user);
+  } catch(e) {
+    console.warn(`[${ts()}] Cache write failed: ${e.message}`);
+  }
+
+  return output;
+}
 
 async function personalize(params) {
   const ts = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -119,7 +194,16 @@ async function personalize(params) {
     console.log(`[${ts()}] Cache MISS, generating...`);
   }
 
-  // Step 2: Build prompt with full context
+  // Step 2: Detect mode — polish (optimize existing template) vs generate (from scratch)
+  const originalScript = params.script || '';
+  const mode = originalScript ? 'polish' : 'generate';
+
+  if (mode === 'polish') {
+    return await polishScript(params, token, user, apiKey);
+  }
+
+  // ===== GENERATE MODE (from scratch) =====
+  // Build prompt with full context
   const p = (PERSONA_PROMPTS[persona] || PERSONA_PROMPTS.sister);
   const personaRole = p.role || p;
   const personaTone = p.tone || '';
@@ -150,11 +234,12 @@ ${tplGuide}
   const userPrompt = `【选题】${topic}
 【用户填写的参数】
 ${fieldsContext}
-【模板】${tplName}
+【模板类型】${tplName}
 
-请基于以上信息写脚本。口吻要求：${personaTone.split('。')[0]}。
-如果是T3深度测评，请严格围绕设备参数写评测，不要跑题到宽带对比。
-直接输出纯文本口播台词。`;
+**必须遵守以下规则：**
+${templateType === 't2' ? '- 这是一线服务故事，只能讲故事。用用户填写的具体信息（时间、人物、问题、经过、结果）来讲一个完整的故事。禁止对比宽带、禁止做产品推荐、禁止出现"100M 300M 1000M"。' : templateType === 't3' ? '- 深度评测，围绕设备参数写，禁止宽带对比。' : ''}
+- 基于用户填写的参数，不要凭空编造数据。
+- 直接输出纯文本口播台词，不要JSON、不要markdown。`;
 
   const cfg = await loadAIConfig(token, user);
   const script = await callSiliconFlow(systemPrompt, userPrompt, apiKey, {
