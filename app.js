@@ -348,20 +348,23 @@ async function enrichVariantAsync(cardId, topicKey, isRetry) {
     if (!res.ok) throw new Error('API ' + res.status);
     var data = await res.json();
 
-    if (data.dialogue && data.dialogue.length > 10) {
-      // Show optimized dialogue
-      bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(data.dialogue) + '</div>' +
+    // Compat: new SCF returns {dialogue,warnings}, old returns {script}
+    var dialogue = data.dialogue || data.script || '';
+    var warnings = data.warnings || [];
+    var isOptimized = !!data.dialogue;
+
+    if (dialogue && dialogue.length > 10) {
+      bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(dialogue) + '</div>' +
         '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
-        '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ AI 优化版</span>' +
+        '<span style="font-size:10px;background:' + (isOptimized ? '#0d7c0d' : '#E65100') + ';color:#fff;padding:2px 8px;border-radius:10px;">' + (isOptimized ? '✨ AI 优化版' : '🤖 AI 生成') + '</span>' +
         '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制</span></div>';
 
-      // Show warnings if any
-      if (data.warnings && data.warnings.length > 0) {
-        bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 违禁词提醒：' + esc(data.warnings.join('、')) + '</div>';
-      } else if (data.safe !== false) {
+      if (warnings.length > 0) {
+        bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 违禁词：' + esc(warnings.join('、')) + '</div>';
+      } else if (isOptimized) {
         bodyEl.innerHTML += '<div style="margin-top:4px;font-size:10px;color:#0d7c0d;">✅ 未检测到违禁词</div>';
       }
-      if (statusEl) { statusEl.textContent = '✅ 已优化'; statusEl.style.color = '#0d7c0d'; }
+      if (statusEl) { statusEl.textContent = isOptimized ? '✅ 已优化' : '✅ 已生成'; statusEl.style.color = '#0d7c0d'; }
     } else {
       bodyEl.innerHTML = '<span style="color:#999;">优化失败</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
       if (statusEl) statusEl.textContent = '';
