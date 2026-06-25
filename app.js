@@ -336,15 +336,8 @@ async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, q
     var fallbackScript = data.dialogue || data.script || '';
 
     if (rewrites) {
-      // Apply line-by-line replacement to build polished full script
-      var polishedHtml = fullHtml;
-      for (var i = 0; i < rewrites.length; i++) {
-        var origLine = rewrites[i].orig || rewrites[i].original || '';
-        var newLine = rewrites[i]['new'] || rewrites[i].rewritten || '';
-        if (origLine && newLine) polishedHtml = polishedHtml.split(origLine).join(newLine);
-      }
-      var div = document.createElement('div'); div.innerHTML = polishedHtml;
-      var polishedText = div.textContent.replace(/\s{3,}/g,'\n').trim();
+      // SCF already builds dialogue from rewritten lines only — no time codes/BGM/labels
+      var polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || r.rewritten || ''; }).filter(Boolean).join('\n\n');
       results.successes.push(polishedText);
       results.remaining--;
       if (data.warnings && data.warnings.length > 0) results.lastWarnings = data.warnings;
