@@ -2,7 +2,7 @@
 // 环境变量: GITEE_TOKEN, GITEE_USERNAME, SILICONFLOW_API_KEY
 // 部署: v=2026-06-24
 
-const CACHE_VER = 'v5'; // bump to invalidate all old caches
+const CACHE_VER = 'v6'; // prompt overhaul for T3 accuracy
 
 const http = require('http');
 
@@ -67,12 +67,20 @@ async function getConfig(filename, token, user) {
 // ============================================================
 
 const PERSONA_PROMPTS = {
-  sweet:   '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"。用热梗拉近距离。',
-  tech:    '你是电信技术专家。用实测数据说话，喜欢对比参数。专业但不死板。"今天测了""直接上数据"是你的口头禅。',
-  biz:     '你是商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。不讲废话。',
-  young:   '你是年轻男员工。说话口语化接地气，有网感。爱用"兄弟们"开头，喜欢吐槽和夸张对比。',
-  master:  '你是资深老师傅。干了二十年装维。用真实案例说话，稳重有分量。"信我一次""经验之谈"是你的口头禅。',
-  sister:  '你是暖心姐姐。用客户故事和生活场景切入。温暖亲切，感觉你不是在推销，是在真心帮忙。'
+  sweet:   {role:'你是电信营业厅的年轻女员工。',tone:'口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"。用热梗拉近距离。'},
+  tech:    {role:'你是电信技术专家，专业测评人。',tone:'用实测数据和参数表说话。客观、有依据、不浮夸。数字精确到小数点。禁止用"宝子们""姐妹们""暖心"等销售腔。口头禅："今天实测了""数据在这，你自己看。"'},
+  biz:     {role:'你是商务专家。',tone:'说话干练，直奔主题，信息密度高。数字前置，结论先行。不讲废话。'},
+  young:   {role:'你是年轻男员工。',tone:'口语化接地气，有网感。爱用"兄弟们"开头，喜欢吐槽和夸张对比。'},
+  master:  {role:'你是资深装维老师傅，干了二十年。',tone:'用真实案例说话，稳重有分量。"信我一次""经验之谈"是口头禅。'},
+  sister:  {role:'你是电信营业厅的暖心姐姐。',tone:'用客户故事和生活场景切入。温暖亲切，不是推销是真心帮忙。'}
+};
+
+// Template-specific constraints for AI generation
+const TEMPLATE_GUIDES = {
+  t1: '这是决策指南类内容。帮用户对比选择，要说清楚"谁适合什么/为什么"。数据要有对比有结论。',
+  t2: '这是一线服务场景。讲一个真实发生的故事：时间、地点、人物、问题、怎么解决的、客户什么反应。像跟朋友讲今天的经历。',
+  t3: '这是深度评测。你面前有一台具体设备，需要你上手实测并出报告。围绕设备的实际参数来写，讲体验不讲推销。禁止对比宽带套餐，禁止讲"100M/300M/1000M"。你就是科技博主在出评测视频。',
+  t4: '这是本地探店/福利活动。重点讲清：在哪、有什么福利、怎么参与。要营造紧迫感或亲切感。引导到店。'
 };
 
 // ============================================================
@@ -112,32 +120,41 @@ async function personalize(params) {
   }
 
   // Step 2: Build prompt with full context
-  const personaPrompt = PERSONA_PROMPTS[persona] || PERSONA_PROMPTS.sister;
+  const p = (PERSONA_PROMPTS[persona] || PERSONA_PROMPTS.sister);
+  const personaRole = p.role || p;
+  const personaTone = p.tone || '';
 
   let fieldsContext = '';
   if (fields) {
     for (const [k, v] of Object.entries(fields)) {
-      if (v) fieldsContext += `${k}: ${v}\n`;
+      if (v) fieldsContext += `  ${k}: ${v}\n`;
     }
   }
+  if (!fieldsContext.trim()) fieldsContext = '(用户未填写具体参数)';
 
   var tplNames = { t1: '决策指南', t2: '一线场景', t3: '深度测评', t4: '本地事件' };
   var tplName = tplNames[templateType] || '';
+  var tplGuide = TEMPLATE_GUIDES[templateType] || '';
 
-  const systemPrompt = `${personaPrompt}
-你是山西电信抖音短视频脚本生成器，营业厅名称：${store}，所在城市：${city || '未知'}。${tplName ? '当前模板：「' + tplName + '」。' : ''}
-你的任务是：结合用户填写的具体信息，为营业厅员工写一段完整的一段式口播脚本（约200-400字），可以直接对着镜头念、录成视频。
-脚本结构：第1句强钩子抓注意力 → 中间2-4句展开核心内容（数据/故事/对比/场景）→ 最后1句自然收尾或引导互动。
-要求：口语化、自然、有网感、有节奏感，结合营业厅实地特点和城市语境。
-不要写分镜、不要写字幕说明、不要写BGM推荐——只写口播台词。`;
+  const systemPrompt = `${personaRole}
+${personaTone}
+${tplGuide}
+营业厅：${store}，城市：${city || '未知'}。
 
-  const userPrompt = `选题：${topic}
-用户填写的场景数据：
+核心任务：结合用户提供的选题和场景数据，写一段完整的口播脚本（200-400字），可直接录视频。
+
+结构要求：强钩子开头 → 数据/故事/体验展开 → 自然收尾。
+数据原则：优先使用用户填写的真实参数，不要凭空编造速率/性能数据。如果用户未提供数据，用定性描述代替定量数据。
+禁止：不要写分镜提示、字幕说明、BGM推荐。只输出口播台词。`;
+
+  const userPrompt = `【选题】${topic}
+【用户填写的参数】
 ${fieldsContext}
+【模板】${tplName}
 
-请为${store}的营业员写一段完整的口播脚本（200-400字），用"${personaPrompt.split('。')[0]}"的口吻。
-要覆盖：钩子开头 → 核心内容 → 自然收尾，三个层次都要有。
-直接输出纯文本，不要JSON，不要markdown。`;
+请基于以上信息写脚本。口吻要求：${personaTone.split('。')[0]}。
+如果是T3深度测评，请严格围绕设备参数写评测，不要跑题到宽带对比。
+直接输出纯文本口播台词。`;
 
   const cfg = await loadAIConfig(token, user);
   const script = await callSiliconFlow(systemPrompt, userPrompt, apiKey, {
