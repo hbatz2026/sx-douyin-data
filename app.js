@@ -121,9 +121,8 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
       console.warn('Personalize API failed:', e.message);
     }
 
-    // Fallback: static variant pool
-    var variant = selectVariant(topicKey);
-    return variant ? composeScript(variant) : null;
+    // API failed — return null (let caller handle the UI fallback)
+    return null;
   } catch(e) {
     console.warn('callPersonalizeAPI error:', e.message);
     return null;
