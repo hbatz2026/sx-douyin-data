@@ -44,7 +44,7 @@ var PERSONA_KEY = 'douyin_lab_persona';
   try {
     var keys = Object.keys(localStorage);
     for (var i = 0; i < keys.length; i++) {
-      if (keys[i].indexOf('dy_personalize_') === 0 && keys[i].indexOf('v2_dy_personalize_') !== 0 && keys[i].indexOf('v3_dy_personalize_') !== 0) {
+      if (keys[i].indexOf('dy_personalize_') === 0 && keys[i].indexOf('v3_dy_personalize_') !== 0) {
         localStorage.removeItem(keys[i]);
       }
     }
@@ -129,7 +129,7 @@ async function callPersonalizeAPI(templateType, topicKey, fields) {
 }
 
 // Cache version — bump to invalidate all old localStorage entries
-var CACHE_VERSION = 'v2';
+var CACHE_VERSION = 'v3';
 
 // Read current template form fields (ALL relevant fields, per template type)
 function readFormFields(prefix) {
