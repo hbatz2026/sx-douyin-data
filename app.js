@@ -276,6 +276,8 @@ function getDailyQuota() {
   try {
     var data = JSON.parse(localStorage.getItem('dy_ai_quota') || '{}');
     if (data.date !== today) { data = { date: today, used: 0, max: 3 }; }
+    // Debug override: add ?quota=999 to URL for testing
+    if (/[?&]quota=(\d+)/.test(location.search)) data.max = parseInt(RegExp.$1);
     return data;
   } catch(e) { return { date: today, used: 0, max: 3 }; }
 }
