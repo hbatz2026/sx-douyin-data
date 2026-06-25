@@ -328,7 +328,8 @@ async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, q
 
   try {
     var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
-    var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,script:src}),signal:ctrl.signal});
+    var tpl = detectTemplateType();
+    var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,templateType:tpl,script:src}),signal:ctrl.signal});
     clearTimeout(tid);
     if (!res.ok) throw new Error('API '+res.status);
     var data = await res.json(), dlg = (data.dialogue||data.script||'').trim(), warns = data.warnings||[];
