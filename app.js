@@ -267,7 +267,7 @@ function composeScript(variant) {
 }
 
 // ============================================================
-// AI 工具箱 — 全量模板共享 3次/天 手动触发优化 + 违禁词检查
+// AI 工具箱 — 全量模板共享 5次/天 手动触发优化 + 违禁词检查
 // ============================================================
 
 // Global daily quota: 3 per day across ALL templates, stored in localStorage
@@ -275,7 +275,7 @@ function getDailyQuota() {
   var today = new Date().toISOString().slice(0,10);
   try {
     var data = JSON.parse(localStorage.getItem('dy_ai_quota') || '{}');
-    if (data.date !== today) { data = { date: today, used: 0, max: 3 }; }
+    if (data.date !== today) { data = { date: today, used: 0, max: 5 }; }
     // Debug override: add ?quota=999 to URL for testing
     if (/[?&]quota=(\d+)/.test(location.search)) data.max = parseInt(RegExp.$1);
     return data;
@@ -300,7 +300,7 @@ function syncAllQuotaBadges() {
     if (rem > 0) {
       btns[j].style.display = '';
       btns[j].disabled = false;
-      btns[j].textContent = rem===3 ? '🚀 AI 优化台词（全站剩余3次）' : (rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）');
+      btns[j].textContent = rem===5 ? '🚀 AI 优化台词（全站剩余5次）' : (rem===4 ? '🔄 AI 优化（全站剩余4次）' : (rem===3 ? '🔄 AI 优化（全站剩余3次）' : (rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）')));
     } else {
       btns[j].style.display = 'none';
     }
@@ -319,7 +319,7 @@ function tryVariantInjection(topicKey, bgm, previewDivId) {
 
   var btnHtml = rem > 0
     ? '<button id="' + cardId + '-btn" onclick="triggerVariantOptimize(\'' + cardId + '\',\'' + esc(topicKey) + '\')" style="width:100%;padding:10px;border:1.5px dashed var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-size:14px;cursor:pointer;margin-top:4px;">🚀 AI 优化台词（全站剩余' + rem + '次）</button>'
-    : '<button id="' + cardId + '-btn" disabled style="width:100%;padding:10px;border:1.5px dashed #ccc;border-radius:8px;background:#f5f5f5;color:#999;font-size:14px;cursor:not-allowed;margin-top:4px;">⛔ 今日3次已用完</button>';
+    : '<button id="' + cardId + '-btn" disabled style="width:100%;padding:10px;border:1.5px dashed #ccc;border-radius:8px;background:#f5f5f5;color:#999;font-size:14px;cursor:not-allowed;margin-top:4px;">⛔ 今日5次已用完</button>';
 
   return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
@@ -439,7 +439,7 @@ function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errT
   if (rem > 0) { btn.disabled = false; btn.textContent = rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）'; btn.style.display = ''; }
   else { btn.style.display = 'none'; quotaEl.textContent = '今日已用完';
     var ft = '<div style="margin-top:8px;font-size:11px;color:#999;border-top:1px dashed #ddd;padding-top:6px;">';
-    ft += dlg ? '今日3次已用完。可复制上方结果到其他AI工具继续优化。' : '今日3次均失败。建议复制模板台词到其他AI工具（如DeepSeek、豆包）继续优化。';
+    ft += dlg ? '今日5次已用完。可复制上方结果到其他AI工具继续优化。' : '今日5次均失败。建议复制模板台词到其他AI工具（如DeepSeek、豆包）继续优化。';
     ft += '</div>'; bodyEl.innerHTML += ft; }
   syncAllQuotaBadges();
 }
