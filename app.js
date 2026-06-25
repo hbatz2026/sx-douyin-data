@@ -304,37 +304,59 @@ function triggerVariantOptimize(cardId, topicKey) {
 
 async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, quotaEl) {
   var previewEl = document.getElementById(window['__preview_' + cardId] || '');
-  // Preserve structure: convert HTML to structured text
-  var src = '';
-  if (previewEl) {
-    var html = previewEl.innerHTML;
-    // Convert key structural elements to text markers
-    html = html.replace(/<div class="stage">/g, '\n【');
-    html = html.replace(/<div class="dialogue">/g, '\n🎙 ');
-    html = html.replace(/<div class="action-note">/g, '\n📷 ');
-    html = html.replace(/<div class="shot-step">/g, '\n🎬 ');
-    html = html.replace(/<span class="shot-time">/g, '');
-    html = html.replace(/<span class="shot-action">/g, '');
-    html = html.replace(/<span class="shot-subtitle">/g, '字幕: ');
-    html = html.replace(/<\/span>/g, '');
-    html = html.replace(/<\/div>/g, '');
-    html = html.replace(/<div[^>]*>/g, '\n');
-    html = html.replace(/<[^>]+>/g, '');
-    html = html.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    html = html.replace(/\n{3,}/g, '\n\n');
-    src = html.trim().slice(0, 3500);
+  if (!previewEl) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; } return; }
+
+  // Extract all quoted dialogue lines from the preview HTML
+  var fullHtml = previewEl.innerHTML;
+  var dialogueRegex = /"([^"]{6,})"/g;
+  var dialogueLines = [];
+  var match;
+  while ((match = dialogueRegex.exec(fullHtml)) !== null) {
+    dialogueLines.push(match[1]);
   }
-  if (!src) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; } if (quotaEl) quotaEl.textContent = '需先生成预览'; return; }
+  if (dialogueLines.length === 0) {
+    if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">未找到台词，请先生成预览</span>';
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; }
+    return;
+  }
+
+  // Build context for AI: structured text from preview
+  var src = previewEl.textContent.replace(/\s{3,}/g,'\n').trim().slice(0, 3000);
 
   try {
-    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
     var tpl = detectTemplateType();
+    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
     var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,templateType:tpl,script:src}),signal:ctrl.signal});
     clearTimeout(tid);
     if (!res.ok) throw new Error('API '+res.status);
-    var data = await res.json(), dlg = (data.dialogue||data.script||'').trim(), warns = data.warnings||[];
-    if (dlg.length > 10) { results.successes.push(dlg); results.lastWarnings = warns; results.remaining--; renderVariantResult(cardId,dlg,results,btn,bodyEl,quotaEl); }
-    else throw new Error('empty');
+    var data = await res.json();
+
+    // New SCF returns {lines: [{orig,new},...]}, old returns {script} or {dialogue}
+    var rewrites = (data.lines && data.lines.length > 0) ? data.lines : null;
+    var fallbackScript = data.dialogue || data.script || '';
+
+    if (rewrites) {
+      // Apply line-by-line replacement to build polished full script
+      var polishedHtml = fullHtml;
+      for (var i = 0; i < rewrites.length; i++) {
+        var origLine = rewrites[i].orig || rewrites[i].original || '';
+        var newLine = rewrites[i]['new'] || rewrites[i].rewritten || '';
+        if (origLine && newLine) polishedHtml = polishedHtml.split(origLine).join(newLine);
+      }
+      var div = document.createElement('div'); div.innerHTML = polishedHtml;
+      var polishedText = div.textContent.replace(/\s{3,}/g,'\n').trim();
+      results.successes.push(polishedText);
+      results.remaining--;
+      if (data.warnings && data.warnings.length > 0) results.lastWarnings = data.warnings;
+      renderVariantResult(cardId, polishedText, results, btn, bodyEl, quotaEl);
+    } else if (fallbackScript && fallbackScript.length > 10) {
+      results.successes.push(fallbackScript);
+      results.remaining--;
+      if (data.warnings) results.lastWarnings = data.warnings;
+      renderVariantResult(cardId, fallbackScript, results, btn, bodyEl, quotaEl);
+    } else {
+      throw new Error('empty');
+    }
   } catch(e) { results.failures++; results.remaining--; renderVariantResult(cardId,'',results,btn,bodyEl,quotaEl); }
 }
 
