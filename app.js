@@ -267,42 +267,78 @@ function composeScript(variant) {
 }
 
 // ============================================================
-// AI 工具箱 — 手动触发 × 3次 优化 + 违禁词检查
+// AI 工具箱 — 全量模板共享 3次/天 手动触发优化 + 违禁词检查
 // ============================================================
 
-window.__variantResults = {};
+// Global daily quota: 3 per day across ALL templates, stored in localStorage
+function getDailyQuota() {
+  var today = new Date().toISOString().slice(0,10);
+  try {
+    var data = JSON.parse(localStorage.getItem('dy_ai_quota') || '{}');
+    if (data.date !== today) { data = { date: today, used: 0, max: 3 }; }
+    return data;
+  } catch(e) { return { date: today, used: 0, max: 3 }; }
+}
+function useDailyQuota() {
+  var q = getDailyQuota();
+  q.used = Math.min(q.max, q.used + 1);
+  localStorage.setItem('dy_ai_quota', JSON.stringify(q));
+  syncAllQuotaBadges();
+  return q.max - q.used;
+}
+function quotaRemaining() { return getDailyQuota().max - getDailyQuota().used; }
+function syncAllQuotaBadges() {
+  var rem = quotaRemaining();
+  var cards = document.querySelectorAll('[id$="-quota"]');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].textContent = '剩余' + rem + '次';
+  }
+  var btns = document.querySelectorAll('[id$="-btn"]');
+  for (var j = 0; j < btns.length; j++) {
+    if (rem > 0) {
+      btns[j].style.display = '';
+      btns[j].disabled = false;
+      btns[j].textContent = rem===3 ? '🚀 AI 优化台词（全站剩余3次）' : (rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）');
+    } else {
+      btns[j].style.display = 'none';
+    }
+  }
+}
 
 function tryVariantInjection(topicKey, bgm, previewDivId) {
   if (!topicKey) return '';
   var persona = getPersona();
   var p = personaDB[persona] || personaDB['sister'];
   var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
+  var rem = quotaRemaining();
   
   window['__preview_' + cardId] = previewDivId;
   window['__persona_' + cardId] = persona;
-  window.__variantResults[cardId] = { successes: [], failures: 0, remaining: 3 };
+
+  var btnHtml = rem > 0
+    ? '<button id="' + cardId + '-btn" onclick="triggerVariantOptimize(\'' + cardId + '\',\'' + esc(topicKey) + '\')" style="width:100%;padding:10px;border:1.5px dashed var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-size:14px;cursor:pointer;margin-top:4px;">🚀 AI 优化台词（全站剩余' + rem + '次）</button>'
+    : '<button id="' + cardId + '-btn" disabled style="width:100%;padding:10px;border:1.5px dashed #ccc;border-radius:8px;background:#f5f5f5;color:#999;font-size:14px;cursor:not-allowed;margin-top:4px;">⛔ 今日3次已用完</button>';
 
   return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
     '<span style="font-size:0.9em;">' + p.icon + '</span>' +
     '<span style="font-size:12px;font-weight:700;color:var(--blue);">' + p.label + '风格 · AI 工具箱</span>' +
-    '<span id="' + cardId + '-quota" style="font-size:10px;color:#999;margin-left:auto;">剩余3次</span></div>' +
+    '<span id="' + cardId + '-quota" style="font-size:10px;color:#999;margin-left:auto;">全站剩余' + rem + '次</span></div>' +
     '<div id="' + cardId + '-body" style="font-size:15px;line-height:1.9;color:var(--dark);min-height:24px;padding:8px 0;"></div>' +
-    '<button id="' + cardId + '-btn" onclick="triggerVariantOptimize(\'' + cardId + '\',\'' + esc(topicKey) + '\')" style="width:100%;padding:10px;border:1.5px dashed var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-size:14px;cursor:pointer;margin-top:4px;">🚀 AI 优化台词（剩余3次）</button></div>';
+    btnHtml + '</div>';
 }
 
 function triggerVariantOptimize(cardId, topicKey) {
-  var results = window.__variantResults[cardId];
-  if (!results || results.remaining <= 0) return;
+  if (quotaRemaining() <= 0) { syncAllQuotaBadges(); return; }
   var btn = document.getElementById(cardId + '-btn'), bodyEl = document.getElementById(cardId + '-body'), quotaEl = document.getElementById(cardId + '-quota');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 优化中…'; }
   if (quotaEl) quotaEl.textContent = '优化中…';
   var profile = getStoreProfile();
-  if (!profile) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">⚠️ 请先绑定营业厅</span>'; if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; } return; }
-  fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, quotaEl);
+  if (!profile) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">⚠️ 请先绑定营业厅</span>'; if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（全站剩余' + quotaRemaining() + '次）'; } return; }
+  fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl);
 }
 
-async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, quotaEl) {
+async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
   var previewEl = document.getElementById(window['__preview_' + cardId] || '');
   if (!previewEl) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; } return; }
 
@@ -316,7 +352,7 @@ async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, q
   }
   if (dialogueLines.length === 0) {
     if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">未找到台词，请先生成预览</span>';
-    if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; }
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（全站剩余' + quotaRemaining() + '次）'; }
     return;
   }
 
@@ -336,44 +372,42 @@ async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, q
     var fallbackScript = data.dialogue || data.script || '';
 
     if (rewrites) {
-      // SCF already builds dialogue from rewritten lines only — no time codes/BGM/labels
       var polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || r.rewritten || ''; }).filter(Boolean).join('\n\n');
-      results.successes.push(polishedText);
-      results.remaining--;
-      if (data.warnings && data.warnings.length > 0) results.lastWarnings = data.warnings;
-      renderVariantResult(cardId, polishedText, results, btn, bodyEl, quotaEl);
     } else if (fallbackScript && fallbackScript.length > 10) {
-      results.successes.push(fallbackScript);
-      results.remaining--;
-      if (data.warnings) results.lastWarnings = data.warnings;
-      renderVariantResult(cardId, fallbackScript, results, btn, bodyEl, quotaEl);
+      var polishedText = fallbackScript;
     } else {
       throw new Error('empty');
     }
-  } catch(e) { results.failures++; results.remaining--; renderVariantResult(cardId,'',results,btn,bodyEl,quotaEl); }
+
+    // Consume global quota (failure also counts)
+    var rem = useDailyQuota();
+    renderVariantResult(cardId, polishedText, data.warnings || [], rem, btn, bodyEl, quotaEl);
+  } catch(e) {
+    var rem = useDailyQuota();
+    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl);
+  }
 }
 
-function renderVariantResult(cardId, dlg, results, btn, bodyEl, quotaEl) {
-  var latest = results.successes.length > 0 ? results.successes[results.successes.length-1] : '';
-  var warns = results.lastWarnings || [];
-  if (latest) {
-    bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(latest)+'</div>'+
+function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl) {
+  if (dlg) {
+    var usageCount = getDailyQuota().used;
+    bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>'+
       '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
-      '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ 优化版 · 第'+results.successes.length+'次</span>'+
+      '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ 优化版 · 第'+usageCount+'次</span>'+
       '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制到剪贴板</span></div>';
-    if (warns.length > 0) {
+    if (warns && warns.length > 0) {
       bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 广告法违禁词：'+esc(warns.join(', '))+'</div>';
     }
-  } else if (dlg) {
-    bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>';
   } else {
     bodyEl.innerHTML = '<span style="color:#999;">优化失败，可重试（无需重新生成预览）</span>';
   }
-  if (results.remaining > 0) { btn.disabled = false; btn.textContent = results.remaining===2?'🔄 不满意？再试一次（剩余2次）':'🔄 最后一次优化（剩余1次）'; quotaEl.textContent = '剩余'+results.remaining+'次'; }
+  quotaEl.textContent = '全站剩余' + rem + '次';
+  if (rem > 0) { btn.disabled = false; btn.textContent = rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）'; btn.style.display = ''; }
   else { btn.style.display = 'none'; quotaEl.textContent = '今日已用完';
     var ft = '<div style="margin-top:8px;font-size:11px;color:#999;border-top:1px dashed #ddd;padding-top:6px;">';
-    ft += results.successes.length>0?'今日3次已用完。可复制上方结果到其他AI软件继续优化。':'今日3次均失败。建议复制下方模板台词到其他AI软件优化。';
+    ft += dlg ? '今日3次已用完。可复制上方结果到其他AI工具继续优化。' : '今日3次均失败。建议复制模板台词到其他AI工具（如DeepSeek、豆包）继续优化。';
     ft += '</div>'; bodyEl.innerHTML += ft; }
+  syncAllQuotaBadges();
 }
 
 // Detect which template is currently active
