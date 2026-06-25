@@ -331,19 +331,23 @@ async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, q
     var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,script:src}),signal:ctrl.signal});
     clearTimeout(tid);
     if (!res.ok) throw new Error('API '+res.status);
-    var data = await res.json(), dlg = (data.dialogue||data.script||'').trim();
-    if (dlg.length > 10) { results.successes.push(dlg); results.remaining--; renderVariantResult(cardId,dlg,results,btn,bodyEl,quotaEl); }
+    var data = await res.json(), dlg = (data.dialogue||data.script||'').trim(), warns = data.warnings||[];
+    if (dlg.length > 10) { results.successes.push(dlg); results.lastWarnings = warns; results.remaining--; renderVariantResult(cardId,dlg,results,btn,bodyEl,quotaEl); }
     else throw new Error('empty');
   } catch(e) { results.failures++; results.remaining--; renderVariantResult(cardId,'',results,btn,bodyEl,quotaEl); }
 }
 
 function renderVariantResult(cardId, dlg, results, btn, bodyEl, quotaEl) {
   var latest = results.successes.length > 0 ? results.successes[results.successes.length-1] : '';
+  var warns = results.lastWarnings || [];
   if (latest) {
     bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(latest)+'</div>'+
       '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
       '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ 优化版 · 第'+results.successes.length+'次</span>'+
       '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制到剪贴板</span></div>';
+    if (warns.length > 0) {
+      bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 广告法违禁词：'+esc(warns.join(', '))+'</div>';
+    }
   } else if (dlg) {
     bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>';
   } else {
