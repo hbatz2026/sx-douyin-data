@@ -304,7 +304,26 @@ function triggerVariantOptimize(cardId, topicKey) {
 
 async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, quotaEl) {
   var previewEl = document.getElementById(window['__preview_' + cardId] || '');
-  var src = previewEl ? (previewEl.textContent || '').replace(/\s{3,}/g,'\n').trim().slice(0,3000) : '';
+  // Preserve structure: convert HTML to structured text
+  var src = '';
+  if (previewEl) {
+    var html = previewEl.innerHTML;
+    // Convert key structural elements to text markers
+    html = html.replace(/<div class="stage">/g, '\n【');
+    html = html.replace(/<div class="dialogue">/g, '\n🎙 ');
+    html = html.replace(/<div class="action-note">/g, '\n📷 ');
+    html = html.replace(/<div class="shot-step">/g, '\n🎬 ');
+    html = html.replace(/<span class="shot-time">/g, '');
+    html = html.replace(/<span class="shot-action">/g, '');
+    html = html.replace(/<span class="shot-subtitle">/g, '字幕: ');
+    html = html.replace(/<\/span>/g, '');
+    html = html.replace(/<\/div>/g, '');
+    html = html.replace(/<div[^>]*>/g, '\n');
+    html = html.replace(/<[^>]+>/g, '');
+    html = html.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    html = html.replace(/\n{3,}/g, '\n\n');
+    src = html.trim().slice(0, 3500);
+  }
   if (!src) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; } if (quotaEl) quotaEl.textContent = '需先生成预览'; return; }
 
   try {
