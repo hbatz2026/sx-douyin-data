@@ -266,113 +266,75 @@ function composeScript(variant) {
   return script;
 }
 
-// AI 润色卡片 — 读取已渲染的模板脚本，提交给AI做优化+违禁词检查
+// ============================================================
+// AI 工具箱 — 手动触发 × 3次 优化 + 违禁词检查
+// ============================================================
+
+window.__variantResults = {};
+
 function tryVariantInjection(topicKey, bgm, previewDivId) {
   if (!topicKey) return '';
   var persona = getPersona();
   var p = personaDB[persona] || personaDB['sister'];
   var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
   
-  // Store preview div ID so enrichVariantAsync can read the content
   window['__preview_' + cardId] = previewDivId;
-  
-  // Fire async: read preview content after DOM renders, then call API
-  setTimeout(function() { enrichVariantAsync(cardId, topicKey); }, 200);
-  
+  window['__persona_' + cardId] = persona;
+  window.__variantResults[cardId] = { successes: [], failures: 0, remaining: 3 };
+
   return '<div id="' + cardId + '" style="background:linear-gradient(135deg,#E8F0FE,#F3E5F5);border:1.5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:12px;">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
     '<span style="font-size:0.9em;">' + p.icon + '</span>' +
-    '<span style="font-size:12px;font-weight:700;color:var(--blue);">' + p.label + '风格 · AI 实时生成</span>' +
-    '<span id="' + cardId + '-status" style="font-size:10px;color:#999;margin-left:auto;">⏳ 生成中…</span></div>' +
-    '<div id="' + cardId + '-body" style="font-size:15px;line-height:1.8;color:var(--dark);min-height:60px;padding:8px 0;"></div></div>';
+    '<span style="font-size:12px;font-weight:700;color:var(--blue);">' + p.label + '风格 · AI 工具箱</span>' +
+    '<span id="' + cardId + '-quota" style="font-size:10px;color:#999;margin-left:auto;">剩余3次</span></div>' +
+    '<div id="' + cardId + '-body" style="font-size:15px;line-height:1.9;color:var(--dark);min-height:24px;padding:8px 0;"></div>' +
+    '<button id="' + cardId + '-btn" onclick="triggerVariantOptimize(\'' + cardId + '\',\'' + esc(topicKey) + '\')" style="width:100%;padding:10px;border:1.5px dashed var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-size:14px;cursor:pointer;margin-top:4px;">🚀 AI 优化台词（剩余3次）</button></div>';
 }
 
-// Store retry callbacks per card
-var _retryCallbacks = {};
+function triggerVariantOptimize(cardId, topicKey) {
+  var results = window.__variantResults[cardId];
+  if (!results || results.remaining <= 0) return;
+  var btn = document.getElementById(cardId + '-btn'), bodyEl = document.getElementById(cardId + '-body'), quotaEl = document.getElementById(cardId + '-quota');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 优化中…'; }
+  if (quotaEl) quotaEl.textContent = '优化中…';
+  var profile = getStoreProfile();
+  if (!profile) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">⚠️ 请先绑定营业厅</span>'; if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; } return; }
+  fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, quotaEl);
+}
 
-// Async: read template preview, send to AI for polish + sensitive word check
-async function enrichVariantAsync(cardId, topicKey, isRetry) {
-  var statusEl = document.getElementById(cardId + '-status');
-  var bodyEl = document.getElementById(cardId + '-body');
-  if (!bodyEl) { return; }
-
-  var isRetry = isRetry === true;
+async function fetchVariantAI(cardId, topicKey, profile, results, btn, bodyEl, quotaEl) {
+  var previewEl = document.getElementById(window['__preview_' + cardId] || '');
+  var src = previewEl ? (previewEl.textContent || '').replace(/\s{3,}/g,'\n').trim().slice(0,3000) : '';
+  if (!src) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（剩余' + results.remaining + '次）'; } if (quotaEl) quotaEl.textContent = '需先生成预览'; return; }
 
   try {
-    var profile = getStoreProfile();
-    if (!profile) {
-      bodyEl.innerHTML = '<span style="color:#999;">⚠️ 请先绑定营业厅</span>';
-      if (statusEl) statusEl.textContent = '';
-      return;
-    }
+    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
+    var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,script:src}),signal:ctrl.signal});
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('API '+res.status);
+    var data = await res.json(), dlg = (data.dialogue||data.script||'').trim();
+    if (dlg.length > 10) { results.successes.push(dlg); results.remaining--; renderVariantResult(cardId,dlg,results,btn,bodyEl,quotaEl); }
+    else throw new Error('empty');
+  } catch(e) { results.failures++; results.remaining--; renderVariantResult(cardId,'',results,btn,bodyEl,quotaEl); }
+}
 
-    if (statusEl) statusEl.textContent = '⏳ 读取模板…';
-
-    // Read the already-rendered template preview content
-    var previewDivId = window['__preview_' + cardId] || '';
-    var previewEl = document.getElementById(previewDivId);
-    var originalScript = '';
-    if (previewEl) {
-      // Strip HTML tags, keep text content (dialogue lines, stage instructions, etc)
-      originalScript = previewEl.textContent || previewEl.innerText || '';
-      originalScript = originalScript.replace(/\s{3,}/g, '\n').trim().slice(0, 3000);
-    }
-
-    if (!originalScript) {
-      bodyEl.innerHTML = '<span style="color:#999;">模板未生成，请先点预览</span>';
-      if (statusEl) statusEl.textContent = '';
-      return;
-    }
-
-    if (statusEl) statusEl.textContent = '⏳ AI 优化中…';
-
-    // Call SCF polish mode
-    var tpl = detectTemplateType();
-    var body = {
-      store: profile.name, persona: profile.persona,
-      topic: topicKey, city: profile.city,
-      templateType: tpl,
-      script: originalScript  // ← triggers polish mode
-    };
-
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function() { controller.abort(); }, 45000);
-    var res = await fetch(PERSONALIZE_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) throw new Error('API ' + res.status);
-    var data = await res.json();
-
-    // Compat: new SCF returns {dialogue,warnings}, old returns {script}
-    var dialogue = data.dialogue || data.script || '';
-    var warnings = data.warnings || [];
-    var isOptimized = !!data.dialogue;
-
-    if (dialogue && dialogue.length > 10) {
-      bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(dialogue) + '</div>' +
-        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
-        '<span style="font-size:10px;background:' + (isOptimized ? '#0d7c0d' : '#E65100') + ';color:#fff;padding:2px 8px;border-radius:10px;">' + (isOptimized ? '✨ AI 优化版' : '🤖 AI 生成') + '</span>' +
-        '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制</span></div>';
-
-      if (warnings.length > 0) {
-        bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 违禁词：' + esc(warnings.join('、')) + '</div>';
-      } else if (isOptimized) {
-        bodyEl.innerHTML += '<div style="margin-top:4px;font-size:10px;color:#0d7c0d;">✅ 未检测到违禁词</div>';
-      }
-      if (statusEl) { statusEl.textContent = isOptimized ? '✅ 已优化' : '✅ 已生成'; statusEl.style.color = '#0d7c0d'; }
-    } else {
-      bodyEl.innerHTML = '<span style="color:#999;">优化失败</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
-      if (statusEl) statusEl.textContent = '';
-    }
-  } catch(e) {
-    bodyEl.innerHTML = '<span style="color:#999;">网络错误</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
-    if (statusEl) statusEl.textContent = '';
+function renderVariantResult(cardId, dlg, results, btn, bodyEl, quotaEl) {
+  var latest = results.successes.length > 0 ? results.successes[results.successes.length-1] : '';
+  if (latest) {
+    bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(latest)+'</div>'+
+      '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
+      '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ 优化版 · 第'+results.successes.length+'次</span>'+
+      '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制到剪贴板</span></div>';
+  } else if (dlg) {
+    bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>';
+  } else {
+    bodyEl.innerHTML = '<span style="color:#999;">优化失败，可重试（无需重新生成预览）</span>';
   }
+  if (results.remaining > 0) { btn.disabled = false; btn.textContent = results.remaining===2?'🔄 不满意？再试一次（剩余2次）':'🔄 最后一次优化（剩余1次）'; quotaEl.textContent = '剩余'+results.remaining+'次'; }
+  else { btn.style.display = 'none'; quotaEl.textContent = '今日已用完';
+    var ft = '<div style="margin-top:8px;font-size:11px;color:#999;border-top:1px dashed #ddd;padding-top:6px;">';
+    ft += results.successes.length>0?'今日3次已用完。可复制上方结果到其他AI软件继续优化。':'今日3次均失败。建议复制下方模板台词到其他AI软件优化。';
+    ft += '</div>'; bodyEl.innerHTML += ft; }
 }
 
 // Detect which template is currently active
