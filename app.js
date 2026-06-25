@@ -78,20 +78,24 @@ var personaOrder = ['sweet','tech','biz','young','master','sister'];
 var PERSONALIZE_API = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
 
 // Call personalize API or use cache/fallback
-async function callPersonalizeAPI(templateType, topicKey, fields) {
+async function callPersonalizeAPI(templateType, topicKey, fields, skipCache) {
   try {
     var profile = getStoreProfile();
     if (!profile) { return null; }
     
-    // Check localStorage cache first (per store+persona+topic+week)
+    // Check localStorage cache first (skip on retry)
+    if (!skipCache) {
+      var weekNum = getWeekNumber();
+      var topicHash = simpleHash(topicKey);
+      var cacheKey = CACHE_VERSION + '_dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicHash;
+      try {
+        var cached = localStorage.getItem(cacheKey);
+        if (cached) { return JSON.parse(cached).script; }
+      } catch(e) {}
+    }
     var weekNum = getWeekNumber();
-    // Simple hash for topicKey (supports Chinese & special chars)
     var topicHash = simpleHash(topicKey);
     var cacheKey = CACHE_VERSION + '_dy_personalize_' + profile.hash + '_' + templateType + '_' + weekNum + '_' + topicHash;
-    try {
-      var cached = localStorage.getItem(cacheKey);
-      if (cached) { return JSON.parse(cached).script; }
-    } catch(e) {}
 
     // Try API
     try {
@@ -280,11 +284,17 @@ function tryVariantInjection(topicKey, bgm) {
     '<div id="' + cardId + '-body" style="font-size:15px;line-height:1.8;color:var(--dark);min-height:60px;padding:8px 0;"></div></div>';
 }
 
+// Store retry callbacks per card
+var _retryCallbacks = {};
+
 // Async: call personalize API and render AI-generated script
-async function enrichVariantAsync(cardId, topicKey) {
+async function enrichVariantAsync(cardId, topicKey, isRetry) {
   var statusEl = document.getElementById(cardId + '-status');
   var bodyEl = document.getElementById(cardId + '-body');
   if (!bodyEl) { return; }
+  
+  // Skip localStorage cache on retry
+  var isRetry = isRetry === true;
   
   try {
     var profile = getStoreProfile();
@@ -299,7 +309,7 @@ async function enrichVariantAsync(cardId, topicKey) {
     // Determine template type from current page
     var tpl = detectTemplateType();
     var fields = readFormFields(tpl);
-    var script = await callPersonalizeAPI(tpl, topicKey, fields);
+    var script = await callPersonalizeAPI(tpl, topicKey, fields, isRetry);
     
     if (script && script.length > 20) {
       bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;">' + esc(script) + '</div>' +
@@ -308,11 +318,11 @@ async function enrichVariantAsync(cardId, topicKey) {
         '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制脚本</span></div>';
       if (statusEl) { statusEl.textContent = '✅ 已生成'; statusEl.style.color = '#0d7c0d'; }
     } else {
-      bodyEl.innerHTML = '<span style="color:#999;">生成失败，请重试</span>';
+      bodyEl.innerHTML = '<span style="color:#999;">生成失败</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
       if (statusEl) statusEl.textContent = '';
     }
   } catch(e) {
-    bodyEl.innerHTML = '<span style="color:#999;">网络错误，请重试</span>';
+    bodyEl.innerHTML = '<span style="color:#999;">网络错误</span> <a href="javascript:void(0)" onclick="enrichVariantAsync(\'' + cardId + '\',\'' + esc(topicKey) + '\',true)" style="color:var(--blue);cursor:pointer;text-decoration:underline;margin-left:4px;">🔄 重试</a>';
     if (statusEl) statusEl.textContent = '';
   }
 }
