@@ -921,7 +921,12 @@ function autoFillStore() {
 (function(){
   var saved = localStorage.getItem(STORE_KEY);
   if (saved) {
-    showBoundStore(saved);
+    try {
+      var obj = JSON.parse(saved);
+      showBoundStore(obj.name, obj.persona);
+    } catch(e) {
+      showBoundStore(saved);
+    }
     // Defer autoFill to let DOM settle
     setTimeout(autoFillStore, 300);
   } else {
