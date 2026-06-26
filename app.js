@@ -1176,8 +1176,8 @@ function buildTodayHero() {
   var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + rawIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
   html += '<div style="flex:1;min-width:200px;">';
-  html += '<div style="font-size:13px;opacity:0.8;margin-bottom:4px;">📅 ' + dayNames[rawIdx] + ' · 今天拍什么？</div>';
-  html += '<div style="font-size:20px;font-weight:700;margin-bottom:8px;">' + icon + ' ' + type + '</div>';
+  html += '<h2 style="font-size:13px;opacity:0.8;margin-bottom:4px;font-weight:400;">📅 ' + dayNames[rawIdx] + ' · 今天拍什么？</h2>';
+  html += '<h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">' + icon + ' ' + type + '</h3>';
   html += '<div style="font-size:14px;opacity:0.9;margin-bottom:6px;line-height:1.5;">' + esc(topic) + '</div>';
   html += '<div style="font-size:12px;opacity:0.7;">⏰ 推荐发布：' + time + '</div>';
   html += '</div>';
