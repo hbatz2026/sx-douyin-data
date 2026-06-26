@@ -245,6 +245,40 @@ function composeScript(variant) {
   return script;
 }
 
+var T1_SCENE_PRESETS = {
+  family: ['三口之家，手机+平板+电视同时在用，300兆起步，月租99元','四口二娃家庭，全屋智能家居+网课，500兆稳妥，月租129元','大家庭带老人，7-8台设备同时在线，直接上千兆，月租169元'],
+  student: ['大学宿舍4人合租，分摊后每人30元，100兆基础够用','学生党刷网课+打手游，需要低延迟，200兆性价比最高','毕业季租房初装，选可移机套餐，押金100元，搬家带走'],
+  senior: ['老人自用刷微信看新闻，100兆够用，月租59元','银发族追剧看广场舞，200兆更流畅，月租79元','帮子女带孩子，需要监控摄像头+视频通话，300兆起步'],
+  rent: ['短期租3个月，选按季度付费，到期自动停，不绑长合约','合租4人分摊宽带，500兆共享不卡顿，每人月均30元','租房一年续租，老用户续约享折扣，比新装省20%'],
+  gamer: ['重度手游玩家，延迟<20ms，200兆+游戏加速器起步','PC主机电竞玩家，千兆宽带才是刚需','直播推流+游戏同时进行，上行带宽至少30M，500兆起跳'],
+  streamer: ['一人刷剧看高清，100兆流畅1080P，月租59元够用','一家三口同时看4K+刷抖音+上网课，300兆不卡顿','家庭影院级4K投影，杜比全景声，千兆宽带才有沉浸感']
+};
+
+function fillT1ScenePreset(type) {
+  var scenes = T1_SCENE_PRESETS[type];
+  if (!scenes) return;
+  document.getElementById('t1_a').value = scenes[0];
+  document.getElementById('t1_b').value = scenes[1];
+  document.getElementById('t1_c').value = scenes[2];
+  var btns = document.querySelectorAll('#t1-scene-presets .scene-preset-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  var ab = document.querySelector('#t1-scene-presets .scene-preset-btn[onclick*="' + type + '"]');
+  if (ab) ab.classList.add('active');
+  ['t1_a','t1_b','t1_c'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.style.borderColor = '#008A5C';
+    el.style.background = '#F0FFF4';
+    setTimeout(function(){ el.style.borderColor = ''; el.style.background = ''; }, 1200);
+  });
+}
+
+function expandT2Detail() {
+  var a = document.getElementById('t2-detail-area');
+  var h = document.getElementById('t2-autofill-hint');
+  if (a) a.style.display = 'block';
+  if (h) h.style.display = 'none';
+}
+
 function getDailyQuota() {
   var today = new Date().toISOString().slice(0,10);
   try {
@@ -1452,8 +1486,49 @@ switchPage = function(name, el, noPush) {
   var result = _origSwitchPage2(name, el, noPush);
   setTimeout(injectHookSelector, 100);
   setTimeout(injectMobileBar, 200);
+  if (name === "template3") setTimeout(reorderDeviceList, 150);
+  if (name === "template4") setTimeout(autoFillT4FromStore, 150);
   return result;
 };
+
+function reorderDeviceList() {
+  var sel = document.getElementById('t3_device');
+  if (!sel) return;
+  var phone = window.___phonePool || phonePool;
+  var weekIdx = getWeekNumber() % phone.length;
+  var weeklyPhone = phone[weekIdx] && phone[weekIdx].model;
+  if (!weeklyPhone) return;
+  for (var i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === weeklyPhone && i > 4) {
+      sel.options[i].textContent = '⭐ ' + sel.options[i].textContent + ' [本周主推]';
+      break;
+    }
+  }
+}
+
+function autoFillT4FromStore() {
+  var store = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+  if (!store || !store.name) return;
+  var cityEl = document.getElementById('t4_city');
+  if (cityEl && !cityEl.value && store.city) {
+    cityEl.value = store.city;
+    cityEl.style.borderColor = '#008A5C';
+    setTimeout(function(){ cityEl.style.borderColor = ''; }, 1500);
+  }
+  var shopEl = document.getElementById('t4_shop');
+  if (shopEl && !shopEl.value) {
+    shopEl.value = store.name;
+    shopEl.style.borderColor = '#008A5C';
+    setTimeout(function(){ shopEl.style.borderColor = ''; }, 1500);
+  }
+  var tagsEl = document.getElementById('t4_tags');
+  if (tagsEl && !tagsEl.value) {
+    var t = [];
+    if (store.city) t.push('#' + store.city);
+    t.push('#电信福利 #到店有礼');
+    tagsEl.value = t.join(' ');
+  }
+}
 
 function autoSelectHook(t, presetKey) {
   var typeEl = document.getElementById(t + '_hook_type');
@@ -4482,45 +4557,126 @@ function syncBgmDropdowns() {
 var ONBOARD_KEY = 'douyin_lab_onboarded';
 
 function showOnboarding() {
-  if (localStorage.getItem(ONBOARD_KEY)) return;
-  var hasStore = !!localStorage.getItem(STORE_KEY);
-  var steps = [
-    {icon:'📍',title:'绑定你的营业厅',desc:'这样脚本里自动带上你的城市和店名',el:'storePrompt',completed:hasStore},
-    {icon:'💬',title:'选择你的人设风格',desc:'甜美学姐 / 技术专家 / 暖心姐姐... 选一个最像你的',el:'personaBar',completed:true},
-    {icon:'📝',title:'开始拍今天的第一条',desc:'点下方蓝色卡片，填3个空，15分钟出片',el:'todayHero',completed:false}
-  ];
-  var html = '<div id="onboardOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;">';
-  html += '<div style="background:var(--card);border-radius:16px;padding:32px 24px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.3);">';
-  html += '<div style="font-size:20px;font-weight:700;margin-bottom:4px;color:var(--dark);">👋 欢迎使用抖本工坊</div>';
-  html += '<div style="font-size:13px;color:var(--body);margin-bottom:20px;">3步开始，每天一条短视频，帮你的营业厅引流</div>';
-  for (var i = 0; i < steps.length; i++) {
-    var s = steps[i];
-    html += '<div id="ob-step-'+i+'" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);' + (s.completed ? 'opacity:0.5;' : '') + '">';
-    html += '<div style="width:32px;height:32px;border-radius:50%;background:' + (s.completed ? 'var(--green)' : 'var(--blue)') + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">' + (s.completed ? '✓' : (i+1)) + '</div>';
-    html += '<div style="flex:1;">';
-    html += '<div style="font-weight:600;font-size:14px;color:var(--dark);">'+s.icon+' '+s.title+'</div>';
-    html += '<div style="font-size:12px;color:var(--body);margin-top:2px;">'+s.desc+'</div>';
-    html += '</div></div>';
+  if (localStorage.getItem(STORE_KEY)) return;
+
+  var _obPersona = 'sister';
+  var obOverlay = null, obInput = null, obBtn = null, obHint = null;
+  var OB_CITIES = ['太原','大同','阳泉','长治','晋城','朔州','晋中','运城','忻州','临汾','吕梁'];
+  var OB_ENDS = ['厅','店','点','商'];
+
+  function obValidate(name) {
+    name = (name || '').trim();
+    if (name.length < 4) return false;
+    var hasCity = false;
+    for (var i = 0; i < OB_CITIES.length; i++) {
+      if (name.indexOf(OB_CITIES[i]) === 0) { hasCity = true; break; }
+    }
+    if (!hasCity) return false;
+    var lastCh = name.charAt(name.length - 1);
+    for (var j = 0; j < OB_ENDS.length; j++) {
+      if (lastCh === OB_ENDS[j]) return true;
+    }
+    return false;
   }
-  html += '<div style="display:flex;gap:10px;margin-top:20px;">';
-  html += '<button id="obSkipBtn" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--body);font-size:14px;cursor:pointer;">跳过</button>';
-  html += '<button id="obStartBtn" style="flex:2;padding:11px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">开始使用 🚀</button>';
+
+  function obUpdateBtn() {
+    if (!obBtn || !obInput) return;
+    var name = (obInput.value || '').trim();
+    var valid = obValidate(name);
+    obBtn.style.opacity = valid ? '1' : '0.4';
+    obBtn.style.pointerEvents = valid ? 'auto' : 'none';
+    // Show hint when user has typed but format is wrong
+    if (obHint) {
+      if (!name) {
+        obHint.textContent = '填一次，以后就不用填了';
+        obHint.style.color = '#999';
+      } else if (valid) {
+        obHint.innerHTML = '✅ 格式正确';
+        obHint.style.color = '#2E7D32';
+      } else {
+        obHint.innerHTML = '⚠ 请以地市开头（如：太原/临汾…），以"厅/店/点"结尾';
+        obHint.style.color = '#C62828';
+      }
+    }
+  }
+
+  function obSelectPersona(key) {
+    _obPersona = key;
+    var btns = document.querySelectorAll('#obPersonas .ob-p-btn');
+    for (var i = 0; i < btns.length; i++) {
+      var isSel = btns[i].getAttribute('data-p') === key;
+      btns[i].style.borderColor = isSel ? 'var(--blue)' : 'var(--border)';
+      btns[i].style.background = isSel ? '#E8F0FE' : 'var(--card)';
+      btns[i].style.fontWeight = isSel ? '600' : '400';
+    }
+  }
+
+  function obBind() {
+    var name = (obInput.value || '').trim();
+    if (!obValidate(name)) {
+      toast('请输入完整营业厅名称（地市开头 + 厅/店/点结尾）', 'error');
+      if (obInput) { obInput.focus(); obInput.style.borderColor = '#C62828'; setTimeout(function(){ obInput.style.borderColor = ''; }, 1500); }
+      return;
+    }
+    setPersona(_obPersona);
+    localStorage.setItem(STORE_KEY, JSON.stringify({ name: name, persona: _obPersona }));
+    toast('已绑定：' + name + ' · ' + ((personaDB[_obPersona] || {}).label || ''), 'success');
+    try { track('store_bind'); } catch(e) {}
+    if (obOverlay) obOverlay.remove();
+    setTimeout(function() {
+      showBoundStore(name, _obPersona);
+      autoFillStore();
+      initPersonaPicker();
+    }, 200);
+  }
+
+  var ps = personaOrder || ['sweet','tech','biz','young','master','sister'];
+  var html = '<div id="onboardOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;">';
+  html += '<div style="background:var(--card);border-radius:20px;padding:32px 28px 28px;max-width:420px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,0.4);">';
+  html += '<div style="margin-bottom:24px;">';
+  html += '<div style="font-size:22px;font-weight:700;color:var(--dark);">🎬 欢迎使用抖本工坊</div>';
+  html += '<div style="font-size:13px;color:var(--body);margin-top:4px;">绑定你的营业厅，脚本自动带上城市和店名</div>';
+  html += '</div>';
+  html += '<div style="margin-bottom:20px;">';
+  html += '<label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:6px;">📍 营业厅名称</label>';
+  html += '<input id="obStoreInput" type="text" placeholder="如：太原迎泽区柳巷电信营业厅" style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:15px;outline:none;transition:border-color 0.2s;box-sizing:border-box;">';
+  html += '<div id="obStoreHint" style="font-size:11px;color:#999;margin-top:4px;">填一次，以后就不用填了</div>';
+  html += '</div>';
+  html += '<div style="margin-bottom:24px;">';
+  html += '<label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:8px;">💬 选最像你的风格</label>';
+  html += '<div id="obPersonas" style="display:flex;flex-wrap:wrap;gap:8px;">';
+  for (var pi = 0; pi < ps.length; pi++) {
+    var p = personaDB[ps[pi]] || {};
+    html += '<button class="ob-p-btn" data-p="' + ps[pi] + '" style="padding:8px 12px;border:2px solid ' + (ps[pi] === 'sister' ? 'var(--blue)' : 'var(--border)') + ';border-radius:10px;background:' + (ps[pi] === 'sister' ? '#E8F0FE' : 'var(--card)') + ';font-size:13px;cursor:pointer;transition:all 0.2s;font-weight:' + (ps[pi] === 'sister' ? '600' : '400') + ';white-space:nowrap;">' + (p.icon || '') + ' ' + (p.label || ps[pi]) + '</button>';
+  }
+  html += '</div></div>';
+  html += '<div style="display:flex;justify-content:flex-end;">';
+  html += '<button id="obBindBtn" style="padding:12px 28px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:15px;font-weight:600;cursor:pointer;opacity:0.4;pointer-events:none;transition:all 0.3s;">开始绑定</button>';
   html += '</div>';
   html += '</div></div>';
+
   var div = document.createElement('div');
   div.innerHTML = html;
   document.body.appendChild(div);
-  document.getElementById('obSkipBtn').onclick = function(){
-    localStorage.setItem(ONBOARD_KEY, '1');
-    document.getElementById('onboardOverlay').remove();
-  };
-  document.getElementById('obStartBtn').onclick = function(){
-    localStorage.setItem(ONBOARD_KEY, '1');
-    document.getElementById('onboardOverlay').remove();
-    if (!hasStore) {
-      var prompt = document.getElementById('storePrompt');
-      if (prompt) { prompt.style.display = ''; prompt.scrollIntoView({behavior:'smooth'}); }
-    }
-  };
+
+  obOverlay = document.getElementById('onboardOverlay');
+  obInput = document.getElementById('obStoreInput');
+  obBtn = document.getElementById('obBindBtn');
+  obHint = document.getElementById('obStoreHint');
+
+  if (obInput) {
+    obInput.addEventListener('input', obUpdateBtn);
+    obInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') obBind(); });
+    setTimeout(function() { obInput.focus(); }, 300);
+  }
+  if (obBtn) {
+    obBtn.addEventListener('click', obBind);
+  }
+  var pbtns = document.querySelectorAll('#obPersonas .ob-p-btn');
+  for (var i = 0; i < pbtns.length; i++) {
+    pbtns[i].addEventListener('click', function() {
+      obSelectPersona(this.getAttribute('data-p'));
+    });
+  }
 }
 
