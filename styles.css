@@ -434,3 +434,39 @@
 
   /* v2.0 — Today hero card (whole card clickable) */
   .schedule-toggle:hover { opacity: 0.7; }
+
+  /* ===== Dark Mode ===== */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --card: #1E1E1E;
+      --border: #333;
+      --body: #AAA;
+      --dark: #EEE;
+    }
+    body { color: #DDD; }
+    .card { box-shadow: 0 1px 3px rgba(255,255,255,0.04); }
+    .header { background: linear-gradient(135deg, #0D1B36, #003399); }
+    .form-group input, .form-group textarea, .form-group select {
+      background: #2A2A2A; color: #DDD; border-color: #444;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      background: #333; border-color: var(--blue);
+    }
+    .nav-tab { background: var(--card); color: #AAA; }
+    .nav-tab:hover { background: var(--blue); color: #fff; }
+    .nav-tab.active { background: var(--blue); color: #fff; }
+    .schedule-day { background: var(--card); }
+    .schedule-day .day-date { color: #EEE; }
+    .schedule-day .day-name { color: #999; }
+    .topic-item { background: #2A2A2A; border-color: #333; }
+    .hotspot-card { background: var(--card); border-color: #333; }
+    .silent-option-card { background: var(--card); border-color: #333; }
+    .checklist { background: #1A1A1A; border-color: #333; }
+    .mode-selector { background: #1A1A1A; }
+    .mode-tab { color: #AAA; }
+    .preview-panel, .talk-script, .silent-preview { background: #0D0D1A; }
+    .toast { background: #333; }
+    .back-to-top { background: #333; }
+    .back-to-top:hover { background: var(--blue); }
+  }
