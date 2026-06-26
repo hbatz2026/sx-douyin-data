@@ -3626,7 +3626,60 @@ function checkDataFiles() {
   try { syncTopicDropdown(); } catch(e) { console.error('syncTopicDropdown:', e); }
   try { loadNavGroupStates(); } catch(e) { console.error('loadNavGroupStates:', e); }
   try { initPersonaPicker(); } catch(e) { console.error('initPersonaPicker:', e); }
+  try { showOnboarding(); } catch(e) { console.error('showOnboarding:', e); }
 })();
+
+// ===== v2.5.2: New User Onboarding =====
+var ONBOARD_KEY = 'douyin_lab_onboarded';
+
+function showOnboarding() {
+  if (localStorage.getItem(ONBOARD_KEY)) return;
+  var hasStore = !!localStorage.getItem(STORE_KEY);
+
+  var steps = [
+    {icon:'📍',title:'绑定你的营业厅',desc:'这样脚本里自动带上你的城市和店名',el:'storePrompt',completed:hasStore},
+    {icon:'💬',title:'选择你的人设风格',desc:'甜美学姐 / 技术专家 / 暖心姐姐... 选一个最像你的',el:'personaBar',completed:true},
+    {icon:'📝',title:'开始拍今天的第一条',desc:'点下方蓝色卡片，填3个空，15分钟出片',el:'todayHero',completed:false}
+  ];
+
+  var html = '<div id="onboardOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;">';
+  html += '<div style="background:var(--card);border-radius:16px;padding:32px 24px 24px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.3);">';
+  html += '<div style="font-size:20px;font-weight:700;margin-bottom:4px;color:var(--dark);">👋 欢迎使用抖本工坊</div>';
+  html += '<div style="font-size:13px;color:var(--body);margin-bottom:20px;">3步开始，每天一条短视频，帮你的营业厅引流</div>';
+
+  for (var i = 0; i < steps.length; i++) {
+    var s = steps[i];
+    html += '<div id="ob-step-'+i+'" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);' + (s.completed ? 'opacity:0.5;' : '') + '">';
+    html += '<div style="width:32px;height:32px;border-radius:50%;background:' + (s.completed ? 'var(--green)' : 'var(--blue)') + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">' + (s.completed ? '✓' : (i+1)) + '</div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-weight:600;font-size:14px;color:var(--dark);">'+s.icon+' '+s.title+'</div>';
+    html += '<div style="font-size:12px;color:var(--body);margin-top:2px;">'+s.desc+'</div>';
+    html += '</div></div>';
+  }
+
+  html += '<div style="display:flex;gap:10px;margin-top:20px;">';
+  html += '<button id="obSkipBtn" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--body);font-size:14px;cursor:pointer;">跳过</button>';
+  html += '<button id="obStartBtn" style="flex:2;padding:11px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">开始使用 🚀</button>';
+  html += '</div>';
+  html += '</div></div>';
+
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div);
+
+  document.getElementById('obSkipBtn').onclick = function(){
+    localStorage.setItem(ONBOARD_KEY, '1');
+    document.getElementById('onboardOverlay').remove();
+  };
+  document.getElementById('obStartBtn').onclick = function(){
+    localStorage.setItem(ONBOARD_KEY, '1');
+    document.getElementById('onboardOverlay').remove();
+    if (!hasStore) {
+      var prompt = document.getElementById('storePrompt');
+      if (prompt) { prompt.style.display = ''; prompt.scrollIntoView({behavior:'smooth'}); }
+    }
+  };
+}
 
 // ===== Label dropdown options with classification badges =====
 function labelDropdownOptions() {
