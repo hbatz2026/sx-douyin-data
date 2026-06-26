@@ -78,6 +78,16 @@
   .btn-sm { padding: 6px 14px; font-size: 12px; }
   .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 
+  /* 场景预设卡片 */
+  .scene-preset-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .scene-preset-btn { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--card); color: var(--body); font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .scene-preset-btn:hover { border-color: var(--blue); background: #E8F0FE; color: var(--blue); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,82,204,0.15); }
+  .scene-preset-btn.active { border-color: var(--blue); background: #E8F0FE; color: var(--blue); font-weight: 600; }
+  @media (max-width: 640px) {
+    .scene-preset-grid { gap: 6px; }
+    .scene-preset-btn { padding: 7px 10px; font-size: 12px; }
+  }
+
   /* Preview Panel */
   .preview-panel { background: #1a1a2e; color: #e0e0e0; border-radius: var(--radius); padding: 20px; font-size: 13px; line-height: 1.8; margin-top: 16px; }
   .preview-panel .time-tag { color: var(--orange); font-weight: 700; }
