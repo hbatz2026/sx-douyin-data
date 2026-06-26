@@ -391,7 +391,7 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
 
     // Consume global quota (failure also counts)
     var rem = useDailyQuota();
-    renderVariantResult(cardId, polishedText, warns, rem, btn, bodyEl, quotaEl);
+    renderVariantResult(cardId, polishedText, warns, rem, btn, bodyEl, quotaEl, '', rewrites);
   } catch(e) {
     // Distinguish error types; don't consume quota for network errors
     var errType = 'unknown';
@@ -416,14 +416,27 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
   }
 }
 
-function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType) {
+function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines) {
   errType = errType || '';
   if (dlg) {
     var usageCount = getDailyQuota().used;
     bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>'+
       '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
       '<span style="font-size:10px;background:#0d7c0d;color:#fff;padding:2px 8px;border-radius:10px;">✨ 优化版 · 第'+usageCount+'次</span>'+
-      '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制到剪贴板</span></div>';
+      '<span style="font-size:10px;background:#E8F0FE;color:#1a73e8;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent,this)">📋 复制到剪贴板</span>';
+    // Add comparison toggle if we have original lines
+    if (origLines && origLines.length > 0) {
+      bodyEl.innerHTML += '<span id="'+cardId+'-compare-btn" style="font-size:10px;background:#FFF3E0;color:#E65100;padding:2px 8px;border-radius:10px;cursor:pointer;" onclick="var el=document.getElementById(\''+cardId+'-compare\');if(el.style.display===\'none\'){el.style.display=\'block\';this.textContent=\'🔽 收起原文\';}else{el.style.display=\'none\';this.textContent=\'📝 查看原文对比\';}">📝 查看原文对比</span>';
+      var compareHtml = '<div id="'+cardId+'-compare" style="display:none;margin-top:6px;padding:8px 10px;background:#FFF3E0;border-radius:6px;font-size:12px;line-height:1.7;color:#666;">';
+      for (var c = 0; c < origLines.length; c++) {
+        var o = origLines[c];
+        if (o.orig && o['new']) {
+          compareHtml += '<div style="margin-bottom:6px;"><span style="color:#999;text-decoration:line-through;">'+esc(o.orig)+'</span><br><span style="color:#0d7c0d;">→ '+esc(o['new'])+'</span></div>';
+        }
+      }
+      compareHtml += '</div>';
+      bodyEl.innerHTML += compareHtml;
+    }
     if (warns && warns.length > 0) {
       bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 广告法违禁词：'+esc(warns.join(', '))+'</div>';
     }
@@ -4826,6 +4839,9 @@ function toggleHamburger() {
   var n = document.querySelector('.nav-tabs');
   n.classList.toggle('nav-collapsed');
   document.getElementById('hamburgerBtn').innerHTML = n.classList.contains('nav-collapsed') ? '☰ 展开全部菜单' : '✕ 收起菜单';
+  // Show/hide hint for collapsed nav
+  var hint = document.getElementById('navCollapseHint');
+  if (hint) hint.style.display = n.classList.contains('nav-collapsed') ? '' : 'none';
 }
 
 // Nav group accordion (mobile: collapse/expand)
