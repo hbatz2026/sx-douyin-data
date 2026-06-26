@@ -1150,8 +1150,11 @@ function buildTodayHero() {
   if (!hero) return;
   
   var today = new Date().getDay(); // 0=Sun, 1=Mon, ... 6=Sat
-  var todayIdx = today === 0 ? 4 : Math.min(today - 1, 4); // Fri for weekend
+  var rawIdx = today === 0 ? 4 : Math.min(today - 1, 4); // Fri for weekend
   if (today === 0 || today === 6) { hero.innerHTML = ''; return; } // weekend
+
+  // Day index for topic pool lookup (4 pool types, 5 days — use modulo)
+  var poolIdx = rawIdx % 4;
   
   var types = ['决策指南型', '一线场景型', '深度测评型', '本地化事件型'];
   var pageIds = ['template1', 'template2', 'template3', 'template4'];
@@ -1160,20 +1163,20 @@ function buildTodayHero() {
   var times = ['14:00-15:00', '12:00-13:00', '9:00-10:00', '14:00-16:00'];
   var dayNames = ['周一', '周二', '周三', '周四', '周五'];
   
-  var topic = pickFromPool(pools[todayIdx], 0);
-  var type = types[todayIdx];
-  var pageId = pageIds[todayIdx];
-  var icon = icons[todayIdx];
-  var time = times[todayIdx];
+  var topic = pickFromPool(pools[poolIdx], 0);
+  var type = rawIdx === 4 ? '灵活选题' : types[poolIdx];
+  var pageId = pageIds[poolIdx];
+  var icon = icons[poolIdx];
+  var time = times[poolIdx];
   
   // Get recommended time
   var storeCity = '';
   try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); var storeCity; if (s && s.name) s = s.name; if (s && s.city) storeCity = s.city; } catch(e) {}
   
-  var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + todayIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
+  var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + rawIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
   html += '<div style="flex:1;min-width:200px;">';
-  html += '<div style="font-size:13px;opacity:0.8;margin-bottom:4px;">📅 ' + dayNames[todayIdx] + ' · 今天拍什么？</div>';
+  html += '<div style="font-size:13px;opacity:0.8;margin-bottom:4px;">📅 ' + dayNames[rawIdx] + ' · 今天拍什么？</div>';
   html += '<div style="font-size:20px;font-weight:700;margin-bottom:8px;">' + icon + ' ' + type + '</div>';
   html += '<div style="font-size:14px;opacity:0.9;margin-bottom:6px;line-height:1.5;">' + esc(topic) + '</div>';
   html += '<div style="font-size:12px;opacity:0.7;">⏰ 推荐发布：' + time + '</div>';
@@ -1184,7 +1187,7 @@ function buildTodayHero() {
   // BGM suggestion
   if (window.___bgmList) {
     var catNames = ['决策指南', '一线场景', '深度测评', '本地事件'];
-    var cat = window.___bgmList[catNames[todayIdx]];
+    var cat = window.___bgmList[catNames[poolIdx]];
     if (cat) {
       var keys = Object.keys(cat);
       var song = keys.length > 0 ? cat[keys[0]][0] || '本周推荐BGM' : '查看BGM推荐';
