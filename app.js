@@ -1745,23 +1745,20 @@ function buildTodayHero() {
   var pageIds = ['template1', 'template2', 'template3', 'template4'];
   var pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
   var icons = ['📊', '🎬', '🔍', '📍'];
-  var times = ['14:00-15:00', '12:00-13:00', '9:00-10:00', '14:00-16:00'];
   var dayNames = ['周一', '周二', '周三', '周四', '周五'];
   var topic = pickFromPool(pools[poolIdx], 0);
   var type = rawIdx === 4 ? '灵活选题' : types[poolIdx];
   var pageId = pageIds[poolIdx];
   var icon = icons[poolIdx];
-  var time = times[poolIdx];
-  // Get recommended time
-  var storeCity = '';
-  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); var storeCity; if (s && s.name) s = s.name; if (s && s.city) storeCity = s.city; } catch(e) {}
+  // Scene-based recommended time (city-adjusted)
+  var bestTime = getBestTime(poolIdx);
   var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + rawIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
   html += '<div style="flex:1;min-width:200px;">';
   html += '<h2 style="font-size:13px;opacity:0.8;margin-bottom:4px;font-weight:400;">📅 ' + dayNames[rawIdx] + ' · 今天拍什么？</h2>';
   html += '<h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">' + icon + ' ' + type + '</h3>';
   html += '<div style="font-size:14px;opacity:0.9;margin-bottom:6px;line-height:1.5;">' + esc(topic) + '</div>';
-  html += '<div style="font-size:12px;opacity:0.7;">⏰ 推荐发布：' + time + '</div>';
+  html += '<div style="font-size:12px;opacity:0.7;">⏰ 推荐发布：' + bestTime + '</div>';
   html += '</div>';
   html += '<span style="padding:14px 28px;background:#fff;color:#0052CC;border-radius:12px;font-size:16px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:inline-block;">📝 开始拍摄 →</span>';
   html += '</div>';
@@ -1791,40 +1788,18 @@ function buildSchedule() {
     pickFromPool(topicPool.local, 0),
     '从选题库自选一个'
   ];
-  const times = ['14:00-15:00', '12:00-13:00', '9:00-10:00', '14:00-16:00', '15:00-16:00'];
   const dayNames = ['周一', '周二', '周三', '周四', '周五'];
-  // Smart time recommendation based on bound store city
-  var storeCity = '';
-  try {
-    var store = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-    var storeName = (store && store.name) ? store.name : readStoreName();
-    if (store && store.city) storeCity = store.city;
-  } catch(e) {}
-  function getRecommendedTime(city) {
-    // 省会城市：推荐中午到下午早段，避开晚高峰 17-19
-    if (/太原|石家庄|郑州|济南|西安|武汉|长沙|南昌|合肥|南京|杭州|福州|广州|南宁|海口|昆明|贵阳|成都|重庆|拉萨|西宁|兰州|银川|呼和浩特|乌鲁木齐|沈阳|长春|哈尔滨|北京|天津|上海/i.test(city)) {
-      return '11:00-13:00';
-    }
-    // 县城：午休时段观看高峰
-    if (/县|乡镇|村|旗/i.test(city)) {
-      return '12:00-14:00';
-    }
-    // 其他城市：下午工作时间较好
-    return '14:00-16:00';
-  }
-  var recTime = getRecommendedTime(storeCity);
   let html = '';
   for (let i = 0; i < 5; i++) {
     const d = new Date(week.monday);
     d.setDate(week.monday.getDate() + i);
-    var recDisplay = recTime !== times[i] ? '<div class="day-time-rec">💡 推荐发布：' + recTime + '</div>' : '';
+    var bestTime = getBestTime(i % 4);
     html += `<div class="schedule-day clickable" onclick="switchPage('${pageIds[i]}', document.querySelector('.nav-tab[onclick*=${pageIds[i]}]'));jumpToTemplate('${weekTopics[i].replace(/'/g, "\\'")}',${i})" title="点击跳转到${types[i]}模板">
       <div class="day-name">${dayNames[i]}</div>
       <div class="day-date">${d.getMonth()+1}/${d.getDate()}</div>
       <div class="day-type ${typeColors[types[i]]}">${typeIcons[types[i]]} ${types[i]}</div>
       <div class="day-topic">${esc(weekTopics[i])}</div>
-      <div class="day-time">⏰ ${times[i]}</div>
-      ${recDisplay}
+      <div class="day-time">⏰ ${bestTime}</div>
     </div>`;
   }
   grid.innerHTML = html;
