@@ -1,5 +1,5 @@
 // Auto-generated BGM
-// Updated: 2026-06-22
+// Updated: 2026-06-29
 window.___bgmList = {
   "决策指南": {
     "轻快对比": [
