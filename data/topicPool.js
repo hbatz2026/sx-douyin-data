@@ -1,5 +1,5 @@
 // Auto-generated topic pool
-// Updated: 2026-06-25
+// Updated: 2026-06-29
 window.___topicPool = {
   "decision": [
     "一个人住选什么宽带最划算？100M vs 300M vs 1000M",
