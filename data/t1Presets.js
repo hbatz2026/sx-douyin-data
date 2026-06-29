@@ -1,5 +1,5 @@
 // Auto-generated T1 presets
-// Updated: 2026-06-25
+// Updated: 2026-06-29
 window.___t1Presets = {
   "宽带选多少兆": {
     "100M 够用党": "日常刷视频+微信，一人住。100M看1080P流畅。适合租房党、老年人。",
