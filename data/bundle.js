@@ -194,8 +194,6 @@ window.___hotspotData = [
 ];
 
 
-// ==== next file ====
-
 // Auto-generated topic pool
 // Updated: 2026-06-29
 window.___topicPool = {
@@ -306,8 +304,6 @@ window.___topicPool = {
 };
 
 
-// ==== next file ====
-
 // Auto-generated T1 presets
 // Updated: 2026-06-29
 window.___t1Presets = {
@@ -329,8 +325,6 @@ window.___t1Presets = {
 };
 
 
-// ==== next file ====
-
 // Auto-generated: expanded first-line scene presets (6 -> 15 scenarios)
 // Updated weekly by WorkBuddy automation tasks
 window.___t2Presets = {
@@ -350,8 +344,6 @@ window.___t2Presets = {
   '公益服务': { time: '周末', customer: '社区居民+环卫工人', problem: '电信联合社区做公益，免费测网速、贴膜、教老人用手机', finding: '最感动的是环卫阿姨说，你们的WiFi我能用一下吗，想跟老家的孩子视频', steps: '1. 给环卫阿姨连上WiFi\n2. 帮她拨通视频通话\n3. 顺便送她一张特惠流量卡', reaction: '阿姨边视频边抹眼泪，说好久没看到孩子了', summary: '公益不是做样子，是真能帮到人的小事', tags: '#公益服务 #环卫工人 #爱心 #社会责任' },
   '数字课堂': { time: '周三下午', customer: '社区老人', problem: '营业厅开设银发数字课堂，教老人用智能手机、防诈骗', finding: '老人们最怕的不是学不会，是怕被骗。有一个大爷说上次差点被假冒客服骗走养老钱', steps: '1. 投影仪投屏一步步教操作\n2. 重点讲防诈骗案例\n3. 每个老人发大字版操作手册', reaction: '下课后老人们都不想走，说下周三还来', summary: '数字课堂，不只是教技能，更是守好老人的钱袋子', tags: '#数字课堂 #银发族 #防诈骗 #智慧助老' }
 };
-
-// ==== next file ====
 
 // Auto-generated data file for t4Presets
 // Updated weekly by WorkBuddy automation tasks
@@ -389,8 +381,6 @@ window.___t4Presets = {
     tags: '#社区服务 #便民 #上门服务'
   }
 };
-
-// ==== next file ====
 
 // Auto-generated data file for techDB
 // Updated weekly by WorkBuddy automation tasks
@@ -469,8 +459,6 @@ window.___techDB = {
   },
 };
 
-// ==== next file ====
-
 // Auto-generated data file for phonePool
 // Updated weekly by WorkBuddy automation tasks
 window.___phonePool = [
@@ -488,8 +476,6 @@ window.___phonePool = [
   { model: 'iQOO 14 Pro', chip: '骁龙8 Gen5', battery: '5800mAh+200W', screen: '6.78" AMOLED', camera: '旗舰双摄', highlight: '200W闪充·电竞散热', price: '3999起' },
 ];
 
-
-// ==== next file ====
 
 // Auto-generated BGM
 // Updated: 2026-06-29
