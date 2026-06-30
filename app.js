@@ -212,17 +212,7 @@ function getWeekNumber() {
 }
 
 function selectVariant(topicKey) {
-  var pool = window.___variantPool;
-  if (!pool || !pool[topicKey]) return null;
-  var profile = getStoreProfile();
-  if (!profile) return null;
-  var group = pool[topicKey];
-  var persona = profile.persona;
-  var variants = group[persona] || group['sister'];
-  if (!variants || !variants.length) return null;
-  var weekNum = getWeekNumber();
-  var idx = (profile.hash + weekNum + topicKey.length) % variants.length;
-  return variants[idx];
+  return null; // variantPool.js deprecated, feature disabled
 }
 
 function composeScript(variant) {
