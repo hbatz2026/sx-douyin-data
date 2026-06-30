@@ -2566,9 +2566,12 @@ function showT2Preview(id, html) {
   const el = document.getElementById(id);
   el.style.display = 'block';
   var storeCity = '';
-  try { var s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); var storeCity; if (s && s.name) s = s.name; if (s && s.city) storeCity = s.city; } catch(e) {}
+  try {
+    var rawCity = document.getElementById('t2_city');
+    if (rawCity && rawCity.value) storeCity = rawCity.value.trim();
+  } catch(e) {}
   var preset = '';
-  try { preset = document.getElementById('t2_preset').value || '上门服务'; } catch(e) {}
+  try { preset = document.getElementById('t2_preset').value || ''; } catch(e) {}
   el.innerHTML = html + buildPreviewFooter('t2', storeCity, preset);
   addCopyButton(id);
   el.scrollIntoView({ behavior: 'smooth' });
@@ -3330,11 +3333,12 @@ function clearTemplate3() {
 
 // ═══ ai.js ═══
 function tryVariantInjection(topicKey, bgm, previewDivId) {
-  if (!topicKey) return '';
+  if (!topicKey) { console.log('[AI卡] 跳过：无 topicKey'); return ''; }
   var persona = getPersona();
   var p = personaDB[persona] || personaDB['sister'];
   var cardId = 'variant-card-' + Math.random().toString(36).slice(2, 8);
   var rem = quotaRemaining();
+  console.log('[AI卡] 渲染中 person=' + persona + ' quota=' + rem + ' topic=' + topicKey);
   window['__preview_' + cardId] = previewDivId;
   window['__persona_' + cardId] = persona;
   var btnHtml = rem > 0
