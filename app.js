@@ -2575,7 +2575,19 @@ function showT2Preview(id, html) {
   } catch(e) {}
   var preset = '';
   try { preset = document.getElementById('t2_preset').value || ''; } catch(e) {}
+  // 诊断：检查 variant card 是否在 HTML 中
+  var hasVariant = html.indexOf('variant-card-') > -1;
+  console.log('[诊断] showT2Preview id=' + id + ' city=' + storeCity + ' preset=' + preset + ' hasVariantCard=' + hasVariant + ' htmlLen=' + html.length);
+  if (hasVariant) {
+    var cardIdMatch = html.match(/variant-card-([a-z0-9]+)/);
+    if (cardIdMatch) console.log('[诊断] variant card ID = variant-card-' + cardIdMatch[1]);
+  }
   el.innerHTML = html + buildPreviewFooter('t2', storeCity, preset);
+  // 诊断：验证 innerHTML 后 variant card 是否存在
+  if (hasVariant) {
+    var cardInDom = el.querySelector('[id^="variant-card-"]');
+    console.log('[诊断] variant card in DOM = ' + (cardInDom ? 'YES id=' + cardInDom.id : 'NO'));
+  }
   addCopyButton(id);
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template2');
@@ -2872,6 +2884,7 @@ function previewT3Talk() {
     t3hook = '<div class="stage">🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(t3hookEl.value.trim()) + '"</div>\n';
   }
   el.innerHTML = (variantHtml || '') + t3hook + html + buildPreviewFooter('t3', city, topic);
+  console.log('[诊断] T3 Talk variant card in HTML = ' + (variantHtml ? 'YES' : 'NO') + ' city=' + city);
   addCopyButton('preview3-talk');
   el.scrollIntoView({ behavior: 'smooth' });
   checkPublishForm('template3');
