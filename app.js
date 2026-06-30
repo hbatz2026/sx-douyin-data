@@ -3533,7 +3533,9 @@ function triggerCommentOptimize(tpl, city, topic) {
   }
   
   var ctrl = new AbortController();
-  var tid = setTimeout(function(){ctrl.abort();},90000);
+  var tid = setTimeout(function(){ctrl.abort();},120000);  // SCF 同时生成脚本+评论需要更多时间
+  
+  console.log('[AI评论] 开始请求 tpl=' + tpl + ' city=' + (city||'') + ' topic=' + (topic||'') + ' scriptLen=' + scriptText.length);
   
   fetch(PERSONALIZE_API, {
     method: 'POST',
@@ -3544,22 +3546,29 @@ function triggerCommentOptimize(tpl, city, topic) {
       topic: topic || '',
       city: profile.city,
       templateType: detectTemplateType(),
-      script: scriptText,
-      commentsOnly: true
+      script: scriptText
+      // 注意：不传 commentsOnly，SCF 会同时返回 comments（与脚本优化同一次调用）
     }),
     signal: ctrl.signal
   }).then(function(res) {
     clearTimeout(tid);
+    console.log('[AI评论] 响应状态=' + res.status);
     if (!res.ok) throw new Error('API '+res.status);
     return res.json();
   }).then(function(data) {
+    console.log('[AI评论] 收到数据 keys=' + Object.keys(data).join(','));
+    
+    // 检查后端错误
+    if (data.error) throw new Error('后端:' + data.error);
+    
     var aiComments = data.comments || data.commentList || [];
     // 兼容各种返回格式
     if (!Array.isArray(aiComments) && typeof aiComments === 'string') {
       aiComments = aiComments.split('\n').filter(function(s){ return s.trim(); });
     }
+    console.log('[AI评论] 评论数=' + aiComments.length);
     if (aiComments.length < 3) {
-      toast('⚠ AI 返回评论不足，保留当前评论', 'warn');
+      toast('⚠ AI 返回评论不足（'+aiComments.length+'条），保留当前评论', 'warn');
       return;
     }
     // 存到 AppState
@@ -3580,10 +3589,13 @@ function triggerCommentOptimize(tpl, city, topic) {
     toast('✅ AI 评论已优化！', 'success');
   }).catch(function(e) {
     var errMsg = e.message || '';
+    console.log('[AI评论] 失败 err=' + errMsg + ' name=' + (e.name||''));
     if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
-      toast('⏱ 评论生成超时，请稍后重试', 'warn');
+      toast('⏱ 评论生成超时（>120s），网络可能较慢，稍后重试', 'warn');
+    } else if (errMsg.indexOf('Failed') >= 0 || errMsg.indexOf('Network') >= 0) {
+      toast('🔴 网络连接失败，请检查网络后重试', 'error');
     } else {
-      toast('⚠ 评论生成失败：' + (errMsg.slice(0,30) || '未知错误'), 'warn');
+      toast('⚠ 评论生成失败：' + (errMsg.slice(0,40) || '服务端异常'), 'error');
     }
   }).finally(function() {
     if (btn) { btn.textContent = '🔄 AI 优化'; btn.disabled = false; }
