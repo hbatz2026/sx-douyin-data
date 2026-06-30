@@ -588,6 +588,9 @@ function autoFillStore() {
   // Template 1: t1_city
   var t1c = document.getElementById('t1_city');
   if (t1c && !t1c.value) t1c.value = city;
+  // Template 2: t2_city
+  var t2c = document.getElementById('t2_city');
+  if (t2c && !t2c.value) t2c.value = city;
   // Template 3: t3_city
   var t3c = document.getElementById('t3_city');
   if (t3c && !t3c.value) t3c.value = city;
