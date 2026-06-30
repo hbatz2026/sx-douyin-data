@@ -48,6 +48,95 @@ var PERSONA_KEY = 'douyin_lab_persona';
   } catch(e) {}
 })();
 
+// ═══ Auto-Save Form Data ═══
+var AUTO_SAVE_KEY = 'douyin_lab_autosave';
+var _saveTimer = null;
+
+function getAutoSaveKey(tpl) {
+  return AUTO_SAVE_KEY + '_' + tpl;
+}
+
+function saveFormData(tpl) {
+  try {
+    var data = {};
+    var ids = [];
+    if (tpl === 't1') {
+      ids = ['t1_city','t1_topic','t1_a','t1_b','t1_c','t1_bgm','t1_tags'];
+    } else if (tpl === 't2') {
+      ids = ['t2_time','t2_customer','t2_problem','t2_finding','t2_steps','t2_reaction','t2_summary','t2_tags','t2_bgm','t2_preset'];
+    } else if (tpl === 't3') {
+      ids = ['t3_device','t3_topic','t3_city','t3_tags','t3_bgm'];
+    } else if (tpl === 't4') {
+      ids = ['t4_city','t4_landmark','t4_shop','t4_benefit','t4_desc','t4_addr','t4_hours','t4_tags','t4_bgm','t4_preset'];
+    } else {
+      return;
+    }
+    ids.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        if (el.type === 'checkbox') {
+          data[id] = el.checked;
+        } else {
+          data[id] = el.value;
+        }
+      }
+    });
+    localStorage.setItem(getAutoSaveKey(tpl), JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadFormData(tpl) {
+  try {
+    var raw = localStorage.getItem(getAutoSaveKey(tpl));
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    var count = 0;
+    Object.keys(data).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (el.type === 'checkbox') {
+        el.checked = data[id];
+      } else {
+        el.value = data[id];
+      }
+      count++;
+    });
+    if (count > 0) {
+      toast('📎 已恢复上次填写的内容', 'success');
+    }
+    return count > 0;
+  } catch(e) {
+    return false;
+  }
+}
+
+function clearSavedForm(tpl) {
+  try { localStorage.removeItem(getAutoSaveKey(tpl)); } catch(e) {}
+}
+
+function debounceSave(tpl) {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function() { saveFormData(tpl); }, 1000);
+}
+
+// Attach auto-save listeners to all form inputs
+function initAutoSave() {
+  var allInputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
+  allInputs.forEach(function(el) {
+    el.addEventListener('input', function() {
+      var id = el.id || '';
+      var tpl = '';
+      if (id.indexOf('t1_') === 0) tpl = 't1';
+      else if (id.indexOf('t2_') === 0) tpl = 't2';
+      else if (id.indexOf('t3_') === 0) tpl = 't3';
+      else if (id.indexOf('t4_') === 0) tpl = 't4';
+      if (tpl) debounceSave(tpl);
+    });
+  });
+}
+
+// ═══ End Auto-Save ═══
+
 var personaDB = {
   sweet:   { label: '甜美学姐', icon: '🌸', tone: '亲切网感',   tags: '年轻女性 抖音原生 活泼语速 会用热梗',
              desc: '轻声快语、有网感、用抖音流行口吻拉近距离',
@@ -723,6 +812,7 @@ function injectBGMButtons() {
     btn.className = 'bgm-play-btn bgm-btn-' + sel.id;
     btn.innerHTML = '▶';
     btn.title = '试听BGM';
+    btn.setAttribute('aria-label', '试听BGM：' + (sel.options[sel.selectedIndex]?.text || ''));
     btn.onclick = function(e) { e.preventDefault(); toggleBGM(sel.id); };
     sel.parentElement.appendChild(btn);
   });
@@ -1128,8 +1218,23 @@ function restoreTemplateForm(pageName) {
       }
     }
     setTimeout(restoreLiveForm, 300);
-    setTimeout(function(){ updateLiveProductDesc(); }, 350);
+    updateLiveProductDesc();
   }, 500);
+
+  // ═══ Periodic auto-save (every 30s) ═══
+  setInterval(function() {
+    if (currentPage && currentPage.indexOf('template') === 0) {
+      saveTemplateForm(currentPage);
+    }
+  }, 30000);
+
+  // Save on page unload (refresh/close)
+  window.addEventListener('beforeunload', function() {
+    if (currentPage && currentPage.indexOf('template') === 0) {
+      saveTemplateForm(currentPage);
+    }
+    saveLiveForm();
+  });
 })();
 
 (function() {
@@ -1786,7 +1891,7 @@ function buildSchedule() {
     const d = new Date(week.monday);
     d.setDate(week.monday.getDate() + i);
     var bestTime = getBestTime(i % 4);
-    html += `<div class="schedule-day clickable" onclick="switchPage('${pageIds[i]}', document.querySelector('.nav-tab[onclick*=${pageIds[i]}]'));jumpToTemplate('${weekTopics[i].replace(/'/g, "\\'")}',${i})" title="点击跳转到${types[i]}模板">
+    html += `<div class="schedule-day clickable" tabindex="0" role="button" aria-label="点击跳转到${types[i]}模板：${weekTopics[i]}" onclick="switchPage('${pageIds[i]}', document.querySelector('.nav-tab[onclick*=${pageIds[i]}]'));jumpToTemplate('${weekTopics[i].replace(/'/g, "\\'")}',${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}" title="点击跳转到${types[i]}模板">
       <div class="day-name">${dayNames[i]}</div>
       <div class="day-date">${d.getMonth()+1}/${d.getDate()}</div>
       <div class="day-type ${typeColors[types[i]]}">${typeIcons[types[i]]} ${types[i]}</div>
@@ -1878,7 +1983,7 @@ function buildTopicBank() {
       (meta.badges || []).forEach(b => {
         badges += '<span class="meta-badge ' + b.cls + '">' + b.text + '</span>';
       });
-      html += `<div class="topic-item" style="cursor:pointer;${isThisWeek ? 'border-color:var(--orange);background:#FFF8E1;' : ''}" onclick="jumpToTemplate('${t.replace(/'/g, "\\'")}',${idx})" title="点击跳转到对应模板">
+      html += `<div class="topic-item" tabindex="0" role="button" aria-label="选题：${t}" style="cursor:pointer;${isThisWeek ? 'border-color:var(--orange);background:#FFF8E1;' : ''}" onclick="jumpToTemplate('${t.replace(/'/g, "\\'")}',${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}" title="点击跳转到对应模板">
         <span class="idx ${idxClass}" ${marker}>${i+1}</span>
         ${isThisWeek ? '⭐ ' : ''}${esc(t)}
         ${isThisWeek ? '<span style="font-size:10px;color:var(--orange);margin-left:4px;">本周</span>' : ''}
@@ -4500,7 +4605,7 @@ function renderHotspots() {
     if (hotspotFilter === 'tier3' && h.tier !== 3) return;
     if (hotspotFilter === 'easy' && h.difficulty > 1) return;
     html += `<div class="hotspot-card" id="hsc-${h.id}">
-      <div class="hs-header" onclick="toggleHotspot('${h.id}')">
+      <div class="hs-header" tabindex="0" role="button" aria-label="展开${esc(h.title)}脚本" onclick="toggleHotspot('${h.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}">
         <span class="hs-tier ${tierClasses[h.tier]}">${'🥇🥈🥉'.charAt(h.tier-1)} ${tiers[h.tier]}</span>
         <div style="flex:1;">
           <div class="hs-title">${esc(h.title)}</div>
