@@ -1,4 +1,4 @@
-// publish-kit.js — 发布套件（v2.6.5）
+// publish-kit.js — 发布套件（v2.6.6）
 // 包含 buildPublishKit、getTemplateComments、AppState fallback
 // 于 index.html 中在 app.js 之前加载
 
