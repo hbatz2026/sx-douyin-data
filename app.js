@@ -2573,6 +2573,13 @@ function showT2Preview(id, html) {
     var rawCity = document.getElementById('t2_city');
     if (rawCity && rawCity.value) storeCity = rawCity.value.trim();
   } catch(e) {}
+  // 兜底：如果表单字段为空，从已绑定的营业厅 profile 读城市
+  if (!storeCity) {
+    try {
+      var profile = getStoreProfile();
+      if (profile && profile.city) storeCity = profile.city;
+    } catch(e) {}
+  }
   var preset = '';
   try { preset = document.getElementById('t2_preset').value || ''; } catch(e) {}
   // 诊断：检查 variant card 是否在 HTML 中
