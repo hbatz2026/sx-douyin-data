@@ -1,4 +1,4 @@
-// publish-kit.js — 发布套件（v2.6.8 · 评论区AI优化按钮）
+// publish-kit.js — 发布套件（v2.6.9）
 // 包含 buildPublishKit、getTemplateComments、AppState fallback
 // 于 index.html 中在 app.js 之前加载
 
@@ -194,15 +194,52 @@ function buildSeoTitle(tpl, loc, topic, scriptText) {
   var shortTopic = (topic || '').slice(0, 12);
   var kw = extractTagKeywords(ctx)[0] || '';
 
+  // 优先复用脚本预览中的黄金钩子做标题（抖音流量最佳实践）
+  var hook = extractHookFromPreview();
+  if (hook) return loc + '：' + hook.slice(0, 20);
+
+  // ═══ Fallback：基于模板类型的SEO标题 ═══
   if (tpl === 't1') {
-    if (/宽带|网速|WiFi|光纤/i.test(ctx)) return loc + '宽带怎么选？实测对比';
-    if (/手机|iPhone|荣耀|华为/i.test(ctx)) return loc + '买什么手机？真实对比';
-    return loc + (kw||'电信') + '怎么选？实测对比';
+    if (/宽带|网速|WiFi|光纤/i.test(ctx)) return loc + '宽带怎么选？过来人告诉你真相';
+    if (/手机|iPhone|荣耀|华为/i.test(ctx)) return loc + '买手机别踩坑，实测对比来了';
+    return loc + (kw||'电信') + '怎么选？看完不花冤枉钱';
   }
-  if (tpl === 't2') return loc + '电信营业厅故事：' + (shortTopic || kw || '暖心服务');
-  if (tpl === 't3') return loc + (shortTopic || kw || '') + '到底值不值？';
-  if (tpl === 't4') return loc + '电信福利！' + (shortTopic || kw || '') + '就在' + loc + '营业厅';
+  if (tpl === 't2') {
+    if (/防骗|诈骗/i.test(ctx)) return loc + '又有人差点被骗！电信人紧急提醒';
+    if (/暖心|感动|上门/i.test(ctx)) return loc + '一位' + loc + '电信师傅的真实一天';
+    if (/装机|修网|网络/i.test(ctx)) return loc + '网络卡到崩溃？看电信师傅怎么修';
+    if (/政企|企业|办公/i.test(ctx)) return loc + '企业网络怎么搭才稳？实测数据在这';
+    return loc + '：' + (shortTopic || kw || '营业厅的故事');
+  }
+  if (tpl === 't3') {
+    var devName = (topic || '').match(/^(\S{2,12})/);
+    if (devName) return loc + (devName[1]) + '到底值不值？真实体验告诉你';
+    return loc + (shortTopic || kw || '') + '到底值不值？';
+  }
+  if (tpl === 't4') {
+    if (/福利|优惠|免费/i.test(ctx)) return loc + '人速看！这波电信福利别错过';
+    if (/探店|打卡|新店/i.test(ctx)) return loc + '探店！' + loc + '这个电信营业厅有点不一样';
+    return loc + '电信福利来了！' + (shortTopic || '到店有礼');
+  }
   return loc + (kw || '电信') + '最新动态';
+}
+
+/**
+ * 从预览区DOM提取黄金钩子台词（引号内的对话）
+ * @returns {string} 钩子文本（最多20字），未找到返回空
+ */
+function extractHookFromPreview() {
+  var dialogueEls = document.querySelectorAll('.dialogue');
+  for (var i = 0; i < dialogueEls.length; i++) {
+    var el = dialogueEls[i];
+    // 只看可见元素的第一个 dialogue（钩子总是在开头）
+    if (!el.offsetParent) continue;
+    var text = (el.textContent || '').trim();
+    // 提取引号中的文本
+    var m = text.match(/"([^"]{5,})"/);
+    if (m) return m[1].slice(0, 30);
+  }
+  return '';
 }
 
 /**
@@ -289,6 +326,13 @@ function getTemplateComments(tpl, city, topic, scriptText) {
         '这个节日你怎么陪家里人的？评论区晒晒',
         '你们社区有类似的节日活动吗？来分享一下',
         '转给家人看看，这份心意比什么都重要'
+      ];
+    }
+    if (/政企|企业专线|企业宽带|云桌面|视频会议|办公网络|一站式|信息化|智慧办公/i.test(ctx)) {
+      return [
+        '你们公司用的什么网络方案？评论区聊聊，看谁家最快',
+        '企业宽带贵不贵？来算笔账，别被代理商忽悠',
+        'IT人进！你们公司网络有没有踩过坑？分享一下经验'
       ];
     }
     // T2 兜底：从上下文提取关键词嵌入
