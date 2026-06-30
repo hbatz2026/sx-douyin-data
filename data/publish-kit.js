@@ -1,4 +1,4 @@
-// publish-kit.js — 发布套件（v2.6.4）
+// publish-kit.js — 发布套件（v2.6.5）
 // 包含 buildPublishKit、getTemplateComments、AppState fallback
 // 于 index.html 中在 app.js 之前加载
 
@@ -29,26 +29,32 @@ function buildPublishKit(tpl, city, topic) {
   if (previewEl) scriptText = previewEl.textContent.trim();
   if (scriptText.length > 500) scriptText = scriptText.slice(0, 500);
 
-  // BGM 抓取：三级降级
-  // L1: 预览区的 🎵 BGM: 文本（最准确）
-  // L2: select[id$="_bgm"] 下拉框
-  // L3: 从预览全文本正则匹配
-  bgmText = grabInfoTag(previewEl, '🎵 BGM:');
-  if (!bgmText) { bgmText = grabInfoTag(previewEl, '🎵 BGM：'); }
+  // ═══ BGM 抓取：表单输入为真理源（与预览一致），DOM 降级兜底 ═══
+  // 优先从表单元素直接读取（这是预览的数据源，100%一致）
+  bgmText = readFieldVal(t + '_bgm');
   if (!bgmText) {
+    // 降级1：从预览区 DOM 抓取
+    bgmText = grabInfoTag(previewEl, '🎵 BGM:') || grabInfoTag(previewEl, '🎵 BGM：');
+  }
+  if (!bgmText) {
+    // 降级2：通配 select[id$="_bgm"]
     var bgmEls = document.querySelectorAll('select[id$="_bgm"]');
     for (var i = 0; i < bgmEls.length; i++) { if (bgmEls[i].value) { bgmText = bgmEls[i].value; break; } }
   }
   if (!bgmText && scriptText) {
-    var bgmMatch = scriptText.match(/(?:BGM|🎵|背景音乐)[：:]\s*(.{2,30}?)(?:\n|$)/);
+    // 降级3：从预览全文本正则
+    var bgmMatch = scriptText.match(/(?:BGM|🎵|背景音乐)[：:]\s*(.+?)(?:\n|$)/);
     if (bgmMatch) bgmText = bgmMatch[1].trim();
   }
-  // 去掉 BGM 后面的音量备注（"（音量25%）" 等）
-  if (bgmText) bgmText = bgmText.replace(/[（(]音量[^)）]*[)）]?/g, '').trim();
+  // 去噪
+  if (bgmText) bgmText = bgmText.replace(/[（(]音量[^)）]*[)）]?/g, '').replace(/[（(]推荐[)）]/g, '').trim();
+  // 排除非法值（emoji/占位符）
+  if (bgmText && /^[🔇🔈]/u.test(bgmText)) bgmText = '';
 
-  // 标签抓取：优先从预览区 🏷 标签: 行读取
-  var tagsFromPreview = grabInfoTag(previewEl, '🏷 标签:') || grabInfoTag(previewEl, '🏷 标签：');
-  var tags = tagsFromPreview || buildTags(t, loc, topic, scriptText);
+  // ═══ 标签抓取：表单输入为真理源，DOM 降级 ═══
+  var tags = readFieldVal(t + '_tags');
+  if (!tags) { tags = grabInfoTag(previewEl, '🏷 标签:') || grabInfoTag(previewEl, '🏷 标签：'); }
+  if (!tags) { tags = buildTags(t, loc, topic, scriptText); }
 
   var poolIdx = { t1:0,t2:1,t3:2,t4:3 }[t] || 0;
   bestTime = getBestTime(poolIdx, city);
@@ -191,6 +197,22 @@ function buildSeoTitle(tpl, loc, topic, scriptText) {
   if (tpl === 't3') return loc + (shortTopic || kw || '') + '到底值不值？';
   if (tpl === 't4') return loc + '电信福利！' + (shortTopic || kw || '') + '就在' + loc + '营业厅';
   return loc + (kw || '电信') + '最新动态';
+}
+
+/**
+ * 安全读取表单字段值（按 ID）
+ * @param {string} fieldId - 字段 DOM ID（如 "t2_bgm"）
+ * @returns {string} 值或空字符串
+ */
+function readFieldVal(fieldId) {
+  try {
+    var el = document.getElementById(fieldId);
+    if (el && el.value !== undefined) {
+      var v = el.value.trim();
+      return (v && v !== '-- 请选择 --' && v.indexOf('--') !== 0) ? v : '';
+    }
+  } catch(e) {}
+  return '';
 }
 
 /**
