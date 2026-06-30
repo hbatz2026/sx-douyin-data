@@ -63,6 +63,11 @@ function buildPublishKit(tpl, city, topic) {
   if (!comments || comments.length < 3) { comments = getTemplateComments(t, city, topic, scriptText); }
   var seoTitle = buildSeoTitle(t, loc, topic, scriptText);
   var storeName = loc; // 只取地市名，不带营业厅名称
+  // 如果 loc 仍是占位符，尝试从表单读取
+  if (!loc || loc === '本地' || loc === '同城') {
+    var cityFromField = readFieldVal(t + '_city');
+    if (cityFromField) storeName = cityFromField;
+  }
   var hasAI = (function(){try{var cc=AppState.get('ai_comments_'+t,null);return cc&&cc.length>=3}catch(e){return false}})();
 
   var html = '<div class="publish-kit" style="margin-top:16px;padding:0;background:#fff;border-radius:14px;border:1px solid #D3D1C7;overflow:hidden;">';
@@ -72,9 +77,11 @@ function buildPublishKit(tpl, city, topic) {
   if (bgmText) html += '<span>' + esc(bgmText.slice(0,20)) + '</span>';
   html += '<span>' + bestTime + '</span>';
   html += '</div>';
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;"><span style="font-weight:500;color:#5F5E5A;">标签 </span>' + esc(tags) + '</div>';
+  // 标签行：有复制按钮
+  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">标签 </span><span style="flex:1;">' + esc(tags) + '</span><span onclick="copyText(\'' + esc(tags).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
   html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">标题 </span><span style="flex:1;">' + esc(seoTitle) + '</span><span onclick="copyText(\'' + esc(seoTitle).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">位置 </span><span style="flex:1;">' + esc(storeName) + '</span><span onclick="copyText(\'' + esc(storeName).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
+  // 位置行：不需要复制按钮
+  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;"><span style="font-weight:500;color:#5F5E5A;">位置 </span><span>' + esc(storeName) + '</span></div>';
   html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;">';
   html += '<div style="font-weight:500;font-size:13px;color:#5F5E5A;margin-bottom:10px;">' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</div>';
   for (var c = 0; c < comments.length; c++) {
@@ -98,49 +105,48 @@ function buildPublishKit(tpl, city, topic) {
 
 function buildTags(tpl, loc, topic, scriptText) {
   var ctx = (topic || '') + ' ' + (scriptText || '');
-  var base = '#' + loc;
-
-  // 从上下文提取 2-3 个业务关键词
   var kws = extractTagKeywords(ctx);
 
-  // 模板类型决定标签结构
+  // 同城标签 = 抖音本地流量的核心入口
+  var localTag = '#' + loc + '同城';
+  if (loc === '本地' || loc === '同城' || !loc) localTag = '#同城';
+
   if (tpl === 't1') {
-    // 决策指南：对比类
-    var hasBroadband = /宽带|网速|WiFi|光纤|FTTR|套餐|月租/i.test(ctx);
-    var hasPhone = /手机|iPhone|荣耀|华为|OPPO|vivo|小米|换机|购机/i.test(ctx);
-    if (hasBroadband) return base+'宽带 #宽带对比 #'+loc+'同城';
-    if (hasPhone) return base+'购机 #手机推荐 #'+loc+'电信';
-    return base+(kws[0]||'电信')+' #实测对比 #'+loc+'同城';
+    if (/宽带|网速|WiFi|光纤|FTTR/i.test(ctx)) return '#' + loc + '宽带 #宽带对比 #' + loc + '同城 #电信';
+    if (/手机|iPhone|荣耀|华为|OPPO|vivo|小米|换机|购机/i.test(ctx)) return '#' + loc + '购机 #手机推荐 #' + loc + '电信 #同城';
+    return '#' + loc + (kws[0]||'电信') + ' #实测对比 #' + loc + '同城';
   }
 
   if (tpl === 't2') {
-    // 一线场景：故事/服务类 — 标签紧跟实际主题
-    if (kws.length >= 2) {
-      return base+kws[0]+' #'+kws[1]+' #'+loc+'生活';
-    }
-    if (kws.length === 1) {
-      return base+kws[0]+' #服务故事 #'+loc+'生活';
-    }
-    return base+'电信 #服务故事 #'+loc+'生活';
+    // T2 故事类：主题标签 + 同城 + 电信品牌 + 生活类泛标签
+    var arr = [];
+    if (kws[0]) arr.push('#' + kws[0]);
+    if (kws[1] && kws[1] !== kws[0]) arr.push('#' + kws[1]);
+    arr.push(localTag);
+    arr.push('#中国电信');
+    if (arr.length < 4) arr.push('#' + loc + '生活');
+    return arr.join(' ');
   }
 
   if (tpl === 't3') {
-    // 深度测评：参数/体验类
-    if (kws.length >= 2) {
-      return base+kws[0]+' #真实体验 #'+kws[1];
-    }
-    return base+'评测 #真实体验 #'+loc+'同城';
+    var arr = [];
+    if (kws[0]) arr.push('#' + kws[0]);
+    if (kws[1] && kws[1] !== kws[0]) arr.push('#' + kws[1]);
+    arr.push(localTag);
+    arr.push('#真实体验');
+    return arr.join(' ');
   }
 
   if (tpl === 't4') {
-    // 本地事件：福利/活动类
-    if (kws.length >= 1) {
-      return base+kws[0]+' #到店有礼 #'+loc+'福利';
-    }
-    return base+'福利 #到店有礼 #'+loc+'同城';
+    var arr = [];
+    if (kws[0]) arr.push('#' + kws[0]);
+    arr.push(localTag);
+    arr.push('#到店有礼');
+    arr.push('#' + loc + '福利');
+    return arr.join(' ');
   }
 
-  return base+'电信 #'+loc+'同城';
+  return localTag + ' #' + loc + '电信 #同城';
 }
 
 /**
