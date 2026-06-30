@@ -194,10 +194,19 @@ function getStoreProfile() {
     name = (typeof raw === 'string') ? raw : '';
   }
   if (!name) return null;
-  var cityMatch = name.match(/^([^\s区县]+)/);
+  // 城市提取：山西11地市白名单优先，否则取前2字，截掉营业厅/店/路/街后缀
+  var SX_CITIES = ['太原','大同','阳泉','长治','晋城','朔州','忻州','吕梁','晋中','临汾','运城'];
+  var city = '';
+  for (var i = 0; i < SX_CITIES.length; i++) {
+    if (name.indexOf(SX_CITIES[i]) === 0) { city = SX_CITIES[i]; break; }
+  }
+  if (!city) {
+    city = name.slice(0, 2);
+    city = city.replace(/[营业厅店路街坊镇乡县区市]/g, '');
+  }
   return {
     name: name,
-    city: cityMatch ? cityMatch[1] : name,
+    city: city || name.slice(0,2),
     persona: getPersona(),
     hash: hashStore(name)
   };
@@ -3486,18 +3495,31 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
 function triggerCommentOptimize(tpl, city, topic) {
   var profile = getStoreProfile();
   if (!profile) { toast('⚠ 请先绑定营业厅'); return; }
-  // 收集脚本内容
+  // 收集脚本内容——优先当前活跃模板的可见预览区
   var scriptText = '';
   var commentList = document.querySelector('.comment-list');
-  var previewEl = document.querySelector('[id^="preview"]:not([id*="calc"]):not([id*="walk"]):not([id*="mix"]):not([id*="countdown"])');
+  // 按模板类型定位预览区：找当前页面可见的 preview 元素
+  var prefixMap = { t1: 'preview1', t2: 'preview2', t3: 'preview3', t4: 'preview4' };
+  var prefix = prefixMap[tpl] || 'preview';
+  var allPreviews = document.querySelectorAll('[id^="' + prefix + '"]');
+  var previewEl = null;
+  for (var i = 0; i < allPreviews.length; i++) {
+    if (allPreviews[i].offsetParent !== null && allPreviews[i].textContent.length > 50) {
+      previewEl = allPreviews[i];
+      break;
+    }
+  }
+  // 回退：放宽到所有可见preview
   if (!previewEl) {
-    var previews = document.querySelectorAll('[id^="preview"]');
-    for (var i = 0; i < previews.length; i++) {
-      if (previews[i].textContent && previews[i].textContent.length > 50) { previewEl = previews[i]; break; }
+    var anyPreview = document.querySelectorAll('[id^="preview"]');
+    for (var j = 0; j < anyPreview.length; j++) {
+      if (anyPreview[j].offsetParent !== null && anyPreview[j].textContent.length > 50) {
+        previewEl = anyPreview[j]; break;
+      }
     }
   }
   if (previewEl) scriptText = previewEl.textContent.trim().slice(0, 2500);
-  if (!scriptText) { toast('⚠ 请先生成预览脚本'); return; }
+  if (!scriptText) { toast('⚠ 请先生成预览脚本', 'warn'); return; }
   
   // 更新按钮状态
   var btn = document.querySelector('.publish-kit button[onclick*="triggerCommentOptimize"]');
