@@ -1,4 +1,4 @@
-// publish-kit.js — 发布套件（v2.6.8）
+// publish-kit.js — 发布套件（v2.6.8 · 评论区AI优化按钮）
 // 包含 buildPublishKit、getTemplateComments、AppState fallback
 // 于 index.html 中在 app.js 之前加载
 
@@ -83,16 +83,16 @@ function buildPublishKit(tpl, city, topic) {
   // 位置行：不需要复制按钮
   html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;"><span style="font-weight:500;color:#5F5E5A;">位置 </span><span>' + esc(storeName) + '</span></div>';
   html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;">';
-  html += '<div style="font-weight:500;font-size:13px;color:#5F5E5A;margin-bottom:10px;">' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</div>';
+  html += '<div style="font-weight:500;font-size:13px;color:#5F5E5A;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><span>' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</span><button onclick="triggerCommentOptimize(\'' + t + '\',\'' + loc.replace(/'/g,'&#39;') + '\',\'' + (topic||'').replace(/'/g,'&#39;') + '\')" style="font-size:11px;background:none;border:1px dashed #1D9E75;color:#1D9E75;border-radius:4px;padding:1px 8px;cursor:pointer;white-space:nowrap;">🔄 AI 优化</button></div>';
+  html += '<div class="comment-list">';
   for (var c = 0; c < comments.length; c++) {
     html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="font-size:12px;min-width:18px;color:#888780;">' + (c+1) + '</span><span style="flex:1;line-height:1.5;color:#2C2C2A;">' + esc(comments[c]) + '</span><span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;padding:2px 8px;border:0.5px solid #5DCAA5;border-radius:6px;">复制</span></div>';
   }
   html += '</div>';
   
-  // Build full bundle for one-click copy
-  var bundle = seoTitle + '\\n\\n' + scriptText + '\\n\\n' + tags + '\\n\\n' + comments.join('\\n');
+  // Build full bundle for one-click copy (uses dynamic read for AI-updated comments)
   html += '<div style="padding:14px 16px;">';
-  html += '<button onclick="copyText(\'' + bundle.replace(/'/g,'&#39;') + '\');toast(\'发布包已复制！去抖音粘贴即可\',\'success\')" style="width:100%;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;">一键复制发布包（脚本+标题+标签+评论）</button>';
+  html += '<button onclick="copyPublishBundle()" style="width:100%;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;">一键复制发布包（脚本+标题+标签+评论）</button>';
   html += '<div style="text-align:center;font-size:11px;color:#B4B2A9;margin-top:6px;">粘贴到抖音，配视频，发布</div>';
   html += '</div>';
   html += '</div>';
