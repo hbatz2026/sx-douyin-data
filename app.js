@@ -1409,66 +1409,17 @@ function buildT2HookContext() {
 }
 
 function buildChecklist(template) {
-  var html = '<div class="shoot-checklist" style="margin-top:16px;padding:16px;background:#F8FBFF;border-radius:12px;border:2px solid #BBDEFB;">';
-  html += '<div style="font-weight:700;font-size:15px;margin-bottom:12px;color:#1565C0;">📋 拍摄清单 — 拍一条勾一条</div>';
-  var items = [
-    '📱 打开相机，竖屏 9:16 拍摄',
-    '🎤 说第一句钩子（看上面的金色框）',
-    '🎬 按分镜顺序逐条拍，每条停留3-5秒',
-    '✏️ 拍完后加字幕（一定要加，很多人静音看）',
-    '🎵 选BGM，音量调到25%，不压人声',
-    '🏷 加话题标签和POI位置',
-    '📤 发布！然后来评论区发第一条引导评论'
-  ];
-  for (var i = 0; i < items.length; i++) {
-    html += '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;border-bottom:1px solid #E3F2FD;">';
-    html += '<input type="checkbox" style="margin-top:2px;width:18px;height:18px;accent-color:#1565C0;">';
-    html += '<span>' + items[i] + '</span>';
-    html += '</label>';
-  }
-  html += '<div style="margin-top:8px;font-size:11px;color:#999;">💡 全部勾完 = 出片完成。下次打开清单还在（浏览器会记住）。</div>';
-  html += '</div>';
-  return html;
+  // Replaced by buildPublishKit — kept for backward compat, returns empty
+  return '';
 }
 
 function buildCommentSEO(t, city, topic) {
-  var html = '<div style="margin-top:16px;padding:16px;background:#FFF3E0;border-radius:12px;border:2px solid #FFB74D;">';
-  html += '<div style="font-weight:700;font-size:15px;margin-bottom:8px;color:#E65100;">💬 评论区运营 — 复制这3条发到评论区</div>';
-  var comments = [
-    '🤔 ' + (city||'本地') + '的朋友，你家宽带一个月多少钱？评论区说说，我帮你看划不划算',
-    '👍 觉得有用的话点个赞，让更多' + (city||'同城') + '人看到',
-    '📩 想了解具体套餐的，评论区留「' + (city||'本地') + '」，我私信发你'
-  ];
-  for (var i = 0; i < comments.length; i++) {
-    var safe = esc(comments[i]);
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid #FFE0B2;">';
-    html += '<span style="background:#E65100;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;">复制</span>';
-    html += '<span onclick="copyText(\'' + safe.replace(/'/g, '&#39;') + '\');toast(\'已复制到剪贴板\',\'success\')" style="cursor:pointer;color:#E65100;text-decoration:underline;">' + safe + '</span>';
-    html += '</div>';
-  }
-  // SEO section — context-aware per template
-  html += '<div style="margin-top:12px;padding-top:12px;border-top:2px solid #FFE0B2;">';
-  html += '<div style="font-weight:700;font-size:14px;margin-bottom:6px;color:#BF360C;">🔍 搜索优化 — 发布时填这些能上同城搜索</div>';
-  html += '<div style="font-size:11px;color:#666;margin-bottom:4px;">📝 标题建议（复制到抖音发布标题栏）：</div>';
-  var loc = city || '同城';
-  var seoTitles = {
-    t1: loc + '宽带怎么选？2026年三大运营商实测对比',
-    t2: loc + '电信营业厅真实故事：' + (topic ? esc(topic) : '上门服务') + '的一天',
-    t3: loc + (topic||'设备') + '真实评测：到底值不值得入手？',
-    t4: loc + '电信福利来了！' + (topic||'限时活动') + '，就在' + loc + '营业厅'
-  };
-  var seoTitle = esc(seoTitles[t] || seoTitles['t1']);
-  html += '<div style="background:#fff;padding:8px;border-radius:6px;font-size:12px;margin-bottom:8px;cursor:pointer;" onclick="copyText(\'' + seoTitle.replace(/'/g,'&#39;') + '\');toast(\'标题已复制\',\'success\')">' + seoTitle + ' <span style="color:#E65100;font-size:10px;">点击复制</span></div>';
-  html += '<div style="font-size:11px;color:#666;margin-bottom:4px;">🔑 搜索关键词（复制到抖音搜索栏测试效果）：</div>';
-  var seoKW = esc('#' + loc + '宽带 #宽带办理 #WiFi慢怎么办 #' + loc + '电信营业厅 #' + loc + '同城');
-  html += '<div style="background:#fff;padding:8px;border-radius:6px;font-size:12px;cursor:pointer;" onclick="copyText(\'' + seoKW.replace(/'/g,'&#39;') + '\');toast(\'关键词已复制\',\'success\')">' + seoKW + ' <span style="color:#E65100;font-size:10px;">点击复制</span></div>';
-  html += '</div>';
-  html += '</div>';
-  return html;
+  // Merged into buildPublishKit
+  return '';
 }
 
 function buildPreviewFooter(t, city, topic) {
-  return buildChecklist(t) + buildCommentSEO(t, city || '本地', topic || '');
+  return buildPublishKit(t, city || '本地', topic || '');
 }
 
 var _origSwitchPage2 = switchPage;
@@ -3441,6 +3392,7 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     // Declare polishedText at function scope level
     var polishedText = '';
     var warns = data.warnings || [];
+    var aiComments = data.comments || null; // AI co-generated comments
     if (rewrites) {
       polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || (r.rewritten || ''); }).filter(Boolean).join('\n\n');
     } else if (fallbackScript && fallbackScript.length > 10) {
@@ -3452,6 +3404,10 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     // Consume global quota (failure also counts)
     var rem = useDailyQuota();
     renderVariantResult(cardId, polishedText, warns, rem, btn, bodyEl, quotaEl, '', rewrites);
+    // Cache AI comments for publish kit
+    if (aiComments && aiComments.length >= 3) {
+      try { AppState.set('ai_comments_' + tpl, aiComments); } catch(e) {}
+    }
   } catch(e) {
     // Distinguish error types; don't consume quota for network errors
     var errType = 'unknown';
