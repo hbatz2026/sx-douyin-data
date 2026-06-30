@@ -8,6 +8,7 @@ function sanitizeFilename(name) {
 }
 
 function sanitizeHTML(html) {
+  if (!html) return '';
   return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
     .replace(/\son\w+\s*=\s*'[^']*'/gi, '');
@@ -766,18 +767,6 @@ window.addEventListener('popstate', function(e) {
 const typeColors = { '决策指南型': 'type-guide', '一线场景型': 'type-scene', '深度测评型': 'type-review', '本地化事件型': 'type-local', '灵活选题': 'type-flex' };
 
 const typeIcons = { '决策指南型': '📊', '一线场景型': '🎬', '深度测评型': '🔍', '本地化事件型': '📍', '灵活选题': '🎯' };
-
-// getBestTime: return recommended posting time window for each template type
-// BASES: [决策指南, 一线场景, 深度测评, 本地化事件, 灵活选题]
-// 太原时区偏移-1小时（午餐时间更早）
-const _TIME_BASES = [[12,14],[8,10],[20,22],[16,18],[15,16]];
-function getBestTime(idx, city) {
-  const b = _TIME_BASES[idx] || _TIME_BASES[0];
-  const offset = (city && city.indexOf('太原') !== -1) ? -1 : 0;
-  const s = b[0] + offset;
-  const e = b[1] + offset;
-  return (s < 10 ? '0' + s : s) + ':00-' + (e < 10 ? '0' + e : e) + ':00';
-}
 
 const WEEK_ZERO = new Date(2026, 0, 5);
 
@@ -1745,6 +1734,15 @@ function genHotspotComment(h) {
 }
 
 // ═══ schedule.js ═══
+function getBestTime(idx, city) {
+  const bases = [[12,14],[8,10],[20,22],[16,18],[15,16]];
+  const b = bases[idx] || bases[0];
+  const offset = (city && city.indexOf('太原') !== -1) ? -1 : 0;
+  const s = b[0] + offset;
+  const e = b[1] + offset;
+  return (s < 10 ? '0' + s : s) + ':00-' + (e < 10 ? '0' + e : e) + ':00';
+}
+
 function buildTodayHero() {
   var hero = document.getElementById('todayHero');
   if (!hero) return;
