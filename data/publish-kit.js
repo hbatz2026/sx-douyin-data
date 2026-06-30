@@ -28,15 +28,22 @@ function buildPublishKit(tpl, city, topic) {
   }
   if (previewEl) scriptText = previewEl.textContent.trim();
   if (scriptText.length > 500) scriptText = scriptText.slice(0, 500);
+
+  // BGM 抓取：优先 select 元素，其次从预览文本正则匹配
   var bgmEls = document.querySelectorAll('select[id$="_bgm"]');
   for (var i = 0; i < bgmEls.length; i++) { if (bgmEls[i].value) { bgmText = bgmEls[i].value; break; } }
+  if (!bgmText && scriptText) {
+    var bgmMatch = scriptText.match(/(?:BGM|🎵|背景音乐)[：:]\s*(.{2,30}?)(?:\n|$)/);
+    if (bgmMatch) bgmText = bgmMatch[1].trim();
+  }
+
   var poolIdx = { t1:0,t2:1,t3:2,t4:3 }[t] || 0;
   bestTime = getBestTime(poolIdx, city);
   var comments = null;
   try { comments = AppState.get('ai_comments_' + t, null); } catch(e) {}
   if (!comments || comments.length < 3) { comments = getTemplateComments(t, city, topic, scriptText); }
-  var seoTitle = ({'t1':loc+'宽带怎么选？实测对比','t2':loc+'电信营业厅故事：'+(topic||'').slice(0,12),'t3':loc+(topic||'').slice(0,15)+'到底值不值？','t4':loc+'电信福利！'+(topic||'').slice(0,10)+'就在'+loc+'营业厅'})[t]||loc+'宽带怎么选';
-  var tags = ({'t1':'#'+loc+'宽带 #宽带对比 #'+loc+'同城','t2':'#'+loc+'电信 #服务故事 #'+loc+'生活','t3':'#'+loc+'评测 #真实体验 #'+loc+'同城','t4':'#'+loc+'福利 #到店有礼 #'+loc+'同城'})[t]||'#'+loc+'宽带';
+  var seoTitle = buildSeoTitle(t, loc, topic, scriptText);
+  var tags = buildTags(t, loc, topic, scriptText);
   var profile = getStoreProfile();
   var storeName = (profile && profile.name) ? profile.name : loc + '电信营业厅';
   var hasAI = (function(){try{var cc=AppState.get('ai_comments_'+t,null);return cc&&cc.length>=3}catch(e){return false}})();
@@ -68,6 +75,112 @@ function buildPublishKit(tpl, city, topic) {
   return html;
 }
 
+// ════════════════════════════════════════
+// 动态标签构建（基于脚本内容+选题）
+// ════════════════════════════════════════
+
+function buildTags(tpl, loc, topic, scriptText) {
+  var ctx = (topic || '') + ' ' + (scriptText || '');
+  var base = '#' + loc;
+
+  // 从上下文提取 2-3 个业务关键词
+  var kws = extractTagKeywords(ctx);
+
+  // 模板类型决定标签结构
+  if (tpl === 't1') {
+    // 决策指南：对比类
+    var hasBroadband = /宽带|网速|WiFi|光纤|FTTR|套餐|月租/i.test(ctx);
+    var hasPhone = /手机|iPhone|荣耀|华为|OPPO|vivo|小米|换机|购机/i.test(ctx);
+    if (hasBroadband) return base+'宽带 #宽带对比 #'+loc+'同城';
+    if (hasPhone) return base+'购机 #手机推荐 #'+loc+'电信';
+    return base+(kws[0]||'电信')+' #实测对比 #'+loc+'同城';
+  }
+
+  if (tpl === 't2') {
+    // 一线场景：故事/服务类 — 标签紧跟实际主题
+    if (kws.length >= 2) {
+      return base+kws[0]+' #'+kws[1]+' #'+loc+'生活';
+    }
+    if (kws.length === 1) {
+      return base+kws[0]+' #服务故事 #'+loc+'生活';
+    }
+    return base+'电信 #服务故事 #'+loc+'生活';
+  }
+
+  if (tpl === 't3') {
+    // 深度测评：参数/体验类
+    if (kws.length >= 2) {
+      return base+kws[0]+' #真实体验 #'+kws[1];
+    }
+    return base+'评测 #真实体验 #'+loc+'同城';
+  }
+
+  if (tpl === 't4') {
+    // 本地事件：福利/活动类
+    if (kws.length >= 1) {
+      return base+kws[0]+' #到店有礼 #'+loc+'福利';
+    }
+    return base+'福利 #到店有礼 #'+loc+'同城';
+  }
+
+  return base+'电信 #'+loc+'同城';
+}
+
+/**
+ * 从文本中提取适合做 hashtag 的关键词（2-6字）
+ */
+function extractTagKeywords(text) {
+  if (!text) return [];
+  // 业务关键词库（按匹配优先级排序）
+  var candidates = [
+    // T2 常见主题
+    { kw: '防诈骗', re: /防骗|诈骗|骗局|防诈|反诈/i },
+    { kw: '数字课堂', re: /数字课堂|智能手机教学|老人.*学|教.*手机/i },
+    { kw: '暖心服务', re: /暖心|感动|耐心|特事特办|冒雨|上门服务/i },
+    { kw: '政企服务', re: /政企|企业专线|专线|企业宽带|一站式|办公网络/i },
+    { kw: '装机维修', re: /装机|修网|修光纤|上门修|网络不通|信号覆盖/i },
+    { kw: '节日关怀', re: /节日|端午|中秋|春节|父亲节|母亲节|重阳|慰问/i },
+    // T1 宽带/手机
+    { kw: '宽带', re: /宽带|网速|光纤|FTTR|套餐|月租/i },
+    { kw: '手机', re: /iPhone|荣耀|华为|OPPO|vivo|小米|nova|Mate|购机|换机/i },
+    // T3 设备测评
+    { kw: '测速', re: /测速|网速测试|跑分|带宽/i },
+    { kw: '设备评测', re: /测评|评测|参数|续航|拍照|屏幕|芯片|处理器/i },
+    // T4 活动
+    { kw: '到店福利', re: /福利|优惠|免费领|礼品|特惠|限量|名额/i },
+    { kw: '探店打卡', re: /探店|打卡|开业|新店|体验店|智慧厅/i },
+  ];
+  var found = [];
+  for (var i = 0; i < candidates.length && found.length < 3; i++) {
+    if (candidates[i].re.test(text)) found.push(candidates[i].kw);
+  }
+  // 兜底：从 topic 名提取
+  if (found.length === 0 && text) {
+    var topicMatch = text.match(/^(\S{2,8})\s/);
+    if (topicMatch) found.push(topicMatch[1]);
+  }
+  return found;
+}
+
+// ════════════════════════════════════════
+// 动态标题构建（基于脚本内容+选题）
+// ════════════════════════════════════════
+
+function buildSeoTitle(tpl, loc, topic, scriptText) {
+  var ctx = (topic || '') + ' ' + (scriptText || '');
+  var shortTopic = (topic || '').slice(0, 12);
+  var kw = extractTagKeywords(ctx)[0] || '';
+
+  if (tpl === 't1') {
+    if (/宽带|网速|WiFi|光纤/i.test(ctx)) return loc + '宽带怎么选？实测对比';
+    if (/手机|iPhone|荣耀|华为/i.test(ctx)) return loc + '买什么手机？真实对比';
+    return loc + (kw||'电信') + '怎么选？实测对比';
+  }
+  if (tpl === 't2') return loc + '电信营业厅故事：' + (shortTopic || kw || '暖心服务');
+  if (tpl === 't3') return loc + (shortTopic || kw || '') + '到底值不值？';
+  if (tpl === 't4') return loc + '电信福利！' + (shortTopic || kw || '') + '就在' + loc + '营业厅';
+  return loc + (kw || '电信') + '最新动态';
+}
 function getTemplateComments(tpl, city, topic, scriptText) {
   var loc = city || '同城';
   var t = tpl;
