@@ -338,6 +338,35 @@ function copyText(text, btn) {
   track('export_copy');
 }
 
+// 动态读取当前发布套件内容并复制（评论更新后也能正确复制）
+function copyPublishBundle() {
+  var kit = document.querySelector('.publish-kit');
+  if (!kit) { toast('⚠ 请先生成预览', 'warn'); return; }
+  var rows = kit.querySelectorAll('[style*="padding:10px 16px;border-bottom"]');
+  var title = '', tags = '', script = '', comments = '';
+  // 标题行：第二个 span
+  if (rows.length >= 1) { var spans = rows[0].querySelectorAll('span'); tags = (spans[1]||{}).textContent || ''; }
+  if (rows.length >= 2) { var spans = rows[1].querySelectorAll('span'); title = (spans[1]||{}).textContent || ''; }
+  // 评论区
+  var commentItems = kit.querySelectorAll('.comment-list > div');
+  var cmts = [];
+  commentItems.forEach(function(item) {
+    var sps = item.querySelectorAll('span');
+    if (sps.length >= 2) cmts.push(sps[1].textContent.trim());
+  });
+  comments = cmts.join('\n');
+  // 脚本：从预览区提取（取最后一个可见的preview）
+  var previews = document.querySelectorAll('[id^="preview"]');
+  for (var i = previews.length - 1; i >= 0; i--) {
+    if (previews[i].offsetParent !== null && previews[i].textContent.length > 50) {
+      script = previews[i].textContent.replace(/\s{3,}/g, '\n').trim().slice(0, 500);
+      break;
+    }
+  }
+  var bundle = title + '\n\n' + script + '\n\n' + tags + '\n\n' + comments;
+  copyText(bundle);
+}
+
 const FORBIDDEN_WORDS = [
   // 绝对化用语
   '最好','最佳','最优','第一','NO.1','TOP1','唯一','独一无二','顶级','最高级','极品',
@@ -2568,18 +2597,13 @@ ${c('steps') ? '<div class="shot-note">🔧 操作要点：' + esc(c('steps').sp
 function showT2Preview(id, html) {
   const el = document.getElementById(id);
   el.style.display = 'block';
+  // 城市直接读绑定的营业厅 profile，无需额外表单字段
   var storeCity = '';
   try {
-    var rawCity = document.getElementById('t2_city');
-    if (rawCity && rawCity.value) storeCity = rawCity.value.trim();
+    var profile = getStoreProfile();
+    if (profile && profile.city) storeCity = profile.city;
+    if (!storeCity) toast('⚠ 请先绑定营业厅（右上角"绑定营业厅"）获取地市信息', 'warn');
   } catch(e) {}
-  // 兜底：如果表单字段为空，从已绑定的营业厅 profile 读城市
-  if (!storeCity) {
-    try {
-      var profile = getStoreProfile();
-      if (profile && profile.city) storeCity = profile.city;
-    } catch(e) {}
-  }
   var preset = '';
   try { preset = document.getElementById('t2_preset').value || ''; } catch(e) {}
   // 诊断：检查 variant card 是否在 HTML 中
@@ -3456,6 +3480,102 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     }
     renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType);
   }
+}
+
+// ═══ 评论区独立 AI 优化（不消耗脚本优化配额）═══
+function triggerCommentOptimize(tpl, city, topic) {
+  var profile = getStoreProfile();
+  if (!profile) { toast('⚠ 请先绑定营业厅'); return; }
+  // 收集脚本内容
+  var scriptText = '';
+  var commentList = document.querySelector('.comment-list');
+  var previewEl = document.querySelector('[id^="preview"]:not([id*="calc"]):not([id*="walk"]):not([id*="mix"]):not([id*="countdown"])');
+  if (!previewEl) {
+    var previews = document.querySelectorAll('[id^="preview"]');
+    for (var i = 0; i < previews.length; i++) {
+      if (previews[i].textContent && previews[i].textContent.length > 50) { previewEl = previews[i]; break; }
+    }
+  }
+  if (previewEl) scriptText = previewEl.textContent.trim().slice(0, 2500);
+  if (!scriptText) { toast('⚠ 请先生成预览脚本'); return; }
+  
+  // 更新按钮状态
+  var btn = document.querySelector('.publish-kit button[onclick*="triggerCommentOptimize"]');
+  if (btn) { btn.textContent = '⏳ 生成中…'; btn.disabled = true; }
+  
+  // 更新评论区标题
+  var headerEl = document.querySelector('.publish-kit div[style*="font-size:13px"]');
+  if (headerEl) {
+    var headerSpan = headerEl.querySelector('span');
+    if (headerSpan) headerSpan.textContent = '⏳ AI 正在生成评论…';
+  }
+  
+  var ctrl = new AbortController();
+  var tid = setTimeout(function(){ctrl.abort();},90000);
+  
+  fetch(PERSONALIZE_API, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      store: profile.name,
+      persona: profile.persona,
+      topic: topic || '',
+      city: profile.city,
+      templateType: detectTemplateType(),
+      script: scriptText,
+      commentsOnly: true
+    }),
+    signal: ctrl.signal
+  }).then(function(res) {
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('API '+res.status);
+    return res.json();
+  }).then(function(data) {
+    var aiComments = data.comments || data.commentList || [];
+    // 兼容各种返回格式
+    if (!Array.isArray(aiComments) && typeof aiComments === 'string') {
+      aiComments = aiComments.split('\n').filter(function(s){ return s.trim(); });
+    }
+    if (aiComments.length < 3) {
+      toast('⚠ AI 返回评论不足，保留当前评论', 'warn');
+      return;
+    }
+    // 存到 AppState
+    try { AppState.set('ai_comments_' + tpl, aiComments); } catch(e) {}
+    // 更新 DOM
+    if (commentList) {
+      var newHtml = '';
+      for (var c = 0; c < aiComments.length; c++) {
+        newHtml += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="font-size:12px;min-width:18px;color:#888780;">' + (c+1) + '</span><span style="flex:1;line-height:1.5;color:#2C2C2A;">' + esc(aiComments[c]) + '</span><span onclick="copyText(\'' + esc(aiComments[c]).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;padding:2px 8px;border:0.5px solid #5DCAA5;border-radius:6px;">复制</span></div>';
+      }
+      commentList.innerHTML = newHtml;
+    }
+    // 更新标题
+    if (headerEl) {
+      var span = headerEl.querySelector('span');
+      if (span) span.textContent = 'AI 智能评论';
+    }
+    toast('✅ AI 评论已优化！', 'success');
+  }).catch(function(e) {
+    var errMsg = e.message || '';
+    if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
+      toast('⏱ 评论生成超时，请稍后重试', 'warn');
+    } else {
+      toast('⚠ 评论生成失败：' + (errMsg.slice(0,30) || '未知错误'), 'warn');
+    }
+  }).finally(function() {
+    if (btn) { btn.textContent = '🔄 AI 优化'; btn.disabled = false; }
+    if (headerEl) {
+      var span = headerEl.querySelector('span');
+      if (span && span.textContent.indexOf('⏳') === 0) {
+        // 如果还在 loading 状态，恢复原标题
+        try {
+          var hasAI = AppState.get('ai_comments_' + tpl, null);
+          if (span) span.textContent = (hasAI && hasAI.length >= 3) ? 'AI 智能评论' : '评论区准备';
+        } catch(e) {}
+      }
+    }
+  });
 }
 
 function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines) {
