@@ -29,13 +29,26 @@ function buildPublishKit(tpl, city, topic) {
   if (previewEl) scriptText = previewEl.textContent.trim();
   if (scriptText.length > 500) scriptText = scriptText.slice(0, 500);
 
-  // BGM 抓取：优先 select 元素，其次从预览文本正则匹配
-  var bgmEls = document.querySelectorAll('select[id$="_bgm"]');
-  for (var i = 0; i < bgmEls.length; i++) { if (bgmEls[i].value) { bgmText = bgmEls[i].value; break; } }
+  // BGM 抓取：三级降级
+  // L1: 预览区的 🎵 BGM: 文本（最准确）
+  // L2: select[id$="_bgm"] 下拉框
+  // L3: 从预览全文本正则匹配
+  bgmText = grabInfoTag(previewEl, '🎵 BGM:');
+  if (!bgmText) { bgmText = grabInfoTag(previewEl, '🎵 BGM：'); }
+  if (!bgmText) {
+    var bgmEls = document.querySelectorAll('select[id$="_bgm"]');
+    for (var i = 0; i < bgmEls.length; i++) { if (bgmEls[i].value) { bgmText = bgmEls[i].value; break; } }
+  }
   if (!bgmText && scriptText) {
     var bgmMatch = scriptText.match(/(?:BGM|🎵|背景音乐)[：:]\s*(.{2,30}?)(?:\n|$)/);
     if (bgmMatch) bgmText = bgmMatch[1].trim();
   }
+  // 去掉 BGM 后面的音量备注（"（音量25%）" 等）
+  if (bgmText) bgmText = bgmText.replace(/[（(]音量[^)）]*[)）]?/g, '').trim();
+
+  // 标签抓取：优先从预览区 🏷 标签: 行读取
+  var tagsFromPreview = grabInfoTag(previewEl, '🏷 标签:') || grabInfoTag(previewEl, '🏷 标签：');
+  var tags = tagsFromPreview || buildTags(t, loc, topic, scriptText);
 
   var poolIdx = { t1:0,t2:1,t3:2,t4:3 }[t] || 0;
   bestTime = getBestTime(poolIdx, city);
@@ -43,9 +56,7 @@ function buildPublishKit(tpl, city, topic) {
   try { comments = AppState.get('ai_comments_' + t, null); } catch(e) {}
   if (!comments || comments.length < 3) { comments = getTemplateComments(t, city, topic, scriptText); }
   var seoTitle = buildSeoTitle(t, loc, topic, scriptText);
-  var tags = buildTags(t, loc, topic, scriptText);
-  var profile = getStoreProfile();
-  var storeName = (profile && profile.name) ? profile.name : loc + '电信营业厅';
+  var storeName = loc; // 只取地市名，不带营业厅名称
   var hasAI = (function(){try{var cc=AppState.get('ai_comments_'+t,null);return cc&&cc.length>=3}catch(e){return false}})();
 
   var html = '<div class="publish-kit" style="margin-top:16px;padding:0;background:#fff;border-radius:14px;border:1px solid #D3D1C7;overflow:hidden;">';
@@ -181,6 +192,34 @@ function buildSeoTitle(tpl, loc, topic, scriptText) {
   if (tpl === 't4') return loc + '电信福利！' + (shortTopic || kw || '') + '就在' + loc + '营业厅';
   return loc + (kw || '电信') + '最新动态';
 }
+
+/**
+ * 从预览区 DOM 中抓取 info-tag 标注的内容（BGM、标签等）
+ * @param {Element} container - 预览区容器元素
+ * @param {string} prefix - 标注前缀（如 "🎵 BGM:"）
+ * @returns {string} 提取的内容或空字符串
+ */
+function grabInfoTag(container, prefix) {
+  if (!container) return '';
+  // 方案1：精确匹配 class="info-tag" 的元素
+  var infoTags = container.querySelectorAll('.info-tag');
+  for (var i = 0; i < infoTags.length; i++) {
+    var t = infoTags[i].textContent.trim();
+    if (t.indexOf(prefix) === 0) {
+      return t.slice(prefix.length).trim().replace(/^[：:]\s*/, '');
+    }
+  }
+  // 方案2：容器本身包含前缀（备降兜底）
+  var ct = container.textContent || '';
+  var idx = ct.indexOf(prefix);
+  if (idx >= 0) {
+    var rest = ct.slice(idx + prefix.length).replace(/^[：:]\s*/, '');
+    var end = rest.indexOf('\n');
+    return (end >= 0) ? rest.slice(0, end).trim() : rest.slice(0, 40).trim();
+  }
+  return '';
+}
+
 function getTemplateComments(tpl, city, topic, scriptText) {
   var loc = city || '同城';
   var t = tpl;
