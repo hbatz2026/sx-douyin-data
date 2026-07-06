@@ -2,7 +2,6 @@
 'use strict';
 
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
-var escAttr = esc;
 
 function sanitizeFilename(name) {
   return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
@@ -650,11 +649,10 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
-var wrEl = document.getElementById('weekRange');
 if (wrEl) wrEl.textContent = week.label;
-var wrInline = document.getElementById('weekRangeInline');
+
 if (wrInline) wrInline.textContent = week.label;
-var tabDate = document.getElementById('scheduleTabDate');
+
 if (tabDate) tabDate.textContent = week.label;
 
 let bgmAudio = null;
@@ -798,27 +796,6 @@ const phonePool = (function() {
   return window.___phonePool || [];
 })();
 
-// 兼容新旧 phonePool 格式的查找函数
-// 新格式: { brand, model(简称), storage, ... } → 匹配 "荣耀 500 Pro" 或 "500 Pro"
-// 旧格式: { model(全名), chip, battery, ... } → 精确匹配
-function findPhoneByName(name) {
-  if (!name || !phonePool.length) return null;
-  // 1. 精确匹配（兼容旧格式）
-  var exact = phonePool.find(p => p.model === name);
-  if (exact) return exact;
-  // 2. 新格式模糊匹配（brand + model 子串）
-  var lowerName = name.toLowerCase();
-  return phonePool.find(p => {
-    if (!p.brand || !p.model) return false;
-    var fullName = (p.brand + ' ' + p.model).toLowerCase();
-    var shortName = p.model.toLowerCase();
-    // 支持匹配 "荣耀500Pro" "荣耀 500 Pro" "500 Pro" 等
-    return lowerName.indexOf(shortName) !== -1 ||
-           lowerName.indexOf(fullName) !== -1 ||
-           shortName.indexOf(lowerName) !== -1;
-  }) || null;
-}
-
 function pickFromPool(pool, offset) {
   if (!pool || !pool.length) return '暂无选题，请等待数据更新';
   return pool[(currentWeekNum + offset - 1) % pool.length];
@@ -834,26 +811,6 @@ function toggleSchedule() {
   } else {
     grid.style.display = 'none';
     if (icon) icon.textContent = '▶';
-  }
-}
-
-// 导航tab点击：切换到排期页 + 展开/折叠
-function toggleSchedulePage(tabEl) {
-  var wasActive = document.getElementById('page-schedule').classList.contains('active');
-  switchPage('schedule', tabEl);
-  if (!wasActive) {
-    // 从其他页切换过来，展开排期
-    setTimeout(function () {
-      var grid = document.getElementById('scheduleGrid');
-      var icon = document.getElementById('scheduleTabIcon');
-      if (grid && grid.style.display === 'none') {
-        grid.style.display = '';
-        if (icon) icon.textContent = '▼';
-      }
-    }, 50);
-  } else {
-    // 已在排期页，切换折叠/展开
-    toggleSchedule();
   }
 }
 
@@ -1834,160 +1791,6 @@ function buildSchedule() {
       devSpan.innerHTML = '📱 本周评测设备：数据加载中...';
     }
   }
-}
-
-// ===== v3.0: Weekly banner on template pages =====
-function getWeekTopicForType(typeIdx) {
-  var pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
-  return (pools[typeIdx] && pools[typeIdx].length) ? pickFromPool(pools[typeIdx], 0) : '';
-}
-
-function injectWeeklyBanner(name) {
-  var typeMap = { 'template1': 0, 'template2': 1, 'template3': 2, 'template4': 3 };
-  var typeIdx = typeMap[name];
-  if (typeIdx === undefined) return;
-  var bannerId = 'wb-' + name.replace('template', 't');
-  var bannerEl = document.getElementById(bannerId);
-  if (!bannerEl) return;
-  var topic = getWeekTopicForType(typeIdx);
-  if (!topic) return;
-  var typeNames = ['口播脚本', '故事脚本', '产品测评', '同城活动'];
-  var topicEsc = esc(topic);
-  var topicJs = topic.replace(/'/g, "\\'");
-  bannerEl.innerHTML =
-    '<div class="wb-info">' +
-      '<div class="wb-label">📌 ' + typeNames[typeIdx] + ' · 本周推荐</div>' +
-      '<div class="wb-topic" title="' + topicEsc + '">' + topicEsc + '</div>' +
-      '<div class="wb-hint">已为你选好本周选题，点右边按钮一键填好全部字段</div>' +
-    '</div>' +
-    '<button class="wb-fill-btn" onclick="event.stopPropagation();fillFromBanner(\'' + name + '\',\'' + topicJs + '\',' + typeIdx + ',this)">一键填充</button>';
-  bannerEl.style.display = 'flex';
-  // If topic already matches what's in the form, mark as filled
-  setTimeout(function() {
-    var formTopic = '';
-    if (name === 'template1') { var sel = document.getElementById('t1_topic'); formTopic = sel ? sel.value : ''; }
-    if (name === 'template2') { var inp = document.getElementById('t2_problem'); formTopic = inp ? inp.value : ''; }
-    if (name === 'template3') { var sel = document.getElementById('t3_topic'); formTopic = sel ? sel.value : ''; }
-    if (name === 'template4') { var inp = document.getElementById('t4_benefit'); formTopic = inp ? inp.value : ''; }
-    if (formTopic && formTopic.indexOf(topic.substring(0, 6)) >= 0) {
-      var btn = bannerEl.querySelector('.wb-fill-btn');
-      if (btn) {
-        btn.textContent = '✓ 已填充';
-        btn.style.background = '#2E7D32';
-        btn.style.cursor = 'default';
-        btn.onclick = function(e) { e.stopPropagation(); };
-      }
-    }
-  }, 300);
-}
-
-function fillFromBanner(name, topic, typeIdx, btn) {
-  jumpToTemplate(topic, typeIdx);
-  if (btn) {
-    btn.textContent = '✓ 已填充';
-    btn.style.background = '#2E7D32';
-    btn.style.cursor = 'default';
-    btn.onclick = function(e) { e.stopPropagation(); };
-  }
-  toast('✅ 已自动填充本周推荐：' + topic);
-}
-
-// ===== v3.0 Hot Picks: 今天拍什么三区 =====
-var __hotContentPool = null;
-
-function getHotPicksFallback() {
-  // 从本周排期选题池生成三区内容，与排期表关联
-  var dTopics = [];
-  var sTopics = [];
-  var rTopics = [];
-  var lTopics = [];
-  try {
-    dTopics = topicPool.decision || [];
-    sTopics = topicPool.scene || [];
-    rTopics = topicPool.review || [];
-    lTopics = topicPool.local || [];
-  } catch(e) {}
-
-  var weekNum = currentWeekNum || 1;
-  var d1 = pickFromPool(dTopics, 0);
-  var d2 = pickFromPool(dTopics, 1);
-  var s1 = pickFromPool(sTopics, 0);
-  var r1 = pickFromPool(rTopics, 0);
-  var l1 = pickFromPool(lTopics, 0);
-
-  return {
-    weeklyPicks: [
-      { id: 'wp1', title: '本周口播选题', topic: d1, desc: '一个人对着镜头讲，简单好拍', goToTemplate: 'template1', goToLabel: '去拍口播' },
-      { id: 'wp2', title: '本周故事选题', topic: s1, desc: '服务故事替代广告，真实有温度', goToTemplate: 'template2', goToLabel: '去拍故事' }
-    ],
-    copyCases: [
-      { id: 'cc1', title: '本周产品测评', topic: r1, desc: '展示产品细节，截搜索流量', goToTemplate: 'template3', goToLabel: '去测评' }
-    ],
-    formatTips: [
-      { id: 'ft1', title: '本周同城活动', topic: l1, desc: '绑地点+POI定位打同城', goToTemplate: 'template4', goToLabel: '去拍活动' }
-    ]
-  };
-}
-
-function useHotPick(pageId, topic) {
-  switchPage(pageId, document.querySelector('.nav-tab[onclick*=' + pageId + ']'));
-  if (topic) {
-    setTimeout(function() { jumpToTemplate(topic, 0); }, 200);
-  }
-}
-
-function renderHotPicks(data) {
-  var grid = document.getElementById('hotPicksGrid');
-  if (!grid) return;
-  if (!data) { data = getHotPicksFallback(); }
-  var sections = [
-    { key: 'weeklyPicks', icon: '🔥', label: '本周必拍', style: 'pick-fire', cls: 'fire' },
-    { key: 'copyCases', icon: '📋', label: '抄作业', style: 'pick-copy', cls: 'copy' },
-    { key: 'formatTips', icon: '🎬', label: '小花招', style: 'pick-trick', cls: 'trick' }
-  ];
-  var html = '';
-  sections.forEach(function(sec) {
-    var items = data[sec.key] || [];
-    html += '<div class="hot-pick-col"><div class="hot-pick-col-head">' + sec.icon + ' ' + sec.label + ' <span style="font-size:11px;opacity:0.5;">' + items.length + '条</span></div>';
-    items.forEach(function(item) {
-      html += '<div class="hot-pick-card ' + sec.style + '" tabindex="0" role="button" onclick="useHotPick(\'' + (item.goToTemplate || 'template1') + '\',\'' + escAttr(item.topic || '') + '\')" title="' + escAttr(item.title) + '"><div class="hot-pick-title">' + esc(item.title) + '</div><div class="hot-pick-desc">' + esc(item.desc || '') + '</div><span class="hot-pick-go">' + esc(item.goToLabel || '去看看') + ' →</span></div>';
-    });
-    html += '</div>';
-  });
-  grid.innerHTML = html;
-}
-
-function loadHotContentPool() {
-  var grid = document.getElementById('hotPicksGrid');
-  if (!grid) return;
-  // 先用兜底数据渲染，消灭空白
-  renderHotPicks(getHotPicksFallback());
-  // 尝试从全局变量加载真实数据
-  if (window.__hotContentPool && window.__hotContentPool.weeklyPicks && window.__hotContentPool.weeklyPicks.length > 0) {
-    renderHotPicks(window.__hotContentPool);
-    return;
-  }
-  // 尝试 fetch JSON
-  try {
-    fetch('data/hotContentPool.json?t=' + Date.now())
-      .then(function(r) { return r.json(); })
-      .then(function(d) { if (d && d.weeklyPicks) { __hotContentPool = d; renderHotPicks(d); } })
-      .catch(function() {});
-  } catch(e) {}
-}
-
-function addDouyinLink() {
-  var input = document.getElementById('douyinLinkInput');
-  var msg = document.getElementById('douyinLinkMsg');
-  if (!input) return;
-  var link = input.value.trim();
-  if (!link) { if (msg) { msg.textContent = '请粘贴抖音链接'; msg.style.display = 'inline'; msg.style.color = 'var(--orange)'; } return; }
-  var savedLinks = [];
-  try { savedLinks = JSON.parse(localStorage.getItem('douyinLinks') || '[]'); } catch(e) {}
-  savedLinks.push({ link: link, time: new Date().toISOString() });
-  localStorage.setItem('douyinLinks', JSON.stringify(savedLinks));
-  if (msg) { msg.textContent = '✅ 已收录（' + savedLinks.length + '条待处理）'; msg.style.display = 'inline'; msg.style.color = 'var(--green)'; }
-  input.value = '';
 }
 
 function copySchedule() {
