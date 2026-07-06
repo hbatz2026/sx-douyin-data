@@ -708,9 +708,6 @@ const pageHistory = ['schedule'];
 function switchPage(name, el, noPush) {
   // Save current template form before leaving
   saveTemplateForm(currentPage);
-  // Show/hide back-to-schedule button
-  var backBtn = document.getElementById('backToSchedule');
-  if (backBtn) backBtn.style.display = (name === 'schedule') ? 'none' : 'block';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const pageEl = document.getElementById('page-' + name);
