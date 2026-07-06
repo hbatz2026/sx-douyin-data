@@ -687,6 +687,10 @@ function toggleBGM(id) {
   }, 3000);
 }
 
+function injectWeeklyBanner(name) {
+  // v3.0 feature – weekly banner on template pages; stub for v2.6.x compatibility
+}
+
 function injectBGMButtons() {
   // Add play buttons to all BGM select elements
   document.querySelectorAll('select[id$="_bgm"]').forEach(sel => {
