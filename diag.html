@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抖本工坊 · 诊断页</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px; max-width: 600px; margin: 0 auto; background: #f5f5f5; }
+.card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.pass { color: #2E7D32; } .fail { color: #C62828; } .warn { color: #E65100; }
+h1 { font-size: 18px; margin: 0 0 16px; }
+pre { background: #f8f8f8; padding: 8px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>🔧 抖本工坊诊断页</h1>
+<div id="log"></div>
+
+<script>
+var log = document.getElementById('log');
+function card(title, html, cls) {
+  var d = document.createElement('div');
+  d.className = 'card ' + (cls||'');
+  d.innerHTML = '<strong>' + title + '</strong><br>' + html;
+  log.appendChild(d);
+}
+
+// Test 1: Basic JS
+try {
+  card('✅ JavaScript', 'JS 执行正常，无语法错误', 'pass');
+} catch(e) {
+  card('❌ JavaScript', 'JS 错误: ' + e.message, 'fail');
+}
+
+// Test 2: Load bundle.js
+var bundleStart = Date.now();
+var script = document.createElement('script');
+script.src = 'data/bundle.js?v=diag-' + Date.now();
+script.onload = function() {
+  var ms = Date.now() - bundleStart;
+  var items = [];
+  for (var k in window) {
+    if (k.startsWith('___')) items.push(k + ': ' + (Array.isArray(window[k]) ? window[k].length + ' items' : typeof window[k]));
+  }
+  card('✅ 数据包 (bundle.js)', '加载耗时 ' + ms + 'ms<br>全局变量: <pre>' + items.join('\n') + '</pre>', 'pass');
+
+  // Test 3: Check BGM structure
+  try {
+    var bgm = window.___bgmList;
+    if (!bgm) {
+      card('❌ BGM数据', 'window.___bgmList 不存在', 'fail');
+    } else {
+      var keys = Object.keys(bgm);
+      var sampleKey = keys[0];
+      var subKeys = bgm[sampleKey] ? Object.keys(bgm[sampleKey]) : [];
+      var songs = bgm[sampleKey] && bgm[sampleKey][subKeys[0]] ? bgm[sampleKey][subKeys[0]] : [];
+      card('✅ BGM结构', '顶层key: [' + keys.join(', ') + ']<br>"' + sampleKey + '" 子类: [' + subKeys.join(', ') + ']<br>示例歌曲: ' + (songs[0] || 'N/A'), 'pass');
+    }
+  } catch(e) {
+    card('❌ BGM检查', e.message, 'fail');
+  }
+
+  // Test 4: Check phonePool
+  try {
+    var pp = window.___phonePool;
+    if (!pp || pp.length === 0) {
+      card('⚠️ 手机池', 'phonePool 为空或不存在', 'warn');
+    } else {
+      var p = pp[0];
+      card('✅ 手机池', pp.length + ' 部手机<br>首部: ' + (p.brand||'') + ' ' + (p.model||'') + (p.guidePrice ? ' ¥'+p.guidePrice : ''), 'pass');
+    }
+  } catch(e) {
+    card('❌ 手机池检查', e.message, 'fail');
+  }
+
+  // Test 5: Load app.js
+  var appStart = Date.now();
+  var appScript = document.createElement('script');
+  appScript.src = 'app.js?v=2.6.11';
+  appScript.onload = function() {
+    var ms = Date.now() - appStart;
+    var checks = [
+      { name: 'buildSchedule', ok: typeof buildSchedule === 'function' },
+      { name: 'renderBgmRecommend', ok: typeof renderBgmRecommend === 'function' },
+      { name: 'typeIcons', ok: typeof typeIcons !== 'undefined' },
+      { name: 'typeColors', ok: typeof typeColors !== 'undefined' },
+      { name: 'phonePool', ok: typeof phonePool !== 'undefined' && phonePool.length > 0 },
+      { name: 'topicPool', ok: typeof topicPool !== 'undefined' },
+    ];
+    var html = checks.map(function(c) {
+      return (c.ok ? '✅' : '❌') + ' ' + c.name;
+    }).join('<br>');
+    card('✅ app.js (主逻辑)', '加载耗时 ' + ms + 'ms<br>' + html, checks.every(function(c){return c.ok}) ? 'pass' : 'fail');
+
+    // Test 6: Try buildSchedule
+    try {
+      // We don't have scheduleGrid on this page, so just test it doesn't crash
+      buildSchedule();
+      card('✅ buildSchedule()', '执行成功，无报错', 'pass');
+    } catch(e) {
+      card('❌ buildSchedule()', '报错: ' + e.message, 'fail');
+    }
+
+    // Test 7: Try renderBgmRecommend
+    try {
+      // Create a temp grid
+      var g = document.createElement('div');
+      g.id = 'bgmRecommendGrid';
+      document.body.appendChild(g);
+      renderBgmRecommend();
+      var result = g.innerHTML;
+      document.body.removeChild(g);
+      var hasSongs = result.indexOf('🎵') >= 0 || result.indexOf('\uD83C\uDFB5') >= 0;
+      card(hasSongs ? '✅ BGM渲染' : '⚠️ BGM渲染',
+        hasSongs ? '正常渲染出歌曲列表' : '渲染了但可能为空<br>内容长度: ' + result.length,
+        hasSongs ? 'pass' : 'warn');
+    } catch(e) {
+      card('❌ BGM渲染', '报错: ' + e.message, 'fail');
+    }
+
+    card('🏁 诊断完成', '如果以上全部通过，请返回主页按 <b>Ctrl+Shift+R</b> 硬刷新', 'pass');
+  };
+  appScript.onerror = function() {
+    card('❌ app.js 加载失败', '无法加载 app.js?v=2.6.11<br>请检查网络连接', 'fail');
+  };
+  document.head.appendChild(appScript);
+};
+script.onerror = function() {
+  card('❌ 数据包加载失败', '无法加载 bundle.js<br>请检查网络连接或CDN状态', 'fail');
+};
+document.head.appendChild(script);
+</script>
+</body>
+</html>
