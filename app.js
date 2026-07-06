@@ -4485,10 +4485,10 @@ function renderBgmRecommend() {
     return;
   }
   var types = [
-    { key: '口播脚本', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
-    { key: '故事脚本', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
-    { key: '产品测评', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
-    { key: '同城活动', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
+    { key: '决策指南', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
+    { key: '一线场景', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
+    { key: '深度测评', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
+    { key: '本地事件', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
   ];
   var html = '';
   types.forEach(function(t) {
