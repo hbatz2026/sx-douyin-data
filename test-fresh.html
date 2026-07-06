@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>缓存测试页 - 请在此页面确认是否正常</title>
+<style>
+body{font-family:system-ui;padding:20px;max-width:800px;margin:auto}
+.card{background:#f5f5f5;border-radius:8px;padding:16px;margin:12px 0;border:1px solid #ddd}
+.ok{color:green;font-weight:bold}
+.err{color:red;font-weight:bold}
+#log{background:#222;color:#0f0;padding:12px;border-radius:8px;font-family:monospace;font-size:12px;max-height:300px;overflow:auto}
+</style>
+</head>
+<body>
+<h1>🔧 缓存诊断测试页</h1>
+<p>如果此页面显示正常（排期卡片 + BGM歌单），说明代码本身没问题，是主站缓存导致的。</p>
+
+<div id="status" class="card">正在加载...</div>
+<div id="scheduleArea" class="card"></div>
+<div id="bgmArea" class="card"></div>
+<div id="log"><strong>加载日志：</strong><br></div>
+
+<!-- Load bundle first -->
+<script src="data/bundle.js?v=test20260706"></script>
+<!-- Then app.js with unique cache buster -->
+<script src="app.js?v=fresh_20260706_1325"></script>
+
+<script>
+var logEl = document.getElementById('log');
+function log(msg) { logEl.innerHTML += msg + '<br>'; }
+
+try {
+  // Test 1: Data files
+  var dataOk = true;
+  var missing = [];
+  if (typeof window.___topicPool === 'undefined') { missing.push('topicPool'); dataOk = false; }
+  if (typeof window.___bgmList === 'undefined') { missing.push('bgmList'); dataOk = false; }
+  if (typeof window.___phonePool === 'undefined') { missing.push('phonePool'); dataOk = false; }
+  if (typeof window.___hotspotData === 'undefined') { missing.push('hotspotData'); dataOk = false; }
+
+  var status = document.getElementById('status');
+  if (dataOk) {
+    status.innerHTML = '<span class="ok">✅ 所有数据文件加载成功</span>';
+    log('OK: topicPool=' + Object.keys(window.___topicPool).length + ' keys');
+    log('OK: bgmList=' + Object.keys(window.___bgmList).length + ' categories');
+    log('OK: phonePool=' + window.___phonePool.length + ' phones');
+    log('OK: hotspotData=' + window.___hotspotData.length + ' items');
+  } else {
+    status.innerHTML = '<span class="err">❌ 数据缺失: ' + missing.join(', ') + '</span>';
+    log('ERR: Missing: ' + missing.join(', '));
+  }
+
+  // Test 2: Try to run buildSchedule
+  try {
+    if (typeof buildSchedule === 'function') {
+      buildSchedule();
+      var sg = document.getElementById('scheduleGrid');
+      document.getElementById('scheduleArea').innerHTML = 
+        '<h3>排期测试</h3>' + (sg ? sg.innerHTML : '❌ scheduleGrid 不存在');
+      log('OK: buildSchedule() executed');
+    } else {
+      log('ERR: buildSchedule is not a function!');
+    }
+  } catch(e) {
+    log('ERR: buildSchedule threw: ' + e.message);
+    document.getElementById('scheduleArea').innerHTML = '<span class="err">❌ buildSchedule 错误: ' + e.message + '</span>';
+  }
+
+  // Test 3: BGM
+  try {
+    if (typeof renderBgmRecommend === 'function') {
+      renderBgmRecommend();
+      var bg = document.getElementById('bgmRecommendGrid');
+      document.getElementById('bgmArea').innerHTML =
+        '<h3>BGM测试</h3>' + (bg ? bg.innerHTML : '❌ bgmRecommendGrid 不存在');
+      log('OK: renderBgmRecommend() executed');
+    } else {
+      log('ERR: renderBgmRecommend is not a function!');
+    }
+  } catch(e) {
+    log('ERR: renderBgmRecommend threw: ' + e.message);
+    document.getElementById('bgmArea').innerHTML = '<span class="err">❌ BGM 错误: ' + e.message + '</span>';
+  }
+
+  // Test 4: TypeIcons check
+  if (typeof typeIcons !== 'undefined') {
+    var friKey = typeIcons['自由选题'];
+    log('typeIcons[自由选题] = ' + (friKey || '❌ MISSING (shows as undefined)'));
+    log('typeIcons[灵活选题] = ' + (typeIcons['灵活选题'] || '❌ MISSING'));
+  }
+
+} catch(e) {
+  log('FATAL: ' + e.message);
+  log(e.stack);
+}
+</script>
+</body>
+</html>
