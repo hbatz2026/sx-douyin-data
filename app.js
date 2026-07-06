@@ -2,6 +2,7 @@
 'use strict';
 
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
+var escAttr = esc;
 
 function sanitizeFilename(name) {
   return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
@@ -47,95 +48,6 @@ var PERSONA_KEY = 'douyin_lab_persona';
     }
   } catch(e) {}
 })();
-
-// ═══ Auto-Save Form Data ═══
-var AUTO_SAVE_KEY = 'douyin_lab_autosave';
-var _saveTimer = null;
-
-function getAutoSaveKey(tpl) {
-  return AUTO_SAVE_KEY + '_' + tpl;
-}
-
-function saveFormData(tpl) {
-  try {
-    var data = {};
-    var ids = [];
-    if (tpl === 't1') {
-      ids = ['t1_city','t1_topic','t1_a','t1_b','t1_c','t1_bgm','t1_tags'];
-    } else if (tpl === 't2') {
-      ids = ['t2_time','t2_customer','t2_problem','t2_finding','t2_steps','t2_reaction','t2_summary','t2_tags','t2_bgm','t2_preset'];
-    } else if (tpl === 't3') {
-      ids = ['t3_device','t3_topic','t3_city','t3_tags','t3_bgm'];
-    } else if (tpl === 't4') {
-      ids = ['t4_city','t4_landmark','t4_shop','t4_benefit','t4_desc','t4_addr','t4_hours','t4_tags','t4_bgm','t4_preset'];
-    } else {
-      return;
-    }
-    ids.forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) {
-        if (el.type === 'checkbox') {
-          data[id] = el.checked;
-        } else {
-          data[id] = el.value;
-        }
-      }
-    });
-    localStorage.setItem(getAutoSaveKey(tpl), JSON.stringify(data));
-  } catch(e) {}
-}
-
-function loadFormData(tpl) {
-  try {
-    var raw = localStorage.getItem(getAutoSaveKey(tpl));
-    if (!raw) return false;
-    var data = JSON.parse(raw);
-    var count = 0;
-    Object.keys(data).forEach(function(id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      if (el.type === 'checkbox') {
-        el.checked = data[id];
-      } else {
-        el.value = data[id];
-      }
-      count++;
-    });
-    if (count > 0) {
-      toast('📎 已恢复上次填写的内容', 'success');
-    }
-    return count > 0;
-  } catch(e) {
-    return false;
-  }
-}
-
-function clearSavedForm(tpl) {
-  try { localStorage.removeItem(getAutoSaveKey(tpl)); } catch(e) {}
-}
-
-function debounceSave(tpl) {
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(function() { saveFormData(tpl); }, 1000);
-}
-
-// Attach auto-save listeners to all form inputs
-function initAutoSave() {
-  var allInputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
-  allInputs.forEach(function(el) {
-    el.addEventListener('input', function() {
-      var id = el.id || '';
-      var tpl = '';
-      if (id.indexOf('t1_') === 0) tpl = 't1';
-      else if (id.indexOf('t2_') === 0) tpl = 't2';
-      else if (id.indexOf('t3_') === 0) tpl = 't3';
-      else if (id.indexOf('t4_') === 0) tpl = 't4';
-      if (tpl) debounceSave(tpl);
-    });
-  });
-}
-
-// ═══ End Auto-Save ═══
 
 var personaDB = {
   sweet:   { label: '甜美学姐', icon: '🌸', tone: '亲切网感',   tags: '年轻女性 抖音原生 活泼语速 会用热梗',
@@ -434,35 +346,6 @@ function copyText(text, btn) {
     if (btn) { btn.classList.add('copied'); btn.textContent='已复制 ✓'; setTimeout(function(){ btn.classList.remove('copied'); btn.textContent='复制'; }, 2000); }
   }
   track('export_copy');
-}
-
-// 动态读取当前发布套件内容并复制（评论更新后也能正确复制）
-function copyPublishBundle() {
-  var kit = document.querySelector('.publish-kit');
-  if (!kit) { toast('⚠ 请先生成预览', 'warn'); return; }
-  var rows = kit.querySelectorAll('[style*="padding:10px 16px;border-bottom"]');
-  var title = '', tags = '', script = '', comments = '';
-  // 标题行：第二个 span
-  if (rows.length >= 1) { var spans = rows[0].querySelectorAll('span'); tags = (spans[1]||{}).textContent || ''; }
-  if (rows.length >= 2) { var spans = rows[1].querySelectorAll('span'); title = (spans[1]||{}).textContent || ''; }
-  // 评论区
-  var commentItems = kit.querySelectorAll('.comment-list > div');
-  var cmts = [];
-  commentItems.forEach(function(item) {
-    var sps = item.querySelectorAll('span');
-    if (sps.length >= 2) cmts.push(sps[1].textContent.trim());
-  });
-  comments = cmts.join('\n');
-  // 脚本：从预览区提取（取最后一个可见的preview）
-  var previews = document.querySelectorAll('[id^="preview"]');
-  for (var i = previews.length - 1; i >= 0; i--) {
-    if (previews[i].offsetParent !== null && previews[i].textContent.length > 50) {
-      script = previews[i].textContent.replace(/\s{3,}/g, '\n').trim().slice(0, 500);
-      break;
-    }
-  }
-  var bundle = title + '\n\n' + script + '\n\n' + tags + '\n\n' + comments;
-  copyText(bundle);
 }
 
 const FORBIDDEN_WORDS = [
@@ -767,7 +650,12 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
-document.getElementById('weekRange').textContent = week.label;
+var wrEl = document.getElementById('weekRange');
+if (wrEl) wrEl.textContent = week.label;
+var wrInline = document.getElementById('weekRangeInline');
+if (wrInline) wrInline.textContent = week.label;
+var tabDate = document.getElementById('scheduleTabDate');
+if (tabDate) tabDate.textContent = week.label;
 
 let bgmAudio = null;
 
@@ -850,6 +738,8 @@ function switchPage(name, el, noPush) {
     nav.classList.add('nav-collapsed');
     ham.innerHTML = '☰ 展开全部菜单';
   }
+  // Inject weekly recommendation banner
+  injectWeeklyBanner(name);
   // Push to browser history (except for initial load)
   if (!noPush && name !== currentPage) {
     pageHistory.push(name);
@@ -885,9 +775,9 @@ window.addEventListener('popstate', function(e) {
   } catch(e) { /* Never let routing fail block the rest of init */ }
 })();
 
-const typeColors = { '决策指南型': 'type-guide', '一线场景型': 'type-scene', '深度测评型': 'type-review', '本地化事件型': 'type-local', '灵活选题': 'type-flex' };
+const typeColors = { '口播脚本': 'type-guide', '故事脚本': 'type-scene', '产品测评': 'type-review', '同城活动': 'type-local', '灵活选题': 'type-flex' };
 
-const typeIcons = { '决策指南型': '📊', '一线场景型': '🎬', '深度测评型': '🔍', '本地化事件型': '📍', '灵活选题': '🎯' };
+const typeIcons = { '口播脚本': '💬', '故事脚本': '📖', '产品测评': '🔬', '同城活动': '🏠', '灵活选题': '🎯' };
 
 const WEEK_ZERO = new Date(2026, 0, 5);
 
@@ -908,6 +798,27 @@ const phonePool = (function() {
   return window.___phonePool || [];
 })();
 
+// 兼容新旧 phonePool 格式的查找函数
+// 新格式: { brand, model(简称), storage, ... } → 匹配 "荣耀 500 Pro" 或 "500 Pro"
+// 旧格式: { model(全名), chip, battery, ... } → 精确匹配
+function findPhoneByName(name) {
+  if (!name || !phonePool.length) return null;
+  // 1. 精确匹配（兼容旧格式）
+  var exact = phonePool.find(p => p.model === name);
+  if (exact) return exact;
+  // 2. 新格式模糊匹配（brand + model 子串）
+  var lowerName = name.toLowerCase();
+  return phonePool.find(p => {
+    if (!p.brand || !p.model) return false;
+    var fullName = (p.brand + ' ' + p.model).toLowerCase();
+    var shortName = p.model.toLowerCase();
+    // 支持匹配 "荣耀500Pro" "荣耀 500 Pro" "500 Pro" 等
+    return lowerName.indexOf(shortName) !== -1 ||
+           lowerName.indexOf(fullName) !== -1 ||
+           shortName.indexOf(lowerName) !== -1;
+  }) || null;
+}
+
 function pickFromPool(pool, offset) {
   if (!pool || !pool.length) return '暂无选题，请等待数据更新';
   return pool[(currentWeekNum + offset - 1) % pool.length];
@@ -915,14 +826,34 @@ function pickFromPool(pool, offset) {
 
 function toggleSchedule() {
   var grid = document.getElementById('scheduleGrid');
-  var icon = document.getElementById('scheduleToggleIcon');
-  if (!grid || !icon) return;
+  var icon = document.getElementById('scheduleTabIcon');
+  if (!grid) return;
   if (grid.style.display === 'none') {
     grid.style.display = '';
-    icon.textContent = '▼';
+    if (icon) icon.textContent = '▼';
   } else {
     grid.style.display = 'none';
-    icon.textContent = '▶';
+    if (icon) icon.textContent = '▶';
+  }
+}
+
+// 导航tab点击：切换到排期页 + 展开/折叠
+function toggleSchedulePage(tabEl) {
+  var wasActive = document.getElementById('page-schedule').classList.contains('active');
+  switchPage('schedule', tabEl);
+  if (!wasActive) {
+    // 从其他页切换过来，展开排期
+    setTimeout(function () {
+      var grid = document.getElementById('scheduleGrid');
+      var icon = document.getElementById('scheduleTabIcon');
+      if (grid && grid.style.display === 'none') {
+        grid.style.display = '';
+        if (icon) icon.textContent = '▼';
+      }
+    }, 50);
+  } else {
+    // 已在排期页，切换折叠/展开
+    toggleSchedule();
   }
 }
 
@@ -1319,7 +1250,7 @@ function generateContextHooks(t, type) {
   try { topic = (document.getElementById(t + '_topic') || {}).value || ''; } catch(e) {}
   try { device = (document.getElementById('t3_device') || {}).value || '设备'; } catch(e) {}
   try { problem = (document.getElementById('t2_problem') || {}).value || ''; } catch(e) {}
-  // ===== T1: Decision Guide (决策指南) — context-aware =====
+  // ===== T1: Oral Script (口播脚本) — context-aware =====
   if (t === 't1') {
     var tp = topic || '';
     var isCard = /手机卡|副卡|号卡|流量卡|电话卡/i.test(tp);
@@ -1351,7 +1282,7 @@ function generateContextHooks(t, type) {
       '是不是觉得' + unit + '越来越贵？今天帮你看一下'
     ];
   }
-  // ===== T2: Scene Story (一线场景) =====
+  // ===== T2: Story Script (故事脚本) =====
   if (t === 't2') {
     var preset = '';
     try { preset = document.getElementById('t2_preset').value; } catch(e) {}
@@ -1389,7 +1320,7 @@ function generateContextHooks(t, type) {
       ctx.empathy || '你是不是也遇到过类似的情况？评论区说说'
     ];
   }
-  // ===== T3: Deep Review (深度测评) =====
+  // ===== T3: Product Review (产品测评) =====
   if (t === 't3') {
     var devName = device || '这款手机';
     var isPhone = !/光猫|路由|机顶盒|宽带|mesh|AP|接入点/i.test(device);
@@ -1416,7 +1347,7 @@ function generateContextHooks(t, type) {
       isPhone ? '学生党预算有限？这个' + devName + '可能正适合你' : '不想多花钱又想要好网络？这个' + devName + '可能正适合你'
     ];
   }
-  // ===== T4: Local Event (本地事件) =====
+  // ===== T4: Local Event (同城活动) =====
   if (t === 't4') {
     if (type === 'conflict') return [
       city + '的朋友注意了！这个福利只剩3天，错过真没了',
@@ -1833,42 +1764,26 @@ function getBestTime(idx, city) {
 function buildTodayHero() {
   var hero = document.getElementById('todayHero');
   if (!hero) return;
-  var today = new Date().getDay(); // 0=Sun, 1=Mon, ... 6=Sat
-  var rawIdx = today === 0 ? 4 : Math.min(today - 1, 4); // Fri for weekend
-  if (today === 0 || today === 6) { hero.innerHTML = ''; return; } // weekend
-  // Day index for topic pool lookup (4 pool types, 5 days — use modulo)
+  var today = new Date().getDay();
+  var rawIdx = today === 0 ? 4 : Math.min(today - 1, 4);
+  if (today === 0 || today === 6) { hero.innerHTML = ''; return; }
   var poolIdx = rawIdx % 4;
-  var types = ['决策指南型', '一线场景型', '深度测评型', '本地化事件型'];
+  var types = ['口播脚本', '故事脚本', '产品测评', '同城活动'];
   var pageIds = ['template1', 'template2', 'template3', 'template4'];
   var pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
-  var icons = ['📊', '🎬', '🔍', '📍'];
-  var dayNames = ['周一', '周二', '周三', '周四', '周五'];
+  var configs = [
+    { css: 'type-guide' },
+    { css: 'type-scene' },
+    { css: 'type-review' },
+    { css: 'type-local' }
+  ];
   var topic = pickFromPool(pools[poolIdx], 0);
-  var type = rawIdx === 4 ? '灵活选题' : types[poolIdx];
+  var type = rawIdx === 4 ? '选题库' : types[poolIdx];
   var pageId = pageIds[poolIdx];
-  var icon = icons[poolIdx];
-  // Scene-based recommended time (city-adjusted)
-  var bestTime = getBestTime(poolIdx);
-  var html = '<div tabindex="0" role="button" aria-label="今日拍摄：' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + rawIdx + ')" style="background:linear-gradient(135deg,#1a237e,#0052CC);border-radius:16px;padding:24px;color:#fff;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,82,204,0.3);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseenter="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 28px rgba(0,82,204,0.4)\'" onmouseleave="this.style.transform=\'\';this.style.boxShadow=\'0 4px 20px rgba(0,82,204,0.3)\'">';
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;pointer-events:none;">';
-  html += '<div style="flex:1;min-width:200px;">';
-  html += '<h2 style="font-size:13px;opacity:0.8;margin-bottom:4px;font-weight:400;">📅 ' + dayNames[rawIdx] + ' · 今天拍什么？</h2>';
-  html += '<h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">' + icon + ' ' + type + '</h3>';
-  html += '<div style="font-size:14px;opacity:0.9;margin-bottom:6px;line-height:1.5;">' + esc(topic) + '</div>';
-  html += '<div style="font-size:12px;opacity:0.7;">⏰ 推荐发布：' + bestTime + '</div>';
-  html += '</div>';
-  html += '<span style="padding:14px 28px;background:#fff;color:#0052CC;border-radius:12px;font-size:16px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:inline-block;">📝 开始拍摄 →</span>';
-  html += '</div>';
-  // BGM suggestion
-  if (window.___bgmList) {
-    var catNames = ['决策指南', '一线场景', '深度测评', '本地事件'];
-    var cat = window.___bgmList[catNames[poolIdx]];
-    if (cat) {
-      var keys = Object.keys(cat);
-      var song = keys.length > 0 ? cat[keys[0]][0] || '本周推荐BGM' : '查看BGM推荐';
-      html += '<div style="margin-top:12px;font-size:11px;opacity:0.6;">🎵 推荐BGM：' + song + '</div>';
-    }
-  }
+  var html = '<div tabindex="0" role="button" aria-label="今日速推：' + esc(type) + ' · ' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + rawIdx + ')" class="today-hero-compact">';
+  html += '<span class="thc-label">🎯 今日速推</span>';
+  html += '<span class="thc-type ' + configs[poolIdx].css + '">' + type + '</span>';
+  html += '<span class="thc-topic">' + esc(topic) + '</span><span class="thc-arrow">→</span>';
   html += '</div>';
   hero.innerHTML = html;
 }
@@ -1876,7 +1791,7 @@ function buildTodayHero() {
 function buildSchedule() {
   const grid = document.getElementById('scheduleGrid');
   if (!grid) { console.warn('buildSchedule: #scheduleGrid not found'); return; }
-  const types = ['决策指南型', '一线场景型', '深度测评型', '本地化事件型', '灵活选题'];
+  const types = ['口播脚本', '故事脚本', '产品测评', '同城活动', '自由选题'];
   const pageIds = ['template1', 'template2', 'template3', 'template4', 'bank'];
   const weekTopics = [
     pickFromPool(topicPool.decision, 0),
@@ -1899,22 +1814,180 @@ function buildSchedule() {
       <div class="day-time">⏰ ${bestTime}</div>
     </div>`;
   }
-  grid.innerHTML = html;
+  grid.innerHTML = '<div class="schedule-info-bar"><span class="sib-label">📅 ' + week.label + ' 本周排期</span><button class="btn btn-outline btn-sm sib-copy-btn" onclick="copySchedule()">📋 复制排期</button></div>' + html;
   // Update week device
   const devSpan = document.getElementById('weekDevice');
   if (devSpan) {
     if (phonePool.length > 0) {
       const phone = phonePool[currentWeekNum % phonePool.length];
-      devSpan.textContent = `📱 本周评测设备：${phone.model}（${phone.chip} | ${phone.battery} | ${phone.screen}）— ${phone.highlight}`;
+      // 兼容新旧两种 phonePool 格式
+      var devInfo;
+      if (phone.guidePrice) {
+        // 新格式: brand/model/storage/price/stock
+        devInfo = `${phone.brand || ''} ${phone.model}${phone.storage ? ' (' + phone.storage + ')' : ''} · ¥${phone.guidePrice}${phone.isCore ? ' ★核心主推' : ''}${phone.stock !== undefined ? ' · 库存' + phone.stock : ''}`;
+      } else {
+        // 旧格式: model/chip/battery/screen/highlight
+        devInfo = `${phone.model}（${phone.chip} | ${phone.battery} | ${phone.screen}）— ${phone.highlight}`;
+      }
+      devSpan.textContent = '📱 本周评测设备：' + devInfo;
     } else {
       devSpan.innerHTML = '📱 本周评测设备：数据加载中...';
     }
   }
-  // Populate quick action buttons
-  var act = document.getElementById('scheduleActions');
-  if (act) {
-    act.innerHTML = '<button class="btn btn-outline btn-sm" onclick="copySchedule()">📋 复制本周排期</button>';
+}
+
+// ===== v3.0: Weekly banner on template pages =====
+function getWeekTopicForType(typeIdx) {
+  var pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
+  return (pools[typeIdx] && pools[typeIdx].length) ? pickFromPool(pools[typeIdx], 0) : '';
+}
+
+function injectWeeklyBanner(name) {
+  var typeMap = { 'template1': 0, 'template2': 1, 'template3': 2, 'template4': 3 };
+  var typeIdx = typeMap[name];
+  if (typeIdx === undefined) return;
+  var bannerId = 'wb-' + name.replace('template', 't');
+  var bannerEl = document.getElementById(bannerId);
+  if (!bannerEl) return;
+  var topic = getWeekTopicForType(typeIdx);
+  if (!topic) return;
+  var typeNames = ['口播脚本', '故事脚本', '产品测评', '同城活动'];
+  var topicEsc = esc(topic);
+  var topicJs = topic.replace(/'/g, "\\'");
+  bannerEl.innerHTML =
+    '<div class="wb-info">' +
+      '<div class="wb-label">📌 ' + typeNames[typeIdx] + ' · 本周推荐</div>' +
+      '<div class="wb-topic" title="' + topicEsc + '">' + topicEsc + '</div>' +
+      '<div class="wb-hint">已为你选好本周选题，点右边按钮一键填好全部字段</div>' +
+    '</div>' +
+    '<button class="wb-fill-btn" onclick="event.stopPropagation();fillFromBanner(\'' + name + '\',\'' + topicJs + '\',' + typeIdx + ',this)">一键填充</button>';
+  bannerEl.style.display = 'flex';
+  // If topic already matches what's in the form, mark as filled
+  setTimeout(function() {
+    var formTopic = '';
+    if (name === 'template1') { var sel = document.getElementById('t1_topic'); formTopic = sel ? sel.value : ''; }
+    if (name === 'template2') { var inp = document.getElementById('t2_problem'); formTopic = inp ? inp.value : ''; }
+    if (name === 'template3') { var sel = document.getElementById('t3_topic'); formTopic = sel ? sel.value : ''; }
+    if (name === 'template4') { var inp = document.getElementById('t4_benefit'); formTopic = inp ? inp.value : ''; }
+    if (formTopic && formTopic.indexOf(topic.substring(0, 6)) >= 0) {
+      var btn = bannerEl.querySelector('.wb-fill-btn');
+      if (btn) {
+        btn.textContent = '✓ 已填充';
+        btn.style.background = '#2E7D32';
+        btn.style.cursor = 'default';
+        btn.onclick = function(e) { e.stopPropagation(); };
+      }
+    }
+  }, 300);
+}
+
+function fillFromBanner(name, topic, typeIdx, btn) {
+  jumpToTemplate(topic, typeIdx);
+  if (btn) {
+    btn.textContent = '✓ 已填充';
+    btn.style.background = '#2E7D32';
+    btn.style.cursor = 'default';
+    btn.onclick = function(e) { e.stopPropagation(); };
   }
+  toast('✅ 已自动填充本周推荐：' + topic);
+}
+
+// ===== v3.0 Hot Picks: 今天拍什么三区 =====
+var __hotContentPool = null;
+
+function getHotPicksFallback() {
+  // 从本周排期选题池生成三区内容，与排期表关联
+  var dTopics = [];
+  var sTopics = [];
+  var rTopics = [];
+  var lTopics = [];
+  try {
+    dTopics = topicPool.decision || [];
+    sTopics = topicPool.scene || [];
+    rTopics = topicPool.review || [];
+    lTopics = topicPool.local || [];
+  } catch(e) {}
+
+  var weekNum = currentWeekNum || 1;
+  var d1 = pickFromPool(dTopics, 0);
+  var d2 = pickFromPool(dTopics, 1);
+  var s1 = pickFromPool(sTopics, 0);
+  var r1 = pickFromPool(rTopics, 0);
+  var l1 = pickFromPool(lTopics, 0);
+
+  return {
+    weeklyPicks: [
+      { id: 'wp1', title: '本周口播选题', topic: d1, desc: '一个人对着镜头讲，简单好拍', goToTemplate: 'template1', goToLabel: '去拍口播' },
+      { id: 'wp2', title: '本周故事选题', topic: s1, desc: '服务故事替代广告，真实有温度', goToTemplate: 'template2', goToLabel: '去拍故事' }
+    ],
+    copyCases: [
+      { id: 'cc1', title: '本周产品测评', topic: r1, desc: '展示产品细节，截搜索流量', goToTemplate: 'template3', goToLabel: '去测评' }
+    ],
+    formatTips: [
+      { id: 'ft1', title: '本周同城活动', topic: l1, desc: '绑地点+POI定位打同城', goToTemplate: 'template4', goToLabel: '去拍活动' }
+    ]
+  };
+}
+
+function useHotPick(pageId, topic) {
+  switchPage(pageId, document.querySelector('.nav-tab[onclick*=' + pageId + ']'));
+  if (topic) {
+    setTimeout(function() { jumpToTemplate(topic, 0); }, 200);
+  }
+}
+
+function renderHotPicks(data) {
+  var grid = document.getElementById('hotPicksGrid');
+  if (!grid) return;
+  if (!data) { data = getHotPicksFallback(); }
+  var sections = [
+    { key: 'weeklyPicks', icon: '🔥', label: '本周必拍', style: 'pick-fire', cls: 'fire' },
+    { key: 'copyCases', icon: '📋', label: '抄作业', style: 'pick-copy', cls: 'copy' },
+    { key: 'formatTips', icon: '🎬', label: '小花招', style: 'pick-trick', cls: 'trick' }
+  ];
+  var html = '';
+  sections.forEach(function(sec) {
+    var items = data[sec.key] || [];
+    html += '<div class="hot-pick-col"><div class="hot-pick-col-head">' + sec.icon + ' ' + sec.label + ' <span style="font-size:11px;opacity:0.5;">' + items.length + '条</span></div>';
+    items.forEach(function(item) {
+      html += '<div class="hot-pick-card ' + sec.style + '" tabindex="0" role="button" onclick="useHotPick(\'' + (item.goToTemplate || 'template1') + '\',\'' + escAttr(item.topic || '') + '\')" title="' + escAttr(item.title) + '"><div class="hot-pick-title">' + esc(item.title) + '</div><div class="hot-pick-desc">' + esc(item.desc || '') + '</div><span class="hot-pick-go">' + esc(item.goToLabel || '去看看') + ' →</span></div>';
+    });
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+function loadHotContentPool() {
+  var grid = document.getElementById('hotPicksGrid');
+  if (!grid) return;
+  // 先用兜底数据渲染，消灭空白
+  renderHotPicks(getHotPicksFallback());
+  // 尝试从全局变量加载真实数据
+  if (window.__hotContentPool && window.__hotContentPool.weeklyPicks && window.__hotContentPool.weeklyPicks.length > 0) {
+    renderHotPicks(window.__hotContentPool);
+    return;
+  }
+  // 尝试 fetch JSON
+  try {
+    fetch('data/hotContentPool.json?t=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(d) { if (d && d.weeklyPicks) { __hotContentPool = d; renderHotPicks(d); } })
+      .catch(function() {});
+  } catch(e) {}
+}
+
+function addDouyinLink() {
+  var input = document.getElementById('douyinLinkInput');
+  var msg = document.getElementById('douyinLinkMsg');
+  if (!input) return;
+  var link = input.value.trim();
+  if (!link) { if (msg) { msg.textContent = '请粘贴抖音链接'; msg.style.display = 'inline'; msg.style.color = 'var(--orange)'; } return; }
+  var savedLinks = [];
+  try { savedLinks = JSON.parse(localStorage.getItem('douyinLinks') || '[]'); } catch(e) {}
+  savedLinks.push({ link: link, time: new Date().toISOString() });
+  localStorage.setItem('douyinLinks', JSON.stringify(savedLinks));
+  if (msg) { msg.textContent = '✅ 已收录（' + savedLinks.length + '条待处理）'; msg.style.display = 'inline'; msg.style.color = 'var(--green)'; }
+  input.value = '';
 }
 
 function copySchedule() {
@@ -2831,47 +2904,73 @@ function autoFillBGM(pageId, bgmElId, category, subCategory) {
 }
 
 function getPhoneTopics(modelName) {
-  const phone = phonePool.find(p => p.model === modelName);
+  // 兼容新旧格式：新版用 brand/model 匹配，旧版用 model 精确匹配
+  const phone = phonePool.find(p =>
+    (p.brand && p.model && modelName.includes(p.model) && modelName.includes(p.brand)) ||
+    p.model === modelName
+  );
   if (!phone) return null;
-  const brand = phone.model.split(' ')[0];
+  // 品牌名：新格式用 phone.brand，旧格式从 model 提取
+  var brand = phone.brand || phone.model.split(' ')[0] || '';
+  // 显示名
+  var displayName = phone.brand ? (phone.brand + ' ' + phone.model +
+    (phone.storage ? ' (' + phone.storage + ')' : '') +
+    (phone.isCore ? ' ★核心' : '')) : phone.model;
+  // 价格信息：新格式 guidePrice，旧格式 price
+  var priceStr = phone.guidePrice ? ('¥' + phone.guidePrice) : (phone.price || '');
+  // 卖点信息
+  var specInfo = '';
+  if (phone.guidePrice) {
+    // 新格式：库存+指导价+核心标记
+    var parts = [];
+    if (phone.stock !== undefined) parts.push('库存' + phone.stock + '台');
+    if (phone.guidePrice) parts.push('指导价¥' + phone.guidePrice);
+    if (phone.isCore) parts.push('本周主推');
+    if (phone.storage) parts.push(phone.storage);
+    specInfo = parts.join(' | ');
+  } else {
+    // 旧格式
+    specInfo = [phone.chip, phone.battery, phone.highlight].filter(Boolean).join(' | ');
+  }
+
   return {
     '卖点展示': {
-      item: phone.model, func: '核心卖点',
-      title: phone.model + '卖点一图看：值不值得买？',
+      item: displayName, func: '核心卖点',
+      title: displayName + '卖点一图看：值不值得买？',
       tags: '#' + brand + ' #手机推荐 #换机指南 #电信合约机',
-      p1: '芯片：' + phone.chip + ' | 性能领先，日常流畅不卡顿',
-      p2: '续航：' + phone.battery + ' | 重度使用一天没问题',
-      p3: '亮点：' + phone.highlight + ' | ' + phone.price,
+      p1: '配置：' + (phone.storage || phone.chip || '') + (phone.color ? (' · ' + phone.color) : ''),
+      p2: '价格：' + priceStr + (phone.stock !== undefined ? (' · 库存充足可发货') : ''),
+      p3: '亮点：' + specInfo,
     },
     '5G网络实测': {
-      item: phone.model, func: '电信5G实测',
-      title: phone.model + '电信5G实测：信号+网速+续航',
+      item: displayName, func: '电信5G实测',
+      title: displayName + '电信5G实测：信号+网速+续航',
       tags: '#手机评测 #电信5G #' + brand + ' #网速测试',
       p1: '5G下载速度：电信5G实测，峰值可达800-1200Mbps',
       p2: '信号覆盖：电梯/地库/郊区三场景，电信比友商强在哪',
       p3: '日常体验：刷抖音/看直播/视频通话，全程流畅不卡顿',
     },
     '续航挑战': {
-      item: phone.model, func: '续航实测',
-      title: phone.model + '重度使用能撑多久？一天实测告诉你',
+      item: displayName, func: '续航实测',
+      title: displayName + '重度使用能撑多久？一天实测告诉你',
       tags: '#手机续航 #电池实测 #' + brand + ' #换机参考',
       p1: '早上8点满电出门，开5G+蓝牙+定位，模拟日常使用',
       p2: '刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电',
-      p3: '对比同价位机型续航排行，' + phone.model + '处于什么水平',
+      p3: '对比同价位机型续航排行，' + displayName + '处于什么水平',
     },
     '拍照体验': {
-      item: phone.model, func: '拍照样张',
-      title: phone.model + '拍照到底怎么样？带你看看实拍样张',
+      item: displayName, func: '拍照样张',
+      title: displayName + '拍照到底怎么样？带你看看实拍样张',
       tags: '#手机拍照 #' + brand + ' #影像评测 #换机指南',
-      p1: '白天场景：' + phone.camera + '直出，色彩还原度和解析力如何',
+      p1: '白天场景：主摄直出，色彩还原度和解析力如何',
       p2: '夜间模式：暗光下对比普通模式和夜景模式的差距',
       p3: '人像模式：背景虚化效果+美颜算法，自拍党的真实体验',
     },
     '合约机优惠': {
-      item: phone.model, func: '合约机方案',
-      title: phone.model + '电信合约机怎么买最划算？3种方案对比',
+      item: displayName, func: '合约机方案',
+      title: displayName + '电信合约机怎么买最划算？3种方案对比',
       tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
-      p1: '方案一：裸机买 ' + phone.price + '，没优惠但最自由',
+      p1: '方案一：裸机买 ' + priceStr + '，没优惠但最自由',
       p2: '方案二：套餐合约 最低月消费XX元，立减300-500',
       p3: '方案三：融合套餐 宽带+手机+电视打包，比单买省30%',
     },
@@ -3011,8 +3110,8 @@ function previewT3Talk() {
   const title = c('title');
   const tags = c('tags');
   const topic = document.getElementById('t3_topic').value;
-  // Check if phone review → use phone-specific talking scripts
-  const phone = phonePool.find(p => p.model === item);
+  // Check if phone review → use phone-specific talking scripts (兼容新旧格式)
+  const phone = findPhoneByName(item);
   var html = '';
   if (phone) {
     var t3hookText = (document.getElementById('t3_hook_text')||{}).value || '';
@@ -3596,127 +3695,6 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
   }
 }
 
-// ═══ 评论区独立 AI 优化（不消耗脚本优化配额）═══
-function triggerCommentOptimize(tpl, city, topic) {
-  var profile = getStoreProfile();
-  if (!profile) { toast('⚠ 请先绑定营业厅'); return; }
-  // 收集脚本内容——优先当前活跃模板的可见预览区
-  var scriptText = '';
-  var commentList = document.querySelector('.comment-list');
-  // 按模板类型定位预览区：找当前页面可见的 preview 元素
-  var prefixMap = { t1: 'preview1', t2: 'preview2', t3: 'preview3', t4: 'preview4' };
-  var prefix = prefixMap[tpl] || 'preview';
-  var allPreviews = document.querySelectorAll('[id^="' + prefix + '"]');
-  var previewEl = null;
-  for (var i = 0; i < allPreviews.length; i++) {
-    if (allPreviews[i].offsetParent !== null && allPreviews[i].textContent.length > 50) {
-      previewEl = allPreviews[i];
-      break;
-    }
-  }
-  // 回退：放宽到所有可见preview
-  if (!previewEl) {
-    var anyPreview = document.querySelectorAll('[id^="preview"]');
-    for (var j = 0; j < anyPreview.length; j++) {
-      if (anyPreview[j].offsetParent !== null && anyPreview[j].textContent.length > 50) {
-        previewEl = anyPreview[j]; break;
-      }
-    }
-  }
-  if (previewEl) scriptText = previewEl.textContent.trim().slice(0, 2500);
-  if (!scriptText) { toast('⚠ 请先生成预览脚本', 'warn'); return; }
-  
-  // 更新按钮状态
-  var btn = document.querySelector('.publish-kit button[onclick*="triggerCommentOptimize"]');
-  if (btn) { btn.textContent = '⏳ 生成中…'; btn.disabled = true; }
-  
-  // 更新评论区标题
-  var headerEl = document.querySelector('.publish-kit div[style*="font-size:13px"]');
-  if (headerEl) {
-    var headerSpan = headerEl.querySelector('span');
-    if (headerSpan) headerSpan.textContent = '⏳ AI 正在生成评论…';
-  }
-  
-  var ctrl = new AbortController();
-  var tid = setTimeout(function(){ctrl.abort();},120000);  // SCF 同时生成脚本+评论需要更多时间
-  
-  console.log('[AI评论] 开始请求 tpl=' + tpl + ' city=' + (city||'') + ' topic=' + (topic||'') + ' scriptLen=' + scriptText.length);
-  
-  fetch(PERSONALIZE_API, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      store: profile.name,
-      persona: profile.persona,
-      topic: topic || '',
-      city: profile.city,
-      templateType: detectTemplateType(),
-      script: scriptText
-      // 注意：不传 commentsOnly，SCF 会同时返回 comments（与脚本优化同一次调用）
-    }),
-    signal: ctrl.signal
-  }).then(function(res) {
-    clearTimeout(tid);
-    console.log('[AI评论] 响应状态=' + res.status);
-    if (!res.ok) throw new Error('API '+res.status);
-    return res.json();
-  }).then(function(data) {
-    console.log('[AI评论] 收到数据 keys=' + Object.keys(data).join(','));
-    
-    // 检查后端错误
-    if (data.error) throw new Error('后端:' + data.error);
-    
-    var aiComments = data.comments || data.commentList || [];
-    // 兼容各种返回格式
-    if (!Array.isArray(aiComments) && typeof aiComments === 'string') {
-      aiComments = aiComments.split('\n').filter(function(s){ return s.trim(); });
-    }
-    console.log('[AI评论] 评论数=' + aiComments.length);
-    if (aiComments.length < 3) {
-      toast('⚠ AI 返回评论不足（'+aiComments.length+'条），保留当前评论', 'warn');
-      return;
-    }
-    // 存到 AppState
-    try { AppState.set('ai_comments_' + tpl, aiComments); } catch(e) {}
-    // 更新 DOM
-    if (commentList) {
-      var newHtml = '';
-      for (var c = 0; c < aiComments.length; c++) {
-        newHtml += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="font-size:12px;min-width:18px;color:#888780;">' + (c+1) + '</span><span style="flex:1;line-height:1.5;color:#2C2C2A;">' + esc(aiComments[c]) + '</span><span onclick="copyText(\'' + esc(aiComments[c]).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;padding:2px 8px;border:0.5px solid #5DCAA5;border-radius:6px;">复制</span></div>';
-      }
-      commentList.innerHTML = newHtml;
-    }
-    // 更新标题
-    if (headerEl) {
-      var span = headerEl.querySelector('span');
-      if (span) span.textContent = 'AI 智能评论';
-    }
-    toast('✅ AI 评论已优化！', 'success');
-  }).catch(function(e) {
-    var errMsg = e.message || '';
-    console.log('[AI评论] 失败 err=' + errMsg + ' name=' + (e.name||''));
-    if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
-      toast('⏱ 评论生成超时（>120s），网络可能较慢，稍后重试', 'warn');
-    } else if (errMsg.indexOf('Failed') >= 0 || errMsg.indexOf('Network') >= 0) {
-      toast('🔴 网络连接失败，请检查网络后重试', 'error');
-    } else {
-      toast('⚠ 评论生成失败：' + (errMsg.slice(0,40) || '服务端异常'), 'error');
-    }
-  }).finally(function() {
-    if (btn) { btn.textContent = '🔄 AI 优化'; btn.disabled = false; }
-    if (headerEl) {
-      var span = headerEl.querySelector('span');
-      if (span && span.textContent.indexOf('⏳') === 0) {
-        // 如果还在 loading 状态，恢复原标题
-        try {
-          var hasAI = AppState.get('ai_comments_' + tpl, null);
-          if (span) span.textContent = (hasAI && hasAI.length >= 3) ? 'AI 智能评论' : '评论区准备';
-        } catch(e) {}
-      }
-    }
-  });
-}
-
 function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines) {
   errType = errType || '';
   if (dlg) {
@@ -4209,8 +4187,8 @@ function renderStats() {
   cardHtml += '<div class="card" style="text-align:center;"><div style="font-size:32px;font-weight:700;color:#7B1FA2;">'+uniqueTopics+'</div><div style="font-size:12px;color:var(--body);">选题覆盖数</div></div>';
   document.getElementById('statsCards').innerHTML = cardHtml;
   // Module chart (horizontal bars)
-  var pageNames = { 'schedule':'📋 每周排期','template1':'📊 决策指南','template2':'🎬 一线场景','template3':'🔍 深度测评','template4':'📍 本地事件','bank':'📚 选题库','hotspot':'🔥 热点跟拍','history':'📜 历史','stats':'📊 统计' };
-  var pageActionNames = { 'page_schedule':'访问排期','page_template1':'决策指南','page_template2':'一线场景','page_template3':'深度测评','page_template4':'本地事件','preview_generated':'生成预览','export_image':'导出图片','export_copy':'复制脚本','checklist_pass':'✅检查通过','checklist_fail':'❌检查失败','fw_detected':'违禁词告警' };
+  var pageNames = { 'schedule':'📋 每周排期','template1':'💬 口播脚本','template2':'📖 故事脚本','template3':'🔬 产品测评','template4':'🏠 同城活动','bank':'📚 选题库','hotspot':'🔥 热点跟拍','history':'📜 历史','stats':'📊 统计' };
+  var pageActionNames = { 'page_schedule':'访问排期','page_template1':'口播脚本','page_template2':'故事脚本','page_template3':'产品测评','page_template4':'同城活动','preview_generated':'生成预览','export_image':'导出图片','export_copy':'复制脚本','checklist_pass':'✅检查通过','checklist_fail':'❌检查失败','fw_detected':'违禁词告警' };
   var sorted = Object.entries(pages).sort(function(a,b) { return b[1]-a[1]; });
   var maxVal = sorted.length > 0 ? sorted[0][1] : 1;
   var bars = sorted.map(function(e) {
@@ -4277,7 +4255,7 @@ function renderStats() {
   var twActions = {}, lwActions = {};
   thisWeek.forEach(function(e) { twActions[e.action] = (twActions[e.action]||0) + 1; });
   lastWeek.forEach(function(e) { lwActions[e.action] = (lwActions[e.action]||0) + 1; });
-  var actionLabels = { 'page_schedule':'排期','page_template1':'决策指南','page_template2':'一线场景','page_template3':'深度测评','page_template4':'本地事件','page_live':'直播脚本','page_bank':'选题库','page_hotspot':'热点跟拍','page_history':'历史','preview_generated':'生成预览' };
+  var actionLabels = { 'page_schedule':'排期','page_template1':'口播脚本','page_template2':'故事脚本','page_template3':'产品测评','page_template4':'同城活动','page_live':'直播脚本','page_bank':'选题库','page_hotspot':'热点跟拍','page_history':'历史','preview_generated':'生成预览' };
   var cmpRows = [];
   Object.keys(actionLabels).forEach(function(k) {
     var tw = twActions[k]||0, lw = lwActions[k]||0;
@@ -4473,53 +4451,83 @@ function shareInfographic() {
 function generateSellingPointCard() {
   const device = document.getElementById('t3_device').value;
   const topic = document.getElementById('t3_topic').value;
-  // Get phone data
-  const phone = phonePool.find(p => p.model === device);
+  // Get phone data (兼容新旧格式)
+  const phone = findPhoneByName(device);
   if (!phone) {
-    alert('请在深度测评型中的「📱 手机评测」分组选择一个具体手机型号！');
+    alert('请在产品测评中的「📱 手机评测」分组选择一个具体手机型号！');
     return;
   }
   const panel = document.getElementById('infographicPanel');
   const cardW = Math.min(420, window.innerWidth - 40);
-  const html = `
+  // 兼容新旧格式
+  var displayName = phone.brand ? (phone.brand + ' ' + phone.model +
+    (phone.storage ? ' (' + phone.storage + ')' : '')) : (phone.model || device);
+  var displayPrice = phone.guidePrice ? ('¥' + phone.guidePrice) : (phone.price || '');
+  var isNewFormat = !!phone.brand;
+  var html = `
   <div style="max-width:${cardW}px;margin:0 auto;">
     <div id="infographicCardSP" style="width:${cardW}px;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#fff 50%,#fff 100%);border-radius:16px;overflow:hidden;position:relative;font-family:'Microsoft YaHei',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
       <!-- Hero -->
       <div style="padding:28px 24px 16px;text-align:center;">
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:4px;">山西电信·合约机推荐</div>
-        <div style="font-size:20px;color:#fff;font-weight:700;line-height:1.3;">${phone.model}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;">${phone.highlight}</div>
-        <div style="display:inline-block;background:var(--orange);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;margin-top:8px;">${phone.price}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:4px;">山西电信·合约机推荐${phone.isCore ? ' ★本周主推' : ''}</div>
+        <div style="font-size:20px;color:#fff;font-weight:700;line-height:1.3;">${displayName}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;">${isNewFormat ? (phone.color || '') : (phone.highlight || '')}</div>
+        <div style="display:inline-block;background:var(--orange);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;margin-top:8px;">${displayPrice}${isNewFormat && phone.stock !== undefined ? (' · 库存' + phone.stock + '台') : ''}</div>
       </div>
       <!-- Specs Grid -->
       <div style="padding:16px 20px 8px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          ${isNewFormat ? `
+          <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">💾</div>
+            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">内存</div>
+            <div style="font-size:11px;color:#42526E;">${phone.storage || '-'}</div>
+          </div>
+          <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">📦</div>
+            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">库存</div>
+            <div style="font-size:11px;color:#42526E;">${phone.stock !== undefined ? (phone.stock + '台') : '-'}</div>
+          </div>
+          <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">🏷️</div>
+            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">指导价</div>
+            <div style="font-size:11px;color:#42526E;">¥${phone.guidePrice || '-'}</div>
+          </div>
+          <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;">🎨</div>
+            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">颜色</div>
+            <div style="font-size:11px;color:#42526E;">${phone.color || '-'}</div>
+          </div>` : `
           <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;">🧠</div>
             <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">芯片</div>
-            <div style="font-size:11px;color:#42526E;">${phone.chip}</div>
+            <div style="font-size:11px;color:#42526E;">${phone.chip || '-'}</div>
           </div>
           <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;">🔋</div>
             <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">电池</div>
-            <div style="font-size:11px;color:#42526E;">${phone.battery}</div>
+            <div style="font-size:11px;color:#42526E;">${phone.battery || '-'}</div>
           </div>
           <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;">📱</div>
             <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">屏幕</div>
-            <div style="font-size:11px;color:#42526E;">${phone.screen}</div>
+            <div style="font-size:11px;color:#42526E;">${phone.screen || '-'}</div>
           </div>
           <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;">📸</div>
             <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">相机</div>
-            <div style="font-size:11px;color:#42526E;">${phone.camera}</div>
-          </div>
+            <div style="font-size:11px;color:#42526E;">${phone.camera || '-'}</div>
+          </div>`}
         </div>
       </div>
       <!-- Highlight -->
       <div style="margin:8px 20px 16px;padding:14px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:10px;text-align:center;">
-        <div style="font-size:11px;color:#E65100;font-weight:600;">✨ 核心亮点</div>
-        <div style="font-size:13px;color:#172B4D;font-weight:700;margin-top:2px;line-height:1.4;">${phone.highlight}</div>
+        <div style="font-size:11px;color:#E65100;font-weight:600;">✨ ${isNewFormat ? '机型信息' : '核心亮点'}</div>
+        <div style="font-size:13px;color:#172B4D;font-weight:700;margin-top:2px;line-height:1.4;">${isNewFormat ?
+          ((phone.isCore ? '★ 本周核心主推机型 · ' : '') +
+           (phone.stock > 0 ? ('当前库存 ' + phone.stock + ' 台可发货') : '') +
+           (phone.code ? ('\n编码: ' + phone.code) : '')).trim() :
+          (phone.highlight || '-')}</div>
       </div>
       <!-- Footer -->
       <div style="padding:12px 20px 20px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 16px;">
@@ -4671,10 +4679,10 @@ function renderBgmRecommend() {
     return;
   }
   var types = [
-    { key: '决策指南', icon: '📊', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
-    { key: '一线场景', icon: '🎬', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
-    { key: '深度测评', icon: '🔍', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
-    { key: '本地事件', icon: '📍', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
+    { key: '口播脚本', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
+    { key: '故事脚本', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
+    { key: '产品测评', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
+    { key: '同城活动', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
   ];
   var html = '';
   types.forEach(function(t) {
@@ -4757,6 +4765,7 @@ function syncBgmDropdowns() {
   checkDataFiles();
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
+  try { loadHotContentPool(); } catch(e) { console.error('loadHotContentPool:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
   try { buildHistory(); } catch(e) { console.error('buildHistory:', e); }
   try { renderHotspots(); } catch(e) { console.error('renderHotspots:', e); }
