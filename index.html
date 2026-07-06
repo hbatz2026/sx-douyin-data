@@ -24,7 +24,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v2.6.3</span></div>
+    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v2.6.11</span></div>
     <div id="storeBar" style="margin-top:8px;">
       <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
       <span id="storePrompt">
@@ -1046,57 +1046,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=20260706-fix2"></script>
-  <!-- 🔧 Hotfix 2026-07-06 v2: patches CDN-cached app.js, fixes BGM key mapping -->
-  <script>
-  // Fix 1: typeIcons missing '自由选题' key  
-  if (typeof typeIcons !== 'undefined') {
-    if (!typeIcons['自由选题']) typeIcons['自由选题'] = '\uD83C\uDFAF';
-    if (!typeIcons['灵活选题']) typeIcons['灵活选题'] = '\uD83C\uDFAF';
-  }
-  if (typeof typeColors !== 'undefined') {
-    if (!typeColors['自由选题']) typeColors['自由选题'] = 'type-flex';
-    if (!typeColors['灵活选题']) typeColors['灵活选题'] = 'type-flex';
-  }
-  // Fix 2: weekRange span not updated
-  (function(){
-    var wr = document.getElementById('weekRange');
-    if (wr && typeof week !== 'undefined' && week.label) wr.textContent = week.label;
-  })();
-  // Fix 3: phonePool new format - re-run buildSchedule to render device correctly
-  if (typeof buildSchedule === 'function' && typeof phonePool !== 'undefined' && phonePool.length > 0) {
-    try { buildSchedule(); } catch(e) {}
-  }
-  // Fix 4: BGM key mapping - bgmList uses chinese page names, NOT type names
-  // renderBgmRecommend bug: key='口播脚本' but bgmList key='决策指南'
-  if (typeof renderBgmRecommend !== 'undefined' && typeof window.___bgmList !== 'undefined') {
-    // Override renderBgmRecommend with fixed version
-    renderBgmRecommend = function() {
-      var grid = document.getElementById('bgmRecommendGrid');
-      if (!grid) return;
-      var bgmData = window.___bgmList;
-      if (!bgmData) { grid.innerHTML = '<div style="grid-column:1/-1;color:#999;text-align:center;padding:20px;">BGM数据加载中，请刷新页面...</div>'; return; }
-      var types = [
-        { key: '决策指南', icon: '\uD83D\uDCAC', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
-        { key: '一线场景', icon: '\uD83D\uDCD6', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
-        { key: '深度测评', icon: '\uD83D\uDD2C', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
-        { key: '本地事件', icon: '\uD83C\uDFE0', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
-      ];
-      var html = '';
-      types.forEach(function(t) {
-        var cat = bgmData[t.key];
-        var songs = cat && cat[t.sub] ? cat[t.sub] : [];
-        if (!songs || songs.length === 0) { for (var k in cat) { if (cat[k] && cat[k].length>0) { songs=cat[k]; break; } } }
-        var songHtml = songs.slice(0, 2).map(function(s) {
-          var parts = s.split(' - '), name = parts[0], artist = parts[1] || '';
-          return '<a href="https://www.douyin.com/search/'+encodeURIComponent(name)+'" target="_blank" rel="noopener" style="display:block;color:#333;text-decoration:none;margin-top:4px;transition:color 0.15s;" onmouseover="this.style.color=\'#0052CC\'" onmouseout="this.style.color=\'#333\'">\uD83C\uDFB5 '+name+'<br><span style="font-size:11px;color:#888;">'+artist+'</span></a>';
-        }).join('');
-        html += '<div style="padding:10px;background:'+t.bg+';border-radius:8px;"><div style="font-weight:700;color:'+t.color+';">'+t.icon+' '+t.key+'</div>'+songHtml+'</div>';
-      });
-      grid.innerHTML = html;
-    };
-    renderBgmRecommend();
-  }
-  </script>
+  <script src="app.js?v=2.6.11"></script>
 </body>
 </html>
