@@ -763,7 +763,17 @@ window.addEventListener('popstate', function(e) {
     if (hash && document.getElementById('page-' + hash)) {
       switchPage(hash, null, true);
       currentPage = hash;
-      try { history.replaceState({ page: hash, historyIndex: 0 }, '', '#' + hash); } catch(e) {}
+      if (hash !== 'schedule') {
+        // Ensure browser back always lands on schedule page
+        // replaceState: set current entry as #schedule base
+        // pushState: push #hash on top → history = [schedule, hash] → back works
+        try { history.replaceState({ page: 'schedule', historyIndex: 0 }, '', '#schedule'); } catch(e) {}
+        try { history.pushState({ page: hash, historyIndex: 1 }, '', '#' + hash); } catch(e) {}
+        pageHistory.length = 0;
+        pageHistory.push('schedule', hash);
+      } else {
+        try { history.replaceState({ page: 'schedule', historyIndex: 0 }, '', '#schedule'); } catch(e) {}
+      }
     } else {
       try { history.replaceState({ page: 'schedule', historyIndex: 0 }, '', '#schedule'); } catch(e) {}
     }
