@@ -649,6 +649,9 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
+var _wr = document.getElementById('weekRange');
+if (_wr) _wr.textContent = week.label;
+
 if (wrEl) wrEl.textContent = week.label;
 
 if (wrInline) wrInline.textContent = week.label;
