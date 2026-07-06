@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Back Button Test</title>
+<style>
+body{font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto}
+.log{background:#f0f0f0;padding:10px;border-radius:6px;font-size:12px;margin:10px 0;white-space:pre-wrap}
+.pass{color:green}.fail{color:red}
+</style></head><body>
+<h1>Browser Back Button Test</h1>
+<p>This page tests if history.pushState/popstate works correctly.</p>
+<p><b>Step 1:</b> Click "Go to Page 2" below</p>
+<p><b>Step 2:</b> Click browser back button</p>
+<p><b>Step 3:</b> Check if page content and URL change back</p>
+
+<div id="page1" style="background:#e8f5e9;padding:20px;border-radius:8px;">
+  <h2>Page 1 (Schedule)</h2>
+  <button onclick="goToPage2()" style="padding:12px 20px;font-size:16px;">→ Go to Page 2 (Template)</button>
+</div>
+
+<div id="page2" style="background:#e3f2fd;padding:20px;border-radius:8px;display:none;">
+  <h2>Page 2 (Template)</h2>
+  <p>Now press browser BACK button</p>
+</div>
+
+<div class="log" id="log">Waiting for actions...</div>
+
+<script>
+var log = document.getElementById('log');
+var currentPage = 'page1';
+
+function addLog(msg) {
+  log.textContent += '\n' + new Date().toISOString().substr(11,12) + ' ' + msg;
+  log.scrollTop = log.scrollHeight;
+}
+
+// Simulate our app's routing
+function switchPage(id) {
+  document.getElementById('page1').style.display = (id==='page1')?'block':'none';
+  document.getElementById('page2').style.display = (id==='page2')?'block':'none';
+  currentPage = id;
+  addLog('📄 Switched to: ' + id);
+}
+
+function goToPage2() {
+  switchPage('page2');
+  history.pushState({page:'page2'}, '', '#page2');
+  addLog('⬆ Pushed #page2, history.length=' + history.length);
+}
+
+// Popstate handler (same pattern as our app)
+window.addEventListener('popstate', function(e) {
+  addLog('⬅ popstate fired, state=' + JSON.stringify(e.state));
+  if (e.state && e.state.page) {
+    switchPage(e.state.page);
+  } else {
+    switchPage('page1');
+  }
+});
+
+// Init: simulate our app init
+(function init() {
+  var hash = location.hash.replace('#','');
+  if (hash === 'page2') {
+    // Simulate deep link: push schedule entry first
+    addLog('🔗 Deep link detected: ' + hash);
+    history.replaceState({page:'page1'}, '', '#page1');
+    history.pushState({page:hash}, '', '#'+hash);
+    switchPage('page2');
+    addLog('⬆ Inited with #page2, history.length=' + history.length + ' (should be 2)');
+  } else {
+    history.replaceState({page:'page1'}, '', '#page1');
+    addLog('🏠 Inited on #page1, history.length=' + history.length);
+  }
+})();
+
+addLog('✅ Ready. history.length=' + history.length);
+</script>
+</body></html>
