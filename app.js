@@ -773,9 +773,9 @@ window.addEventListener('popstate', function(e) {
   } catch(e) { /* Never let routing fail block the rest of init */ }
 })();
 
-const typeColors = { '口播脚本': 'type-guide', '故事脚本': 'type-scene', '产品测评': 'type-review', '同城活动': 'type-local', '灵活选题': 'type-flex' };
+const typeColors = { '口播脚本': 'type-guide', '故事脚本': 'type-scene', '产品测评': 'type-review', '同城活动': 'type-local', '自由选题': 'type-flex', '灵活选题': 'type-flex' };
 
-const typeIcons = { '口播脚本': '💬', '故事脚本': '📖', '产品测评': '🔬', '同城活动': '🏠', '灵活选题': '🎯' };
+const typeIcons = { '口播脚本': '💬', '故事脚本': '📖', '产品测评': '🔬', '同城活动': '🏠', '自由选题': '🎯', '灵活选题': '🎯' };
 
 const WEEK_ZERO = new Date(2026, 0, 5);
 
