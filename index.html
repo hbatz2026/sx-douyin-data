@@ -1046,6 +1046,12 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app-v3.js?v=20260706"></script>
+<script>
+(function(){
+  var s = document.createElement('script');
+  s.src = 'app.js?v=' + Date.now();
+  document.head.appendChild(s);
+})();
+</script>
 </body>
 </html>
