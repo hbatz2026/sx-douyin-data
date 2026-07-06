@@ -5,12 +5,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>山西电信抖本内容工坊 · 选题&脚本填空</title>
-  <link rel="stylesheet" href="styles.css?v=3.0-test">
+  <link rel="stylesheet" href="styles.css?v=2.6.11">
 
   <!-- External data files — merged bundle (updated weekly by SCF → GitHub Pages) -->
   <script src="data/bundle.js?v=3.0"></script>
   <!-- Publish kit v2.6.5: form-first BGM/tags, Douyin traffic tags -->
-  <script src="data/publish-kit.js?v=3.0"></script>
+  <script src="data/publish-kit.js?v=2.6.11"></script>
 
 </head>
 <body>
@@ -24,7 +24,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v3.0-test</span></div>
+    <div class="sub">填空级脚本生成器 — 填3个空，15分钟拍完发布 <span style="opacity:0.6;font-size:11px;">v2.6.3</span></div>
     <div id="storeBar" style="margin-top:8px;">
       <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
       <span id="storePrompt">
@@ -62,16 +62,16 @@
   <button class="hamburger" id="hamburgerBtn" onclick="toggleHamburger()">✕ 收起菜单</button>
   <div id="navCollapseHint" style="display:none;font-size:11px;color:#999;margin-bottom:8px;text-align:center;">👆 点击「展开全部菜单」查看更多模板</div>
   <nav class="nav-tabs" role="navigation" aria-label="主导航">
-    <button class="nav-tab active" id="scheduleNavTab" onclick="toggleSchedulePage(this)" title="点击展开/折叠5天拍摄排期">📋 <span id="scheduleTabIcon">▶</span> 本周拍什么<small><span id="scheduleTabDate">---</span></small></button>
+    <button class="nav-tab active" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
     
     <div class="nav-group" data-group="video">
       <span class="nav-group-label" onclick="toggleNavGroup('video')"><span class="nav-group-arrow">▶</span> 📱 短视频 <span class="nav-group-hint">点击展开</span></span>
       <div class="nav-group-items">
-        <button class="nav-tab" onclick="switchPage('template1', this)">💬 口播脚本<small>一个人对着镜头讲</small></button>
-        <button class="nav-tab" onclick="switchPage('template2', this)">📖 故事脚本<small>把真实服务故事拍出来</small></button>
-        <button class="nav-tab" onclick="switchPage('template3', this)">🔬 产品测评<small>展示产品让用户自己看</small></button>
-        <button class="nav-tab" onclick="switchPage('template4', this)">🏠 同城活动<small>把附近的人引流到店</small></button>
-        <button class="nav-tab" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>跟拍近期热门话题</small></button>
+        <button class="nav-tab" onclick="switchPage('template1', this)">📊 决策指南<small>帮用户做选择题，拉收藏率</small></button>
+        <button class="nav-tab" onclick="switchPage('template2', this)">🎬 一线场景<small>真实服务故事替代广告</small></button>
+        <button class="nav-tab" onclick="switchPage('template3', this)">🔍 深度测评<small>产品知识截搜索流量</small></button>
+        <button class="nav-tab" onclick="switchPage('template4', this)">📍 本地事件<small>绑定地点打同城推荐</small></button>
+        <button class="nav-tab" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>跟拍抖音热门，蹭流量</small></button>
       </div>
     </div>
 
@@ -96,20 +96,18 @@
 
   <!-- ==================== PAGE 0: Weekly Schedule ==================== -->
   <div class="page active" id="page-schedule">
-    <!-- 排期表（由导航tab控制展开/折叠） -->
-    <div class="schedule-grid" id="scheduleGrid" style="display:none;"></div>
-    <!-- v3.0 Today Hero (compact) -->
+    <h2 style="margin-bottom:12px;">📅 本周（<span id="weekRange">---</span>）排期</h2>
+    <!-- v2.0 Today Hero Card -->
     <div id="todayHero"></div>
-    <!-- v3.0 Hot Picks: 今天拍什么三区 -->
-    <div id="hotPicksArea" style="margin-bottom:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <h3 style="margin:0;font-size:15px;font-weight:700;">📌 今天拍什么？</h3>
-        <span style="font-size:11px;color:#999;">每周一自动更新 · 基于全网热搜+本省案例</span>
-      </div>
-      <div id="hotPicksGrid" class="hot-picks-grid">
-        <div class="hot-picks-loading">🔥 加载热门内容中...</div>
-      </div>
+    <div class="schedule-toggle" onclick="toggleSchedule()" id="scheduleToggle" tabindex="0" role="button" aria-expanded="true" style="display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer;font-size:13px;color:var(--blue);font-weight:600;margin-bottom:8px;">
+      <span id="scheduleToggleIcon">▼</span> <span>查看本周完整排期</span>
     </div>
+    <div class="schedule-grid" id="scheduleGrid"></div>
+    <div class="tips-bar" style="margin-top:20px;">
+      <strong>💡 快速上手：</strong>点击上方排期卡片直达模板 → 填3个空 → 点「预览脚本」→ 截图或复制发给营业员。每个营业厅填空内容不同（地名、店名、具体数据），规避同质化。<br>
+      <span style="font-size:11px;color:#999;margin-top:4px;display:inline-block;">⌨ 快捷键：Ctrl+1~6 切换页面 · 模板页 Ctrl+Enter 生成预览</span>
+    </div>
+    <div class="btn-group" style="margin-top:12px;" id="scheduleActions"></div>
     <div class="card" style="margin-top:16px;">
       <h3>🎵 本周BGM推荐（来源：酷狗热歌榜，每周一自动更新）<span style="font-size:11px;color:#999;font-weight:400;"> — 点击歌名直达抖音搜索</span></h3>
       <div style="font-size:12px;color:var(--orange);margin-bottom:8px;" id="weekDevice">📱 本周评测设备：加载中...</div>
@@ -117,11 +115,10 @@
     </div>
   </div>
 
-  <!-- ==================== PAGE 1: 口播脚本型（双模式） ==================== -->
+  <!-- ==================== PAGE 1: 决策指南型（双模式） ==================== -->
   <div class="page" id="page-template1">
     <div class="card">
-      <div class="weekly-banner" id="wb-t1" style="display:none;"></div>
-      <h3>💬 口播脚本 — 双模式（拉收藏率）</h3>
+      <h3><span class="icon">📊</span> 决策指南型 — 双模式（拉收藏率）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">帮用户做选择 | 三种拍摄方式，厅店按自身情况选</p>
       <p style="color:var(--orange);font-size:12px;margin-bottom:8px;">💡 对比数据是天然收藏内容 — 别人念给你听的你划走，一张对比图你肯定截图保存</p>
 
@@ -272,11 +269,10 @@
     <div class="fw-clean" id="template1-fw-clean">✅ 未检测到违禁词</div>
   </div>
 
-  <!-- ==================== PAGE 2: 故事脚本型（双模式） ==================== -->
+  <!-- ==================== PAGE 2: 一线场景型（双模式） ==================== -->
   <div class="page" id="page-template2">
     <div class="card">
-      <div class="weekly-banner" id="wb-t2" style="display:none;"></div>
-      <h3>📖 故事脚本 — 双模式（拉完播+信任）</h3>
+      <h3><span class="icon">🎬</span> 一线场景型 — 双模式（拉完播+信任）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">真实故事最能留住人 | 三种拍法，越自然越好</p>
       <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 场景型的核心是真实感——脚本越详细拍出来越假。选个拍法，讲真事就行。</p>
 
@@ -430,11 +426,10 @@
     <div class="fw-clean" id="template2-fw-clean">✅ 未检测到违禁词</div>
   </div>
 
-  <!-- ==================== PAGE 3: 产品测评型（双模式） ==================== -->
+  <!-- ==================== PAGE 3: 深度测评型（双模式） ==================== -->
   <div class="page" id="page-template3">
     <div class="card">
-      <div class="weekly-banner" id="wb-t3" style="display:none;"></div>
-      <h3>🔬 产品测评 — 双模式智能生成器（截搜索流量）</h3>
+      <h3><span class="icon">🔍</span> 深度测评型 — 双模式智能生成器（截搜索流量）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">两种拍摄方式，厅店按自身情况选择 — 都能出片</p>
       <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 选设备+选题 → 自动填入技术内容 → 选模式 → 获取脚本/拍摄指令</p>
 
@@ -590,13 +585,12 @@
     <div class="fw-clean" id="template3-fw-clean">✅ 未检测到违禁词</div>
   </div>
 
-  <!-- ==================== PAGE 4: 同城活动型（双模式） ==================== -->
+  <!-- ==================== PAGE 4: 本地化事件型（双模式） ==================== -->
   <div class="page" id="page-template4">
     <div class="card">
-      <div class="weekly-banner" id="wb-t4" style="display:none;"></div>
-      <h3>🏠 同城活动 — 双模式（打同城流量）</h3>
+      <h3><span class="icon">📍</span> 本地化事件型 — 双模式（打同城流量）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">把同城的人拉到店里 | 三种拍法，搜本地的人都能看到</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 地标+POI定位是同城活动型的核心武器——一定要拍到地标、一定要加位置。</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 地标+POI定位是本地事件型的核心武器——一定要拍到地标、一定要加位置。</p>
 
       <!-- Mode Selector -->
       <div class="mode-selector">
@@ -941,19 +935,19 @@
 
     <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
       <div class="card">
-        <h3>💬 口播脚本型 ×24</h3>
+        <h3>📊 决策指南型 ×24</h3>
         <div class="topic-list" id="bank1"></div>
       </div>
       <div class="card">
-        <h3>📖 故事脚本型 ×24</h3>
+        <h3>🎬 一线场景型 ×24</h3>
         <div class="topic-list" id="bank2"></div>
       </div>
       <div class="card">
-        <h3>🔬 产品测评型 ×24</h3>
+        <h3>🔍 深度测评型 ×24</h3>
         <div class="topic-list" id="bank3"></div>
       </div>
       <div class="card">
-        <h3>🏠 同城活动型 ×24</h3>
+        <h3>📍 本地化事件型 ×24</h3>
         <div class="topic-list" id="bank4"></div>
       </div>
     </div>
@@ -1052,6 +1046,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=3.0-test"></script>
+  <script src="app.js?v=2.6.11"></script>
 </body>
 </html>
