@@ -708,6 +708,9 @@ const pageHistory = ['schedule'];
 function switchPage(name, el, noPush) {
   // Save current template form before leaving
   saveTemplateForm(currentPage);
+  // Show/hide back-to-schedule button
+  var backBtn = document.getElementById('backToSchedule');
+  if (backBtn) backBtn.style.display = (name === 'schedule') ? 'none' : 'block';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   const pageEl = document.getElementById('page-' + name);
@@ -1768,7 +1771,7 @@ function buildSchedule() {
       <div class="day-time">⏰ ${bestTime}</div>
     </div>`;
   }
-  grid.innerHTML = '<div class="schedule-info-bar"><span class="sib-label">📅 ' + week.label + ' 本周排期</span><button class="btn btn-outline btn-sm sib-copy-btn" onclick="copySchedule()">📋 复制排期</button></div>' + html;
+  grid.innerHTML = '<div class="schedule-info-bar"><span class="sib-label">📅 ' + week.label + ' 本周排期</span><button class="btn btn-outline btn-sm sib-copy-btn" onclick="copySchedule()" title="复制本周排期方案">📋 复制</button></div>' + html;
   // Update week device
   const devSpan = document.getElementById('weekDevice');
   if (devSpan) {
