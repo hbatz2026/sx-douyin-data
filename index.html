@@ -93,6 +93,10 @@
   </nav>
 
   <main role="main">
+  <!-- Back to schedule button (injected by JS on template pages) -->
+  <div id="backToSchedule" style="display:none;margin-bottom:8px;">
+    <button class="btn btn-outline btn-sm" onclick="switchPage('schedule', document.querySelector('.nav-tab[onclick*=schedule]'))" style="font-size:12px;">← 返回排期</button>
+  </div>
 
   <!-- ==================== PAGE 0: Weekly Schedule ==================== -->
   <div class="page active" id="page-schedule">
