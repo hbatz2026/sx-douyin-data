@@ -1046,13 +1046,13 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=20260706-hotfix"></script>
-  <!-- 🔧 Hotfix 2026-07-06: patches CDN-cached app.js (runs after app.js loads) -->
+  <script src="app.js?v=20260706-fix2"></script>
+  <!-- 🔧 Hotfix 2026-07-06 v2: patches CDN-cached app.js, fixes BGM key mapping -->
   <script>
   // Fix 1: typeIcons missing '自由选题' key  
   if (typeof typeIcons !== 'undefined') {
-    if (!typeIcons['自由选题']) typeIcons['自由选题'] = '\uD83D\uDD90';
-    if (!typeIcons['灵活选题']) typeIcons['灵活选题'] = '\uD83D\uDD90';
+    if (!typeIcons['自由选题']) typeIcons['自由选题'] = '\uD83C\uDFAF';
+    if (!typeIcons['灵活选题']) typeIcons['灵活选题'] = '\uD83C\uDFAF';
   }
   if (typeof typeColors !== 'undefined') {
     if (!typeColors['自由选题']) typeColors['自由选题'] = 'type-flex';
@@ -1063,15 +1063,39 @@
     var wr = document.getElementById('weekRange');
     if (wr && typeof week !== 'undefined' && week.label) wr.textContent = week.label;
   })();
-  // Fix 3: phonePool new format (guidePrice instead of chip/battery/screen)
+  // Fix 3: phonePool new format - re-run buildSchedule to render device correctly
   if (typeof buildSchedule === 'function' && typeof phonePool !== 'undefined' && phonePool.length > 0) {
-    var devSpan = document.getElementById('weekDevice');
-    if (devSpan) {
-      var phone = phonePool[(typeof currentWeekNum !== 'undefined' ? currentWeekNum : 1) % phonePool.length];
-      if (phone && phone.guidePrice) {
-        devSpan.textContent = '\uD83D\uDCF1 本周评测设备：' + (phone.brand||'') + ' ' + phone.model + (' '+phone.storage||'') + ' \u00B7 \u00A5' + phone.guidePrice + (phone.isCore ? ' \u2605\u6838\u5FC3\u4E3B\u63A8' : '') + (phone.stock !== undefined ? ' \u00B7 \u5E93\u5B58'+phone.stock : '');
-      }
-    }
+    try { buildSchedule(); } catch(e) {}
+  }
+  // Fix 4: BGM key mapping - bgmList uses chinese page names, NOT type names
+  // renderBgmRecommend bug: key='口播脚本' but bgmList key='决策指南'
+  if (typeof renderBgmRecommend !== 'undefined' && typeof window.___bgmList !== 'undefined') {
+    // Override renderBgmRecommend with fixed version
+    renderBgmRecommend = function() {
+      var grid = document.getElementById('bgmRecommendGrid');
+      if (!grid) return;
+      var bgmData = window.___bgmList;
+      if (!bgmData) { grid.innerHTML = '<div style="grid-column:1/-1;color:#999;text-align:center;padding:20px;">BGM数据加载中，请刷新页面...</div>'; return; }
+      var types = [
+        { key: '决策指南', icon: '\uD83D\uDCAC', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
+        { key: '一线场景', icon: '\uD83D\uDCD6', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
+        { key: '深度测评', icon: '\uD83D\uDD2C', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
+        { key: '本地事件', icon: '\uD83C\uDFE0', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
+      ];
+      var html = '';
+      types.forEach(function(t) {
+        var cat = bgmData[t.key];
+        var songs = cat && cat[t.sub] ? cat[t.sub] : [];
+        if (!songs || songs.length === 0) { for (var k in cat) { if (cat[k] && cat[k].length>0) { songs=cat[k]; break; } } }
+        var songHtml = songs.slice(0, 2).map(function(s) {
+          var parts = s.split(' - '), name = parts[0], artist = parts[1] || '';
+          return '<a href="https://www.douyin.com/search/'+encodeURIComponent(name)+'" target="_blank" rel="noopener" style="display:block;color:#333;text-decoration:none;margin-top:4px;transition:color 0.15s;" onmouseover="this.style.color=\'#0052CC\'" onmouseout="this.style.color=\'#333\'">\uD83C\uDFB5 '+name+'<br><span style="font-size:11px;color:#888;">'+artist+'</span></a>';
+        }).join('');
+        html += '<div style="padding:10px;background:'+t.bg+';border-radius:8px;"><div style="font-weight:700;color:'+t.color+';">'+t.icon+' '+t.key+'</div>'+songHtml+'</div>';
+      });
+      grid.innerHTML = html;
+    };
+    renderBgmRecommend();
   }
   </script>
 </body>
