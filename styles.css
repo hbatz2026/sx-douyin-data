@@ -28,6 +28,10 @@
   .nav-tab.active .badge { background: rgba(255,255,255,0.3); }
   .nav-tab small { display: inline; margin-left: 2px; font-size: 11px; font-weight: 400; opacity: 0.65; }
   .nav-tab:hover small, .nav-tab.active small { opacity: 0.85; }
+  #scheduleTabIcon { display: inline-block; margin-right: 2px; transition: transform 0.2s; font-size: 12px; }
+  /* 排期tab: active时白底蓝字+边框，不用实心蓝（降低视觉权重） */
+  .nav-tab.active#scheduleNavTab { background: #fff; color: var(--blue); border: 1.5px solid var(--blue); }
+  .nav-tab.active#scheduleNavTab small { opacity: 0.7; }
   /* Nav group label */
   .nav-group-label { display: flex; align-items: center; padding: 0 8px 0 4px; font-size: 10px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; border-left: 2px solid var(--border); margin-left: 4px; }
 
@@ -100,6 +104,53 @@
 
   /* Weekly Schedule */
   .schedule-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  /* v3.0: Schedule info bar (week label + copy button, spans full grid width) */
+  .schedule-info-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 2px;
+  }
+  .sib-label { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .sib-copy-btn { font-size: 11px; padding: 3px 10px; white-space: nowrap; flex-shrink: 0; }
+  /* v3.0: Weekly recommendation banner on template pages */
+  .weekly-banner {
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #E6F1FB, #D4E8F8);
+    border: 1.5px solid var(--blue);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    animation: wbSlideIn 0.3s ease-out;
+  }
+  @keyframes wbSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .wb-info { flex: 1; min-width: 0; }
+  .wb-label { font-size: 11px; color: var(--blue); font-weight: 600; margin-bottom: 2px; }
+  .wb-topic { font-size: 14px; color: var(--dark); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wb-hint { font-size: 11px; color: #888; margin-top: 2px; }
+  .wb-fill-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--blue);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .wb-fill-btn:hover { background: #004399; transform: scale(1.03); }
+  .wb-fill-btn:active { transform: scale(0.98); }
+  .wb-filled { color: var(--green); background: #E8F5E9; border-color: var(--green); }
   .schedule-day { background: var(--card); border-radius: var(--radius); padding: 16px; text-align: center; transition: all 0.2s; }
   .schedule-day:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,82,204,0.15); border: 1.5px solid var(--blue); }
   .schedule-day.clickable { cursor: pointer; }
@@ -290,6 +341,12 @@
     .form-group label { font-size:13px; }
     /* Schedule: 2 cols for 5 days */
     .schedule-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
+    .schedule-info-bar { grid-column: 1 / -1; padding: 6px 10px; }
+    .sib-label { font-size: 12px; }
+    .sib-copy-btn { font-size: 11px; padding: 3px 8px; }
+    .weekly-banner { flex-direction: column; align-items: flex-start; padding: 8px 10px; }
+    .wb-topic { font-size: 13px; }
+    .wb-fill-btn { align-self: flex-end; padding: 5px 12px; font-size: 11px; }
     .schedule-day { padding:10px 8px; }
     .schedule-day .day-date { font-size:16px; }
     .schedule-day .day-topic, .schedule-day .day-name { font-size:11px; }
@@ -330,6 +387,9 @@
     .container { padding:6px; }
     .card { padding:10px; }
     .schedule-grid { grid-template-columns:repeat(2,1fr); gap:5px; }
+    .schedule-info-bar { padding: 5px 8px; }
+    .sib-label { font-size: 11px; }
+    .sib-copy-btn { font-size: 10px; padding: 2px 6px; }
     .schedule-day { padding:8px 6px; }
     .schedule-day .day-date { font-size:14px; }
     .schedule-day .day-topic { font-size:10px; }
@@ -372,6 +432,179 @@
   .fw-clean { background:#E8F5E9; border:1px solid var(--green); border-radius:8px; padding:8px 14px; margin-top:12px; font-size:12px; color:#2E7D32; display:none; }
   .fw-clean.show { display:block; }
   /* v2.0 — Hook selector & checklist */
+
+  /* ===== v3.0 — Hot Picks 今天拍什么三区 ===== */
+  .hot-picks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .hot-picks-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 13px;
+  }
+  .hot-pick-col {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .hot-pick-col-head {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+  .hot-pick-col-desc {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  .hot-pick-card {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 1px solid transparent;
+  }
+  .hot-pick-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .hot-pick-card:active {
+    transform: translateY(0);
+  }
+  .pick-fire { background: #FFF8E1; border-color: rgba(255,152,0,0.3); }
+  .pick-fire:hover { border-color: #FF9800; }
+  .pick-copy { background: #E8F5E9; border-color: rgba(76,175,80,0.3); }
+  .pick-copy:hover { border-color: #4CAF50; }
+  .pick-paste { background: #F5F5F5; border: 1.5px dashed #ccc; cursor: default; }
+  .pick-paste:hover { border-color: #999; }
+  .pick-trick { background: #E3F2FD; border-color: rgba(33,150,243,0.3); }
+  .pick-trick:hover { border-color: #2196F3; }
+  .hp-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.4;
+    margin-bottom: 2px;
+  }
+  .hp-card-hint {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.3;
+  }
+  .hp-card-action {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    margin-top: 4px;
+  }
+
+  /* 响应式: 手机端垂直排列 */
+  @media (max-width: 768px) {
+    .hot-picks-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .hot-pick-col {
+      padding: 10px;
+    }
+    .hot-pick-card {
+      padding: 8px 10px;
+    }
+  }
+
+  /* v3.0: Schedule Header Bar（合并 tab + 折叠按钮） */
+  .schedule-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #0D1B36, #0052CC);
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: opacity 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 12px rgba(0,82,204,0.25);
+    user-select: none;
+  }
+  .schedule-header-bar:hover {
+    opacity: 0.92;
+    box-shadow: 0 4px 18px rgba(0,82,204,0.35);
+  }
+  .shb-title {
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .shb-date {
+    font-size: 13px;
+    opacity: 0.75;
+    margin-left: auto;
+  }
+  @media (max-width: 640px) {
+    .schedule-header-bar { padding: 8px 12px; }
+    .shb-title { font-size: 14px; }
+    .shb-date { font-size: 12px; }
+  }
+
+  /* v3.0: Compact Today Hero */
+  .today-hero-compact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #1a237e, #0052CC);
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 12px rgba(0,82,204,0.25);
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+  .today-hero-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,82,204,0.35);
+  }
+  .thc-label {
+    font-size: 13px;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+  .thc-type {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .thc-type.type-guide { background: rgba(255,255,255,0.2); color: #fff; }
+  .thc-type.type-scene { background: rgba(255,255,255,0.2); color: #fff; }
+  .thc-type.type-review { background: rgba(255,255,255,0.2); color: #fff; }
+  .thc-type.type-local { background: rgba(255,255,255,0.2); color: #fff; }
+  .thc-topic {
+    flex: 1;
+    min-width: 120px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .thc-arrow {
+    font-size: 16px;
+    opacity: 0.7;
+    white-space: nowrap;
+  }
   #hook_selector { transition: all 0.3s; }
   #hook_selector select:focus { outline: none; border-color: #E65100; box-shadow: 0 0 0 3px rgba(255,152,0,0.15); }
   .shoot-checklist label:hover { background: #E3F2FD; border-radius: 4px; }
@@ -400,6 +633,7 @@
     #todayHero { margin: 0 -12px; border-radius: 0; }
     #todayHero > div { padding: 20px 16px !important; }
     .schedule-grid { gap: 8px; }
+    .schedule-info-bar { padding: 8px 12px; }
     
     /* Mode selector: stacked */
     .mode-selector { flex-direction: column; gap: 6px; }
