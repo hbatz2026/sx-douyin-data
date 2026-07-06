@@ -1046,6 +1046,33 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="main.js?v=20260706"></script>
+  <script src="app.js?v=20260706-hotfix"></script>
+  <!-- 🔧 Hotfix 2026-07-06: patches CDN-cached app.js (runs after app.js loads) -->
+  <script>
+  // Fix 1: typeIcons missing '自由选题' key  
+  if (typeof typeIcons !== 'undefined') {
+    if (!typeIcons['自由选题']) typeIcons['自由选题'] = '\uD83D\uDD90';
+    if (!typeIcons['灵活选题']) typeIcons['灵活选题'] = '\uD83D\uDD90';
+  }
+  if (typeof typeColors !== 'undefined') {
+    if (!typeColors['自由选题']) typeColors['自由选题'] = 'type-flex';
+    if (!typeColors['灵活选题']) typeColors['灵活选题'] = 'type-flex';
+  }
+  // Fix 2: weekRange span not updated
+  (function(){
+    var wr = document.getElementById('weekRange');
+    if (wr && typeof week !== 'undefined' && week.label) wr.textContent = week.label;
+  })();
+  // Fix 3: phonePool new format (guidePrice instead of chip/battery/screen)
+  if (typeof buildSchedule === 'function' && typeof phonePool !== 'undefined' && phonePool.length > 0) {
+    var devSpan = document.getElementById('weekDevice');
+    if (devSpan) {
+      var phone = phonePool[(typeof currentWeekNum !== 'undefined' ? currentWeekNum : 1) % phonePool.length];
+      if (phone && phone.guidePrice) {
+        devSpan.textContent = '\uD83D\uDCF1 本周评测设备：' + (phone.brand||'') + ' ' + phone.model + (' '+phone.storage||'') + ' \u00B7 \u00A5' + phone.guidePrice + (phone.isCore ? ' \u2605\u6838\u5FC3\u4E3B\u63A8' : '') + (phone.stock !== undefined ? ' \u00B7 \u5E93\u5B58'+phone.stock : '');
+      }
+    }
+  }
+  </script>
 </body>
 </html>
