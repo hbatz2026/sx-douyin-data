@@ -1,7 +1,29 @@
-// ═══ core.js ═══
+'use strict';
+// 抖本内容工坊 v2.6.0 — 模块化构建
+// 构建时间: 2026-07-08 08:55:15
+// 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
+// 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
+
+// ═══════ core.js ═══════
 'use strict';
 
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
+
+function findPhoneByName(deviceName) {
+  var pool = window.___phonePool || (typeof phonePool !== 'undefined' ? phonePool : []);
+  if (!pool.length || !deviceName) return null;
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    var fullName = (p.brand || '') + ' ' + (p.model || '');
+    if (fullName.trim() === deviceName.trim()) return p;
+  }
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    if (p.brand && p.model && deviceName.indexOf(p.brand) >= 0 && deviceName.indexOf(p.model) >= 0) return p;
+    if (p.model && deviceName.indexOf(p.model) >= 0) return p;
+  }
+  return null;
+}
 
 function sanitizeFilename(name) {
   return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
@@ -33,6 +55,39 @@ function safeCall(fn) {
       toast('预览生成失败，请检查填写是否完整', 'error');
     }
   }
+}
+
+function initT3DeviceOptions() {
+  var sel = document.getElementById('t3_device');
+  var og = document.getElementById('t3_phone_optgroup');
+  if (!sel || !og) return;
+  var pool = window.___phonePool || (typeof phonePool !== 'undefined' ? phonePool : []);
+  if (!pool.length) { og.innerHTML = '<option value="">-- 暂无手机数据 --</option>'; return; }
+  var byBrand = {};
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    var brand = p.brand || '其他';
+    if (!byBrand[brand]) byBrand[brand] = [];
+    byBrand[brand].push(p);
+  }
+  var html = '';
+  var brands = Object.keys(byBrand).sort();
+  for (var b = 0; b < brands.length; b++) {
+    var brand = brands[b];
+    var phones = byBrand[brand];
+    html += '<optgroup label="' + brand + '">';
+    for (var j = 0; j < phones.length; j++) {
+      var p = phones[j];
+      var label = p.brand + ' ' + p.model;
+      if (p.specs) label += ' ' + p.specs;
+      if (p.guidePrice) label += ' \u00a5' + p.guidePrice;
+      if (p.isCore) label += ' \u2605';
+      var value = p.brand + ' ' + p.model;
+      html += '<option value="' + esc(value) + '">' + label + '</option>';
+    }
+    html += '</optgroup>';
+  }
+  og.innerHTML = html;
 }
 
 var PERSONA_KEY = 'douyin_lab_persona';
@@ -649,7 +704,6 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
-var _wr = document.getElementById('weekRange');
 if (_wr) _wr.textContent = week.label;
 
 let bgmAudio = null;
@@ -1715,7 +1769,7 @@ function genHotspotComment(h) {
   return snippet + '... 你们遇到过吗？评论区聊聊 👇';
 }
 
-// ═══ schedule.js ═══
+// ═══════ schedule.js ═══════
 function getBestTime(idx, city) {
   const bases = [[12,14],[8,10],[20,22],[16,18],[15,16]];
   const b = bases[idx] || bases[0];
@@ -2005,7 +2059,7 @@ function jumpToTemplate(topic, typeIdx) {
   }
 }
 
-// ═══ templates.js ═══
+// ═══════ templates.js ═══════
 function switchT1Mode(mode) {
   ['talk','card','calc'].forEach(m => {
     document.getElementById('t1-mode-'+m).classList.remove('active');
@@ -2806,13 +2860,71 @@ function loadTopicsByDevice() {
     return;
   }
   // Check techDB for telecom devices
-  if (!techDB[device]) return;
-  Object.keys(techDB[device].topics).forEach(key => {
-    const opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = key + ' — ' + techDB[device].topics[key].title;
-    topicSelect.appendChild(opt);
-  });
+  if (techDB[device]) {
+    Object.keys(techDB[device].topics).forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = key + ' — ' + techDB[device].topics[key].title;
+      topicSelect.appendChild(opt);
+    });
+    return;
+  }
+  // Fallback: brand fuzzy match for any device not in phonePool or techDB
+  var fallbackTopics = buildFallbackTopics(device);
+  if (fallbackTopics) {
+    Object.keys(fallbackTopics).forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = key + ' — ' + fallbackTopics[key].title;
+      topicSelect.appendChild(opt);
+    });
+  }
+}
+
+function buildFallbackTopics(device) {
+  var brand = '';
+  var brands = ['华为','荣耀','苹果','iPhone','小米','红米','Redmi','OPPO','vivo','一加','三星','小天才'];
+  for (var i = 0; i < brands.length; i++) {
+    if (device.indexOf(brands[i]) >= 0) { brand = brands[i]; break; }
+  }
+  if (!brand && /华为|荣耀|苹果|iPhone|小米|红米|Redmi|OPPO|vivo|一加|三星|小天才/.test(device)) {
+    brand = device.match(/华为|荣耀|苹果|iPhone|小米|红米|Redmi|OPPO|vivo|一加|三星|小天才/)[0];
+  }
+  if (!brand) brand = '手机';
+  return {
+    '卖点展示': {
+      item: device, func: '核心卖点',
+      title: device + '卖点一图看：值不值得买？',
+      tags: '#' + brand + ' #手机推荐 #换机指南 #电信合约机',
+      p1: '外观：手感、配色、做工，第一印象怎么样',
+      p2: '性能：日常使用流畅度，游戏和拍照表现',
+      p3: '价格：对比同价位机型，性价比如何',
+    },
+    '5G网络实测': {
+      item: device, func: '电信5G实测',
+      title: device + '电信5G实测：信号+网速+续航',
+      tags: '#手机评测 #电信5G #' + brand + ' #网速测试',
+      p1: '5G下载速度：电信5G实测，峰值可达800-1200Mbps',
+      p2: '信号覆盖：电梯/地库/郊区三场景，电信比友商强在哪',
+      p3: '日常体验：刷抖音/看直播/视频通话，全程流畅不卡顿',
+    },
+    '拍照体验': {
+      item: device, func: '拍照样张',
+      title: device + '拍照到底怎么样？带你看看实拍样张',
+      tags: '#手机拍照 #' + brand + ' #影像评测 #换机指南',
+      p1: '白天场景：主摄直出，色彩还原度和解析力如何',
+      p2: '夜间模式：暗光下对比普通模式和夜景模式的差距',
+      p3: '人像模式：背景虚化效果+美颜算法，自拍党的真实体验',
+    },
+    '合约机优惠': {
+      item: device, func: '合约机方案',
+      title: device + '电信合约机怎么买最划算？3种方案对比',
+      tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
+      p1: '方案一：裸机购买，没优惠但最自由',
+      p2: '方案二：套餐合约，最低月消费XX元，立减300-500',
+      p3: '方案三：融合套餐，宽带+手机+电视打包，比单买省30%',
+    },
+  };
 }
 
 function autoFillTech() {
@@ -2833,6 +2945,11 @@ function autoFillTech() {
   // Fallback: fuzzy match by topic keyword
   if (!data && topic) {
     data = fuzzyTechFill(device, topic);
+  }
+  // Final fallback: generic topics for any unrecognized device
+  if (!data && topic) {
+    var fb = buildFallbackTopics(device);
+    if (fb && fb[topic]) data = fb[topic];
   }
   if (!data) {
     infoDiv.style.display = 'none';
@@ -3401,7 +3518,7 @@ function clearTemplate3() {
   if (infoPanel) infoPanel.style.display = 'none';
 }
 
-// ═══ ai.js ═══
+// ═══════ ai.js ═══════
 function tryVariantInjection(topicKey, bgm, previewDivId) {
   if (!topicKey) { console.log('[AI卡] 跳过：无 topicKey'); return ''; }
   var persona = getPersona();
@@ -3546,7 +3663,7 @@ function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errT
   syncAllQuotaBadges();
 }
 
-// ═══ live.js ═══
+// ═══════ live.js ═══════
 var liveMode = 'store';
 
 var liveProducts = {
@@ -3946,7 +4063,7 @@ function checkLiveCompliance() {
   }
 }
 
-// ═══ pages.js ═══
+// ═══════ pages.js ═══════
 function getPeriodStart(period) {
   var now = new Date();
   if (period === 'week') {
@@ -4570,7 +4687,7 @@ function syncBgmDropdowns() {
   });
 }
 
-// ═══ init.js ═══
+// ═══════ init.js ═══════
 (function initAll() {
   checkDataFiles();
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
@@ -4587,6 +4704,7 @@ function syncBgmDropdowns() {
   try { syncTopicDropdown(); } catch(e) { console.error('syncTopicDropdown:', e); }
   try { loadNavGroupStates(); } catch(e) { console.error('loadNavGroupStates:', e); }
   try { initPersonaPicker(); } catch(e) { console.error('initPersonaPicker:', e); }
+  try { initT3DeviceOptions(); } catch(e) { console.error('initT3DeviceOptions:', e); }
   try { showOnboarding(); } catch(e) { console.error('showOnboarding:', e); }
 })();
 
