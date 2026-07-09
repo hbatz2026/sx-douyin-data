@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-09 02:50:17
+// 构建时间: 2026-07-09 03:10:05
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2772,77 +2772,96 @@ function autoFillBGM(pageId, bgmElId, category, subCategory) {
 }
 
 function getPhoneTopics(modelName) {
-  // 兼容新旧格式：新版用 brand/model 匹配，旧版用 model 精确匹配
   const phone = phonePool.find(p =>
     (p.brand && p.model && modelName.includes(p.model) && modelName.includes(p.brand)) ||
     p.model === modelName
   );
   if (!phone) return null;
-  // 品牌名：新格式用 phone.brand，旧格式从 model 提取
-  var brand = phone.brand || phone.model.split(' ')[0] || '';
-  // 显示名
+  var brand = phone.brand || '';
   var displayName = phone.brand ? (phone.brand + ' ' + phone.model +
     (phone.storage ? ' (' + phone.storage + ')' : '') +
     (phone.isCore ? ' ★核心' : '')) : phone.model;
-  // 价格信息：新格式 guidePrice，旧格式 price
   var priceStr = phone.guidePrice ? ('¥' + phone.guidePrice) : (phone.price || '');
-  // 卖点信息
-  var specInfo = '';
-  if (phone.guidePrice) {
-    // 新格式：库存+指导价+核心标记
-    var parts = [];
-    if (phone.stock !== undefined) parts.push('库存' + phone.stock + '台');
-    if (phone.guidePrice) parts.push('指导价¥' + phone.guidePrice);
-    if (phone.isCore) parts.push('本周主推');
-    if (phone.storage) parts.push(phone.storage);
-    specInfo = parts.join(' | ');
-  } else {
-    // 旧格式
-    specInfo = [phone.chip, phone.battery, phone.highlight].filter(Boolean).join(' | ');
+  var price = phone.guidePrice || 0;
+
+  // Build spec info
+  var specParts = [];
+  if (phone.chip) specParts.push(phone.chip);
+  if (phone.camera) specParts.push(phone.camera);
+  if (phone.battery) specParts.push(phone.battery);
+  if (phone.stock !== undefined) specParts.push('库存' + phone.stock + '台');
+  if (price) specParts.push('¥' + price);
+  var specInfo = specParts.join(' | ');
+
+  // ── 选题智能匹配：根据机型卖点打分 ──
+  var scored = [];
+
+  // 基础选题（所有机型都有）
+  scored.push({ key: '卖点展示', score: 1, data: {
+    item: displayName, func: '核心卖点',
+    title: displayName + '卖点一图看：值不值得买？',
+    tags: '#' + brand + ' #手机推荐 #换机指南 #电信合约机',
+    p1: '配置：' + (phone.chip || phone.storage || '') + (phone.color ? (' · ' + phone.color) : ''),
+    p2: '价格：' + priceStr + (phone.stock !== undefined ? (' · 库存' + phone.stock + '台可发货') : ''),
+    p3: '亮点：' + (phone.highlight || specInfo),
+  }});
+
+  // 选题目录（根据卖点条件匹配）
+  var topicTemplates = [
+    { key:'续航实测', cond: function(){ return (phone.battery || '').replace(/[^0-9]/g,'') >= 5500; }, score:3, data:{ item:displayName, func:'续航实测', title:displayName + '重度使用能撑多久？一天实测告诉你', tags:'#手机续航 #电池实测 #' + brand + ' #换机参考', p1:'早上8点满电出门，开5G+蓝牙+定位，模拟日常使用', p2:'刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电', p3:(phone.battery||'大电池')+'电池，' + displayName + '比同价位机型多撑半天' }},
+    { key:'快充体验', cond: function(){ return /闪充|快充|100W|90W|80W/.test(phone.highlight||'') || phone.battery >= 6500; }, score:2, data:{ item:displayName, func:'快充体验', title:displayName + '充电有多快？实测从0到100%', tags:'#快充 #' + brand + ' #手机评测', p1:'电量耗尽开始充电，每隔5分钟记录一次电量', p2:'对比普通充电和快充模式，差多少时间', p3:(phone.battery||'大电池')+'配快充，碎片时间充10分钟够用半天' }},
+    { key:'拍照样张', cond: function(){ return /OIS|长焦|人像|哈苏|徕卡|光变|XMAGE|潜望|2亿/.test(phone.camera||'') || /2亿|哈苏|人像|拍人/.test(phone.highlight||''); }, score:3, data:{ item:displayName, func:'拍照样张', title:displayName + '拍照到底怎么样？实拍样张对比', tags:'#手机拍照 #' + brand + ' #影像评测 #换机指南', p1:'白天场景：主摄直出，色彩还原度和解析力如何', p2:'夜景/人像：('+(phone.camera||'')+') 暗光与人像表现', p3:(phone.highlight||'影像实力')+'，和旧手机拍的照片放一起对比' }},
+    { key:'5G实测', cond: function(){ return phone.chip && !/小天才|手表|儿童/.test(brand+modelName); }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand + ' #网速测试', p1:'电信5G实测：市区/室内/地库三场景信号对比', p2:phone.chip+'芯片性能：日常应用启动速度和后台保活', p3:'刷抖音/看直播/视频通话，全程流畅不卡顿' }},
+    { key:'性价比', cond: function(){ return price < 2000; }, score:2, data:{ item:displayName, func:'性价比之王', title:displayName + '为什么是' + (price<1200?'百元':'千元') + '机里的性价比之王？', tags:'#性价比 #' + brand + ' #手机推荐 #百元机', p1:'同价位机型对比：' + displayName + '的('+(phone.chip||'')+'+'+(phone.battery||'')+')配置碾压竞品', p2:'日常体验：刷抖音不卡、拍照够用、电池一天一充', p3:'电信合约价'+priceStr+'，还能分期0首付，学生打工人都能上车' }},
+    { key:'旗舰横评', cond: function(){ return price > 4000; }, score:2, data:{ item:displayName, func:'旗舰横评', title:displayName + ' vs 同价位旗舰，怎么选？', tags:'#旗舰手机 #' + brand + ' #手机推荐', p1:displayName + '核心卖点：'+ (phone.highlight||specInfo), p2:'对比同价位：' + (phone.chip||'旗舰芯片') + ' ' + (phone.camera||'旗舰影像') + ' ' + (phone.battery||'大电池'), p3:'适合谁：' + (price>6000?'追求极致体验的用户':'预算充足的品质用户') }},
+    { key:'大存储', cond: function(){ return /1T|1TB/i.test(phone.storage||''); }, score:2, data:{ item:displayName, func:'大存储方案', title:displayName + ' 1T存储够不够用？教你判断该选多大', tags:'#手机存储 #' + brand + ' #换机指南', p1:'1TB到底能存多少：2万张照片+500个App+100部电影', p2:'谁需要1T：摄影爱好者/视频创作者/工作文件多的人', p3:'对比256G/512G版本差价，算算每GB成本值不值' }},
+    { key:'抗摔耐用', cond: function(){ return /抗摔|防摔|防水|IP68|IP69|昆仑/.test(phone.highlight||''); }, score:3, data:{ item:displayName, func:'耐用实测', title:displayName + '真的抗摔防水吗？实测给你看', tags:'#手机耐用 #' + brand + ' #暴力测试', p1:'防水实测：水龙头冲洗/泡水盆，擦干后功能正常', p2:'防摔实测：从桌面/裤兜高度摔落，屏幕完好' + (phone.highlight||''), p3:'送给家里老人/跑工地/送外卖的用户，这个比旗舰芯片重要' }},
+    { key:'老年模式', cond: function(){ return price < 2000 && !/小天才|儿童/i.test(brand+modelName); }, score:2, data:{ item:displayName, func:'老年模式', title:displayName + '给爸妈买的手机这样设置才省心', tags:'#老年机 #' + brand + ' #适老手机', p1:'简易模式设置：字体最大+图标最大+屏蔽广告推送', p2:'远程协助：儿女远程帮爸妈操作，不用见面', p3:'电信孝心套餐：' + priceStr + '机价+低月租，爸妈不心疼' }},
+    { key:'学生首选', cond: function(){ return price < 2500 && !/小天才|儿童/i.test(brand+modelName); }, score:2, data:{ item:displayName, func:'学生党首选', title:displayName + '学生党换机首选？一天真实体验告诉你', tags:'#学生手机 #' + brand + ' #开学季 #换机指南', p1:'上课记录笔记/拍PPT/刷网课，' + displayName + '够不够用', p2:'课余打游戏/刷抖音/拍照，一天体验总结', p3:'电信校园套餐：' + priceStr + '机价+学生专属大流量套餐' }},
+    { key:'生态联动', cond: function(){ return /华为|苹果|HarmonyOS|iOS/.test(brand) && price > 4000; }, score:2, data:{ item:displayName, func:'生态联动', title:displayName + '和家里其他' + brand + '设备怎么联动？', tags:'#' + brand + '生态 #全家桶 #智能生活', p1:brand+'全家桶：手机+平板+手表+电视，一个账号打通', p2:'实用场景：手机上复制→平板上粘贴，手表接电话→手机看消息', p3:'电信全家桶套餐：' + brand + '手机+宽带+电视，比单买省30%' }},
+    // 儿童专属
+    { key:'儿童安全', cond: function(){ return /小天才|儿童|手表/i.test(brand+modelName); }, score:5, data:{ item:displayName, func:'儿童安全', title:displayName + '孩子定位防护全攻略', tags:'#儿童手表 #小天才 #安全教育 #家长必看', p1:'实时定位+安全围栏：孩子进出校门/到家自动通知', p2:'上课禁用+通话白名单：防沉迷，只接家人电话', p3:priceStr+'电信儿童副卡：共享主卡流量，月租低至10元' }},
+    // 默认兜底
+    { key:'5G实测', cond: function(){ return true; }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand, p1:'电信5G网络下，' + displayName + '的下载上传速度实测', p2:'日常使用：微信/抖音/导航，一整天流畅度体验', p3:'到' + (phone.store||'附近电信营业厅') + '，免费测速+体验真机' }},
+  ];
+
+  // 过滤并排序：满足条件的选题按分数降序
+  var matched = topicTemplates.filter(function(t) {
+    return t.cond() && !scored.find(function(s) { return s.key === t.key; });
+  });
+
+  // 防止重复 key
+  var seen = {};
+  scored.forEach(function(s) { seen[s.key] = true; });
+  var final = scored.concat(matched);
+  var deduped = [];
+  for (var i = 0; i < final.length; i++) {
+    if (!seen[final[i].key]) {
+      deduped.push(final[i]);
+      seen[final[i].key] = true;
+    }
   }
 
-  return {
-    '卖点展示': {
-      item: displayName, func: '核心卖点',
-      title: displayName + '卖点一图看：值不值得买？',
-      tags: '#' + brand + ' #手机推荐 #换机指南 #电信合约机',
-      p1: '配置：' + (phone.storage || phone.chip || '') + (phone.color ? (' · ' + phone.color) : ''),
-      p2: '价格：' + priceStr + (phone.stock !== undefined ? (' · 库存充足可发货') : ''),
-      p3: '亮点：' + specInfo,
-    },
-    '5G网络实测': {
-      item: displayName, func: '电信5G实测',
-      title: displayName + '电信5G实测：信号+网速+续航',
-      tags: '#手机评测 #电信5G #' + brand + ' #网速测试',
-      p1: '5G下载速度：电信5G实测，峰值可达800-1200Mbps',
-      p2: '信号覆盖：电梯/地库/郊区三场景，电信比友商强在哪',
-      p3: '日常体验：刷抖音/看直播/视频通话，全程流畅不卡顿',
-    },
-    '续航挑战': {
-      item: displayName, func: '续航实测',
-      title: displayName + '重度使用能撑多久？一天实测告诉你',
-      tags: '#手机续航 #电池实测 #' + brand + ' #换机参考',
-      p1: '早上8点满电出门，开5G+蓝牙+定位，模拟日常使用',
-      p2: '刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电',
-      p3: '对比同价位机型续航排行，' + displayName + '处于什么水平',
-    },
-    '拍照体验': {
-      item: displayName, func: '拍照样张',
-      title: displayName + '拍照到底怎么样？带你看看实拍样张',
-      tags: '#手机拍照 #' + brand + ' #影像评测 #换机指南',
-      p1: '白天场景：主摄直出，色彩还原度和解析力如何',
-      p2: '夜间模式：暗光下对比普通模式和夜景模式的差距',
-      p3: '人像模式：背景虚化效果+美颜算法，自拍党的真实体验',
-    },
-    '合约机优惠': {
-      item: displayName, func: '合约机方案',
-      title: displayName + '电信合约机怎么买最划算？3种方案对比',
-      tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
-      p1: '方案一：裸机买 ' + priceStr + '，没优惠但最自由',
-      p2: '方案二：套餐合约 最低月消费XX元，立减300-500',
-      p3: '方案三：融合套餐 宽带+手机+电视打包，比单买省30%',
-    },
+  // 取 top 4 + 合约机优惠（固定）
+  deduped.sort(function(a, b) { return b.score - a.score; });
+  var top4 = deduped.slice(0, 4);
+
+  var result = {};
+  for (var i = 0; i < top4.length; i++) {
+    var t = top4[i];
+    result[t.key] = t.data;
+  }
+  // 合约机优惠始终排在最后
+  result['合约机优惠'] = {
+    item: displayName, func: '合约机方案',
+    title: displayName + '电信合约机怎么买最划算？3种方案对比',
+    tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
+    p1: '方案一：裸机买 ' + priceStr + '，没优惠但最自由',
+    p2: '方案二：套餐合约，最低月消费XX元，立减300-500',
+    p3: '方案三：融合套餐，宽带+手机+电视打包，比单买省30%',
   };
+
+  return result;
 }
 
 function loadTopicsByDevice() {
