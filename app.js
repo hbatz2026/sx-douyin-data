@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-08 09:37:58
+// 构建时间: 2026-07-09 02:50:17
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -87,7 +87,10 @@ function initT3DeviceOptions() {
     }
     html += '</optgroup>';
   }
-  og.innerHTML = html;
+  // Insert brand optgroups AFTER the placeholder, then remove placeholder
+  // (cannot nest <optgroup> inside <optgroup> — invalid HTML, browser drops them)
+  og.insertAdjacentHTML('afterend', html);
+  og.remove();
 }
 
 var PERSONA_KEY = 'douyin_lab_persona';
