@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-10 01:04:58
+// 构建时间: 2026-07-10 01:38:57
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2806,12 +2806,12 @@ function getPhoneTopics(modelName) {
     p3: '亮点：' + (phone.highlight || specInfo),
   }});
 
-  // 选题目录（根据卖点条件匹配）
+  // 选题目录（根据卖点条件匹配，缺参数时用价格段+型号推断）
   var topicTemplates = [
-    { key:'续航实测', cond: function(){ return (phone.battery || '').replace(/[^0-9]/g,'') >= 5500; }, score:3, data:{ item:displayName, func:'续航实测', title:displayName + '重度使用能撑多久？一天实测告诉你', tags:'#手机续航 #电池实测 #' + brand + ' #换机参考', p1:'早上8点满电出门，开5G+蓝牙+定位，模拟日常使用', p2:'刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电', p3:(phone.battery||'大电池')+'电池，' + displayName + '比同价位机型多撑半天' }},
-    { key:'快充体验', cond: function(){ return /闪充|快充|100W|90W|80W/.test(phone.highlight||'') || phone.battery >= 6500; }, score:2, data:{ item:displayName, func:'快充体验', title:displayName + '充电有多快？实测从0到100%', tags:'#快充 #' + brand + ' #手机评测', p1:'电量耗尽开始充电，每隔5分钟记录一次电量', p2:'对比普通充电和快充模式，差多少时间', p3:(phone.battery||'大电池')+'配快充，碎片时间充10分钟够用半天' }},
-    { key:'拍照样张', cond: function(){ return /OIS|长焦|人像|哈苏|徕卡|光变|XMAGE|潜望|2亿/.test(phone.camera||'') || /2亿|哈苏|人像|拍人/.test(phone.highlight||''); }, score:3, data:{ item:displayName, func:'拍照样张', title:displayName + '拍照到底怎么样？实拍样张对比', tags:'#手机拍照 #' + brand + ' #影像评测 #换机指南', p1:'白天场景：主摄直出，色彩还原度和解析力如何', p2:'夜景/人像：('+(phone.camera||'')+') 暗光与人像表现', p3:(phone.highlight||'影像实力')+'，和旧手机拍的照片放一起对比' }},
-    { key:'5G实测', cond: function(){ return phone.chip && !/小天才|手表|儿童/.test(brand+modelName); }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand + ' #网速测试', p1:'电信5G实测：市区/室内/地库三场景信号对比', p2:phone.chip+'芯片性能：日常应用启动速度和后台保活', p3:'刷抖音/看直播/视频通话，全程流畅不卡顿' }},
+    { key:'续航实测', cond: function(){ var b = (phone.battery || '').replace(/[^0-9]/g,''); return b && b >= 5500 || (!b && price > 2000); }, score:3, data:{ item:displayName, func:'续航实测', title:displayName + '重度使用能撑多久？一天实测告诉你', tags:'#手机续航 #电池实测 #' + brand + ' #换机参考', p1:'早上8点满电出门，开5G+蓝牙+定位，模拟日常使用', p2:'刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电', p3:(phone.battery||'大电池')+'电池，' + displayName + '比同价位机型多撑半天' }},
+    { key:'快充体验', cond: function(){ return /闪充|快充|100W|90W|80W/.test(phone.highlight||'') || (phone.battery && phone.battery >= 6500) || price > 3000; }, score:2, data:{ item:displayName, func:'快充体验', title:displayName + '充电有多快？实测从0到100%', tags:'#快充 #' + brand + ' #手机评测', p1:'电量耗尽开始充电，每隔5分钟记录一次电量', p2:'对比普通充电和快充模式，差多少时间', p3:(phone.battery||'大电池')+'配快充，碎片时间充10分钟够用半天' }},
+    { key:'拍照样张', cond: function(){ return /OIS|长焦|人像|哈苏|徕卡|光变|XMAGE|潜望|2亿/.test(phone.camera||'') || /2亿|哈苏|人像|拍人/.test(phone.highlight||'') || price > 2500; }, score:3, data:{ item:displayName, func:'拍照样张', title:displayName + '拍照到底怎么样？实拍样张对比', tags:'#手机拍照 #' + brand + ' #影像评测 #换机指南', p1:'白天场景：主摄直出，色彩还原度和解析力如何', p2:'夜景/人像：('+(phone.camera||'高清摄像头')+') 暗光与人像表现', p3:(phone.highlight||'影像实力')+'，和旧手机拍的照片放一起对比' }},
+    { key:'5G实测', cond: function(){ return (phone.chip || /5G/i.test(modelName)) && !/小天才|手表|儿童/.test(brand+modelName); }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand + ' #网速测试', p1:'电信5G实测：市区/室内/地库三场景信号对比', p2:(phone.chip||'处理器')+'性能：日常应用启动速度和后台保活', p3:'刷抖音/看直播/视频通话，全程流畅不卡顿' }},
     { key:'性价比', cond: function(){ return price < 2000; }, score:2, data:{ item:displayName, func:'性价比之王', title:displayName + '为什么是' + (price<1200?'百元':'千元') + '机里的性价比之王？', tags:'#性价比 #' + brand + ' #手机推荐 #百元机', p1:'同价位机型对比：' + displayName + '的('+(phone.chip||'')+'+'+(phone.battery||'')+')配置碾压竞品', p2:'日常体验：刷抖音不卡、拍照够用、电池一天一充', p3:'电信合约价'+priceStr+'，还能分期0首付，学生打工人都能上车' }},
     { key:'旗舰横评', cond: function(){ return price > 4000; }, score:2, data:{ item:displayName, func:'旗舰横评', title:displayName + ' vs 同价位旗舰，怎么选？', tags:'#旗舰手机 #' + brand + ' #手机推荐', p1:displayName + '核心卖点：'+ (phone.highlight||specInfo), p2:'对比同价位：' + (phone.chip||'旗舰芯片') + ' ' + (phone.camera||'旗舰影像') + ' ' + (phone.battery||'大电池'), p3:'适合谁：' + (price>6000?'追求极致体验的用户':'预算充足的品质用户') }},
     { key:'大存储', cond: function(){ return /1T|1TB/i.test(phone.storage||''); }, score:2, data:{ item:displayName, func:'大存储方案', title:displayName + ' 1T存储够不够用？教你判断该选多大', tags:'#手机存储 #' + brand + ' #换机指南', p1:'1TB到底能存多少：2万张照片+500个App+100部电影', p2:'谁需要1T：摄影爱好者/视频创作者/工作文件多的人', p3:'对比256G/512G版本差价，算算每GB成本值不值' }},
@@ -3094,11 +3094,12 @@ function previewT3Talk() {
 
 function buildPhoneTalkScript(phone, topic, city, bgm, title, tags, userHook) {
   const model = phone.model;
-  const chip = phone.chip;
-  const battery = phone.battery;
-  const camera = phone.camera;
-  const highlight = phone.highlight;
-  const price = phone.price;
+  const price = phone.guidePrice || phone.price || 0;
+  // 卖点字段降级增强——有值时精确描述，缺省时用价格段自动推断
+  const chip = phone.chip || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
+  const battery = phone.battery || (price > 3000 ? '大容量电池' : price > 1500 ? '长续航电池' : '日常够用电池');
+  const camera = phone.camera || (price > 3500 ? '旗舰级影像系统' : price > 2000 ? '高清多摄' : '高清主摄');
+  const highlight = phone.highlight || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选·物超所值');
   // Choose hook and talking points based on topic category
   var hook = '', p1 = '', p2 = '', p3 = '';
   if (topic.includes('续航')) {
