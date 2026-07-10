@@ -1,7 +1,7 @@
 // 抖本工坊 · 数据包（自动合并 9 文件）
-// 生成时间: 2026-07-09 03:11:13
+// 生成时间: 2026-07-10 01:48:50
 // 合并文件: bgmList.js, hotspotData.js, phonePool.js, publish-kit.js, t1Presets.js, t2Presets.js, t4Presets.js, techDB.js, topicPool.js
-// 大小: 61743 bytes ( 9 source files)
+// 大小: 61765 bytes ( 9 source files)
 
 // ===== bgmList.js =====
 // Auto-generated BGM
@@ -350,17 +350,17 @@ window.___phonePool = [
   { brand:'vivo', model:'Y500s Pro', code:'V2501A', specs:'(浮光金)(8G+256G)', color:'浮光金', storage:'8G+256G', stock:14, guidePrice:1961, isCore:false,
     chip:'天玑7300', camera:'5000万主摄', battery:'8200mAh', highlight:'大电池+IP69防水' },
   { brand:'vivo', model:'Y600 Pro', code:'V2501A', specs:'(皓月黑)(12G+256G)', color:'皓月黑', storage:'12G+256G', stock:20, guidePrice:2471, isCore:false,
-    chip:'天玑7500', camera:'5000万主摄+超广角', battery:'6500mAh', highlight:'中端大屏·性价比之选' },
+    chip:'天玑7300e', camera:'5000万主摄+超广角', battery:'6500mAh', highlight:'中端大屏·性价比之选' },
 
   // ═══ 华为 ═══
   { brand:'华为', model:'Mate 70 Pro', code:'PLU-AL30', specs:'(雅丹白)(12G+512G)', color:'雅丹白', storage:'12G+512G', stock:67, guidePrice:5038, isCore:true,
     chip:'麒麟9100', camera:'50MP超光变OIS+12MP潜望', battery:'5500mAh', highlight:'商务旗舰·卫星通信' },
   { brand:'华为', model:'Nova 16', code:'EMA-AL000', specs:'(曜天蓝)(12G+256G)', color:'曜天蓝', storage:'12G+256G', stock:4, guidePrice:2935, isCore:true,
-    chip:'麒麟8010', camera:'5000万主摄', battery:'5000mAh', highlight:'中端时尚·轻薄拍照' },
+    chip:'麒麟9010S', camera:'5000万主摄', battery:'7000mAh', highlight:'7000mAh巨鲸电池·鸿蒙AI加持' },
   { brand:'华为', model:'Nova 16 Ultra', code:'HIP-A100', specs:'(曜宇蓝)(12G+512G)', color:'曜宇蓝', storage:'12G+512G', stock:2, guidePrice:4360, isCore:true,
-    chip:'麒麟9010', camera:'50MP主摄+长焦', battery:'5300mAh', highlight:'中端影像旗舰·人像大师' },
+    chip:'麒麟9010S', camera:'2亿红枫影像', battery:'7000mAh', highlight:'2亿红枫影像·7000mAh巨鲸电池' },
   { brand:'华为', model:'Pura 90 Pro Max', code:'SCA-AL00', specs:'(墨韵金)(16G+512G)', color:'墨韵金', storage:'16G+512G', stock:1, guidePrice:6561, isCore:true,
-    chip:'麒麟9100', camera:'2亿长焦+XMAGE', battery:'6000mAh', highlight:'影像王者·北斗卫星' },
+    chip:'麒麟9030S', camera:'2亿长焦+XMAGE', battery:'6000mAh', highlight:'影像王者·北斗卫星' },
 
   // ═══ 苹果 ═══
   { brand:'苹果', model:'iPhone 17', code:'', specs:'(白瓷)(512GB)', color:'白瓷', storage:'512GB', stock:7, guidePrice:5750, isCore:true,
@@ -368,7 +368,7 @@ window.___phonePool = [
 
   // ═══ 小米/红米 ═══
   { brand:'小米', model:'Redmi R70 5G', code:'26020RWIAC', specs:'(冰雪黑)(6G+128G)', color:'冰雪黑', storage:'6G+128G', stock:102, guidePrice:1155, isCore:true,
-    chip:'骁龙4 Gen2', camera:'5000万主摄', battery:'5000mAh', highlight:'百元5G·学生老人首选' },
+    chip:'紫光展锐T8300', camera:'5000万主摄', battery:'6000mAh', highlight:'百元5G·学生老人首选' },
 
   // ═══ 小天才 ═══
   { brand:'小天才', model:'Z6 Pro', code:'W2302AC', specs:'(天空蓝)', color:'天空蓝', storage:'', stock:5, guidePrice:859, isCore:true,
