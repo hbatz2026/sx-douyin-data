@@ -1,29 +1,15 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 01:07:24
+// 构建时间: 2026-07-13 01:39:37
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
 // ═══════ core.js ═══════
 'use strict';
 
-function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
+'use strict';
 
-function findPhoneByName(deviceName) {
-  var pool = window.___phonePool || (typeof phonePool !== 'undefined' ? phonePool : []);
-  if (!pool.length || !deviceName) return null;
-  for (var i = 0; i < pool.length; i++) {
-    var p = pool[i];
-    var fullName = (p.brand || '') + ' ' + (p.model || '');
-    if (fullName.trim() === deviceName.trim()) return p;
-  }
-  for (var i = 0; i < pool.length; i++) {
-    var p = pool[i];
-    if (p.brand && p.model && deviceName.indexOf(p.brand) >= 0 && deviceName.indexOf(p.model) >= 0) return p;
-    if (p.model && deviceName.indexOf(p.model) >= 0) return p;
-  }
-  return null;
-}
+function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
 
 function sanitizeFilename(name) {
   return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
@@ -55,42 +41,6 @@ function safeCall(fn) {
       toast('预览生成失败，请检查填写是否完整', 'error');
     }
   }
-}
-
-function initT3DeviceOptions() {
-  var sel = document.getElementById('t3_device');
-  var og = document.getElementById('t3_phone_optgroup');
-  if (!sel || !og) return;
-  var pool = window.___phonePool || (typeof phonePool !== 'undefined' ? phonePool : []);
-  if (!pool.length) { og.innerHTML = '<option value="">-- 暂无手机数据 --</option>'; return; }
-  var byBrand = {};
-  for (var i = 0; i < pool.length; i++) {
-    var p = pool[i];
-    var brand = p.brand || '其他';
-    if (!byBrand[brand]) byBrand[brand] = [];
-    byBrand[brand].push(p);
-  }
-  var html = '';
-  var brands = Object.keys(byBrand).sort();
-  for (var b = 0; b < brands.length; b++) {
-    var brand = brands[b];
-    var phones = byBrand[brand];
-    html += '<optgroup label="' + brand + '">';
-    for (var j = 0; j < phones.length; j++) {
-      var p = phones[j];
-      var label = p.brand + ' ' + p.model;
-      if (p.specs) label += ' ' + p.specs;
-      if (p.guidePrice) label += ' \u00a5' + p.guidePrice;
-      if (p.isCore) label += ' \u2605';
-      var value = p.brand + ' ' + p.model;
-      html += '<option value="' + esc(value) + '">' + label + '</option>';
-    }
-    html += '</optgroup>';
-  }
-  // Insert brand optgroups AFTER the placeholder, then remove placeholder
-  // (cannot nest <optgroup> inside <optgroup> — invalid HTML, browser drops them)
-  og.insertAdjacentHTML('afterend', html);
-  og.remove();
 }
 
 var PERSONA_KEY = 'douyin_lab_persona';
@@ -707,7 +657,6 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
-var _wr = document.getElementById('weekRange');
 if (_wr) _wr.textContent = week.label;
 
 let bgmAudio = null;
@@ -2936,52 +2885,6 @@ function loadTopicsByDevice() {
   }
 }
 
-function buildFallbackTopics(device) {
-  var brand = '';
-  var brands = ['华为','荣耀','苹果','iPhone','小米','红米','Redmi','OPPO','vivo','一加','三星','小天才'];
-  for (var i = 0; i < brands.length; i++) {
-    if (device.indexOf(brands[i]) >= 0) { brand = brands[i]; break; }
-  }
-  if (!brand && /华为|荣耀|苹果|iPhone|小米|红米|Redmi|OPPO|vivo|一加|三星|小天才/.test(device)) {
-    brand = device.match(/华为|荣耀|苹果|iPhone|小米|红米|Redmi|OPPO|vivo|一加|三星|小天才/)[0];
-  }
-  if (!brand) brand = '手机';
-  return {
-    '卖点展示': {
-      item: device, func: '核心卖点',
-      title: device + '卖点一图看：值不值得买？',
-      tags: '#' + brand + ' #手机推荐 #换机指南 #电信合约机',
-      p1: '外观：手感、配色、做工，第一印象怎么样',
-      p2: '性能：日常使用流畅度，游戏和拍照表现',
-      p3: '价格：对比同价位机型，性价比如何',
-    },
-    '5G网络实测': {
-      item: device, func: '电信5G实测',
-      title: device + '电信5G实测：信号+网速+续航',
-      tags: '#手机评测 #电信5G #' + brand + ' #网速测试',
-      p1: '5G下载速度：电信5G实测，峰值可达800-1200Mbps',
-      p2: '信号覆盖：电梯/地库/郊区三场景，电信比友商强在哪',
-      p3: '日常体验：刷抖音/看直播/视频通话，全程流畅不卡顿',
-    },
-    '拍照体验': {
-      item: device, func: '拍照样张',
-      title: device + '拍照到底怎么样？带你看看实拍样张',
-      tags: '#手机拍照 #' + brand + ' #影像评测 #换机指南',
-      p1: '白天场景：主摄直出，色彩还原度和解析力如何',
-      p2: '夜间模式：暗光下对比普通模式和夜景模式的差距',
-      p3: '人像模式：背景虚化效果+美颜算法，自拍党的真实体验',
-    },
-    '合约机优惠': {
-      item: device, func: '合约机方案',
-      title: device + '电信合约机怎么买最划算？3种方案对比',
-      tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
-      p1: '方案一：裸机购买，没优惠但最自由',
-      p2: '方案二：套餐合约，最低月消费XX元，立减300-500',
-      p3: '方案三：融合套餐，宽带+手机+电视打包，比单买省30%',
-    },
-  };
-}
-
 function autoFillTech() {
   const device = document.getElementById('t3_device').value;
   const topic = document.getElementById('t3_topic').value;
@@ -4377,399 +4280,73 @@ function clearStats() {
   renderStats();
 }
 
+
+// ── 一图流 / 卖点卡 → AI 生图提示词（统一入口）──
 function generateInfographic() {
-  const item = document.getElementById('t3_item').value;
-  const func = document.getElementById('t3_func').value;
-  const title = document.getElementById('t3_title').value;
-  const p1 = document.getElementById('t3_p1').value;
-  const p2 = document.getElementById('t3_p2').value;
-  const p3 = document.getElementById('t3_p3').value;
-  const city = document.getElementById('t3_city').value || '本地';
+  buildAiPrompt('infographic');
+}
+function generateSellingPointCard() {
+  buildAiPrompt('sellpoint');
+}
+
+function buildAiPrompt(mode) {
+  var item = document.getElementById('t3_item').value;
+  var title = document.getElementById('t3_title').value;
+  var p1 = document.getElementById('t3_p1').value;
+  var p2 = document.getElementById('t3_p2').value;
+  var p3 = document.getElementById('t3_p3').value;
+  var city = document.getElementById('t3_city').value || '本地';
   if (!p1 || !p2 || !p3) {
     alert('请先在顶部选好设备和选题（自动填充后生成）');
     return;
   }
-  // Parse each line: "部位名：说明"
-  function parseLine(l) {
-    var parts = l.split('：');
-    return { label: parts[0] || '', desc: parts.slice(1).join('：') || l };
+  // 提取纯卖点文本（去掉"部位名："前缀）
+  function cleanP(raw) {
+    var idx = raw.indexOf('：');
+    return idx > 0 ? raw.substring(idx + 1).trim() : raw.trim();
   }
-  var d1 = parseLine(p1);
-  var d2 = parseLine(p2);
-  var d3 = parseLine(p3);
+  var s1 = cleanP(p1), s2 = cleanP(p2), s3 = cleanP(p3);
   var phone = findPhoneByName(item);
   var isPhone = !!phone;
+  var displayName = isPhone ? (phone.brand + ' ' + phone.model) : item;
+  var priceStr = isPhone ? ('¥' + (phone.guidePrice || phone.price || '到店询')) : '';
+  var isDevice = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带');
+
+  // 生成结构化提示词
+  var lines = [];
+  lines.push('生成一张' + (isDevice ? '步骤图解' : '手机卖点') + '海报，竖版3:4比例，适合发朋友圈：');
+  lines.push('- 标题：' + (title || displayName));
+  if (priceStr) lines.push('- 价格：' + priceStr + '，电信合约机更优惠');
+  if (isDevice) {
+    lines.push('- 步骤1：' + s1);
+    lines.push('- 步骤2：' + s2);
+    lines.push('- 步骤3：' + s3);
+  } else {
+    lines.push('- 核心卖点1：' + s1);
+    lines.push('- 核心卖点2：' + s2);
+    lines.push('- 核心卖点3：' + s3);
+  }
+  lines.push('- 底部文案：' + city + '电信营业厅 · 到店体验真机');
+  lines.push('- 风格：' + (isDevice ? '简洁步骤式，每步带图标，蓝白配色，适合中老年人阅读'
+    : '商务科技风，深蓝+橙色渐变，白色卡片，清晰大字，适合手机展示'));
+
+  var prompt = lines.join('\n');
+
   var panel = document.getElementById('infographicPanel');
-  var cardW = Math.min(420, window.innerWidth - 40);
-  var cardH = 720;
-  // 手机评测 → 卖点卡片布局；设备教程 → 步骤式
-  var bodyHtml = isPhone ?
-    '<div style="padding:12px 24px 20px;">' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
-        miniSpec(phone.chip || '旗舰芯片', '🧠 芯片') +
-        miniSpec(phone.battery || '大电池', '🔋 电池') +
-        miniSpec(phone.camera || '高清拍照', '📸 拍照') +
-        miniSpec(phone.highlight || '性价比之选', '✨ 卖点') +
+  panel.innerHTML =
+    '<div style="max-width:440px;margin:0 auto;padding:20px;background:#FAFBFC;border-radius:12px;font-family:\'Microsoft YaHei\',sans-serif;">' +
+      '<div style="font-weight:700;font-size:14px;color:#172B4D;margin-bottom:6px;">' +
+        (mode === 'sellpoint' ? '💎 AI 卖点海报提示词' : '🖼 AI 图解海报提示词') +
       '</div>' +
-      '<div style="background:#FFF3E0;border-radius:10px;padding:14px;text-align:center;">' +
-        '<div style="font-size:13px;color:#E65100;font-weight:600;">' + (phone.guidePrice ? '¥' + phone.guidePrice : phone.price ? '¥' + phone.price : '') + '</div>' +
-        '<div style="font-size:11px;color:#999;margin-top:4px;">到' + city + '电信营业厅可办理合约机</div>' +
+      '<div style="font-size:12px;color:#666;margin-bottom:10px;">复制下方提示词 → 打开 <b>豆包/通义千问/即梦</b> → 粘贴 → 30秒出图</div>' +
+      '<textarea readonly id="aiPromptText" style="width:100%;height:' + (isDevice ? '180px' : '200px') + ';font-size:12px;line-height:1.7;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;background:#fff;">' + prompt + '</textarea>' +
+      '<div style="margin-top:10px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'aiPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制！\';b.style.background=\'#008A5C\';setTimeout(function(){b.textContent=\'📋 复制提示词\';b.style.background=\'#0052CC\'},1500)})" style="flex:1;padding:8px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">📋 复制提示词</button>' +
+        '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
       '</div>' +
-    '</div>' :
-    '<div style="padding:16px 24px 20px;">' +
-      renderCard(0, '#0052CC', d1.label, d1.desc) +
-      renderCard(1, '#FF5722', d2.label, d2.desc) +
-      renderCard(2, '#008A5C', d3.label, d3.desc) +
-    '</div>';
-  var html = `
-  <div style="max-width:${cardW}px;margin:0 auto;">
-    <div id="infographicCard" style="width:${cardW}px;min-height:${cardH}px;background:linear-gradient(180deg,#0D1B36 0%,#1a2a4a 30%,#fff 30%,#fff 100%);border-radius:16px;overflow:hidden;position:relative;font-family:'Microsoft YaHei',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
-      <!-- Header -->
-      <div style="padding:32px 28px 20px;text-align:center;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">${city} · 中国电信</div>
-        <div style="font-size:18px;color:#fff;font-weight:700;line-height:1.4;">${isPhone ? (phone.brand + ' ' + phone.model) : title}</div>
-      </div>
-      <!-- Body -->
-      ${bodyHtml}
-      <!-- Footer -->
-      <div style="padding:16px 28px 24px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 24px;">
-        <div style="font-size:12px;color:#999;margin-bottom:4px;">长按保存到手机，以后照着查</div>
-        <div style="font-size:10px;color:#ccc;">${city}电信营业厅 · 抖本内容工坊</div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:12px;">
-      <button class="btn btn-green btn-sm" onclick="downloadInfographic()" style="font-size:14px;padding:10px 24px;">📥 下载一图流（PNG）</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('infographicPanel').style.display='none'" style="font-size:14px;padding:10px 24px;">✕ 收起</button>
-      <button class="btn btn-orange btn-sm" onclick="shareInfographic()" style="font-size:14px;padding:10px 24px;">📤 复制图发给用户</button>
-    </div>
-  </div>`;
-  panel.innerHTML = html;
-  panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth' });
-}
-
-function renderCard(idx, color, label, desc) {
-  var icons = ['🔵', '🟠', '🟢'];
-  return `
-  <div style="display:flex;align-items:flex-start;padding:14px 16px;margin-bottom:10px;background:#FAFBFC;border-radius:10px;border-left:4px solid ${color};">
-    <div style="width:32px;height:32px;border-radius:50%;background:${color};color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;margin-top:2px;">${idx+1}</div>
-    <div>
-      <div style="font-size:14px;font-weight:700;color:#172B4D;margin-bottom:4px;">${icons[idx]} ${label}</div>
-      <div style="font-size:12px;color:#42526E;line-height:1.6;">${desc}</div>
-    </div>
-  </div>`;
-}
-
-function miniSpec(val, label) {
-  return '<div style="background:#FAFBFC;border-radius:10px;padding:10px 8px;text-align:center;">' +
-    '<div style="font-size:12px;font-weight:700;color:#172B4D;">' + label + '</div>' +
-    '<div style="font-size:10px;color:#42526E;margin-top:2px;">' + (val || '-') + '</div>' +
-  '</div>';
-}
-
-function downloadInfographic() {
-  var card = document.getElementById('infographicCard');
-  if (!card) return;
-  var filename = '一图流_' + sanitizeFilename((document.getElementById('t3_title').value || '图解')) + '.png';
-  if (typeof html2canvas !== 'undefined') {
-    html2canvas(card, { backgroundColor: null, scale: 2 }).then(function(canvas) {
-      var link = document.createElement('a');
-      link.download = filename;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  } else {
-    // Canvas 自绘兜底：不依赖任何外部库
-    drawPhoneCardAndDownload(filename);
-  }
-}
-
-function shareInfographic() {
-  const card = document.getElementById('infographicCard');
-  if (!card) return;
-  // Try clipboard API first (text fallback), then Range+execCommand
-  var text = card.innerText || card.textContent;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      toast('图解文字已复制到剪贴板', 'success');
-    }).catch(function() {
-      tryLegacyCopy();
-    });
-  } else {
-    tryLegacyCopy();
-  }
-  function tryLegacyCopy() {
-    try {
-      const range = document.createRange();
-      range.selectNode(card);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      document.execCommand('copy');
-      selection.removeAllRanges();
-      toast('图解已复制到剪贴板', 'success');
-    } catch(e) {
-      toast('复制失败，请截图右下角的图解卡片手动发送', 'error');
-    }
-  }
-}
-
-function generateSellingPointCard() {
-  const device = document.getElementById('t3_device').value;
-  const topic = document.getElementById('t3_topic').value;
-  // Get phone data (兼容新旧格式)
-  const phone = findPhoneByName(device);
-  if (!phone) {
-    alert('请在产品测评中的「📱 手机评测」分组选择一个具体手机型号！');
-    return;
-  }
-  const panel = document.getElementById('infographicPanel');
-  const cardW = Math.min(420, window.innerWidth - 40);
-  // 兼容新旧格式
-  var displayName = phone.brand ? (phone.brand + ' ' + phone.model +
-    (phone.storage ? ' (' + phone.storage + ')' : '')) : (phone.model || device);
-  var displayPrice = phone.guidePrice ? ('¥' + phone.guidePrice) : (phone.price || '');
-  var isNewFormat = !!phone.brand;
-  var html = `
-  <div style="max-width:${cardW}px;margin:0 auto;">
-    <div id="infographicCardSP" style="width:${cardW}px;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#fff 50%,#fff 100%);border-radius:16px;overflow:hidden;position:relative;font-family:'Microsoft YaHei',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-      <!-- Hero -->
-      <div style="padding:28px 24px 16px;text-align:center;">
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:4px;">山西电信·合约机推荐${phone.isCore ? ' ★本周主推' : ''}</div>
-        <div style="font-size:20px;color:#fff;font-weight:700;line-height:1.3;">${displayName}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;">${isNewFormat ? (phone.color || '') : (phone.highlight || '')}</div>
-        <div style="display:inline-block;background:var(--orange);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;margin-top:8px;">${displayPrice}${isNewFormat && phone.stock !== undefined ? (' · 库存' + phone.stock + '台') : ''}</div>
-      </div>
-      <!-- Specs Grid — 统一展示消费者关心的卖点 -->
-      <div style="padding:16px 20px 8px;">
-        ${(() => {
-          var p = phone;
-          var price = p.guidePrice || p.price || 0;
-          var chip = p.chip || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
-          var bat = p.battery || (price > 3000 ? '大容量电池' : '长续航电池');
-          var cam = p.camera || (price > 3500 ? '旗舰影像' : price > 2000 ? '高清多摄' : '高清主摄');
-          var hl = p.highlight || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选');
-          return `
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:20px;">🧠</div>
-              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">芯片</div>
-              <div style="font-size:11px;color:#42526E;">${chip}</div>
-            </div>
-            <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:20px;">🔋</div>
-              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">电池</div>
-              <div style="font-size:11px;color:#42526E;">${bat}</div>
-            </div>
-            <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:20px;">📸</div>
-              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">拍照</div>
-              <div style="font-size:11px;color:#42526E;">${cam}</div>
-            </div>
-            <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:20px;">✨</div>
-              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">卖点</div>
-              <div style="font-size:11px;color:#42526E;">${hl}</div>
-            </div>
-          </div>`;
-        })()}
-      </div>
-      <!-- Highlight -->
-      <div style="margin:8px 20px 16px;padding:14px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:10px;text-align:center;">
-        <div style="font-size:11px;color:#E65100;font-weight:600;">✨ 为什么选它</div>
-        <div style="font-size:13px;color:#172B4D;font-weight:700;margin-top:2px;line-height:1.4;">${phone.highlight || (phone.isCore ? '★ 本周核心主推机型' : '性价比出色，值得入手')}</div>
-      </div>
-      <!-- Footer -->
-      <div style="padding:12px 20px 20px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 16px;">
-        <div style="font-size:11px;color:#999;">到电信营业厅办理合约机，享专属优惠</div>
-        <div style="font-size:10px;color:#ccc;margin-top:2px;">山西电信 · 抖本内容工坊</div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:12px;">
-      <button class="btn btn-green btn-sm" onclick="downloadSellingPointCard()" style="font-size:14px;padding:10px 24px;">📥 下载卖点卡（PNG）</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('infographicPanel').style.display='none'" style="font-size:14px;padding:10px 24px;">✕ 收起</button>
-    </div>
-  </div>`;
-  panel.innerHTML = html;
-  panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth' });
-}
-
-function downloadSellingPointCard() {
-  var card = document.getElementById('infographicCardSP');
-  if (!card) return;
-  var device = document.getElementById('t3_device').value;
-  var phone = findPhoneByName(device) || (function(){ var idx = currentWeekNum % phonePool.length; return phonePool[idx]; })();
-  var filename = '卖点卡_' + sanitizeFilename(phone.model) + '.png';
-  if (typeof html2canvas !== 'undefined') {
-    html2canvas(card, { backgroundColor: null, scale: 2 }).then(function(canvas) {
-      var link = document.createElement('a');
-      link.download = filename;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  } else {
-    drawPhoneCardAndDownload(filename);
-  }
-}
-
-// ── Canvas 自绘卡片渲染器（零依赖，兜底导出 PNG）──
-function drawPhoneCardAndDownload(filename) {
-  var device = document.getElementById('t3_device').value;
-  var phone = findPhoneByName(device);
-  var city = document.getElementById('t3_city').value || '本地';
-  if (!phone) {
-    // 非手机设备走 AI 提示词
-    showAiPromptForCard();
-    return;
-  }
-  var W = 420, H = 600, scale = 2;
-  var canvas = document.createElement('canvas');
-  canvas.width = W * scale; canvas.height = H * scale;
-  var ctx = canvas.getContext('2d');
-  ctx.scale(scale, scale);
-
-  var price = phone.guidePrice || phone.price || 0;
-  var chip = phone.chip || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
-  var bat = phone.battery || (price > 3000 ? '大容量电池' : '长续航电池');
-  var cam = phone.camera || (price > 3500 ? '旗舰影像' : price > 2000 ? '高清多摄' : '高清主摄');
-  var hl = phone.highlight || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选');
-  var displayName = (phone.brand || '') + ' ' + (phone.model || '');
-  var specCards = [
-    { icon: '🧠', label: '芯片', val: chip },
-    { icon: '🔋', label: '电池', val: bat },
-    { icon: '📸', label: '拍照', val: cam },
-    { icon: '✨', label: '卖点', val: hl }
-  ];
-
-  // 背景
-  ctx.fillStyle = '#ffffff';
-  roundRect(ctx, 0, 0, W, H, 16);
-  ctx.fill();
-
-  // 深色头部
-  var headH = 170;
-  ctx.fillStyle = '#0D1B36';
-  ctx.beginPath(); roundRect(ctx, 0, 0, W, headH, 16); ctx.fill();
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, headH - 16, W, 16); // 切掉底部圆角
-  ctx.beginPath(); roundRect(ctx, 0, 0, W, headH, 16); ctx.clip();
-
-  // 头部文字
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '11px "Microsoft YaHei",sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(city + ' · 中国电信', W / 2, 38);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 20px "Microsoft YaHei",sans-serif';
-  ctx.fillText(displayName, W / 2, 72);
-
-  // 价格徽章
-  var badgeW = 100, badgeH = 28, badgeX = W / 2 - badgeW / 2, badgeY = 95;
-  ctx.fillStyle = '#FF5722';
-  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 14); ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 13px "Microsoft YaHei",sans-serif';
-  ctx.fillText('¥' + (price || '到店询'), W / 2, badgeY + 20);
-
-  ctx.restore(); // remove clip
-
-  // 规格四宫格
-  var gridY = headH + 16, gridH = 220, gutter = 10;
-  var cellW = (W - 40 - gutter) / 2, cellH = (gridH - gutter) / 2;
-  for (var i = 0; i < 4; i++) {
-    var col = i % 2, row = Math.floor(i / 2);
-    var cx = 20 + col * (cellW + gutter);
-    var cy = gridY + row * (cellH + gutter);
-    var colors = ['#F0F7FF','#FFF8F0','#F0FFF4','#FFF0F5'];
-    ctx.fillStyle = colors[i];
-    roundRect(ctx, cx, cy, cellW, cellH, 10); ctx.fill();
-
-    ctx.fillStyle = '#172B4D';
-    ctx.font = 'bold 12px "Microsoft YaHei",sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(specCards[i].icon + ' ' + specCards[i].label, cx + cellW / 2, cy + 40);
-
-    ctx.fillStyle = '#42526E';
-    ctx.font = '11px "Microsoft YaHei",sans-serif';
-    // 长文本换行
-    var valText = specCards[i].val || '-';
-    if (valText.length > 10) {
-      ctx.fillText(valText.substring(0, 10), cx + cellW / 2, cy + 62);
-      ctx.fillText(valText.substring(10), cx + cellW / 2, cy + 78);
-    } else {
-      ctx.fillText(valText, cx + cellW / 2, cy + 68);
-    }
-  }
-
-  // 高亮条
-  var hlY = gridY + gridH + 10;
-  ctx.fillStyle = '#FFF3E0';
-  roundRect(ctx, 20, hlY, W - 40, 42, 10); ctx.fill();
-  ctx.fillStyle = '#E65100';
-  ctx.font = 'bold 12px "Microsoft YaHei",sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('✨ ' + (phone.highlight || '性价比出色，值得入手'), W / 2, hlY + 28);
-
-  // 底部
-  var footY = H - 50;
-  ctx.strokeStyle = '#DFE1E6';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4, 4]);
-  ctx.beginPath(); ctx.moveTo(30, footY); ctx.lineTo(W - 30, footY); ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.fillStyle = '#999999';
-  ctx.font = '11px "Microsoft YaHei",sans-serif';
-  ctx.fillText('到' + city + '电信营业厅办理合约机，享专属优惠', W / 2, footY + 20);
-  ctx.fillStyle = '#CCCCCC';
-  ctx.font = '10px "Microsoft YaHei",sans-serif';
-  ctx.fillText('山西电信 · 抖本内容工坊', W / 2, footY + 38);
-
-  // 导出 PNG
-  canvas.toBlob(function(blob) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('卖点卡已生成，可直接发朋友圈或发给客户', 'success');
-  }, 'image/png');
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-// ── AI 生图提示词（非手机设备的备选方案）──
-function showAiPromptForCard() {
-  var item = document.getElementById('t3_item').value;
-  var city = document.getElementById('t3_city').value || '本地';
-  var prompt = '请生成一张信息图解卡片，适合发朋友圈：\n' +
-    '主题：' + item + '选购指南\n' +
-    '风格：商务简约，白色背景，深蓝色标题区，橙色价格标签\n' +
-    '内容：列出3个核心卖点，附带「到' + city + '电信营业厅了解更多」\n' +
-    '尺寸：适合手机竖屏查看，比例3:4\n' +
-    '底部文字：山西电信 · 抖本内容工坊';
-  var panel = document.getElementById('infographicPanel');
-  panel.innerHTML = '<div style="max-width:420px;margin:0 auto;padding:20px;background:#FAFBFC;border-radius:12px;">' +
-    '<div style="font-weight:700;color:#172B4D;margin-bottom:8px;">🤖 AI 生图提示词（复制到豆包/通义千问等工具）</div>' +
-    '<textarea readonly style="width:100%;height:160px;font-size:12px;line-height:1.6;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;">' + prompt + '</textarea>' +
-    '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.value);this.textContent=\'✅ 已复制！\';setTimeout(()=>this.textContent=\'📋 复制提示词\',1500)" style="margin-top:8px;padding:8px 16px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">📋 复制提示词</button>' +
-    '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="margin-left:8px;padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
     '</div>';
   panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth' });
 }
 
 const hotspotData = (function() {
