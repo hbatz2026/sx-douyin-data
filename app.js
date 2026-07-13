@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 06:28:57
+// 构建时间: 2026-07-13 06:47:45
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1830,6 +1830,29 @@ function translateSpecToSlogan(raw, type) {
   return text;
 }
 
+// v2.7 扩展：仅提取事实数据（不带结论词后缀），用于口播脚本
+function translateSpecToFact(raw, type) {
+  if (!raw) return '';
+  var text = String(raw);
+  if (type === 'camera') {
+    var mp = text.match(/(\d+万[主长]?摄?)/);
+    if (mp) return mp[1];
+    var yi = text.match(/(\d+亿[主]?长?焦?)/);
+    if (yi) return yi[1];
+    return text;
+  }
+  if (type === 'battery') {
+    var cap = text.match(/(\d+mAh)/i);
+    if (cap) return cap[1] + '容量电池';
+    return text;
+  }
+  if (type === 'highlight') {
+    // highlight 提取核心短语
+    return text.replace(/·/g, '，').replace(/[，,\s]+$/, '');
+  }
+  return text;
+}
+
 // 从 phonePool 获取3条卖点
 function getPhoneSellPoints(deviceName) {
   var phone = findPhoneByName(deviceName);
@@ -3173,11 +3196,11 @@ function previewT3Talk() {
 function buildPhoneTalkScript(phone, topic, city, bgm, title, tags, userHook) {
   const model = phone.model;
   const price = phone.guidePrice || phone.price || 0;
-  // 卖点字段降级增强——有值时精确描述，缺省时用价格段自动推断
-  const chip = phone.chip || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
-  const battery = phone.battery || (price > 3000 ? '大容量电池' : price > 1500 ? '长续航电池' : '日常够用电池');
-  const camera = phone.camera || (price > 3500 ? '旗舰级影像系统' : price > 2000 ? '高清多摄' : '高清主摄');
-  const highlight = phone.highlight || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选·物超所值');
+  // v2.7: phonePool 字段走翻译层（口语化版本，不带结论词后缀）
+  const chip = translateSpecToFact(phone.chip, 'chip') || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
+  const battery = translateSpecToFact(phone.battery, 'battery') || (price > 3000 ? '大容量电池' : price > 1500 ? '长续航电池' : '日常够用电池');
+  const camera = translateSpecToFact(phone.camera, 'camera') || (price > 3500 ? '旗舰级影像系统' : price > 2000 ? '高清多摄' : '高清主摄');
+  const highlight = translateSpecToFact(phone.highlight, 'highlight') || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选·物超所值');
   // Choose hook and talking points based on topic category
   var hook = '', p1 = '', p2 = '', p3 = '';
   if (topic.includes('续航')) {
