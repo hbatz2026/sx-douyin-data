@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 02:09:15
+// 构建时间: 2026-07-13 03:43:08
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4326,14 +4326,14 @@ function clearStats() {
 }
 
 function generateInfographic() {
-  buildAiPrompt('infographic');
+  renderReviewCard('infographic');
 }
 
 function generateSellingPointCard() {
-  buildAiPrompt('sellpoint');
+  renderReviewCard('sellpoint');
 }
 
-function buildAiPrompt(mode) {
+function renderReviewCard(mode) {
   var item = document.getElementById('t3_item').value;
   var title = document.getElementById('t3_title').value;
   var p1 = document.getElementById('t3_p1').value;
@@ -4344,7 +4344,7 @@ function buildAiPrompt(mode) {
     alert('请先在顶部选好设备和选题（自动填充后生成）');
     return;
   }
-  // 提取纯卖点文本（去掉"部位名："前缀）
+
   function cleanP(raw) {
     var idx = raw.indexOf('：');
     return idx > 0 ? raw.substring(idx + 1).trim() : raw.trim();
@@ -4353,44 +4353,117 @@ function buildAiPrompt(mode) {
   var phone = findPhoneByName(item);
   var isPhone = !!phone;
   var displayName = isPhone ? (phone.brand + ' ' + phone.model) : item;
-  var priceStr = isPhone ? ('¥' + (phone.guidePrice || phone.price || '到店询')) : '';
+  var priceStr = phone ? ('¥' + (phone.price || '到店询')) : '';
   var isDevice = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带');
 
-  // 生成结构化提示词
-  var lines = [];
-  lines.push('生成一张' + (isDevice ? '步骤图解' : '手机卖点') + '海报，竖版3:4比例，适合发朋友圈：');
-  lines.push('- 标题：' + (title || displayName));
-  if (priceStr) lines.push('- 价格：' + priceStr + '，电信合约机更优惠');
-  if (isDevice) {
-    lines.push('- 步骤1：' + s1);
-    lines.push('- 步骤2：' + s2);
-    lines.push('- 步骤3：' + s3);
-  } else {
-    lines.push('- 核心卖点1：' + s1);
-    lines.push('- 核心卖点2：' + s2);
-    lines.push('- 核心卖点3：' + s3);
+  // 手绘风格图标映射
+  var icons = {
+    chip: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"/><line x1="9" y1="3" x2="9" y2="6"/><line x1="15" y1="3" x2="15" y2="6"/><line x1="9" y1="18" x2="9" y2="21"/><line x1="15" y1="18" x2="15" y2="21"/><line x1="3" y1="9" x2="6" y2="9"/><line x1="3" y1="15" x2="6" y2="15"/><line x1="18" y1="9" x2="21" y2="9"/><line x1="18" y1="15" x2="21" y2="15"/></svg>',
+    cam: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5"><path d="M3 8a2 2 0 012-2h3l2-2h4l2 2h3a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    battery: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="19" y1="10" x2="19" y2="14"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="10" y1="10" x2="10" y2="14"/><line x1="14" y1="10" x2="14" y2="14"/></svg>',
+    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#008A5C" stroke-width="2.5"><polyline points="4,12 10,18 20,6"/></svg>'
+  };
+
+  function iconFor(text) {
+    var t = text.toLowerCase();
+    if (t.includes('芯片')||t.includes('处理器')||t.includes('cpu')||t.includes('骁龙')||t.includes('麒麟')||t.includes('天玑')) return icons.chip;
+    if (t.includes('摄像')||t.includes('拍照')||t.includes('镜')||t.includes('像素')||t.includes('摄')) return icons.cam;
+    if (t.includes('电池')||t.includes('续航')||t.includes('毫安')||t.includes('mah')||t.includes('快充')) return icons.battery;
+    return icons.chip;
   }
-  lines.push('- 底部文案：' + city + '电信营业厅 · 到店体验真机');
-  lines.push('- 风格：' + (isDevice ? '简洁步骤式，每步带图标，蓝白配色，适合中老年人阅读'
-    : '商务科技风，深蓝+橙色渐变，白色卡片，清晰大字，适合手机展示'));
 
-  var prompt = lines.join('\n');
+  var today = new Date().toISOString().slice(0, 10);
+  var specCards = [
+    { label: '芯片', value: s1, icon: iconFor(s1) },
+    { label: '影像', value: s2, icon: iconFor(s2) },
+    { label: '续航', value: s3, icon: iconFor(s3) }
+  ];
 
-  var panel = document.getElementById('infographicPanel');
-  panel.innerHTML =
-    '<div style="max-width:440px;margin:0 auto;padding:20px;background:#FAFBFC;border-radius:12px;font-family:\'Microsoft YaHei\',sans-serif;">' +
-      '<div style="font-weight:700;font-size:14px;color:#172B4D;margin-bottom:6px;">' +
-        (mode === 'sellpoint' ? '💎 AI 卖点海报提示词' : '🖼 AI 图解海报提示词') +
+  // 手绘风格CSS内联
+  var cardCSS = [
+    '.rc-card { max-width:420px; margin:0 auto; padding:0; background:#FFFDF7; border:2px solid #3C3C3C; border-radius:2px; position:relative; overflow:hidden; }',
+    '.rc-card::before { content:""; position:absolute; top:0;left:0;right:0;bottom:0; background: repeating-linear-gradient(0deg, transparent, transparent 27px, #E8E4D9 27px, #E8E4D9 28px); pointer-events:none; opacity:0.3; }',
+    '.rc-header { padding:18px 18px 14px; border-bottom:2px dashed #C4B998; position:relative; }',
+    '.rc-title { font-size:22px; font-weight:800; color:#2C1810; line-height:1.3; font-family: Georgia,"Noto Serif SC",serif; transform:rotate(-0.5deg); }',
+    '.rc-price { display:inline-block; margin-top:4px; font-size:18px; font-weight:700; color:#C0392B; background:#FFF0E8; padding:2px 10px; transform:rotate(-0.3deg); }',
+    '.rc-specs { padding:12px 14px; display:flex; flex-direction:column; gap:10px; position:relative; }',
+    '.rc-spec { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; background:#FAF7F0; border:1.5px solid #D4C9A8; position:relative; transform:rotate(var(--rot,0deg)); }',
+    '.rc-spec:nth-child(1) { --rot:-0.4deg; } .rc-spec:nth-child(2) { --rot:0.3deg; } .rc-spec:nth-child(3) { --rot:-0.2deg; }',
+    '.rc-spec-icon { flex-shrink:0; margin-top:2px; }',
+    '.rc-spec-text { flex:1; font-size:13px; line-height:1.6; color:#3C3024; }',
+    '.rc-spec-label { font-size:10px; color:#8C7A5E; text-transform:uppercase; letter-spacing:1px; margin-bottom:1px; }',
+    '.rc-source { padding:8px 16px 14px; font-size:10px; color:#9B8E7A; text-align:right; border-top:1px dashed #D4C9A8; }',
+    '.rc-source .verify { color:#008A5C; }',
+    '.rc-footer { padding:8px 16px 12px; text-align:center; position:relative; }',
+    '.rc-download { padding:8px 20px; background:#2C1810; color:#FFFDF7; border:none; border-radius:0; cursor:pointer; font-size:13px; font-weight:600; letter-spacing:1px; }',
+    '.rc-download:hover { background:#4A3528; }',
+    '.rc-qr { display:inline-block; margin-left:10px; padding:4px 8px; border:1.5px solid #2C1810; font-size:10px; color:#2C1810; vertical-align:middle; }'
+  ];
+
+  var styleTag = '<style id="rc-style">' + cardCSS.join('') + '</style>';
+
+  var specHTML = specCards.map(function(s) {
+    return '<div class="rc-spec"><div class="rc-spec-icon">' + s.icon + '</div><div class="rc-spec-text"><div class="rc-spec-label">' + s.label + '</div>' + esc(s.value) + '</div></div>';
+  }).join('');
+
+  var cardHTML = styleTag +
+    '<div class="rc-card" id="reviewCardImage">' +
+      '<div class="rc-header">' +
+        '<div class="rc-title">' + esc(title || displayName) + '</div>' +
+        (priceStr ? '<div class="rc-price">' + esc(priceStr) + '</div>' : '') +
       '</div>' +
-      '<div style="font-size:12px;color:#666;margin-bottom:10px;">复制下方提示词 → 打开 <b>豆包/通义千问/即梦</b> → 粘贴 → 30秒出图</div>' +
-      '<textarea readonly id="aiPromptText" style="width:100%;height:' + (isDevice ? '180px' : '200px') + ';font-size:12px;line-height:1.7;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;background:#fff;">' + prompt + '</textarea>' +
-      '<div style="margin-top:10px;display:flex;gap:8px;">' +
-        '<button onclick="var t=document.getElementById(\'aiPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制！\';b.style.background=\'#008A5C\';setTimeout(function(){b.textContent=\'📋 复制提示词\';b.style.background=\'#0052CC\'},1500)})" style="flex:1;padding:8px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">📋 复制提示词</button>' +
-        '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
+      '<div class="rc-specs">' + specHTML + '</div>' +
+      '<div class="rc-source">' +
+        '<span class="verify">' + icons.check + ' 参数来源：品牌官网 / 京东旗舰店</span> · ' + today +
+      '</div>' +
+      '<div class="rc-footer">' +
+        '<button class="rc-download" onclick="downloadReviewCard()">📥 保存为图片</button>' +
+        '<span class="rc-qr">' + esc(city) + '电信 · 到店体验真机</span>' +
       '</div>' +
     '</div>';
+
+  var panel = document.getElementById('infographicPanel');
+  panel.innerHTML = cardHTML;
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function downloadReviewCard() {
+  var el = document.getElementById('reviewCardImage');
+  if (!el) return;
+  // 移除样式标签避免html2canvas冲突
+  var styleEl = document.getElementById('rc-style');
+  if (styleEl) styleEl.remove();
+  // 使用内联样式重绘
+  el.style.cssText = 'max-width:420px;margin:0 auto;padding:0;background:#FFFDF7;border:2px solid #3C3C3C;border-radius:2px;position:relative;';
+  
+  if (typeof html2canvas === 'undefined') {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.onload = function() { doCapture(el); };
+    document.head.appendChild(s);
+  } else {
+    doCapture(el);
+  }
+  
+  function doCapture(el) {
+    html2canvas(el, { scale: 2, backgroundColor: '#FFFDF7', useCORS: true }).then(function(canvas) {
+      var a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'douyin-review-card-' + new Date().toISOString().slice(0,10) + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast('一图流已保存为PNG', 'success');
+    }).catch(function() {
+      toast('截图失败，请尝试截图工具', 'error');
+    });
+  }
+}
+
+// ========== 原 prompt 已废弃，保留函数签名兼容 ==========
+function buildAiPrompt(mode) {
+  renderReviewCard(mode);
 }
 
 const hotspotData = (function() {
