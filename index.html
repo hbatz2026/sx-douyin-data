@@ -500,6 +500,9 @@
       <!-- v2.7: 卖点展示区（选完设备+选题后自动显示） -->
       <div id="t3_slogan_area" style="display:none;"></div>
 
+      <!-- v2.7: 自动生成三大区（卖点+脚本提示词+图片提示词） -->
+      <div id="t3_auto_section" style="display:none;"></div>
+
       <div class="form-group">
         <label>🏙 地名（填本地地名，用于标题和话题）</label>
         <input id="t3_city" placeholder="太原">
@@ -515,11 +518,7 @@
         <div class="tips-bar" style="margin-bottom:12px;">
           <strong>🎬 一镜到底要点：</strong>全程一个镜头不剪辑，手持设备边走边聊。像给朋友介绍手机一样自然，不要念稿。重点：<span style="color:var(--blue);">身体语言+实物展示</span>，不是播音腔。
         </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT3Talk()">👁 预览口播脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview3-talk')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview3-talk" style="display:none;"></div>
+        <!-- v2.7: 脚本和海报提示词已自动生成在下方，无需手动预览 -->
       </div>
 
       <!-- ===== MODE 2: 无声演示 四选一 ===== -->
@@ -555,10 +554,7 @@
             <div class="option-difficulty">难度：★★☆☆☆ | 需真人：👥 2人 | 拍摄时间：10分钟</div>
           </div>
         </div>
-        <div class="btn-group" style="margin-top:12px;">
-          <button class="btn btn-green" onclick="generateInfographic()">🖼 生成一图流图解</button>
-          <button class="btn btn-orange" onclick="generateSellingPointCard()">💎 生成卖点卡</button>
-        </div>
+        <!-- v2.7: 海报提示词已自动生成在下方 -->
         <div class="silent-preview" id="preview3-silent" style="display:none;margin-top:12px;"></div>
         <div class="btn-group" id="silentDownloadBtns" style="display:none;margin-top:8px;">
           <button class="btn btn-orange btn-sm" onclick="downloadAsImage('preview3-silent')">📥 下载拍摄指令卡</button>
