@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 03:43:08
+// 构建时间: 2026-07-13 06:28:57
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1791,6 +1791,100 @@ function genHotspotComment(h) {
   return snippet + '... 你们遇到过吗？评论区聊聊 👇';
 }
 
+// ============================================================
+// T3 卖点翻译层 (v2.7) — phonePool 结构化规格 → 宣传文案
+// ============================================================
+
+// 规格→宣传文案映射
+var SPEC_SUFFIXES = {
+  chip: '性能强劲',
+  camera: '细节清晰',
+  battery: '续航持久'
+};
+
+function translateSpecToSlogan(raw, type) {
+  if (!raw) return '';
+  var suffix = SPEC_SUFFIXES[type] || '';
+  var text = String(raw);
+
+  // 芯片：保留型号+结论词
+  if (type === 'chip') {
+    return text + ' · ' + suffix;
+  }
+
+  // 相机：提取像素数值+结论词
+  if (type === 'camera') {
+    var mp = text.match(/(\d+万)/);
+    if (mp) return mp[1] + '像素 · ' + suffix;
+    // 没有像素数值时用"超清"代替
+    return '超清影像 · ' + suffix;
+  }
+
+  // 电池：提取容量+结论词
+  if (type === 'battery') {
+    var cap = text.match(/(\d+mAh)/i);
+    if (cap) return cap[1] + ' · ' + suffix;
+    return '持久续航 · ' + suffix;
+  }
+
+  return text;
+}
+
+// 从 phonePool 获取3条卖点
+function getPhoneSellPoints(deviceName) {
+  var phone = findPhoneByName(deviceName);
+  if (!phone) return null;
+  return [
+    { icon: '📷', label: '影像', text: translateSpecToSlogan(phone.camera, 'camera') },
+    { icon: '🔲', label: '芯片', text: translateSpecToSlogan(phone.chip, 'chip') },
+    { icon: '🔋', label: '续航', text: translateSpecToSlogan(phone.battery, 'battery') }
+  ];
+}
+
+// 渲染卖点展示区
+function renderT3SellPointSection(deviceName, city) {
+  var area = document.getElementById('t3_slogan_area');
+  if (!area) return;
+
+  var points = getPhoneSellPoints(deviceName);
+  var phone = findPhoneByName(deviceName);
+  var displayName = phone ? (phone.brand + ' ' + phone.model) : deviceName;
+  var priceStr = phone ? ('¥' + (phone.guidePrice || phone.price || '到店询')) : '';
+  city = city || document.getElementById('t3_city').value || '本地';
+
+  if (!points) {
+    area.style.display = 'none';
+    return;
+  }
+
+  var cards = points.map(function(p) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F8F6F0;border:1.5px solid #E4DCC8;border-radius:8px;">' +
+      '<div style="flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;font-size:16px;">' + p.icon + '</div>' +
+      '<div style="flex:1;"><div style="font-size:10px;color:#8C7A5E;letter-spacing:1px;">' + p.label + '</div>' +
+      '<div style="font-size:14px;font-weight:700;color:#2C1810;">' + esc(p.text) + '</div></div></div>';
+  }).join('');
+
+  // 引导收藏文案
+  var tagStr = ('#' + (phone ? phone.brand + phone.model.replace(/ /g,'') : deviceName.replace(/ /g,'')) + ' #手机评测 #' + city + '电信');
+
+  area.innerHTML =
+    '<div style="max-width:460px;margin:12px auto 0;padding:16px;background:#FFFDF7;border:2px solid #D4C9A8;">' +
+      '<div style="font-size:18px;font-weight:800;color:#2C1810;margin-bottom:12px;font-family:serif;">' + esc(displayName) + ' · 实力派' +
+        (priceStr ? '<span style="float:right;font-size:14px;color:#C0392B;font-weight:700;">' + esc(priceStr) + '</span>' : '') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;">' + cards + '</div>' +
+      '<div style="font-size:10px;color:#9B8E7A;margin-top:8px;text-align:right;">参数来源：品牌公开资料 · 请到店确认实物</div>' +
+      // 引导收藏
+      '<div style="margin-top:12px;padding:8px 12px;background:#F0EDE4;border-left:3px solid #C4B998;font-size:11px;color:#5C5040;">' +
+        '📌 发抖音时附上：<br><b>' + esc('收藏这条，买手机不踩坑') + '</b><br><span style="font-size:10px;color:#8B7A60;">' + esc(tagStr) + '</span></div>' +
+    '</div>';
+  area.style.display = 'block';
+
+  // 更新引导收藏标签输入框
+  var tagsEl = document.getElementById('t3_tags');
+  if (tagsEl) tagsEl.value = tagStr;
+}
+
 // ═══════ schedule.js ═══════
 function getBestTime(idx, city) {
   const bases = [[12,14],[8,10],[20,22],[16,18],[15,16]];
@@ -2967,6 +3061,18 @@ function autoFillTech() {
   document.getElementById('t3_tags').value = data.tags || '';
   summary.textContent = '设备: ' + (data.item || device) + ' | 选题: ' + topic + ' | 标题: ' + data.title + ' | 3个要点已自动填入';
   infoDiv.style.display = 'block';
+
+  // v2.7: 手机类强制走 phonePool 翻译层（替换 techDB 话术）
+  var phone = findPhoneByName(device);
+  if (phone) {
+    document.getElementById('t3_p1').value = translateSpecToSlogan(phone.camera, 'camera');
+    document.getElementById('t3_p2').value = translateSpecToSlogan(phone.chip, 'chip');
+    document.getElementById('t3_p3').value = translateSpecToSlogan(phone.battery, 'battery');
+    document.getElementById('t3_title').value = phone.brand + ' ' + phone.model;
+    summary.textContent = '设备: ' + phone.brand + ' ' + phone.model + ' | 选题: ' + topic + ' | ✅ 卖点源自 phonePool 规格（已翻译）';
+    // 自动渲染卖点展示区
+    renderT3SellPointSection(device);
+  }
 }
 
 function fuzzyTechFill(device, topic) {
@@ -4326,14 +4432,14 @@ function clearStats() {
 }
 
 function generateInfographic() {
-  renderReviewCard('infographic');
+  generateDouyinPrompt();
 }
 
 function generateSellingPointCard() {
-  renderReviewCard('sellpoint');
+  generateDouyinPrompt();
 }
 
-function renderReviewCard(mode) {
+function generateDouyinPrompt() {
   var item = document.getElementById('t3_item').value;
   var title = document.getElementById('t3_title').value;
   var p1 = document.getElementById('t3_p1').value;
@@ -4344,127 +4450,68 @@ function renderReviewCard(mode) {
     alert('请先在顶部选好设备和选题（自动填充后生成）');
     return;
   }
-
-  function cleanP(raw) {
-    var idx = raw.indexOf('：');
-    return idx > 0 ? raw.substring(idx + 1).trim() : raw.trim();
-  }
-  var s1 = cleanP(p1), s2 = cleanP(p2), s3 = cleanP(p3);
   var phone = findPhoneByName(item);
-  var isPhone = !!phone;
-  var displayName = isPhone ? (phone.brand + ' ' + phone.model) : item;
-  var priceStr = phone ? ('¥' + (phone.price || '到店询')) : '';
-  var isDevice = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带');
+  var displayName = phone ? (phone.brand + ' ' + phone.model) : (title || item);
+  var priceStr = phone ? ('¥' + (phone.guidePrice || phone.price || '到店询')) : '';
 
-  // 手绘风格图标映射
-  var icons = {
-    chip: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"/><line x1="9" y1="3" x2="9" y2="6"/><line x1="15" y1="3" x2="15" y2="6"/><line x1="9" y1="18" x2="9" y2="21"/><line x1="15" y1="18" x2="15" y2="21"/><line x1="3" y1="9" x2="6" y2="9"/><line x1="3" y1="15" x2="6" y2="15"/><line x1="18" y1="9" x2="21" y2="9"/><line x1="18" y1="15" x2="21" y2="15"/></svg>',
-    cam: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5"><path d="M3 8a2 2 0 012-2h3l2-2h4l2 2h3a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/><circle cx="12" cy="12" r="3"/></svg>',
-    battery: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="19" y1="10" x2="19" y2="14"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="10" y1="10" x2="10" y2="14"/><line x1="14" y1="10" x2="14" y2="14"/></svg>',
-    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#008A5C" stroke-width="2.5"><polyline points="4,12 10,18 20,6"/></svg>'
-  };
-
-  function iconFor(text) {
-    var t = text.toLowerCase();
-    if (t.includes('芯片')||t.includes('处理器')||t.includes('cpu')||t.includes('骁龙')||t.includes('麒麟')||t.includes('天玑')) return icons.chip;
-    if (t.includes('摄像')||t.includes('拍照')||t.includes('镜')||t.includes('像素')||t.includes('摄')) return icons.cam;
-    if (t.includes('电池')||t.includes('续航')||t.includes('毫安')||t.includes('mah')||t.includes('快充')) return icons.battery;
-    return icons.chip;
-  }
-
-  var today = new Date().toISOString().slice(0, 10);
-  var specCards = [
-    { label: '芯片', value: s1, icon: iconFor(s1) },
-    { label: '影像', value: s2, icon: iconFor(s2) },
-    { label: '续航', value: s3, icon: iconFor(s3) }
+  // 卖点文案（已过翻译层，无脏数据）
+  var cleanPrompts = [
+    p1.replace(/^.*?[：:]/, '').trim(),
+    p2.replace(/^.*?[：:]/, '').trim(),
+    p3.replace(/^.*?[：:]/, '').trim()
   ];
 
-  // 手绘风格CSS内联
-  var cardCSS = [
-    '.rc-card { max-width:420px; margin:0 auto; padding:0; background:#FFFDF7; border:2px solid #3C3C3C; border-radius:2px; position:relative; overflow:hidden; }',
-    '.rc-card::before { content:""; position:absolute; top:0;left:0;right:0;bottom:0; background: repeating-linear-gradient(0deg, transparent, transparent 27px, #E8E4D9 27px, #E8E4D9 28px); pointer-events:none; opacity:0.3; }',
-    '.rc-header { padding:18px 18px 14px; border-bottom:2px dashed #C4B998; position:relative; }',
-    '.rc-title { font-size:22px; font-weight:800; color:#2C1810; line-height:1.3; font-family: Georgia,"Noto Serif SC",serif; transform:rotate(-0.5deg); }',
-    '.rc-price { display:inline-block; margin-top:4px; font-size:18px; font-weight:700; color:#C0392B; background:#FFF0E8; padding:2px 10px; transform:rotate(-0.3deg); }',
-    '.rc-specs { padding:12px 14px; display:flex; flex-direction:column; gap:10px; position:relative; }',
-    '.rc-spec { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; background:#FAF7F0; border:1.5px solid #D4C9A8; position:relative; transform:rotate(var(--rot,0deg)); }',
-    '.rc-spec:nth-child(1) { --rot:-0.4deg; } .rc-spec:nth-child(2) { --rot:0.3deg; } .rc-spec:nth-child(3) { --rot:-0.2deg; }',
-    '.rc-spec-icon { flex-shrink:0; margin-top:2px; }',
-    '.rc-spec-text { flex:1; font-size:13px; line-height:1.6; color:#3C3024; }',
-    '.rc-spec-label { font-size:10px; color:#8C7A5E; text-transform:uppercase; letter-spacing:1px; margin-bottom:1px; }',
-    '.rc-source { padding:8px 16px 14px; font-size:10px; color:#9B8E7A; text-align:right; border-top:1px dashed #D4C9A8; }',
-    '.rc-source .verify { color:#008A5C; }',
-    '.rc-footer { padding:8px 16px 12px; text-align:center; position:relative; }',
-    '.rc-download { padding:8px 20px; background:#2C1810; color:#FFFDF7; border:none; border-radius:0; cursor:pointer; font-size:13px; font-weight:600; letter-spacing:1px; }',
-    '.rc-download:hover { background:#4A3528; }',
-    '.rc-qr { display:inline-block; margin-left:10px; padding:4px 8px; border:1.5px solid #2C1810; font-size:10px; color:#2C1810; vertical-align:middle; }'
-  ];
+  // 收集禁止词（原始 phonePool 数据，防止 AI 渲染）
+  var bannedWords = [phone && phone.camera, phone && phone.chip, phone && phone.battery, phone && phone.highlight].filter(Boolean);
+  var bannedList = bannedWords.map(function(w) { return '禁止出现："' + w + '"'; }).join('\n');
 
-  var styleTag = '<style id="rc-style">' + cardCSS.join('') + '</style>';
+  // 引导收藏标签
+  var tagStr = document.getElementById('t3_tags').value || ('#' + item.replace(/ /g,'') + ' #手机评测 #' + city + '电信');
 
-  var specHTML = specCards.map(function(s) {
-    return '<div class="rc-spec"><div class="rc-spec-icon">' + s.icon + '</div><div class="rc-spec-text"><div class="rc-spec-label">' + s.label + '</div>' + esc(s.value) + '</div></div>';
-  }).join('');
-
-  var cardHTML = styleTag +
-    '<div class="rc-card" id="reviewCardImage">' +
-      '<div class="rc-header">' +
-        '<div class="rc-title">' + esc(title || displayName) + '</div>' +
-        (priceStr ? '<div class="rc-price">' + esc(priceStr) + '</div>' : '') +
-      '</div>' +
-      '<div class="rc-specs">' + specHTML + '</div>' +
-      '<div class="rc-source">' +
-        '<span class="verify">' + icons.check + ' 参数来源：品牌官网 / 京东旗舰店</span> · ' + today +
-      '</div>' +
-      '<div class="rc-footer">' +
-        '<button class="rc-download" onclick="downloadReviewCard()">📥 保存为图片</button>' +
-        '<span class="rc-qr">' + esc(city) + '电信 · 到店体验真机</span>' +
-      '</div>' +
-    '</div>';
+  var prompt = [
+    '一张抖音竖版手机卖点海报，9:16比例。',
+    '',
+    '设计风格：苹果发布会式的简洁高级感。深蓝色底（#0A1628），底部向上做少量暖橙渐变过渡。留白充足，不拥挤。',
+    '',
+    '画面排版从上到下：',
+    '',
+    '1. 顶部：大字标题 "' + esc(displayName) + '"，下面用一行小字写副标题 "实力派"，颜色白色，字体细且干净。',
+    '',
+    '2. 中部：三个卖点横向排列，每个卖点是一个磨砂白底圆角卡片，卡片左上角放一个小图标（分别对应芯片/相机/电池），卡片中央写卖点文案：',
+    '   - "' + esc(cleanPrompts[0]) + '"',
+    '   - "' + esc(cleanPrompts[1]) + '"',
+    '   - "' + esc(cleanPrompts[2]) + '"',
+    '',
+    '3. 卡片下方放一行小字 "' + esc(priceStr) + ' 电信合约价"，橙色文字。',
+    '',
+    '4. 底部：浅色区域写 "到店体验真机"，右下角标注 "参数来源：品牌公开资料"。',
+    '',
+    '画面整体感受：高级、可信、不浮夸。像手机厂商官方海报的质感，而不是促销传单。',
+    '',
+    '不要出现：手机外观实拍图、疑问句感叹句、文字重叠拥挤、过度促销感。',
+    bannedList ? '\n绝对禁止：以下原文不得出现在画面中：\n' + bannedList : ''
+  ].filter(Boolean).join('\n');
 
   var panel = document.getElementById('infographicPanel');
-  panel.innerHTML = cardHTML;
+  panel.innerHTML =
+    '<div style="max-width:440px;margin:0 auto;padding:20px;background:#FAFBFC;border-radius:12px;">' +
+      '<div style="font-weight:700;font-size:14px;color:#172B4D;margin-bottom:4px;">🤖 豆包生图提示词</div>' +
+      '<div style="font-size:12px;color:#666;margin-bottom:10px;">复制 → 打开 <b>豆包/即梦</b> → 9:16竖版 → 粘贴 → 生成</div>' +
+      '<div style="font-size:11px;color:#E65100;margin-bottom:8px;background:#FFF3E0;padding:6px 10px;border-radius:6px;">' +
+        '📌 提示：生图后可以发抖音，配文 <b>"收藏这条，买手机不踩坑"</b> ' + esc(tagStr) +
+      '</div>' +
+      '<textarea readonly id="aiPromptText" style="width:100%;height:250px;font-size:12px;line-height:1.7;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;background:#fff;">' + esc(prompt) + '</textarea>' +
+      '<div style="margin-top:10px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'aiPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制！\';b.style.background=\'#008A5C\';setTimeout(function(){b.textContent=\'📋 复制提示词\';b.style.background=\'#0052CC\'},1500)})" style="flex:1;padding:8px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">📋 复制提示词</button>' +
+        '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
+      '</div>' +
+    '</div>';
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior: 'smooth' });
 }
 
-function downloadReviewCard() {
-  var el = document.getElementById('reviewCardImage');
-  if (!el) return;
-  // 移除样式标签避免html2canvas冲突
-  var styleEl = document.getElementById('rc-style');
-  if (styleEl) styleEl.remove();
-  // 使用内联样式重绘
-  el.style.cssText = 'max-width:420px;margin:0 auto;padding:0;background:#FFFDF7;border:2px solid #3C3C3C;border-radius:2px;position:relative;';
-  
-  if (typeof html2canvas === 'undefined') {
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-    s.onload = function() { doCapture(el); };
-    document.head.appendChild(s);
-  } else {
-    doCapture(el);
-  }
-  
-  function doCapture(el) {
-    html2canvas(el, { scale: 2, backgroundColor: '#FFFDF7', useCORS: true }).then(function(canvas) {
-      var a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'douyin-review-card-' + new Date().toISOString().slice(0,10) + '.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast('一图流已保存为PNG', 'success');
-    }).catch(function() {
-      toast('截图失败，请尝试截图工具', 'error');
-    });
-  }
-}
-
-// ========== 原 prompt 已废弃，保留函数签名兼容 ==========
-function buildAiPrompt(mode) {
-  renderReviewCard(mode);
-}
+// 兼容旧调用
+function buildAiPrompt(mode) { generateDouyinPrompt(); }
 
 const hotspotData = (function() {
   try { if (window.___hotspotData) return padHotspotData(window.___hotspotData); } catch(e) {}
