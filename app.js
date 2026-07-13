@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 01:39:37
+// 构建时间: 2026-07-13 01:51:30
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -896,6 +896,48 @@ function copyPanelText(panelId, mode) {
     document.body.removeChild(ta);
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
   });
+}
+
+// ── 手机池工具函数 ──
+function findPhoneByName(name) {
+  if (!name) return null;
+  var pool = window.___phonePool || phonePool || [];
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    if (p.model === name) return p;
+    if (p.brand && p.brand + ' ' + p.model === name) return p;
+  }
+  return null;
+}
+
+function initT3DeviceOptions() {
+  var og = document.getElementById('t3_phone_optgroup');
+  if (!og) return;
+  var pool = window.___phonePool || phonePool || [];
+  if (!pool || !pool.length) return;
+  var html = '';
+  var brands = {};
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    var brand = p.brand || p.model.split(' ')[0];
+    if (!brands[brand]) { brands[brand] = []; }
+    brands[brand].push(p);
+  }
+  var brandKeys = Object.keys(brands).sort();
+  for (var bi = 0; bi < brandKeys.length; bi++) {
+    var bk = brandKeys[bi];
+    var models = brands[bk];
+    html += '<optgroup label="' + bk + '">';
+    for (var mi = 0; mi < models.length; mi++) {
+      var m = models[mi];
+      var displayName = m.brand ? (m.brand + ' ' + m.model) : m.model;
+      if (m.storage) displayName += ' (' + m.storage + ')';
+      html += '<option value="' + displayName + '">' + displayName + ' ¥' + (m.guidePrice || m.price || '') + (m.isCore ? ' ★' : '') + '</option>';
+    }
+    html += '</optgroup>';
+  }
+  og.insertAdjacentHTML('afterend', html);
+  og.remove();
 }
 
 function addCopyButton(panelId) {
