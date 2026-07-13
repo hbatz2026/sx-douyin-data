@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-10 01:38:57
+// 构建时间: 2026-07-13 00:57:31
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -915,12 +915,28 @@ let bankFilter = 'all';
 
 let currentTab = -1;
 
-function copyPanelText(panelId) {
+function copyPanelText(panelId, mode) {
   var panel = document.getElementById(panelId);
   if (!panel) return;
-  var text = panel.textContent || panel.innerText || '';
+  var text = '';
+  if (mode === 'clean') {
+    // 仅提取台词内容：.stage 标题 + .dialogue 台词，过滤 action-note 和 info-tag
+    var parts = [];
+    var children = panel.querySelectorAll('.stage, .dialogue');
+    for (var i = 0; i < children.length; i++) {
+      var el = children[i];
+      // 跳过 "🎬 口播脚本 · 直接念就行" 这类纯元数据标签
+      if (el.className === 'stage' && /口播脚本|拍摄指南|一镜到底/.test(el.textContent)) continue;
+      var t = el.textContent.trim();
+      if (t) parts.push(t);
+    }
+    text = parts.join('\n');
+  } else {
+    // 全文模式
+    text = panel.textContent || panel.innerText || '';
+  }
+  var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
   navigator.clipboard.writeText(text).then(function() {
-    var btn = panel.querySelector('.copy-script-btn');
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
     if (typeof track === 'function') track('copy_script_' + panelId);
   }).catch(function() {
@@ -929,7 +945,6 @@ function copyPanelText(panelId) {
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); } catch(e) {}
     document.body.removeChild(ta);
-    var btn = panel.querySelector('.copy-script-btn');
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
   });
 }
@@ -937,16 +952,25 @@ function copyPanelText(panelId) {
 function addCopyButton(panelId) {
   var panel = document.getElementById(panelId);
   if (!panel) return;
-  var existing = panel.querySelector('.copy-script-btn');
+  var existing = panel.querySelector('.copy-script-wrap');
   if (existing) existing.remove();
   var wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:10px;';
-  var btn = document.createElement('button');
-  btn.className = 'copy-script-btn';
-  btn.style.cssText = 'padding:6px 14px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;';
-  btn.innerHTML = '📋 复制全文';
-  btn.onclick = function() { copyPanelText(panelId); };
-  wrap.appendChild(btn);
+  wrap.className = 'copy-script-wrap';
+  wrap.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;';
+  // 仅台词按钮（默认主推）
+  var cleanBtn = document.createElement('button');
+  cleanBtn.className = 'copy-clean-btn';
+  cleanBtn.style.cssText = 'padding:6px 14px;background:#008A5C;color:#fff;border:none;border-radius:6px 0 0 6px;cursor:pointer;font-size:13px;font-weight:600;';
+  cleanBtn.innerHTML = '📋 复制台词';
+  cleanBtn.onclick = function() { copyPanelText(panelId, 'clean'); };
+  // 全文按钮
+  var fullBtn = document.createElement('button');
+  fullBtn.className = 'copy-script-btn';
+  fullBtn.style.cssText = 'padding:6px 14px;background:#0052CC;color:#fff;border:none;border-radius:0 6px 6px 0;cursor:pointer;font-size:13px;font-weight:600;';
+  fullBtn.innerHTML = '全文';
+  fullBtn.onclick = function() { copyPanelText(panelId, 'full'); };
+  wrap.appendChild(cleanBtn);
+  wrap.appendChild(fullBtn);
   panel.insertBefore(wrap, panel.firstChild);
 }
 
@@ -3218,13 +3242,21 @@ function buildDeviceTalkScript(item, c, city, bgm, title, tags) {
   const p2raw = c('p2') || '';
   const p3raw = c('p3') || '';
   function cleanP(raw) {
-    const idx = raw.indexOf('：');
+    var idx = raw.indexOf('：');
     return idx > 0 ? raw.substring(idx+1).trim() : raw.trim();
   }
-  const feat1 = cleanP(p1raw);
-  const feat2 = cleanP(p2raw);
-  const feat3 = cleanP(p3raw);
-  const objZh = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带')?'设备':'手机';
+  var feat1 = cleanP(p1raw);
+  var feat2 = cleanP(p2raw);
+  var feat3 = cleanP(p3raw);
+  // 兜底：空卖点时用设备类型生成通用话术
+  var isDevice = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带');
+  var objZh = isDevice ? '设备' : '手机';
+  var fallbacks = isDevice ?
+    ['安装简单，自己也能搞定', '信号稳定，不掉线', '性价比高，比外面单买划算'] :
+    ['屏幕清晰，看视频舒服', '电池耐用，一天不用充电', '价格实惠，这个价位性价比很高'];
+  if (!feat1) feat1 = fallbacks[0];
+  if (!feat2) feat2 = fallbacks[1];
+  if (!feat3) feat3 = fallbacks[2];
   return '<div class="stage">🎬 一镜到底 · 拍摄指南</div>' +
     '<div class="info-tag">📱 全程一个镜头，手持' + objZh + '边走边聊 | ⏱ 约40秒 | 不剪辑</div>' +
     '<div class="info-tag">🎵 BGM: ' + bgm + '（音量调25-30%，铺底不压人声）</div>' +
@@ -4359,29 +4391,46 @@ function generateInfographic() {
   }
   // Parse each line: "部位名：说明"
   function parseLine(l) {
-    const parts = l.split('：');
+    var parts = l.split('：');
     return { label: parts[0] || '', desc: parts.slice(1).join('：') || l };
   }
-  const d1 = parseLine(p1);
-  const d2 = parseLine(p2);
-  const d3 = parseLine(p3);
-  const panel = document.getElementById('infographicPanel');
-  const cardW = Math.min(420, window.innerWidth - 40);
-  const cardH = 720;
-  const html = `
+  var d1 = parseLine(p1);
+  var d2 = parseLine(p2);
+  var d3 = parseLine(p3);
+  var phone = findPhoneByName(item);
+  var isPhone = !!phone;
+  var panel = document.getElementById('infographicPanel');
+  var cardW = Math.min(420, window.innerWidth - 40);
+  var cardH = 720;
+  // 手机评测 → 卖点卡片布局；设备教程 → 步骤式
+  var bodyHtml = isPhone ?
+    '<div style="padding:12px 24px 20px;">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">' +
+        miniSpec(phone.chip || '旗舰芯片', '🧠 芯片') +
+        miniSpec(phone.battery || '大电池', '🔋 电池') +
+        miniSpec(phone.camera || '高清拍照', '📸 拍照') +
+        miniSpec(phone.highlight || '性价比之选', '✨ 卖点') +
+      '</div>' +
+      '<div style="background:#FFF3E0;border-radius:10px;padding:14px;text-align:center;">' +
+        '<div style="font-size:13px;color:#E65100;font-weight:600;">' + (phone.guidePrice ? '¥' + phone.guidePrice : phone.price ? '¥' + phone.price : '') + '</div>' +
+        '<div style="font-size:11px;color:#999;margin-top:4px;">到' + city + '电信营业厅可办理合约机</div>' +
+      '</div>' +
+    '</div>' :
+    '<div style="padding:16px 24px 20px;">' +
+      renderCard(0, '#0052CC', d1.label, d1.desc) +
+      renderCard(1, '#FF5722', d2.label, d2.desc) +
+      renderCard(2, '#008A5C', d3.label, d3.desc) +
+    '</div>';
+  var html = `
   <div style="max-width:${cardW}px;margin:0 auto;">
     <div id="infographicCard" style="width:${cardW}px;min-height:${cardH}px;background:linear-gradient(180deg,#0D1B36 0%,#1a2a4a 30%,#fff 30%,#fff 100%);border-radius:16px;overflow:hidden;position:relative;font-family:'Microsoft YaHei',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
       <!-- Header -->
       <div style="padding:32px 28px 20px;text-align:center;">
         <div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">${city} · 中国电信</div>
-        <div style="font-size:18px;color:#fff;font-weight:700;line-height:1.4;">${title}</div>
+        <div style="font-size:18px;color:#fff;font-weight:700;line-height:1.4;">${isPhone ? (phone.brand + ' ' + phone.model) : title}</div>
       </div>
       <!-- Body -->
-      <div style="padding:16px 24px 20px;">
-        ${renderCard(0, '#0052CC', d1.label, d1.desc)}
-        ${renderCard(1, '#FF5722', d2.label, d2.desc)}
-        ${renderCard(2, '#008A5C', d3.label, d3.desc)}
-      </div>
+      ${bodyHtml}
       <!-- Footer -->
       <div style="padding:16px 28px 24px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 24px;">
         <div style="font-size:12px;color:#999;margin-bottom:4px;">长按保存到手机，以后照着查</div>
@@ -4400,7 +4449,7 @@ function generateInfographic() {
 }
 
 function renderCard(idx, color, label, desc) {
-  const icons = ['🔵', '🟠', '🟢'];
+  var icons = ['🔵', '🟠', '🟢'];
   return `
   <div style="display:flex;align-items:flex-start;padding:14px 16px;margin-bottom:10px;background:#FAFBFC;border-radius:10px;border-left:4px solid ${color};">
     <div style="width:32px;height:32px;border-radius:50%;background:${color};color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;margin-top:2px;">${idx+1}</div>
@@ -4409,6 +4458,13 @@ function renderCard(idx, color, label, desc) {
       <div style="font-size:12px;color:#42526E;line-height:1.6;">${desc}</div>
     </div>
   </div>`;
+}
+
+function miniSpec(val, label) {
+  return '<div style="background:#FAFBFC;border-radius:10px;padding:10px 8px;text-align:center;">' +
+    '<div style="font-size:12px;font-weight:700;color:#172B4D;">' + label + '</div>' +
+    '<div style="font-size:10px;color:#42526E;margin-top:2px;">' + (val || '-') + '</div>' +
+  '</div>';
 }
 
 function downloadInfographic() {
@@ -4486,60 +4542,44 @@ function generateSellingPointCard() {
         <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;">${isNewFormat ? (phone.color || '') : (phone.highlight || '')}</div>
         <div style="display:inline-block;background:var(--orange);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;margin-top:8px;">${displayPrice}${isNewFormat && phone.stock !== undefined ? (' · 库存' + phone.stock + '台') : ''}</div>
       </div>
-      <!-- Specs Grid -->
+      <!-- Specs Grid — 统一展示消费者关心的卖点 -->
       <div style="padding:16px 20px 8px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          ${isNewFormat ? `
-          <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">💾</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">内存</div>
-            <div style="font-size:11px;color:#42526E;">${phone.storage || '-'}</div>
-          </div>
-          <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">📦</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">库存</div>
-            <div style="font-size:11px;color:#42526E;">${phone.stock !== undefined ? (phone.stock + '台') : '-'}</div>
-          </div>
-          <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🏷️</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">指导价</div>
-            <div style="font-size:11px;color:#42526E;">¥${phone.guidePrice || '-'}</div>
-          </div>
-          <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🎨</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">颜色</div>
-            <div style="font-size:11px;color:#42526E;">${phone.color || '-'}</div>
-          </div>` : `
-          <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🧠</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">芯片</div>
-            <div style="font-size:11px;color:#42526E;">${phone.chip || '-'}</div>
-          </div>
-          <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🔋</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">电池</div>
-            <div style="font-size:11px;color:#42526E;">${phone.battery || '-'}</div>
-          </div>
-          <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">📱</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">屏幕</div>
-            <div style="font-size:11px;color:#42526E;">${phone.screen || '-'}</div>
-          </div>
-          <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">📸</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">相机</div>
-            <div style="font-size:11px;color:#42526E;">${phone.camera || '-'}</div>
-          </div>`}
-        </div>
+        ${(() => {
+          var p = phone;
+          var price = p.guidePrice || p.price || 0;
+          var chip = p.chip || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
+          var bat = p.battery || (price > 3000 ? '大容量电池' : '长续航电池');
+          var cam = p.camera || (price > 3500 ? '旗舰影像' : price > 2000 ? '高清多摄' : '高清主摄');
+          var hl = p.highlight || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选');
+          return `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
+              <div style="font-size:20px;">🧠</div>
+              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">芯片</div>
+              <div style="font-size:11px;color:#42526E;">${chip}</div>
+            </div>
+            <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
+              <div style="font-size:20px;">🔋</div>
+              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">电池</div>
+              <div style="font-size:11px;color:#42526E;">${bat}</div>
+            </div>
+            <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
+              <div style="font-size:20px;">📸</div>
+              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">拍照</div>
+              <div style="font-size:11px;color:#42526E;">${cam}</div>
+            </div>
+            <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
+              <div style="font-size:20px;">✨</div>
+              <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">卖点</div>
+              <div style="font-size:11px;color:#42526E;">${hl}</div>
+            </div>
+          </div>`;
+        })()}
       </div>
       <!-- Highlight -->
       <div style="margin:8px 20px 16px;padding:14px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:10px;text-align:center;">
-        <div style="font-size:11px;color:#E65100;font-weight:600;">✨ ${isNewFormat ? '机型信息' : '核心亮点'}</div>
-        <div style="font-size:13px;color:#172B4D;font-weight:700;margin-top:2px;line-height:1.4;">${isNewFormat ?
-          ((phone.isCore ? '★ 本周核心主推机型 · ' : '') +
-           (phone.stock > 0 ? ('当前库存 ' + phone.stock + ' 台可发货') : '') +
-           (phone.code ? ('\n编码: ' + phone.code) : '')).trim() :
-          (phone.highlight || '-')}</div>
+        <div style="font-size:11px;color:#E65100;font-weight:600;">✨ 为什么选它</div>
+        <div style="font-size:13px;color:#172B4D;font-weight:700;margin-top:2px;line-height:1.4;">${phone.highlight || (phone.isCore ? '★ 本周核心主推机型' : '性价比出色，值得入手')}</div>
       </div>
       <!-- Footer -->
       <div style="padding:12px 20px 20px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 16px;">
@@ -4560,10 +4600,12 @@ function generateSellingPointCard() {
 function downloadSellingPointCard() {
   const card = document.getElementById('infographicCardSP');
   if (!card) return;
+  // Use currently selected device, not weekly rotation
+  const device = document.getElementById('t3_device').value;
+  const phone = findPhoneByName(device) || (function(){ var idx = currentWeekNum % phonePool.length; return phonePool[idx]; })();
   if (typeof html2canvas !== 'undefined') {
     html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
       const link = document.createElement('a');
-      const phone = phonePool[currentWeekNum % phonePool.length];
       link.download = '卖点卡_' + sanitizeFilename(phone.model) + '.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
