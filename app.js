@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 07:51:51
+// 构建时间: 2026-07-13 08:06:44
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -905,10 +905,12 @@ function copyPanelText(panelId, mode) {
 function findPhoneByName(name) {
   if (!name) return null;
   var pool = window.___phonePool || phonePool || [];
+  // v2.7: 去掉下拉选里的 "(8G+256G)" 后缀，因为下拉选value含 storage 但 phonePool.brand+model 不含
+  var cleanName = String(name).replace(/\s*\([^)]+\)\s*$/, '').trim();
   for (var i = 0; i < pool.length; i++) {
     var p = pool[i];
-    if (p.model === name) return p;
-    if (p.brand && p.brand + ' ' + p.model === name) return p;
+    if (p.model === cleanName || p.model === name) return p;
+    if (p.brand && (p.brand + ' ' + p.model === cleanName || p.brand + ' ' + p.model === name)) return p;
   }
   return null;
 }
@@ -3847,12 +3849,18 @@ function clearTemplate3() {
   ['t3_item','t3_func','t3_p1','t3_p2','t3_p3','t3_title','t3_tags'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  document.getElementById('preview3-talk').style.display = 'none';
+  var talkEl = document.getElementById('preview3-talk');
+  if (talkEl) talkEl.style.display = 'none';
   document.getElementById('preview3-silent').style.display = 'none';
   var sdBtns = document.getElementById('silentDownloadBtns');
   if (sdBtns) sdBtns.style.display = 'none';
   var infoPanel = document.getElementById('infographicPanel');
   if (infoPanel) infoPanel.style.display = 'none';
+  // v2.7: 隐藏新区域
+  var sloganArea = document.getElementById('t3_slogan_area');
+  if (sloganArea) sloganArea.style.display = 'none';
+  var autoSection = document.getElementById('t3_auto_section');
+  if (autoSection) autoSection.style.display = 'none';
 }
 
 // ═══════ ai.js ═══════
