@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 00:57:31
+// 构建时间: 2026-07-13 01:07:24
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4468,21 +4468,19 @@ function miniSpec(val, label) {
 }
 
 function downloadInfographic() {
-  const card = document.getElementById('infographicCard');
+  var card = document.getElementById('infographicCard');
   if (!card) return;
+  var filename = '一图流_' + sanitizeFilename((document.getElementById('t3_title').value || '图解')) + '.png';
   if (typeof html2canvas !== 'undefined') {
-    html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = '一图流_' + sanitizeFilename((document.getElementById('t3_title').value || '图解')) + '.png';
+    html2canvas(card, { backgroundColor: null, scale: 2 }).then(function(canvas) {
+      var link = document.createElement('a');
+      link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
   } else {
-    // Fallback: open printable window
-    const w = window.open('', '_blank', 'width=440,height=800');
-    w.document.write('<html><head><title>一图流图解</title><style>body{margin:0;padding:16px;background:#f0f0f0;display:flex;justify-content:center;}</style></head><body>' + card.outerHTML + '</body></html>');
-    w.document.close();
-    setTimeout(() => w.print(), 500);
+    // Canvas 自绘兜底：不依赖任何外部库
+    drawPhoneCardAndDownload(filename);
   }
 }
 
@@ -4598,24 +4596,180 @@ function generateSellingPointCard() {
 }
 
 function downloadSellingPointCard() {
-  const card = document.getElementById('infographicCardSP');
+  var card = document.getElementById('infographicCardSP');
   if (!card) return;
-  // Use currently selected device, not weekly rotation
-  const device = document.getElementById('t3_device').value;
-  const phone = findPhoneByName(device) || (function(){ var idx = currentWeekNum % phonePool.length; return phonePool[idx]; })();
+  var device = document.getElementById('t3_device').value;
+  var phone = findPhoneByName(device) || (function(){ var idx = currentWeekNum % phonePool.length; return phonePool[idx]; })();
+  var filename = '卖点卡_' + sanitizeFilename(phone.model) + '.png';
   if (typeof html2canvas !== 'undefined') {
-    html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = '卖点卡_' + sanitizeFilename(phone.model) + '.png';
+    html2canvas(card, { backgroundColor: null, scale: 2 }).then(function(canvas) {
+      var link = document.createElement('a');
+      link.download = filename;
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
   } else {
-    const w = window.open('', '_blank', 'width=440,height=800');
-    w.document.write('<html><head><title>卖点展示卡</title><style>body{margin:0;padding:16px;background:#f0f0f0;display:flex;justify-content:center;}</style></head><body>' + card.outerHTML + '</body></html>');
-    w.document.close();
-    setTimeout(() => w.print(), 500);
+    drawPhoneCardAndDownload(filename);
   }
+}
+
+// ── Canvas 自绘卡片渲染器（零依赖，兜底导出 PNG）──
+function drawPhoneCardAndDownload(filename) {
+  var device = document.getElementById('t3_device').value;
+  var phone = findPhoneByName(device);
+  var city = document.getElementById('t3_city').value || '本地';
+  if (!phone) {
+    // 非手机设备走 AI 提示词
+    showAiPromptForCard();
+    return;
+  }
+  var W = 420, H = 600, scale = 2;
+  var canvas = document.createElement('canvas');
+  canvas.width = W * scale; canvas.height = H * scale;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  var price = phone.guidePrice || phone.price || 0;
+  var chip = phone.chip || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
+  var bat = phone.battery || (price > 3000 ? '大容量电池' : '长续航电池');
+  var cam = phone.camera || (price > 3500 ? '旗舰影像' : price > 2000 ? '高清多摄' : '高清主摄');
+  var hl = phone.highlight || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选');
+  var displayName = (phone.brand || '') + ' ' + (phone.model || '');
+  var specCards = [
+    { icon: '🧠', label: '芯片', val: chip },
+    { icon: '🔋', label: '电池', val: bat },
+    { icon: '📸', label: '拍照', val: cam },
+    { icon: '✨', label: '卖点', val: hl }
+  ];
+
+  // 背景
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 0, 0, W, H, 16);
+  ctx.fill();
+
+  // 深色头部
+  var headH = 170;
+  ctx.fillStyle = '#0D1B36';
+  ctx.beginPath(); roundRect(ctx, 0, 0, W, headH, 16); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, headH - 16, W, 16); // 切掉底部圆角
+  ctx.beginPath(); roundRect(ctx, 0, 0, W, headH, 16); ctx.clip();
+
+  // 头部文字
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '11px "Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(city + ' · 中国电信', W / 2, 38);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 20px "Microsoft YaHei",sans-serif';
+  ctx.fillText(displayName, W / 2, 72);
+
+  // 价格徽章
+  var badgeW = 100, badgeH = 28, badgeX = W / 2 - badgeW / 2, badgeY = 95;
+  ctx.fillStyle = '#FF5722';
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 14); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 13px "Microsoft YaHei",sans-serif';
+  ctx.fillText('¥' + (price || '到店询'), W / 2, badgeY + 20);
+
+  ctx.restore(); // remove clip
+
+  // 规格四宫格
+  var gridY = headH + 16, gridH = 220, gutter = 10;
+  var cellW = (W - 40 - gutter) / 2, cellH = (gridH - gutter) / 2;
+  for (var i = 0; i < 4; i++) {
+    var col = i % 2, row = Math.floor(i / 2);
+    var cx = 20 + col * (cellW + gutter);
+    var cy = gridY + row * (cellH + gutter);
+    var colors = ['#F0F7FF','#FFF8F0','#F0FFF4','#FFF0F5'];
+    ctx.fillStyle = colors[i];
+    roundRect(ctx, cx, cy, cellW, cellH, 10); ctx.fill();
+
+    ctx.fillStyle = '#172B4D';
+    ctx.font = 'bold 12px "Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(specCards[i].icon + ' ' + specCards[i].label, cx + cellW / 2, cy + 40);
+
+    ctx.fillStyle = '#42526E';
+    ctx.font = '11px "Microsoft YaHei",sans-serif';
+    // 长文本换行
+    var valText = specCards[i].val || '-';
+    if (valText.length > 10) {
+      ctx.fillText(valText.substring(0, 10), cx + cellW / 2, cy + 62);
+      ctx.fillText(valText.substring(10), cx + cellW / 2, cy + 78);
+    } else {
+      ctx.fillText(valText, cx + cellW / 2, cy + 68);
+    }
+  }
+
+  // 高亮条
+  var hlY = gridY + gridH + 10;
+  ctx.fillStyle = '#FFF3E0';
+  roundRect(ctx, 20, hlY, W - 40, 42, 10); ctx.fill();
+  ctx.fillStyle = '#E65100';
+  ctx.font = 'bold 12px "Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('✨ ' + (phone.highlight || '性价比出色，值得入手'), W / 2, hlY + 28);
+
+  // 底部
+  var footY = H - 50;
+  ctx.strokeStyle = '#DFE1E6';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(30, footY); ctx.lineTo(W - 30, footY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#999999';
+  ctx.font = '11px "Microsoft YaHei",sans-serif';
+  ctx.fillText('到' + city + '电信营业厅办理合约机，享专属优惠', W / 2, footY + 20);
+  ctx.fillStyle = '#CCCCCC';
+  ctx.font = '10px "Microsoft YaHei",sans-serif';
+  ctx.fillText('山西电信 · 抖本内容工坊', W / 2, footY + 38);
+
+  // 导出 PNG
+  canvas.toBlob(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('卖点卡已生成，可直接发朋友圈或发给客户', 'success');
+  }, 'image/png');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ── AI 生图提示词（非手机设备的备选方案）──
+function showAiPromptForCard() {
+  var item = document.getElementById('t3_item').value;
+  var city = document.getElementById('t3_city').value || '本地';
+  var prompt = '请生成一张信息图解卡片，适合发朋友圈：\n' +
+    '主题：' + item + '选购指南\n' +
+    '风格：商务简约，白色背景，深蓝色标题区，橙色价格标签\n' +
+    '内容：列出3个核心卖点，附带「到' + city + '电信营业厅了解更多」\n' +
+    '尺寸：适合手机竖屏查看，比例3:4\n' +
+    '底部文字：山西电信 · 抖本内容工坊';
+  var panel = document.getElementById('infographicPanel');
+  panel.innerHTML = '<div style="max-width:420px;margin:0 auto;padding:20px;background:#FAFBFC;border-radius:12px;">' +
+    '<div style="font-weight:700;color:#172B4D;margin-bottom:8px;">🤖 AI 生图提示词（复制到豆包/通义千问等工具）</div>' +
+    '<textarea readonly style="width:100%;height:160px;font-size:12px;line-height:1.6;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;">' + prompt + '</textarea>' +
+    '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.value);this.textContent=\'✅ 已复制！\';setTimeout(()=>this.textContent=\'📋 复制提示词\',1500)" style="margin-top:8px;padding:8px 16px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">📋 复制提示词</button>' +
+    '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="margin-left:8px;padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
+    '</div>';
+  panel.style.display = 'block';
 }
 
 const hotspotData = (function() {
