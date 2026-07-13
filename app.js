@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 01:51:30
+// 构建时间: 2026-07-13 02:05:03
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -657,6 +657,7 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
+const _wr = document.getElementById('weekRange');
 if (_wr) _wr.textContent = week.label;
 
 let bgmAudio = null;
