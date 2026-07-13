@@ -1,10 +1,12 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 02:05:03
+// 构建时间: 2026-07-13 02:09:15
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
 // ═══════ core.js ═══════
+'use strict';
+
 'use strict';
 
 'use strict';
@@ -658,6 +660,7 @@ const week = getWeekRange();
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
 const _wr = document.getElementById('weekRange');
+
 if (_wr) _wr.textContent = week.label;
 
 let bgmAudio = null;
@@ -899,7 +902,6 @@ function copyPanelText(panelId, mode) {
   });
 }
 
-// ── 手机池工具函数 ──
 function findPhoneByName(name) {
   if (!name) return null;
   var pool = window.___phonePool || phonePool || [];
@@ -4323,11 +4325,10 @@ function clearStats() {
   renderStats();
 }
 
-
-// ── 一图流 / 卖点卡 → AI 生图提示词（统一入口）──
 function generateInfographic() {
   buildAiPrompt('infographic');
 }
+
 function generateSellingPointCard() {
   buildAiPrompt('sellpoint');
 }
