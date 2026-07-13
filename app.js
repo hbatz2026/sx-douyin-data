@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 06:47:45
+// 构建时间: 2026-07-13 07:51:51
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1908,6 +1908,148 @@ function renderT3SellPointSection(deviceName, city) {
   if (tagsEl) tagsEl.value = tagStr;
 }
 
+// ============================================================
+// v2.7: T3 脚本生成提示词（复制→DeepSeek/豆包）
+// ============================================================
+
+var SCENE_OPTIONS = [
+  { id:'store', label:'🏪 店内（柜台前，手持手机）' },
+  { id:'community', label:'🏘 小区（活动现场，外景收音）' },
+  { id:'outdoor', label:'🚶 户外（商圈探店，边走边聊）' },
+  { id:'home', label:'🔧 入户（用户家中，问题解决）' }
+];
+
+var TOPIC_ALIAS = {
+  '续航':'续航和充电体验',
+  '拍照':'拍照和影像测评',
+  '样张':'拍照和影像测评',
+  '5G':'5G网络和信号',
+  '网速':'5G网络和信号',
+  '信号':'5G网络和信号',
+  '合约':'合约和优惠',
+  '优惠':'合约和优惠',
+  '划算':'合约和优惠'
+};
+
+function buildScriptPrompt(phone, topic, city, bgm) {
+  var p = phone;
+  var model = p.brand + ' ' + p.model;
+  var price = p.guidePrice || p.price || '到店询';
+  var topicDesc = TOPIC_ALIAS[topic] || topic + '体验';
+  // 获取当前人设
+  var persona = getPersona();
+  var pd = personaDB[persona] || personaDB['tech'];
+  var scene = document.getElementById('t3_scene')?.value || 'store';
+  var sceneLabel = SCENE_OPTIONS.find(function(s){return s.id===scene;})?.label || '🏪 店内';
+
+  var lines = [];
+  lines.push('【角色设定】');
+  lines.push('你是山西电信' + city + '营业厅的' + pd.label + ' ' + pd.icon + '，' + pd.desc + '。');
+  lines.push('拍摄场景：' + sceneLabel.replace(/^.{1,2}/,''));
+  lines.push('说话风格：像给邻居朋友介绍手机一样自然，不用播音腔。' + pd.prompt);
+  lines.push('');
+  lines.push('【任务】为下面这台手机生成约45秒的口播脚本，用于抖音短视频。');
+  lines.push('');
+  lines.push('【产品数据 - 禁止修改、增删、编造 - 以下来自品牌公开资料】');
+  lines.push('手机型号：' + model);
+  lines.push('芯片：' + p.chip);
+  lines.push('影像系统：' + p.camera);
+  lines.push('电池：' + p.battery);
+  lines.push('核心卖点：' + p.highlight);
+  lines.push('参考价格：¥' + price + '（电信合约价）');
+  lines.push('门店地址：' + city + '电信营业厅');
+  lines.push('');
+  lines.push('【选题方向】' + topicDesc);
+  lines.push('');
+  lines.push('【脚本结构】总长约45秒，分4段：');
+  lines.push('1. 开场 0-8秒：结合「' + topicDesc + '」用一句口语化的话开头，亮出手机。不要反问句。');
+  lines.push('2. 卖点1 8-20秒：把「' + p.chip + '」自然融入，不念参数。');
+  lines.push('3. 卖点2 20-32秒：把「' + p.camera + '」或「' + p.battery + '」中与选题匹配的方向展开。');
+  lines.push('4. 结尾 32-45秒：自然引导到店/收藏，带出门店地址。');
+  lines.push('');
+  lines.push('【格式要求】');
+  lines.push('- 口语化，用"你"不用"您"');
+  lines.push('- 每句话不超过25个字');
+  lines.push('- 全文控制在150字以内');
+  lines.push('- 不要"以下""众所周知""大家"等套话');
+  lines.push('- 每段标注时间，对话直接可念');
+  lines.push('- BGM：' + bgm + '（音量25%铺底不压人声）');
+
+  return lines.join('\n');
+}
+
+function renderT3AutoSection(deviceName) {
+  // 先渲染卖点区（已有函数）
+  renderT3SellPointSection(deviceName);
+
+  var area = document.getElementById('t3_auto_section');
+  if (!area) return;
+
+  var phone = findPhoneByName(deviceName);
+  var city = document.getElementById('t3_city')?.value || '本地';
+  var topic = document.getElementById('t3_topic')?.value || '';
+  var bgm = document.getElementById('t3_bgm')?.value || 'Windy Hill - 羽肿';
+  var tags = document.getElementById('t3_tags')?.value || '';
+
+  if (!phone) {
+    area.style.display = 'none';
+    return;
+  }
+
+  // 脚本生成提示词
+  var scriptPrompt = buildScriptPrompt(phone, topic, city, bgm);
+
+  // 图片生成提示词（复用已有逻辑但直接生成文本）
+  var imgPromptLines = [
+    '一张抖音竖版手机卖点海报，9:16比例。',
+    '设计风格：苹果发布会式的简洁高级感。深蓝色底（#0A1628），底部暖橙渐变过渡。',
+    '画面排版：',
+    '顶部：大字标题 "' + esc(phone.brand + ' ' + phone.model) + '"，副标题 "实力派"',
+    '中部：三个磨砂白低圆角卡片，配小图标：',
+    '  - ' + esc(translateSpecToSlogan(phone.camera, 'camera')),
+    '  - ' + esc(translateSpecToSlogan(phone.chip, 'chip')),
+    '  - ' + esc(translateSpecToSlogan(phone.battery, 'battery')),
+    '卡片下方："¥' + (phone.guidePrice || phone.price || '到店询') + ' 电信合约价"',
+    '底部："到店体验真机"',
+    '禁止出现手机实物照片。不要疑问句。文字不重叠。'
+  ].join('\n');
+
+  var imgPrompt = imgPromptLines;
+
+  area.innerHTML =
+    // 脚本提示词区
+    '<div style="margin-top:16px;background:#FFFDF7;border:2px solid #D4C9A8;border-radius:8px;padding:16px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<span style="font-size:14px;">🤖</span>' +
+        '<span style="font-weight:700;font-size:13px;color:#2C1810;">生成口播脚本</span>' +
+        '<span style="font-size:10px;color:#8C7A5E;">复制 → 打开 DeepSeek/豆包 → 粘贴 → 自动生成完整脚本</span>' +
+      '</div>' +
+      '<textarea readonly id="t3ScriptPromptText" style="width:100%;height:160px;font-size:12px;line-height:1.6;border:1px solid #E4DCC8;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;color:#3C3024;">' + esc(scriptPrompt) + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'t3ScriptPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#2C1810;color:#FFFDF7;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+      '</div>' +
+    '</div>' +
+    // 图片生成提示词区
+    '<div style="margin-top:12px;background:#F0F4FF;border:1.5px solid #B5D4F4;border-radius:8px;padding:16px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<span style="font-size:14px;">🖼</span>' +
+        '<span style="font-weight:700;font-size:13px;color:#185FA5;">生成卖点海报</span>' +
+        '<span style="font-size:10px;color:#5F5E5A;">复制 → 打开豆包/即梦 → 粘贴 → 生成9:16海报</span>' +
+      '</div>' +
+      '<textarea readonly id="t3ImgPromptText" style="width:100%;height:100px;font-size:12px;line-height:1.6;border:1px solid #B5D4F4;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;">' + esc(imgPrompt) + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'t3ImgPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+      '</div>' +
+    '</div>' +
+    // 收藏引导 + 完整信息
+    '<div style="margin-top:8px;padding:8px 12px;background:#F8F6F0;border:1px solid #E4DCC8;border-radius:6px;font-size:11px;color:#5C5040;">' +
+      '📌 全部内容已就绪。复制脚本提示词→DeepSeek生成口播文案，复制海报提示词→豆包生成封面图。' +
+      (tags ? '<br><b>标签：</b>' + esc(tags) : '') +
+    '</div>';
+
+  area.style.display = 'block';
+}
+
 // ═══════ schedule.js ═══════
 function getBestTime(idx, city) {
   const bases = [[12,14],[8,10],[20,22],[16,18],[15,16]];
@@ -3088,13 +3230,14 @@ function autoFillTech() {
   // v2.7: 手机类强制走 phonePool 翻译层（替换 techDB 话术）
   var phone = findPhoneByName(device);
   if (phone) {
+    document.getElementById('t3_item').value = phone.brand + ' ' + phone.model;
     document.getElementById('t3_p1').value = translateSpecToSlogan(phone.camera, 'camera');
     document.getElementById('t3_p2').value = translateSpecToSlogan(phone.chip, 'chip');
     document.getElementById('t3_p3').value = translateSpecToSlogan(phone.battery, 'battery');
     document.getElementById('t3_title').value = phone.brand + ' ' + phone.model;
-    summary.textContent = '设备: ' + phone.brand + ' ' + phone.model + ' | 选题: ' + topic + ' | ✅ 卖点源自 phonePool 规格（已翻译）';
-    // 自动渲染卖点展示区
-    renderT3SellPointSection(device);
+    summary.textContent = '设备: ' + phone.brand + ' ' + phone.model + ' | 选题: ' + topic + ' ✅ 自动生成已就绪';
+    // 自动渲染三大区
+    renderT3AutoSection(device);
   }
 }
 
@@ -4455,11 +4598,13 @@ function clearStats() {
 }
 
 function generateInfographic() {
-  generateDouyinPrompt();
+  // v2.7: 已废弃，提示词在 t3_auto_section 中自动展示
+  var area = document.getElementById('t3_auto_section');
+  if (area) area.scrollIntoView({ behavior: 'smooth' });
 }
 
 function generateSellingPointCard() {
-  generateDouyinPrompt();
+  generateInfographic();
 }
 
 function generateDouyinPrompt() {
