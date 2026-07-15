@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🧪 抖本内容工坊 · 新版原型</title>
+<style>
+:root {
+  --blue:#004098; --blue-light:#E8F0FE; --blue-mid:#1A6ED8;
+  --orange:#FF6B00; --orange-light:#FFF3E8;
+  --green:#0D904F; --green-light:#E6F4EA;
+  --red:#D93025; --red-light:#FCE8E6;
+  --gray:#F5F7FA; --gray-border:#E0E4EA;
+  --text:#1A1D26; --text-light:#6B7280; --white:#fff;
+  --shadow:0 2px 10px rgba(0,64,152,.07);
+  --shadow-card:0 4px 16px rgba(0,64,152,.1);
+  --radius:12px; --radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--gray);color:var(--text);line-height:1.6;min-height:100vh;}
+
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--gray);position:relative;padding-bottom:56px;}
+
+/* ===== Header ===== */
+.app-header{background:linear-gradient(135deg,var(--blue) 0%,#002B66 100%);color:var(--white);padding:14px 16px 12px;position:relative;}
+.app-header .top{display:flex;align-items:center;justify-content:space-between;}
+.app-header .title{font-size:17px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.app-header .date{font-size:11px;opacity:.7;margin-top:2px;}
+.app-header .h-badge{background:rgba(255,255,255,.15);font-size:10px;padding:2px 10px;border-radius:10px;}
+
+/* Store bar */
+.store-bar{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:rgba(255,255,255,.8);}
+.store-bar input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;font-size:11px;color:#fff;outline:none;width:140px;}
+.store-bar input::placeholder{color:rgba(255,255,255,.4);}
+
+/* ===== Bottom Tab ===== */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:var(--white);border-top:1px solid var(--gray-border);display:flex;z-index:50;padding:4px 0;box-shadow:0 -2px 8px rgba(0,0,0,.04);}
+.tab-bar .tab{flex:1;text-align:center;padding:4px 0;cursor:pointer;color:var(--text-light);transition:all .15s;border-top:2px solid transparent;}
+.tab-bar .tab.active{color:var(--blue);border-top-color:var(--blue);background:var(--blue-light);}
+.tab-bar .tab .icon{font-size:18px;display:block;}
+.tab-bar .tab .label{font-size:10px;display:block;margin-top:-2px;}
+
+/* ===== Content ===== */
+.content{padding:10px 14px 12px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== 今日推荐 ===== */
+.persona-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.persona-strip::-webkit-scrollbar{display:none;}
+.p-chip{flex-shrink:0;padding:4px 10px;border-radius:14px;font-size:11px;border:1.5px solid var(--gray-border);background:var(--white);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.p-chip.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue);font-weight:600;}
+.p-chip:active{transform:scale(.96);}
+
+.daily-cards{display:flex;flex-direction:column;gap:10px;}
+.script-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-card);overflow:hidden;transition:all .15s;cursor:pointer;}
+.script-card:active{transform:scale(.99);}
+
+.sc-head{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;}
+.sc-head .type-icon{font-size:18px;}
+.sc-head .type-name{font-size:13px;font-weight:600;color:var(--blue);}
+.sc-head .sc-badge{font-size:10px;padding:2px 8px;border-radius:8px;margin-left:auto;}
+.sc-badge.passed{background:var(--green-light);color:var(--green);}
+.sc-badge.fixed{background:#FFF3CD;color:#856404;}
+.sc-badge.blocked{background:var(--red-light);color:var(--red);}
+
+.sc-hook{font-size:12px;padding:0 14px;color:var(--text-light);margin-bottom:2px;}
+.sc-hook .hook-label{font-size:10px;color:#aaa;margin-right:4px;}
+.sc-title{font-size:14px;font-weight:500;padding:0 14px;line-height:1.4;}
+
+.sc-preview{padding:8px 14px;}
+.sc-preview .preview-text{font-size:12px;color:#555;line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.sc-actions{display:flex;gap:4px;padding:0 14px 10px;}
+.sc-actions button{flex:1;padding:6px;border:none;border-radius:6px;font-size:11px;cursor:pointer;}
+.sc-copy{background:var(--blue);color:var(--white);}
+.sc-switch{background:var(--gray);color:var(--text);}
+
+/* Expanded state */
+.script-card.expanded .preview-text{-webkit-line-clamp:unset;max-height:none;}
+.script-card.expanded .storyboard{display:block;}
+.storyboard{display:none;padding:0 14px 12px;}
+.storyboard table{width:100%;border-collapse:collapse;font-size:11px;}
+.storyboard td{padding:6px 4px;border-bottom:1px solid var(--gray-border);vertical-align:top;}
+.storyboard td.sec{color:var(--text-light);white-space:nowrap;width:36px;font-weight:600;}
+.storyboard td.cam{color:var(--text-light);font-size:10px;width:60px;}
+
+.sc-persona-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;background:var(--blue-light);color:var(--blue);margin:0 14px 6px;}
+
+/* ===== 排期 ===== */
+.week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;}
+.week-day{background:var(--white);border-radius:10px;padding:10px 4px;text-align:center;box-shadow:var(--shadow);}
+.week-day.today{border:2px solid var(--blue);background:var(--blue-light);}
+.week-day .wd-label{font-size:10px;color:var(--text-light);}
+.week-day .wd-icon{font-size:18px;margin:4px 0;}
+.week-day .wd-topic{font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.week-day .wd-status{font-size:9px;margin-top:2px;}
+.wd-done{color:var(--green);} .wd-today{color:var(--blue);font-weight:600;}
+
+/* ===== 热点 ===== */
+.hot-list{display:flex;flex-direction:column;gap:8px;}
+.hot-item{background:var(--white);border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow);border-left:3px solid var(--orange);}
+.hot-item .h-rank{font-size:10px;color:var(--orange);font-weight:600;}
+.hot-item .h-title{font-size:13px;font-weight:500;margin:2px 0;}
+.hot-item .h-why{font-size:11px;color:var(--text-light);line-height:1.5;}
+.hot-item .h-why .label{color:#aaa;}
+
+/* ===== 直播 ===== */
+.live-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.live-card{background:var(--white);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;border:1.5px solid var(--gray-border);}
+.live-card:active{transform:scale(.97);border-color:var(--blue);}
+.live-card .live-icon{font-size:28px;}
+.live-card .live-name{font-size:13px;font-weight:600;margin:4px 0 2px;}
+.live-card .live-desc{font-size:11px;color:var(--text-light);}
+
+/* ===== 我的 ===== */
+.my-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px;}
+.my-section h3{font-size:14px;margin-bottom:8px;color:var(--text);}
+.my-btn{display:flex;align-items:center;gap:8px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .1s;}
+.my-btn:active{background:var(--gray);}
+.my-btn .m-icon{font-size:18px;width:28px;text-align:center;}
+.my-btn .m-label{font-size:13px;flex:1;}
+.my-btn .m-arrow{color:var(--text-light);font-size:12px;}
+
+/* ===== Toast ===== */
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ===== Modal ===== */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:100;justify-content:center;align-items:flex-end;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:20px 16px 36px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;}
+.modal-sheet h3{font-size:15px;margin-bottom:12px;}
+.modal-close{width:100%;padding:10px;border:none;border-radius:var(--radius-sm);font-size:13px;background:var(--gray);color:var(--text);cursor:pointer;margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="top">
+      <div class="title">🧪 抖本内容工坊 · 尝鲜版</div>
+      <div class="h-badge" onclick="location.href='index.html'" style="cursor:pointer;background:rgba(255,107,0,.25);">返回经典版 →</div>
+    </div>
+    <div class="date" id="dateDisplay"></div>
+    <div class="store-bar">📍 <input id="storeInput" placeholder="输入营业厅名称" value="太原柳巷营业厅"></div>
+  </div>
+
+  <div class="content">
+    <!-- PAGE: 今日 -->
+    <div class="page active" id="page-today">
+      <div class="persona-strip" id="personaStrip"></div>
+      <div class="daily-cards" id="dailyCards"></div>
+    </div>
+
+    <!-- PAGE: 排期 -->
+    <div class="page" id="page-week">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">📅 本周排期</div>
+      <div class="week-grid" id="weekGrid"></div>
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">💡 排期说明</div>
+        <div style="font-size:11px;color:#999;line-height:1.6;">每天一个内容类型，每天更新 4 条新鲜脚本。<br>每天来的脚本都跟当日的抖音热搜结合，新鲜不重复。<br>排期按「日更热点」自动轮转，无需手动规划。</div>
+      </div>
+    </div>
+
+    <!-- PAGE: 热点 -->
+    <div class="page" id="page-hot">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:18px;">🔥</span>
+        <span style="font-size:14px;font-weight:600;">当日热搜精选（来源: 60s.viki.moe）</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">以下为今日抖音热搜TOP 8，AI 已筛选出 4 条可以转化为营业厅脚本</div>
+      <div class="hot-list" id="hotList"></div>
+    </div>
+
+    <!-- PAGE: 直播 -->
+    <div class="page" id="page-live">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">📺 直播话术</div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;">4 大场景 · 10 分钟循环 · 点击展开完整话术</div>
+      <div class="persona-strip" id="livePersonaStrip"></div>
+      <div class="daily-cards" id="liveCards"></div>
+    </div>
+
+    <!-- PAGE: 我的 -->
+    <div class="page" id="page-mine">
+      <div class="my-section">
+        <h3>📜 最近 7 天脚本记录</h3>
+        <div id="historyList" style="font-size:12px;color:var(--text-light);">暂无历史记录</div>
+      </div>
+      <div class="my-section">
+        <h3>⚙️ 设置</h3>
+        <div class="my-btn" onclick="document.getElementById('storeInput').focus()">
+          <span class="m-icon">📍</span>
+          <span class="m-label">绑定营业厅</span>
+          <span class="m-arrow">›</span>
+        </div>
+        <div class="my-btn" onclick="showToast('已重置为默认营业厅')">
+          <span class="m-icon">🔄</span>
+          <span class="m-label">重置门店信息</span>
+          <span class="m-arrow">›</span>
+        </div>
+        <div class="my-btn" onclick="showToast('✅ 已清除本地缓存')">
+          <span class="m-icon">🗑️</span>
+          <span class="m-label">清除本地缓存</span>
+          <span class="m-arrow">›</span>
+        </div>
+      </div>
+      <div class="my-section">
+        <h3>📋 合规记录</h3>
+        <div style="font-size:11px;color:var(--text-light);line-height:1.6;">
+          今日脚本 4 条<br>
+          ✅ 通过 2 条<br>
+          🔧 自动修正 2 条（话费→每月消费，合约→购机福利）<br>
+          ❌ 拦截 0 条
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab active" data-tab="today" onclick="switchTab('today')"><span class="icon">🧠</span><span class="label">今日</span></div>
+    <div class="tab" data-tab="week" onclick="switchTab('week')"><span class="icon">📅</span><span class="label">排期</span></div>
+    <div class="tab" data-tab="hot" onclick="switchTab('hot')"><span class="icon">🔥</span><span class="label">热点</span></div>
+    <div class="tab" data-tab="live" onclick="switchTab('live')"><span class="icon">📺</span><span class="label">直播</span></div>
+    <div class="tab" data-tab="mine" onclick="switchTab('mine')"><span class="icon">👤</span><span class="label">我的</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Data -->
+<script src="data/bundle.js"></script>
+<script src="data/dailyScripts.js"></script>
+
+<script>
+// ==================== Config ====================
+var PERSONAS = [
+  { id:'warm', emoji:'💝', name:'暖心姐姐' },
+  { id:'tech', emoji:'🔧', name:'技术专家' },
+  { id:'vibe', emoji:'😎', name:'活力小哥' },
+  { id:'sweet', emoji:'🌸', name:'甜美学姐' },
+  { id:'pro', emoji:'💼', name:'商务精英' },
+  { id:'master', emoji:'👔', name:'资深师傅' }
+];
+var WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
+var WEEK_TOPICS = ['📊决策指南','🎬一线场景','🔍深度测评','📍本地事件','🔥热点跟拍'];
+var TAB_NAMES = { today:'今日', week:'排期', hot:'热点', live:'直播', mine:'我的' };
+
+var curPersona = localStorage.getItem('douyin_persona') || 'vibe';
+var curScriptIdx = 0;
+
+// ==================== Init ====================
+document.addEventListener('DOMContentLoaded', function() {
+  var now = new Date();
+  document.getElementById('dateDisplay').textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+WEEKDAYS[now.getDay()];
+  
+  // Load store from localStorage
+  var savedStore = localStorage.getItem('douyin_store');
+  if (savedStore) {
+    document.getElementById('storeInput').value = savedStore;
+  }
+  document.getElementById('storeInput').addEventListener('change', function(){
+    localStorage.setItem('douyin_store', this.value);
+  });
+  
+  renderPersonaStrip();
+  renderDailyCards();
+  renderWeekGrid();
+  renderHotList();
+  
+  // Hash-based tab routing for browser back/forward
+  var hash = window.location.hash.replace('#','');
+  if (hash && TAB_NAMES[hash]) {
+    switchTab(hash);
+  }
+  window.addEventListener('popstate', function(e){
+    var h = window.location.hash.replace('#','');
+    if (h && TAB_NAMES[h]) switchTab(h, true);
+  });
+});
+
+// ==================== Persona ====================
+function renderPersonaStrip() {
+  var html = '';
+  for (var i = 0; i < PERSONAS.length; i++) {
+    var p = PERSONAS[i];
+    html += '<div class="p-chip' + (p.id === curPersona ? ' active' : '') + '" onclick="selectPersona(\''+p.id+'\',this)">'+p.emoji+' '+p.name+'</div>';
+  }
+  document.getElementById('personaStrip').innerHTML = html;
+}
+
+function selectPersona(id, el) {
+  curPersona = id;
+  localStorage.setItem('douyin_persona', id);
+  document.querySelectorAll('.p-chip').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  renderDailyCards();
+  // If on live tab, also re-render live cards
+  if (document.getElementById('page-live').classList.contains('active')) {
+    renderLiveCards();
+  }
+}
+
+function getPersona(id) {
+  for (var i = 0; i < PERSONAS.length; i++) { if (PERSONAS[i].id === id) return PERSONAS[i]; }
+  return PERSONAS[2];
+}
+
+// ==================== Daily Cards ====================
+function renderDailyCards() {
+  var data = window.___dailyScripts;
+  if (!data || !data.scripts) {
+    document.getElementById('dailyCards').innerHTML = '<div style="padding:20px;text-align:center;color:#999;">暂无今日脚本</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < data.scripts.length; i++) {
+    html += renderScriptCard(data.scripts[i], i);
+  }
+  document.getElementById('dailyCards').innerHTML = html;
+}
+
+function renderScriptCard(script, idx) {
+  var varData = script.variants[curPersona] || script.variants.vibe || {};
+  var persona = getPersona(curPersona);
+  var badgeClass = script.compliance.status;
+  var badgeText = badgeClass === 'passed' ? '✅ 合规' : (badgeClass === 'fixed' ? '🔧 已修正' : '⚠️ 拦截');
+  var fixedNote = badgeClass === 'fixed' && script.compliance.autoFixed > 0 ? ' (修正'+script.compliance.autoFixed+'处)' : '';
+  
+  // Use actual data from dailyScripts if available
+  var scriptText = varData.script || script.coreOffer;
+  var previewText = scriptText.slice(0, 120) + (scriptText.length > 120 ? '...' : '');
+  var bgm = varData.bgm || '';
+  var tags = varData.tags || '';
+  
+  // Storyboard
+  var sbHtml = '';
+  var sb = varData.storyboard || [];
+  if (sb.length > 0) {
+    sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
+    for (var s = 0; s < sb.length; s++) {
+      sbHtml += '<tr><td class="sec">'+sb[s].sec+'</td><td>'+sb[s].speaker+'<br><span style="color:#666;font-size:10px;">'+sb[s].text+'</span></td><td class="cam">'+sb[s].camera+'</td></tr>';
+    }
+    sbHtml += '</table></div>';
+  }
+
+  return '<div class="script-card" id="card-'+idx+'" onclick="toggleCard('+idx+')">' +
+    '<div class="sc-head">' +
+    '<span class="type-icon">'+script.typeIcon+'</span>' +
+    '<span class="type-name">'+script.typeName+'</span>' +
+    '<span class="sc-badge '+badgeClass+'">'+badgeText+fixedNote+'</span>' +
+    '</div>' +
+    '<div class="sc-hook"><span class="hook-label">钩子('+script.hookType+'):</span>'+script.hook+'</div>' +
+    '<div class="sc-title">'+script.topic+'</div>' +
+    '<div class="sc-persona-tag">'+persona.emoji+' '+persona.name+' · 🎵 '+bgm+'</div>' +
+    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
+    sbHtml +
+    '<div class="sc-actions">' +
+    '<button class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
+    '<button class="sc-switch" onclick="event.stopPropagation();cycleCard('+idx+')">🔄 换一条</button>' +
+    '</div></div>';
+}
+
+function toggleCard(idx) {
+  var el = document.getElementById('card-'+idx);
+  if (el) el.classList.toggle('expanded');
+}
+
+function cycleCard(idx) {
+  // Cycle persona instead — changes all 4 cards to next persona's variant
+  var pIdx = 0;
+  for (var i = 0; i < PERSONAS.length; i++) {
+    if (PERSONAS[i].id === curPersona) { pIdx = i; break; }
+  }
+  var nextP = PERSONAS[(pIdx + 1) % PERSONAS.length];
+  curPersona = nextP.id;
+  localStorage.setItem('douyin_persona', curPersona);
+  // Update persona strip visual
+  var chips = document.querySelectorAll('.p-chip');
+  chips.forEach(function(c){c.classList.remove('active');});
+  if (chips[(pIdx + 1) % PERSONAS.length]) chips[(pIdx + 1) % PERSONAS.length].classList.add('active');
+  renderDailyCards();
+  showToast('切换至 ' + nextP.emoji + ' ' + nextP.name);
+}
+  var data = window.___dailyScripts;
+  if (!data || !data.scripts[idx]) return;
+  var v = data.scripts[idx].variants[curPersona] || data.scripts[idx].variants.vibe || {};
+  var text = v.script || '';
+  copyToClipboard(text, '脚本已复制');
+}
+
+function copyToClipboard(text, okMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('✅ ' + okMsg);
+    }).catch(function() {
+      fallbackCopy(text, okMsg);
+    });
+  } else {
+    fallbackCopy(text, okMsg);
+  }
+}
+
+function fallbackCopy(text, okMsg) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('✅ ' + okMsg);
+  } catch(e) {
+    showToast('复制失败，请手动选择文字');
+  }
+  document.body.removeChild(ta);
+}
+
+// ==================== 排期 ====================
+function renderWeekGrid() {
+  var now = new Date();
+  var dayOfWeek = now.getDay();
+  // Monday = 1, Sunday = 0 → adjust
+  var monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+  
+  var html = '';
+  for (var i = 0; i < 5; i++) {
+    var d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    var isToday = (d.getDate() === now.getDate() && d.getMonth() === now.getMonth());
+    var isPast = d < now && !isToday;
+    html += '<div class="week-day' + (isToday ? ' today' : '') + '">' +
+      '<div class="wd-label">' + (isToday ? '今天' : WEEKDAYS[d.getDay()]) + '</div>' +
+      '<div class="wd-icon">' + (['📊','🎬','🔍','📍','🔥'][i]) + '</div>' +
+      '<div class="wd-topic">' + (['对比方案','服务故事','深度测评','活动福利','热点跟拍'][i]) + '</div>' +
+      '<div class="wd-status ' + (isPast ? 'wd-done' : (isToday ? 'wd-today' : '')) + '">' +
+      (isPast ? '✅ 已生成' : (isToday ? '📌今日' : '⏳待更新')) + '</div></div>';
+  }
+  document.getElementById('weekGrid').innerHTML = html;
+}
+
+// ==================== 热点 ====================
+function renderHotList() {
+  var data = window.___dailyScripts;
+  if (!data || !data.todayHots) return;
+  var hots = data.todayHots;
+  var html = '';
+  for (var i = 0; i < hots.length; i++) {
+    var isMatched = data.scripts.some(function(s){return s.hotTopic === hots[i];});
+    html += '<div class="hot-item" style="border-left-color:'+(isMatched?'var(--orange)':'var(--gray-border)')+'">' +
+      '<div class="h-rank">#' + (i+1) + (isMatched ? ' · 已匹配脚本' : ' · 未匹配') + '</div>' +
+      '<div class="h-title">' + hots[i] + '</div>' +
+      (isMatched ? '<div class="h-why">' + data.scripts.filter(function(s){return s.hotTopic===hots[i];})[0].hook + '</div>' : '') +
+      '</div>';
+  }
+  document.getElementById('hotList').innerHTML = html;
+}
+
+// ==================== 直播话术 ====================
+var LIVE_SCRIPTS = [
+  {
+    typeName: '厅店直播', typeIcon: '🏪',
+    hook: '想换手机、办宽带的，今天在营业厅就能一站搞定',
+    topic: '厅店直播：10分钟循环话术',
+    coreOffer: '店内柜台实景，产品展示+互动，引导到店转化',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: {
+        persona: '活力小哥',
+        script: '【暖场 2min】\n家人们下午好！我在太原柳巷电信营业厅给你们直播！今天特意挑了几款暑期爆款，给大家炸一波福利！\n\n【产品讲解 4min】\n第一款：千兆宽带暑期特惠！原本199一个月，现在新装只要99！还送千兆路由器一个！\n家人们，1000M宽带是什么概念？下载一部4K电影只要10秒钟！\n\n【互动 2min】\n想办的评论区扣「1」，我再给你额外争取个赠品！之前在我这办过的老铁们评论区聊两句？\n\n【逼单 2min】\n这个优惠只限今天！现在下单还送路由器+6个月会员。错过等明年！点击小风车直接预约！',
+        storyboard: [
+          { sec: '0-2', speaker: '热情打招呼', text: '「千兆暑期特惠99元起」', camera: '柜台实景口播' },
+          { sec: '2-6', speaker: '展品介绍', text: '「原199→现99 送路由器」', camera: '手持路由器+宽带套餐卡' },
+          { sec: '6-8', speaker: '互动引导', text: '「扣1拿赠品」', camera: '互动口播' },
+          { sec: '8-10', speaker: '限时逼单', text: '「限今天+送6个月会员」', camera: '指屏幕 紧迫感' }
+        ]
+      },
+      warm: {
+        persona: '暖心姐姐',
+        script: '【暖场 2min】\n大家好，欢迎来到山西电信直播间。今天来给大家讲讲家里宽带的事。\n\n【产品讲解 4min】\n很多大姐问我说：家里网速怎么越来越慢了？其实很可能是宽带用了好几年没升级了。\n现在有个活动，旧套餐升新套餐，网速翻倍，价格反而降了。\n\n【互动 2min】\n家里网速慢的，评论区留「测速」，我教你自己查一下。或者直接来店里找我，免费帮你测。\n\n【逼单 2min】\n这个升级活动名额有限，今天在我们直播间预约的，额外送6个月提速包。',
+        storyboard: [
+          { sec: '0-2', speaker: '微笑问好', text: '「家里网速慢？今天讲清楚」', camera: '营业厅背景口播' },
+          { sec: '2-6', speaker: '讲解方案', text: '「旧→新不涨价反降价」', camera: '套餐单页展示' },
+          { sec: '6-8', speaker: '互动提问', text: '「留测速帮你查」', camera: '贴心口播' },
+          { sec: '8-10', speaker: '限时引导', text: '「预约送6个月提速」', camera: '展示赠品' }
+        ]
+      },
+      tech: {
+        persona: '技术专家',
+        script: '【暖场 2min】\n欢迎来到专业直播间。今天不讲废话，直接上数据。\n\n【产品讲解 4min】\n很多人问千兆宽带到底值不值得。我测给你们看：100M下载速度12.5MB/s，300M是37.5MB/s，1000M是125MB/s。\n现在99元/月的千兆套餐，比隔壁运营商同规格便宜30%。\n\n【互动 2min】\n有技术问题的直接问，在线解答。测速不会的也可以问我。\n\n【逼单 2min】\n今天下单额外送千兆路由器一个，实测穿墙能力不错。数量不多，先到先得。',
+        storyboard: [
+          { sec: '0-2', speaker: '开场白', text: '「不讲废话只上数据」', camera: '设备墙背景' },
+          { sec: '2-6', speaker: '数据展示', text: '「100M→300M→1000M 数据对比」', camera: '测速屏幕展示' },
+          { sec: '6-8', speaker: 'Q&A', text: '「技术问题在线解答」', camera: '口播面对镜头' },
+          { sec: '8-10', speaker: '产品推荐', text: '「千兆路由器赠品实测」', camera: '产品特写' }
+        ]
+      },
+      sweet: {
+        persona: '甜美学姐',
+        script: '【暖场 2min】\n宝子们下午好！学姐在营业厅给你们直播啦！\n\n【产品讲解 4min】\n今天给你们争取到了一个暑期福利：千兆宽带直接半价！原价199、今天只要99！还送路由器！\n一个人或情侣住的选300M就够了，一家人的话千兆一步到位。\n\n【互动 2min】\n想要详细方案的，评论区留「城市+人数」，学姐帮你推荐最划算的方案！\n\n【逼单 2min】\n这个活动限时3天！今天下单还送6个月会员。错过要等明年暑假了！',
+        storyboard: [
+          { sec: '0-2', speaker: '甜美开场', text: '「暑期半价福利来了」', camera: '甜美口播' },
+          { sec: '2-6', speaker: '产品推荐', text: '「千兆半价99元+送路由器」', camera: '产品展示' },
+          { sec: '6-8', speaker: '引导互动', text: '「留城市+人数推荐方案」', camera: '互动口播' },
+          { sec: '8-10', speaker: '限时紧迫', text: '「限3天+送会员」', camera: 'wink比心' }
+        ]
+      },
+      pro: {
+        persona: '商务精英',
+        script: '【暖场 2min】\n各位好，今天介绍一个提升家庭办公效率的方案。\n\n【产品讲解 4min】\n居家办公最怕什么？视频会议卡、文件传不动、客户等半天。\n千兆宽带99元/月，一天3块3。一台手机的话费都不止这个数，但换来的是全家全年不卡。\n\n【互动 2min】\n有办公网络需求的，评论区说说你的情况，我帮你定制方案。\n\n【逼单 2min】\n今天预约可免费上门测速+调试路由器。评论区留「上门」立即安排。',
+        storyboard: [
+          { sec: '0-2', speaker: '专业开场', text: '「提升居家办公效率」', camera: '办公桌面背景' },
+          { sec: '2-6', speaker: '需求分析', text: '「一天3块3 全年不卡」', camera: '白板写数字' },
+          { sec: '6-8', speaker: '互动邀请', text: '「留需求定制方案」', camera: '专业口播' },
+          { sec: '8-10', speaker: '服务承诺', text: '「留上门免费调」', camera: '商务姿态收尾' }
+        ]
+      },
+      master: {
+        persona: '资深师傅',
+        script: '【暖场 2min】\n大家好，干了十几年电信，今天跟你聊点干货。\n\n【产品讲解 4min】\n现在很多人觉得宽带太贵了，其实真不贵。我算给你看：100M宽带每月39，300M每月59，1000M才99。\n一家人平摊下来，每人每天一块钱不到。\n\n【互动 2min】\n有啥不懂的评论区问，师傅在线答。宽带/手机/套餐都行，我懂的都告诉你。\n\n【逼单 2min】\n今天找我办，我免费上门给你装好、调好、测好再走。不是谁都有这待遇的。',
+        storyboard: [
+          { sec: '0-2', speaker: '师傅开场', text: '「跟你说点干货」', camera: '工装口播' },
+          { sec: '2-6', speaker: '成本分析', text: '「每人一天不到1块钱」', camera: '掰手指算账' },
+          { sec: '6-8', speaker: '在线答疑', text: '「随便问 师傅在线答」', camera: '真诚口播' },
+          { sec: '8-10', speaker: '服务承诺', text: '「办完上门调好再走」', camera: '展示工具箱' }
+        ]
+      }
+    }
+  },
+  {
+    typeName: '小区地推', typeIcon: '🏘️',
+    hook: '小区门口的电信服务点，比你还了解你家的网',
+    topic: '小区地推：社区便民直播脚本',
+    coreOffer: '社区摆摊，便民服务+业务推广+进群维护',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: { persona: '活力小哥', script: '【暖场 2min】各位邻居好！今天我们在XX小区门口做便民服务！免费贴膜免费测速！路过不要错过啊！\n\n【服务 4min】阿姨手机慢的、家里WiFi卡的、想换套餐的，统统过来我帮你看看！不收一分钱！\n\n【互动 2min】家人们帮我点点赞，我多给大家贴几张膜！\n\n【转化 2min】觉得服务满意的，加个群，以后有问题直接在群里问我，24小时在线！', storyboard: [
+        { sec: '0-2', speaker: '小区门口热情招呼', text: '「免费贴膜测速啦」', camera: '小区门口实景口播' },
+        { sec: '2-6', speaker: '服务展示', text: '「免费服务不花一分钱」', camera: '贴膜操作+测速展示' },
+        { sec: '6-8', speaker: '互动求赞', text: '「点赞多贴几张」', camera: '互动口播' },
+        { sec: '8-10', speaker: '引导入群', text: '「加群24小时有问必答」', camera: '展示群二维码' }
+      ]},
+      warm: { persona: '暖心姐姐', script: '【暖场 2min】邻居们好，电信进社区搞便民服务，今天一天都在小区门口。\n\n【服务 4min】家里有网络问题的、手机不会用的，都过来我帮你看看。特别是家里有老人的，出门不方便，告诉我你住哪栋，我上门服务。\n\n【互动 2min】大家互相转告一下，今天到下午6点，过了今天就回营业厅了。\n\n【转化 2min】加我个微信，以后家里网络有问题直接找我，不用跑营业厅。', storyboard: [
+        { sec: '0-2', speaker: '亲切招呼', text: '「电信便民服务进社区」', camera: '便民摊位实景' },
+        { sec: '2-6', speaker: '服务内容', text: '「老人行动不便可上门」', camera: '温馨服务画面' },
+        { sec: '6-8', speaker: '互动提醒', text: '「今天到6点 互相转告」', camera: '面对小区口播' },
+        { sec: '8-10', speaker: '留存转化', text: '「加联系方式以后不用跑厅」', camera: '展示联系方式' }
+      ]},
+      tech: { persona: '技术专家', script: '【暖场 2min】大家好，我是电信工程师，今天在XX小区做免费网络义诊。\n\n【服务 4min】免费三项：测真实网速、检查路由器位置是否合理、查套餐是否还有优化空间。我带了专业设备，当场出检测报告。\n\n【互动 2min】有问题的现场排队，一家一家来。\n\n【转化 2min】测完加群，群里发你的检测报告电子版，以后有问题群里@我。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「免费网络义诊+专业设备」', camera: '展示检测设备' },
+        { sec: '2-6', speaker: '服务列表', text: '「测速+路由器+套餐检查」', camera: '设备操作演示' },
+        { sec: '6-8', speaker: '现场组织', text: '「一家一家来 都检测完」', camera: '服务现场' },
+        { sec: '8-10', speaker: '后续服务', text: '「加群发你检测报告」', camera: '群二维码展示' }
+      ]},
+      sweet: { persona: '甜美学姐', script: '【暖场 2min】宝子们！我带着贴膜工具来你们小区了！\n\n【服务 4min】免费贴膜、免费手机清洁、免费测宽带！还有一个小小的见面礼！\n\n【互动 2min】宝子们帮我转发到业主群，我多送10个贴膜名额！\n\n【转化 2min】加我个联系方式，以后手机出问题了不用跑厅，直接问我！', storyboard: [
+        { sec: '0-2', speaker: '活泼开场', text: '「带工具来你们小区了」', camera: '甜美笑容+工具包' },
+        { sec: '2-6', speaker: '服务福利', text: '「贴膜+清洁+测速+小礼物」', camera: '服务展示' },
+        { sec: '6-8', speaker: '请求转发', text: '「转发多送10个名额」', camera: '互动口播' },
+        { sec: '8-10', speaker: '留存转化', text: '「加联系方式随时问」', camera: '联系方式展示' }
+      ]},
+      pro: { persona: '商务精英', script: '【暖场 2min】各位邻居，为提升社区网络品质，今天在此设点提供免费网络诊断。\n\n【服务 4min】包含：宽带速率实测、路由器性能评估、套餐方案对比。同时可办理业务升级。\n\n【互动 2min】每户大概5分钟，检测完会出一份简单的网络现状报告。\n\n【转化 2min】加企业微信，有问题随时咨询。如果检测发现问题，可预约免费上门调试。', storyboard: [
+        { sec: '0-2', speaker: '干练开场', text: '「社区网络品质提升服务」', camera: '统一着装摊位' },
+        { sec: '2-6', speaker: '服务说明', text: '「测速+评估+方案对比」', camera: '专业服务画面' },
+        { sec: '6-8', speaker: '流程说明', text: '「5分钟出检测报告」', camera: '检测流程演示' },
+        { sec: '8-10', speaker: '长期留存', text: '「加企微24小时在线」', camera: '企微二维码' }
+      ]},
+      master: { persona: '资深师傅', script: '【暖场 2min】邻居们好！今天我来你们小区做服务了，免费的！\n\n【服务 4min】干了十几年装维，谁家网速有问题我一眼就看出来。路由器放错了、光猫老化了、套餐该升了——来我帮你检查。\n\n【互动 2min】一个一个来，别急。排队的时候跟邻居聊聊天也行。\n\n【转化 2min】加个联系方式，以后网络有故障先找我，省得打10000号等半天。', storyboard: [
+        { sec: '0-2', speaker: '亲切开场', text: '「免费网络义诊今天一天」', camera: '师傅穿上工装' },
+        { sec: '2-6', speaker: '自信承诺', text: '「一看就知道问题在哪」', camera: '工具箱展示' },
+        { sec: '6-8', speaker: '现场组织', text: '「排队别急 一个个来」', camera: '服务现场' },
+        { sec: '8-10', speaker: '长期留存', text: '「加我直接找 不打10000」', camera: '展示联系方式' }
+      ]}
+    }
+  },
+  {
+    typeName: '户外活动', typeIcon: '🎪',
+    hook: '广场上搞活动，今天来的都有礼品',
+    topic: '户外活动：商圈广场引流直播脚本',
+    coreOffer: '广场/商圈活动，吸粉拉新+现场办理+抽奖互动',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: { persona: '活力小哥', script: '【暖场 2min】家人们！我现在在XX广场，电信搞活动！现场人山人海！\n\n【活动 4min】现场办宽带送路由器、签合约抽大奖、还有免费贴膜！走过路过不要错过！\n\n【互动 2min】人太多了，小哥哥小姐姐们帮我维持一下秩序！\n\n【转化 2min】想办的来这边排队，今天办额外送3个月会员！先到先得！', storyboard: [
+        { sec: '0-2', speaker: '热情开场', text: '「XX广场搞活动啦」', camera: '广场全景' },
+        { sec: '2-6', speaker: '活动内容', text: '「送路由器/抽奖/免费贴膜」', camera: '活动现场' },
+        { sec: '6-8', speaker: '互动', text: '「人太多帮忙维持」', camera: '人群镜头' },
+        { sec: '8-10', speaker: '紧迫感', text: '「今天办送3个月会员」', camera: '排队实拍' }
+      ]},
+      warm: { persona: '暖心姐姐', script: '【暖场 2min】各位朋友好！今天我们在XX广场搞活动，天气热，过来歇歇脚喝杯水。\n\n【活动 4min】免费贴膜、免费测速、办业务送好礼。活动一直到晚上8点。\n\n【互动 2min】大家互相叫一下，有邻居朋友在附近的都过来看看。\n\n【转化 2min】今天办的送一整年的流量包，这个平时没有的。', storyboard: [
+        { sec: '0-2', speaker: '亲切开场', text: '「进来歇歇脚喝杯水」', camera: '活动帐篷' },
+        { sec: '2-6', speaker: '活动内容', text: '「免费服务+办业务送礼」', camera: '活动展台' },
+        { sec: '6-8', speaker: '号召', text: '「叫朋友过来看看」', camera: '互动口播' },
+        { sec: '8-10', speaker: '限时福利', text: '「送一年流量包限今天」', camera: '福利展示' }
+      ]},
+      tech: { persona: '技术专家', script: '【暖场 2min】各位好，今天XX广场电信做现场活动。\n\n【活动 4min】带了专业设备，当场测网速、测手机信号。同时也带来了暑期优惠套餐。\n\n【互动 2min】测完网速的可以拿一份检测报告，现场对比运营商。\n\n【转化 2min】觉得好的现场办理，今天有专属工程师档期，可以预约上门调网。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「专业设备现场测速」', camera: '展示设备' },
+        { sec: '2-6', speaker: '服务说明', text: '「测速+对比+优惠套餐」', camera: '设备操作' },
+        { sec: '6-8', speaker: '互动', text: '「拿检测报告现场对比」', camera: '打印报告' },
+        { sec: '8-10', speaker: '转化', text: '「预约工程师上门调」', camera: '预约登记' }
+      ]},
+      sweet: { persona: '甜美学姐', script: '【暖场 2min】宝子们！我在XX广场摆摊！现场好多好礼！\n\n【活动 4min】贴膜免费！测速免费！办套餐送大礼包！现场抽奖100%中奖！\n\n【互动 2min】宝子们过来打卡拍照，发朋友圈送小风扇一个！\n\n【转化 2min】今天办套餐还加送视频会员！这羊毛不薅白不薅！', storyboard: [
+        { sec: '0-2', speaker: '甜美开场', text: '「在XX广场摆摊等你」', camera: '可爱挥手' },
+        { sec: '2-6', speaker: '福利内容', text: '「免费贴膜/测速/100%抽奖」', camera: '展示礼品' },
+        { sec: '6-8', speaker: '互动', text: '「发朋友圈送小风扇」', camera: '小风扇展示' },
+        { sec: '8-10', speaker: '紧迫感', text: '「送视频会员限今天」', camera: '可爱比心' }
+      ]},
+      pro: { persona: '商务精英', script: '【暖场 2min】各位好，电信XX广场活动现场，为您提供一站式通信服务。\n\n【活动 4min】可办理：宽带新装/套餐升级/以旧换新/携号转网。另有工程师现场解答技术问题。\n\n【互动 2min】现场咨询免排队，一对一服务。\n\n【转化 2min】今天签约额外赠送6个月流量包。可现场预约工程师上门调试时间。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「一站式通信服务」', camera: '活动全景' },
+        { sec: '2-6', speaker: '服务清单', text: '「新装/升级/换新/转网」', camera: '服务台展示' },
+        { sec: '6-8', speaker: '服务承诺', text: '「一对一免排队」', camera: '服务现场' },
+        { sec: '8-10', speaker: '转化', text: '「签约送6个月+预约上门」', camera: '签约画面' }
+      ]},
+      master: { persona: '资深师傅', script: '【暖场 2min】大家好！今天电信在XX广场，师傅我亲自坐镇！\n\n【活动 4min】有啥网络问题尽管过来问。宽带慢的、手机卡的、信号差的，师傅现场帮你解决。今天办业务还有额外好礼。\n\n【互动 2min】都别客气，有问题就问，不收一分钱。\n\n【转化 2min】今天办业务的，师傅我亲自上门帮你调好、测好再走。这机会平时没有。', storyboard: [
+        { sec: '0-2', speaker: '师傅坐镇', text: '「师傅亲自坐镇XX广场」', camera: '师傅工装' },
+        { sec: '2-6', speaker: '服务内容', text: '「有问题过来问 免费」', camera: '服务台实拍' },
+        { sec: '6-8', speaker: '互动邀请', text: '「别客气直接问」', camera: '师傅招牌微笑' },
+        { sec: '8-10', speaker: '转化', text: '「今天办我亲自上门调」', camera: '工具箱展示' }
+      ]}
+    }
+  },
+  {
+    typeName: '入户直播', typeIcon: '🚪',
+    hook: '装维师傅的一天：上门测速、排查故障、优化网络',
+    topic: '入户直播：跟拍上门服务全流程',
+    coreOffer: '跟拍上门服务全流程，真实可信+展现专业度',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: { persona: '活力小哥', script: '【暖场 2min】家人们！今天不坐办公室了，跟着师傅上门干活去！\n\n【服务 4min】第一站：王姐家，说网速慢了好几天。师傅查了一圈，光猫位置太偏、路由器还是老款。换光猫位置+升级千兆路由，一测直接翻倍！\n\n【互动 2min】师傅干活的时候嘴巴没停，边干边教用户怎么自查。用户说师傅你真的比10000号有用多了。\n\n【转化 2min】你要也有网络问题，评论区留「上门」，师傅顺路过去帮你看看！不收上门费。', storyboard: [
+        { sec: '0-2', speaker: '跟拍进门', text: '「跟师傅上门去」', camera: '跟拍上楼画面' },
+        { sec: '2-6', speaker: '检修过程', text: '「光猫位置偏+路由器老→翻倍」', camera: '检修操作特写' },
+        { sec: '6-8', speaker: '用户反馈', text: '「比10000号有用」', camera: '用户满意画面' },
+        { sec: '8-10', speaker: '转化', text: '「留上门顺路去」', camera: '师傅工装收尾' }
+      ]},
+      warm: { persona: '暖心姐姐', script: '【暖场 2min】今天跟着师傅上门，感受一下真实的装维工作。\n\n【服务 4min】李阿姨家，儿子在国外，每周就靠家里网络视频通话。但最近老是断断续续的，阿姨急得不行。师傅检查发现是老光猫该换了。换了设备，视频通话再也不卡了。阿姨眼眶都红了，说终于能跟儿子说上话了。\n\n【互动 2min】做这一行最有成就感的时候就是看到客户满意的笑容。\n\n【转化 2min】家里有老人的，需要上门服务的，评论区留「上门」+地址，师傅顺路也去帮你看看。', storyboard: [
+        { sec: '0-2', speaker: '温暖开场', text: '「跟着师傅上门去」', camera: '师傅上门镜头' },
+        { sec: '2-6', speaker: '服务故事', text: '「阿姨想跟儿子视频→换光猫」', camera: '温馨服务画面' },
+        { sec: '6-8', speaker: '感悟时刻', text: '「最有成就感的时候」', camera: '师傅微笑' },
+        { sec: '8-10', speaker: '转化', text: '「留上门+地址去帮你看」', camera: '阿姨感谢画面' }
+      ]},
+      tech: { persona: '技术专家', script: '【暖场 2min】今天做一次上门服务实拍，看看宽带故障是怎么排查的。\n\n【服务 4min】用户报修说是千兆宽带但网速只有50M。现场测速：入户光功率-22dBm正常。查路由器是WAN口速率协商成100M。重新插拔网线后协商到1000M，测速恢复到920M。\n\n【互动 2min】故障排查逻辑：先测入户光功率→再查路由器协商速率→最后查WiFi信道干扰。按顺序排查不走弯路。\n\n【转化 2min】你遇到类似问题吗？留「测速」我帮你远程诊断。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「上门实拍故障排查流程」', camera: '专业设备展示' },
+        { sec: '2-6', speaker: '故障排查', text: '「光功率正常→协商速度→测速恢复」', camera: '测速数据展示' },
+        { sec: '6-8', speaker: '技术科普', text: '「按顺序排查不走弯路」', camera: '技术讲解口播' },
+        { sec: '8-10', speaker: '转化', text: '「留测速远程诊断」', camera: '屏幕显示数据' }
+      ]},
+      sweet: { persona: '甜美学姐', script: '【暖场 2min】宝子们！今天学姐跟着师傅出门干活了！\n\n【服务 4min】小姐姐家里刚装修完，宽带不通急得不行。师傅查了一圈，发现是装修的时候光纤被压断了。重新熔接了一下，20分钟搞定！小姐姐高兴得非要请师傅喝奶茶。\n\n【互动 2min】你们家装修的时候有没有发生过被师傅压断网线的经历？评论区聊聊。\n\n【转化 2min】新装修没布宽带、刚搬家要装网的，评论区留「装网」，学姐帮你加急安排！', storyboard: [
+        { sec: '0-2', speaker: '活泼开场', text: '「跟着师兄出门干活」', camera: '跟拍工具包' },
+        { sec: '2-6', speaker: '展示维修', text: '「光纤被压断→20分钟搞定」', camera: '熔纤操作特写' },
+        { sec: '6-8', speaker: '互动提问', text: '「你家装修有压断吗？」', camera: '互动口播' },
+        { sec: '8-10', speaker: '转化', text: '「留装网加急安排」', camera: '甜美wink' }
+      ]},
+      pro: { persona: '商务精英', script: '【暖场 2min】今天以旁观视角记录一次标准的上门网络服务流程。\n\n【服务 4min】完整流程：预约沟通→准时上门→着装规范→检查全屋网络→出具优化方案→现场实施→验收测试→客户签字。全程约30分钟。\n\n【互动 2min】这就是为什么推荐电信服务——不是只解决眼前问题，还帮你规划未来3年的网络布局。\n\n【转化 2min】需要上门网络优化的，评论区留「评测」，免费上门出方案。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「记录一次标准上门服务」', camera: '出发前准备' },
+        { sec: '2-6', speaker: '流程展示', text: '「预约→上门→检查→实施→验收」', camera: '流程多画面拼接' },
+        { sec: '6-8', speaker: '品牌价值', text: '「不只是解决问题 还规划未来」', camera: '验收签字画面' },
+        { sec: '8-10', speaker: '转化', text: '「留评测免费上门出方案」', camera: '专业收尾' }
+      ]},
+      master: { persona: '资深师傅', script: '【暖场 2min】今天带你去看看一个真实的维修案例。\n\n【服务 4min】小张家的宽带装了大半年，从来没跑满过。他以为电信在骗他。我一查，原来是装的时候网线接错了。换了水晶头，重做一遍，测速直接飞起。\n\n【互动 2min】你看，有时候不是套餐不够、不是电信坑你，就是一些安装上的小问题。\n\n【转化 2min】你家宽带也有问题？留地址，我顺路过去帮你看看。不收一分钱。', storyboard: [
+        { sec: '0-2', speaker: '师傅开场', text: '「真实维修案例跟拍」', camera: '师傅上车镜头' },
+        { sec: '2-6', speaker: '诊断过程', text: '「网线接错→换水晶头→飞起」', camera: '操作特写' },
+        { sec: '6-8', speaker: '总结点', text: '「不是电信坑你 是安装问题」', camera: '师傅对着镜头说' },
+        { sec: '8-10', speaker: '转化', text: '「留地址顺路去不收钱」', camera: '师傅微笑' }
+      ]}
+    }
+  }
+];
+
+function renderLiveCards() {
+  var ls = document.getElementById('livePersonaStrip');
+  if (ls) ls.innerHTML = document.getElementById('personaStrip').innerHTML || '';
+  var container = document.getElementById('liveCards');
+  if (!container) return;
+  var html = '';
+  for (var i = 0; i < LIVE_SCRIPTS.length; i++) {
+    html += renderLiveCard(LIVE_SCRIPTS[i], i);
+  }
+  container.innerHTML = html;
+}
+
+function renderLiveCard(s, idx) {
+  var v = s.variants[curPersona] || s.variants.vibe || {};
+  var persona = getPersona(curPersona);
+  var previewText = (v.script || '').slice(0, 100) + '…';
+  var sbHtml = '';
+  var sb = v.storyboard || [];
+  if (sb.length > 0) {
+    sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
+    for (var i = 0; i < sb.length; i++) {
+      sbHtml += '<tr><td class="sec">'+sb[i].sec+'</td><td>'+sb[i].speaker+'<br><span style="color:#666;font-size:10px;">'+sb[i].text+'</span></td><td class="cam">'+sb[i].camera+'</td></tr>';
+    }
+    sbHtml += '</table></div>';
+  }
+  return '<div class="script-card" onclick="var e=document.getElementById(\'lc-'+idx+'\');if(e)e.classList.toggle(\'expanded\')" id="lc-'+idx+'">' +
+    '<div class="sc-head">' +
+    '<span class="type-icon">'+s.typeIcon+'</span>' +
+    '<span class="type-name">'+s.typeName+'</span>' +
+    '<span class="sc-badge passed">✅ 合规</span>' +
+    '</div>' +
+    '<div class="sc-hook"><span class="hook-label">钩子:</span>'+s.hook+'</div>' +
+    '<div class="sc-title">'+s.topic+'</div>' +
+    '<div class="sc-persona-tag">'+persona.emoji+' '+persona.name+' · 🎤 直播话术</div>' +
+    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
+    sbHtml +
+    '<div class="sc-actions">' +
+    '<button class="sc-copy" onclick="event.stopPropagation();copyLiveText('+idx+')">📋 复制话术</button>' +
+    '</div></div>';
+}
+
+function copyLiveText(idx) {
+  var s = LIVE_SCRIPTS[idx];
+  if (!s) return;
+  var v = s.variants[curPersona] || s.variants.vibe || {};
+  copyToClipboard(v.script || '', '直播话术已复制');
+}
+
+// ==================== Tab ====================
+function switchTab(name, fromPop) {
+  document.querySelectorAll('.tab-bar .tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelector('.tab-bar .tab[data-tab="'+name+'"]').classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  
+  // Update hash for browser back/forward
+  if (!fromPop) {
+    history.pushState({tab: name}, '', '#'+name);
+  }
+  
+  // Render content on tab switch
+  if (name === 'live') renderLiveCards();
+  if (name === 'today') { renderPersonaStrip(); renderDailyCards(); }
+  if (name === 'week') renderWeekGrid();
+  if (name === 'hot') renderHotList();
+}
+
+// ==================== Toast ====================
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');}, 2000);
+}
+</script>
+</body>
+</html>
