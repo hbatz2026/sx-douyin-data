@@ -381,6 +381,8 @@ function cycleCard(idx) {
   renderDailyCards();
   showToast('切换至 ' + nextP.emoji + ' ' + nextP.name);
 }
+
+function copyCardText(idx) {
   var data = window.___dailyScripts;
   if (!data || !data.scripts[idx]) return;
   var v = data.scripts[idx].variants[curPersona] || data.scripts[idx].variants.vibe || {};
