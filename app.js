@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-16 04:04:19
+// 构建时间: 2026-07-16 07:35:22
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2614,22 +2614,37 @@ function searchT1AndFill(topic) {
     body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
   }).then(function(r) { return r.json(); }).then(function(data) {
     if (data && data.a && data.b && data.c) {
+      // 区分数据来源：知识库(蓝) / 搜索(绿) / 无数据(灰)
+      var sourceColors = { knowledge: '#1565C0', search: '#2E7D32', partial: '#E65100', 'no-data': '#666' };
+      var sourceLabels = { knowledge: '🏛️ 知识库', search: '🌐 实时搜索', partial: '⚠️ 部分数据', 'no-data': '❌ 无数据' };
+      var color = sourceColors[data.source] || '#1565C0';
+      var label = sourceLabels[data.source] || '';
+      var ts = new Date().toLocaleTimeString();
+      
       ['a','b','c'].forEach(function(k, i) {
         var val = data[k];
         var el = document.getElementById('t1_' + k);
-        // 只在字段未手动修改时更新
         if (el && val && !el.dataset.userEdited) {
           el.value = val;
-          el.style.borderColor = '#1565C0';
-          el.style.background = '#E3F2FD';
-          el.title = '🌐 来自搜索结果（' + new Date().toLocaleTimeString() + '）';
+          el.style.borderColor = color;
+          el.style.background = color + '18';
+          el.title = label + ' | ' + ts + (data.matchedKey ? ' | ' + data.matchedKey : '');
+        }
+      });
+    } else if (data && data.a && data.source === 'no-data') {
+      // 无数据：保留兜底但变色提示
+      ['a','b','c'].forEach(function(k) {
+        var el = document.getElementById('t1_' + k);
+        if (el) {
+          el.title = '❌ 搜索无数据，请手动填写 | ' + new Date().toLocaleTimeString();
+          el.style.color = '#999';
         }
       });
     } else {
-      // 搜索失败/无结果，保持 auto-generate 内容
+      // 搜索失败：保持 auto-generate
       ['a','b','c'].forEach(function(k) {
         var el = document.getElementById('t1_' + k);
-        if (el) el.title = '🤖 AI 兜底生成（搜索失败）';
+        if (el) el.title = '🤖 AI 兜底（搜索失败） | ' + new Date().toLocaleTimeString();
       });
     }
   }).catch(function(e) {
