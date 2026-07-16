@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-16 01:53:07
+// 构建时间: 2026-07-16 02:11:40
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2372,24 +2372,37 @@ function previewT1Talk() {
   if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
   var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
   var hooked = hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>' : '';
+  // 档位标签：从前缀提取（"100M 够用党" / "300M 性价比" / "套餐 A" 等）
+  // 数据约定：每条 scene 应以"档位名"开头（如"100M 够用党，xxx"），用第一个逗号或空格前的部分
+  function extLabel(t) {
+    if (!t) return '';
+    // 优先：第一个逗号前
+    if (t.indexOf('，') > -1) {
+      // 把逗号前的内容再加清洗：去掉数字+单位（避免"100M 够用党"这种情况被吞）
+      // 实际上"100M 够用党"和"一个人住刷视频"第一个逗号前的部分可能都是好的 label
+      return t.split('，')[0].slice(0, 8);
+    }
+    return t.slice(0, 8);
+  }
+  var la = extLabel(a), lb = extLabel(b), lc = extLabel(cVal);
   const html = (variantHtml || '') + `
 <div class="stage">🎬 口播脚本 · 钩子→升级→回报→CTA</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
 <div class="stage">🎣 【钩子 0-5秒】第1帧同时出现：大字标题+口播声+画面</div>
-${hookText ? hooked : '<div class="dialogue">"${topic}？30秒给你说清楚，看完不花冤枉钱。"</div>'}
+${hookText ? hooked : `<div class="dialogue">"${topic}？30秒给你说清楚，看完不花冤枉钱。"</div>`}
 
 <div class="stage">📈 【升级 5-17秒】三档对比，逐级递进</div>
 <div class="action-note">→ 伸手指，从1到3。每档语气递增。</div>
-<div class="dialogue">"第一档——${a}"</div>
+<div class="dialogue">"第一档——${la}——${a}"</div>
 <div class="action-note">→ 伸食指，语气平实</div>
-<div class="dialogue">"第二档——${b}"</div>
+<div class="dialogue">"第二档——${lb}——${b}"</div>
 <div class="action-note">→ 伸食指+中指，语气加重</div>
-<div class="dialogue">"第三档——${cVal}"</div>
+<div class="dialogue">"第三档——${lc}——${cVal}"</div>
 <div class="action-note">→ 伸三根手指，语气最有力量</div>
 
 <div class="stage">💰 【回报 17-20秒】选对方案的实际收益</div>
-<div class="dialogue">"所以你看——${sa}、${sb}、${sc}，区别不在宽带本身，在于你实际用不用得到。选对了每月省一杯奶茶钱。"</div>
+<div class="dialogue">"所以你看——${la}、${lb}、${lc}，区别不在宽带本身，在于你实际用不用得到。选对了每月省一杯奶茶钱。"</div>
 
 <div class="stage">🎯 【CTA 20-25秒】行动指令</div>
 <div class="dialogue">"评论区说说你的情况，我帮你推荐最划算的方案。${city}的朋友直接来店里，免费测网速不花钱。"</div>
