@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-16 08:17:21
+// 构建时间: 2026-07-16 08:40:43
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2595,16 +2595,19 @@ function fillT1Presets() {
   // 3. Auto-generate 3 scenarios based on topic keywords
   var generated = generateT1Scenarios(topic);
   applyT1Presets(generated);
-  // 显示搜索中状态
-  ['a','b','c'].forEach(function(k) {
-    var el = document.getElementById('t1_' + k);
-    if (el) el.title = '🔍 正在搜索真实数据...';
-  });
-  // 4. 异步搜索真实答案（Web 函数内置 searchT1，零成本、零 AI）
-  searchT1AndFill(topic);
+  // 【2026-07-16】实时搜索已下线（搜索结果质量差，改用离线话术库）
+  // searchT1AndFill(topic);
 }
 
-// 异步从 Web 函数搜索 T1 真实数据
+/*
+ * 【2026-07-16】实时搜索已下线
+ * 
+ * 原因：搜索引擎返回的通用网页摘要无法提取电信套餐结构化数据，
+ *       结果质量差（噪音词残留、档位混乱、缺价格锚点）。
+ *       改用离线 AI 生成 + 知识库 + 本地预设三层方案。
+ *       
+ * 保留代码供参考，不再调用。
+ */
 function searchT1AndFill(topic) {
   var city = (document.getElementById('t1_city')||{}).value || '';
   var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
