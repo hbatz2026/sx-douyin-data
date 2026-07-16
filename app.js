@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-16 09:09:19
+// 构建时间: 2026-07-16 09:23:34
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2363,33 +2363,50 @@ function previewT1Talk() {
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
   const bgm = c('bgm'), tags = c('tags');
-  function extPrice(t) { var m = t.match(/(\d+)元/); return m ? m[1]+'元' : ''; }
-  var pa = extPrice(a), pb = extPrice(b), pc = extPrice(cVal);
-  // 找三档里的最高价格作为"上限锚点"
-  var prices = [pa, pb, pc].filter(Boolean);
-  var maxPrice = prices.length ? Math.max(...prices.map(p => parseInt(p) || 0)) : '';
   var hookText = '';
   var hookEl = document.getElementById('t1_hook_text');
   if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
   var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
-  var hooked = hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>' : '';
-  // 查表：按选题语义选择标签/标题（不再硬套三档）
-  var style = (window.___t1ScriptStyles && ___t1ScriptStyles[topic])
-    || (window.___t1ScriptStyles && ___t1ScriptStyles._default)
+  
+  // ══════ 方案A：完整脚本（首选，无3档框架）══════
+  var fullScript = window.___t1ScriptFull && ___t1ScriptFull[topic];
+  if (fullScript) {
+    var scriptText = hookText
+      ? '🎯 ' + hookText + '\n\n' + fullScript
+      : fullScript;
+    var html = (variantHtml || '') + `
+<div class="stage">🎬 口播脚本</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
+
+<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${scriptText}"</div>
+
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
+<div class="info-tag">🏷 标签: ${tags}</div>
+<div class="info-tag">💡 可直接复制使用，或手动修改场景A/B/C微调内容。</div>`;
+    showT1Preview('preview1-talk', html);
+    return;
+  }
+  
+  // ══════ 方案B：三档框架（兜底，用于尚无完整脚本的选题）══════
+  function extPrice(t) { var m = t.match(/(\d+)元/); return m ? m[1]+'元' : ''; }
+  var pa = extPrice(a), pb = extPrice(b), pc = extPrice(cVal);
+  var prices = [pa, pb, pc].filter(Boolean);
+  var maxPrice = prices.length ? Math.max(...prices.map(p => parseInt(p) || 0)) : '';
+  var style = (window.___t1ScriptStyles && ___t1ScriptStyles._default)
     || { labels: ['第一档','第二档','第三档'], sectionTitle: '升级 5-17秒 · 三档对比', actionNote: '→ 手画1-2-3，每档语速递进，最后一档加重', emoji: '📈' };
-  const html = (variantHtml || '') + `
-<div class="stage">🎬 口播脚本 · 钩子→主体→回报→CTA</div>
+  var html = (variantHtml || '') + `
+<div class="stage">🎬 口播脚本</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
 <div class="stage">🎣 【钩子 0-5秒】</div>
-${hookText ? hooked : `<div class="dialogue">"${topic}？30秒给你算清楚，看完不花冤枉钱。"</div>`}
+<div class="dialogue">"${topic}？30秒给你算清楚，看完不花冤枉钱。"</div>
 <div class="action-note">→ 镜头对着自己脸，眼神坚定。这句话决定80%完播率。</div>
 
 <div class="stage">${style.emoji} 【${style.sectionTitle}】</div>
 <div class="action-note">${style.actionNote}</div>
-<div class="dialogue">"${style.labels[0]}——${a}"</div>
-<div class="dialogue">"${style.labels[1]}——${b}"</div>
-<div class="dialogue">"${style.labels[2]}——${cVal}"</div>
+<div class="dialogue">"${a}"</div>
+<div class="dialogue">"${b}"</div>
+<div class="dialogue">"${cVal}"</div>
 
 <div class="stage">💰 【回报 17-20秒】</div>
 <div class="dialogue">"看完你就知道——区别不在选择本身，在于你实际用不用得到。选对了每月省${maxPrice || '几十'}块。"</div>
