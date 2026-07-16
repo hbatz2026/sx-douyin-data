@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-16 02:11:40
+// 构建时间: 2026-07-16 03:32:15
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2364,52 +2364,38 @@ function previewT1Talk() {
   const a = c('a'), b = c('b'), cVal = c('c');
   const bgm = c('bgm'), tags = c('tags');
   function extPrice(t) { var m = t.match(/(\d+)元/); return m ? m[1]+'元' : ''; }
-  function extShort(t) { return t.split('，')[0] || t.slice(0,10); }
   var pa = extPrice(a), pb = extPrice(b), pc = extPrice(cVal);
-  var sa = extShort(a), sb = extShort(b), sc = extShort(cVal);
+  // 找三档里的最高价格作为"上限锚点"
+  var prices = [pa, pb, pc].filter(Boolean);
+  var maxPrice = prices.length ? Math.max(...prices.map(p => parseInt(p) || 0)) : '';
   var hookText = '';
   var hookEl = document.getElementById('t1_hook_text');
   if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
   var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
   var hooked = hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>' : '';
-  // 档位标签：从前缀提取（"100M 够用党" / "300M 性价比" / "套餐 A" 等）
-  // 数据约定：每条 scene 应以"档位名"开头（如"100M 够用党，xxx"），用第一个逗号或空格前的部分
-  function extLabel(t) {
-    if (!t) return '';
-    // 优先：第一个逗号前
-    if (t.indexOf('，') > -1) {
-      // 把逗号前的内容再加清洗：去掉数字+单位（避免"100M 够用党"这种情况被吞）
-      // 实际上"100M 够用党"和"一个人住刷视频"第一个逗号前的部分可能都是好的 label
-      return t.split('，')[0].slice(0, 8);
-    }
-    return t.slice(0, 8);
-  }
-  var la = extLabel(a), lb = extLabel(b), lc = extLabel(cVal);
   const html = (variantHtml || '') + `
 <div class="stage">🎬 口播脚本 · 钩子→升级→回报→CTA</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
-<div class="stage">🎣 【钩子 0-5秒】第1帧同时出现：大字标题+口播声+画面</div>
-${hookText ? hooked : `<div class="dialogue">"${topic}？30秒给你说清楚，看完不花冤枉钱。"</div>`}
+<div class="stage">🎣 【钩子 0-5秒】</div>
+${hookText ? hooked : `<div class="dialogue">"${topic}？30秒给你算清楚，看完不花冤枉钱。"</div>`}
+<div class="action-note">→ 镜头对着自己脸，眼神坚定。这句话决定80%完播率。</div>
 
-<div class="stage">📈 【升级 5-17秒】三档对比，逐级递进</div>
-<div class="action-note">→ 伸手指，从1到3。每档语气递增。</div>
-<div class="dialogue">"第一档——${la}——${a}"</div>
-<div class="action-note">→ 伸食指，语气平实</div>
-<div class="dialogue">"第二档——${lb}——${b}"</div>
-<div class="action-note">→ 伸食指+中指，语气加重</div>
-<div class="dialogue">"第三档——${lc}——${cVal}"</div>
-<div class="action-note">→ 伸三根手指，语气最有力量</div>
+<div class="stage">📈 【升级 5-17秒】三档对比</div>
+<div class="action-note">→ 手画1-2-3，每档语速递进，最后一档加重</div>
+<div class="dialogue">"第一档——${a}"</div>
+<div class="dialogue">"第二档——${b}"</div>
+<div class="dialogue">"第三档——${cVal}"</div>
 
-<div class="stage">💰 【回报 17-20秒】选对方案的实际收益</div>
-<div class="dialogue">"所以你看——${la}、${lb}、${lc}，区别不在宽带本身，在于你实际用不用得到。选对了每月省一杯奶茶钱。"</div>
+<div class="stage">💰 【回报 17-20秒】</div>
+<div class="dialogue">"看完你就知道——区别不在选择本身，在于你实际用不用得到。选对了每月省${maxPrice || '几十'}块。"</div>
 
-<div class="stage">🎯 【CTA 20-25秒】行动指令</div>
-<div class="dialogue">"评论区说说你的情况，我帮你推荐最划算的方案。${city}的朋友直接来店里，免费测网速不花钱。"</div>
+<div class="stage">🎯 【CTA 20-25秒】</div>
+<div class="dialogue">"评论区说说你的情况，我帮你推荐最划算的。${city}的朋友直接来店里，免费测网速不花钱。"</div>
 
 <div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
 <div class="info-tag">🏷 标签: ${tags}</div>
-<div class="info-tag">💡 核心指标：收藏率 > 完播率 > 点赞率。引导用户「截图保存」提升收藏。</div>`;
+<div class="info-tag">💡 关键：引导用户「截图保存」提升收藏率。</div>`;
   showT1Preview('preview1-talk', html);
 }
 
@@ -2625,6 +2611,21 @@ function applyT1Presets(presets) {
 
 function generateT1Scenarios(topic) {
   var t = topic.toLowerCase();
+  // === 直播带货/避坑指南/选网避坑 ===
+  if (/直播|带货|避坑|避雷|指南|主播|短视频|自拍|网络|欠费|坑/i.test(topic)) {
+    if (/手机|5G|套餐|月租|流量|欠费|话费/i.test(topic)) {
+      return [
+        '直播前必查套餐——大流量包必备，不然推流到一半限速砸场',
+        '录视频手机别欠费——突然停机素材全丢，备机比主直播机重要',
+        '直播用电信卡稳——上传速度比移动联通高一截，断流概率低'
+      ];
+    }
+    return [
+      '先看价格区间——选个适合预算的套餐，别一上来就买最贵的',
+      '再看覆盖范围——营业厅现场测下信号，比网上看的数字靠谱',
+      '最后问老用户——同小区邻居用什么网，去他家连一下WiFi测测速'
+    ];
+  }
   // === 携号转网/号码携带 ===
   if (/携号转网|号码携带|转网|换运营商|不换号/i.test(topic)) {
     return [
