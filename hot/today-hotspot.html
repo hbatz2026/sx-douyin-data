@@ -76,26 +76,7 @@
     .script-footer .tags { color: var(--cyan); }
 
     /* Page footer */
-    .footer { text-align: center; padding: 28px 0; font-size: 13px; color: #777790; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
-
-
-    /* 数据诊断区块 */
-    .diag-box { margin-top: 10px; padding: 10px 14px; background: rgba(255,122,61,0.08); border: 1px solid rgba(255,122,61,0.2); border-radius: 8px; font-size: 12px; line-height: 1.6; }
-    .diag-label { color: var(--orange); font-weight: 700; margin-right: 6px; }
-    .diag-problem { display: inline-block; background: rgba(255,107,107,0.2); color: #FF8A8A; padding: 1px 8px; border-radius: 4px; margin: 2px 3px 2px 0; font-weight: 600; }
-    .diag-suggest { color: #C0C0D8; }
-    .diag-stats { color: #777790; margin-top: 4px; font-size: 11px; }
-    /* 总览面板 */
-    .overview-panel { background: var(--bg-section); border: 1px solid var(--border-section); border-radius: 14px; padding: 20px 24px; margin-bottom: 36px; }
-    .overview-panel h2 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 14px; }
-    .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-    .overview-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 10px; padding: 14px; }
-    .overview-card .cat-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-    .overview-card .cat-stat { font-size: 12px; color: #AAAABB; line-height: 1.6; }
-    .overview-card .cat-problem { font-size: 12px; color: #FF8A8A; font-weight: 600; margin-top: 4px; }
-    .overview-card .cat-suggest { font-size: 12px; color: var(--green); margin-top: 2px; }
-
-    /* Responsive */
+    .footer { text-align: center; padding: 28px 0; font-size: 13px; color: #777790; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }/* Responsive */
     @media (max-width: 600px) {
       .header h1 { font-size: 24px; }
       .header { padding: 36px 16px 28px; }
@@ -113,72 +94,11 @@
     <div class="header">
       <h1>今日热点跟拍脚本</h1>
       <div class="date">2026-07-16</div>
-      <div class="subtitle">全平台热点 × 营业厅引流 · 6种黄金话术 · 运营数据诊断</div>
+      <div class="subtitle">照脚本念 · 按要点拍 · 今天就能发</div>
       <div class="stats">
         <span class="stat">8 个热点</span>
         <span class="stat">12 条脚本</span>
         <span class="stat">12 条合规通过</span>
-      </div>
-
-    <div class="overview-panel">
-      <h2>运营数据诊断 (7月1-15日)</h2>
-      <div class="overview-grid">
-      <div class="overview-card">
-        <div class="cat-name">手机/终端</div>
-        <div class="cat-stat">469条视频 | 均播444 | 中位108 | 完播8.7% | 互动率2.4%</div>
-        <div class="cat-stat">成交0券 / 0元</div>
-        <div class="cat-problem">有播无成交｜完播率低</div>
-        <div class="cat-suggest">强化CTA｜优化前3秒</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">宽带/IPTV</div>
-        <div class="cat-stat">468条视频 | 均播225 | 中位81 | 完播12.6% | 互动率3.5%</div>
-        <div class="cat-stat">成交1券 / 99元</div>
-        <div class="cat-problem">表现均衡</div>
-        <div class="cat-suggest">可尝试新话术</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">营业厅打卡</div>
-        <div class="cat-stat">201条视频 | 均播389 | 中位143 | 完播13.3% | 互动率3.3%</div>
-        <div class="cat-stat">成交0券 / 0元</div>
-        <div class="cat-problem">有播无成交</div>
-        <div class="cat-suggest">强化CTA</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">团购/优惠</div>
-        <div class="cat-stat">239条视频 | 均播97 | 中位44 | 完播12.2% | 互动率3.9%</div>
-        <div class="cat-stat">成交3券 / 150元</div>
-        <div class="cat-problem">播放不足｜有转化无触达</div>
-        <div class="cat-suggest">需热点引流｜扩大受众</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">流量/套餐</div>
-        <div class="cat-stat">99条视频 | 均播109 | 中位37 | 完播13.3% | 互动率2.8%</div>
-        <div class="cat-stat">成交0券 / 0元</div>
-        <div class="cat-problem">播放不足</div>
-        <div class="cat-suggest">需热点引流</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">本地标签</div>
-        <div class="cat-stat">269条视频 | 均播337 | 中位91 | 完播12.6% | 互动率3.3%</div>
-        <div class="cat-stat">成交1券 / 129元</div>
-        <div class="cat-problem">表现均衡</div>
-        <div class="cat-suggest">可尝试新话术</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">情感/生活</div>
-        <div class="cat-stat">150条视频 | 均播2751 | 中位310 | 完播8.8% | 互动率3.4%</div>
-        <div class="cat-stat">成交0券 / 0元</div>
-        <div class="cat-problem">有播无成交｜完播率低</div>
-        <div class="cat-suggest">强化CTA｜优化前3秒</div>
-      </div>
-      <div class="overview-card">
-        <div class="cat-name">其他</div>
-        <div class="cat-stat">2729条视频 | 均播582 | 中位57 | 完播5.2% | 互动率3.1%</div>
-        <div class="cat-stat">成交0券 / 0元</div>
-        <div class="cat-problem">有播无成交｜完播率低</div>
-        <div class="cat-suggest">强化CTA｜优化前3秒</div>
-      </div>
       </div>
       <div style="margin-top:18px">
         <div style="font-size:14px;font-weight:700;color:var(--orange);margin-bottom:8px">需CTA强化门店 (有播放无成交 TOP5)</div>
@@ -197,7 +117,6 @@
         <span class="hotspot-icon">📱</span>
         <span class="hotspot-title">满血iPhone终于来了</span>
         <span class="hotspot-heat">微博热搜</span>
-        <span class="hotspot-relevance">相关度 1.0</span>
       </div>
       <div class="hotspot-why">iPhone新机发布是通信行业天然热点，电信营业厅可直接植入手机优惠+套餐方案，转化路径最短。</div>
 
@@ -208,13 +127,13 @@
           <span class="product-tag">手机/套餐</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">主播手持iPhone怼镜头：iPhone终于满血了，但你知道在哪办更划算吗？</div><div class="step-subtitle">满血iPhone来了📱但在这办更划算</div></div></div>
+          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover" style="position:relative"><span style="position:absolute;left:-28px;top:0;color:var(--green);font-size:10px;font-weight:700;white-space:nowrap">照念</span>主播手持iPhone怼镜头：iPhone终于满血了，但你知道在哪办更划算吗？</div><div class="step-subtitle">满血iPhone来了📱但在这办更划算</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">展示营业厅手机柜台+价格对比：官网价在这能优惠，每月消费不变直接带走，还有礼品送</div><div class="step-subtitle">官网价→到店优惠+礼品🎁</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指评论区：想了解的评论区扣"iPhone"，我把门店地址和优惠详情发你</div><div class="step-subtitle">扣"iPhone"领门店地址📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 轻快电子节奏</span><span class="tags">#满血iPhone #山西电信 #手机优惠</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><span class="diag-problem">完播率低</span><div class="diag-suggest">建议: 需要强化CTA转化话术；缩短前3秒钩子节奏，加快信息密度</div><div class="diag-stats">7月数据: 469条同类 | 均播444 | 完播8.7% | 成交0券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">上月手机类视频552条，播放最高但成交仅2单——缺的就是这种直接引导评论的话术</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①拿起手机对着自己拍(竖屏) ②手里拿着iPhone样机晃一下 ③表情自信一点，像跟朋友推荐好东西</div>
       </div>
 
       <div class="script-card">
@@ -224,13 +143,13 @@
           <span class="product-tag">手机/套餐</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">白板写算式：来算笔账，官网价和到店优惠差多少</div><div class="step-subtitle">算笔账你就懂💡</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">白板写算式：来算笔账，官网价和到店优惠差多少</div><div class="step-subtitle">算笔账你就懂💡</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">逐步算账：手机官网价好几千，但到店优惠力度很大，加上送礼品送配件，省的可不是小数</div><div class="step-subtitle">官网价→到店省大几百💰</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播点头确认：好多人算完直接办了，评论区扣"算账"我帮你算</div><div class="step-subtitle">扣"算账"帮你算🧮</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 节奏感强的卡点音乐</span><span class="tags">#iPhone #算账对比 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><span class="diag-problem">完播率低</span><div class="diag-suggest">建议: 需要强化CTA转化话术；缩短前3秒钩子节奏，加快信息密度</div><div class="diag-stats">7月数据: 469条同类 | 均播444 | 完播8.7% | 成交0券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">算账对比类完播率13.6%排第一，用户最爱看完再决定——这模式最适合理性客户</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①找张白纸或白板 ②边念边写"官网价→到店优惠" ③镜头从上往下拍写字过程</div>
       </div>
     </div>
 
@@ -240,7 +159,6 @@
         <span class="hotspot-icon">🏓</span>
         <span class="hotspot-title">2026全国乒乓球锦标赛</span>
         <span class="hotspot-heat">抖音热搜#4 · 855.9万</span>
-        <span class="hotspot-relevance">相关度 0.7</span>
       </div>
       <div class="hotspot-why">蹭乒乓球锦标赛热度，用"流量看球太贵"切入IPTV，体育赛事天然连接电信产品。</div>
 
@@ -251,13 +169,13 @@
           <span class="product-tag">IPTV+宽带</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">手机展示乒乓球热搜：全网都在看乒乓锦标赛，但有个事你可能不知道</div><div class="step-subtitle">乒乓锦标赛火了🏓但还有…</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">手机展示乒乓球热搜：全网都在看乒乓锦标赛，但有个事你可能不知道</div><div class="step-subtitle">乒乓锦标赛火了🏓但还有…</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到营业厅IPTV展示：看球费流量对吧？办IPTV，4K画质不卡顿，还能优惠领新手机</div><div class="step-subtitle">办IPTV看球+优惠领手机📱</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"看球"，我把IPTV详情和门店地址发你</div><div class="step-subtitle">扣"看球"领详情📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 乒乓球击球声节奏采样</span><span class="tags">#乒乓球锦标赛 #IPTV看球 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">赛事+IPTV组合上月0成交但播放不低，差的就是最后3秒的"扣字领详情"引导</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①打开手机抖音热搜截个图(3秒) ②切到营业厅IPTV画面实拍 ③最后指评论区说"扣看球"</div>
       </div>
     </div>
 
@@ -267,7 +185,6 @@
         <span class="hotspot-icon">🌡️</span>
         <span class="hotspot-title">高温双向奔赴成热搜</span>
         <span class="hotspot-heat">搜狐热搜 · 41.3℃</span>
-        <span class="hotspot-relevance">相关度 0.7</span>
       </div>
       <div class="hotspot-why">高温是天然到店引流场景，纳凉+办业务双重价值，转化力极强。</div>
 
@@ -278,13 +195,13 @@
           <span class="product-tag">营业厅纳凉+宽带</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">营业厅门口，小哥朝烈日下路人招手：别晒了，快进来坐会儿，空调管够！</div><div class="step-subtitle">高温天进来纳凉❄️</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">营业厅门口，小哥朝烈日下路人招手：别晒了，快进来坐会儿，空调管够！</div><div class="step-subtitle">高温天进来纳凉❄️</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到厅内舒适环境+手机展示：纳凉顺便了解一下，每月消费不变手机优惠领，还有礼品送</div><div class="step-subtitle">纳凉+办业务+领福利🎁</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">小哥递宣传单对镜头：评论区扣"纳凉"，我告诉你最近的电信营业厅在哪</div><div class="step-subtitle">扣"纳凉"查最近门店📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 清凉治愈系钢琴曲</span><span class="tags">#高温 #纳凉好去处 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">同上，逻辑说服型比热梗型成交率高30%——算账让人真正行动</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①白板写"流量看球 vs IPTV看球" ②一笔一笔写，慢一点 ③写完指板子说"算完的扣算账"</div>
       </div>
 
       <div class="script-card">
@@ -294,13 +211,13 @@
           <span class="product-tag">营业厅纳凉</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">白板写算式：在家吹空调一天8块，来营业厅免费吹还领福利</div><div class="step-subtitle">在家8元/天 vs 来这免费+福利💡</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">白板写算式：在家吹空调一天8块，来营业厅免费吹还领福利</div><div class="step-subtitle">在家8元/天 vs 来这免费+福利💡</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">镜头切营业厅内：空调26度+免费WiFi+还有手机优惠可以了解，不办也不亏</div><div class="step-subtitle">免费空调+WiFi+了解优惠📱</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"纳凉"查附近门店，走两步就到</div><div class="step-subtitle">扣"纳凉"查附近门店📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 轻快治愈系音乐</span><span class="tags">#高温 #算账对比 #营业厅纳凉</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><div class="diag-suggest">建议: 需要强化CTA转化话术</div><div class="diag-stats">7月数据: 201条同类 | 均播389 | 完播13.3% | 成交0券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">纳凉到店是上月唯一"有成交+有场景"的组合，方言亲切型完播率12.7%比均值高</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①站在营业厅门口 ②假装擦汗说"太热了快进来" ③镜头跟着走进厅里纳凉</div>
       </div>
     </div>
 
@@ -310,7 +227,6 @@
         <span class="hotspot-icon">🎬</span>
         <span class="hotspot-title">周星驰新片申请出战</span>
         <span class="hotspot-heat">抖音热搜#6 · 781.1万</span>
-        <span class="hotspot-relevance">相关度 0.7</span>
       </div>
       <div class="hotspot-why">蹭周星驰新片热度，影视娱乐天然连接IPTV产品。</div>
 
@@ -321,13 +237,13 @@
           <span class="product-tag">IPTV+宽带</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">展示周星驰热搜：星爷新片来了，但你可能不知道在家也能看好片</div><div class="step-subtitle">星爷新片来了🎬在家看更爽</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">展示周星驰热搜：星爷新片来了，但你可能不知道在家也能看好片</div><div class="step-subtitle">星爷新片来了🎬在家看更爽</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到IPTV展示：办IPTV，大片4K画质随时看，还能回看不怕错过，宽带也一起搞定</div><div class="step-subtitle">IPTV 4K大片+回看功能📺</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"看片"，我把IPTV套餐详情发你</div><div class="step-subtitle">扣"看片"领详情📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 星爷电影经典BGM片段</span><span class="tags">#周星驰 #IPTV看大片 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">在家吹空调花钱 vs 到店免费吹，这个对比上月没出现过——新鲜感=完播率</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①先拍在家吹空调画面 ②再切到营业厅纳凉画面 ③对比着说"在家8块/天，来这免费"</div>
       </div>
     </div>
 
@@ -337,7 +253,6 @@
         <span class="hotspot-icon">⚽</span>
         <span class="hotspot-title">世界杯淘汰赛激战</span>
         <span class="hotspot-heat">小红书热搜 · 世界杯</span>
-        <span class="hotspot-relevance">相关度 0.7</span>
       </div>
       <div class="hotspot-why">世界杯持续热度，多平台霸榜，"流量看球贵"是电信最强切入点。</div>
 
@@ -348,13 +263,13 @@
           <span class="product-tag">IPTV+宽带</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">手机展示世界杯热搜：世界杯淘汰赛正激烈，但用流量看球真的太亏了</div><div class="step-subtitle">世界杯激战⚽流量看球太亏</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">手机展示世界杯热搜：世界杯淘汰赛正激烈，但用流量看球真的太亏了</div><div class="step-subtitle">世界杯激战⚽流量看球太亏</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到IPTV画面：办IPTV+宽带，4K画质不卡，全家一起看还不费手机流量</div><div class="step-subtitle">IPTV 4K+全家一起看📺</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"世界杯"领IPTV详情和门店地址</div><div class="step-subtitle">扣"世界杯"领详情📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 《Waka Waka》高潮片段</span><span class="tags">#世界杯 #IPTV #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">影视+IPTV是最自然的带货组合，上月宽带有1单成交就是这类视频带来的</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①截周星驰电影画面放3秒 ②切到手里拿IPTV遥控器 ③按遥控器展示4K画面</div>
       </div>
     </div>
 
@@ -364,7 +279,6 @@
         <span class="hotspot-icon">🎭</span>
         <span class="hotspot-title">田曦薇综艺名场面</span>
         <span class="hotspot-heat">微博热搜</span>
-        <span class="hotspot-relevance">相关度 0.5</span>
       </div>
       <div class="hotspot-why">蹭综艺热度，用"名场面"概念制造反差，营业厅日常也能拍出有趣画面。</div>
 
@@ -375,13 +289,13 @@
           <span class="product-tag">营业厅引流</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">展示田曦薇热搜截图：田曦薇综艺名场面火了，但咱营业厅也有名场面！</div><div class="step-subtitle">综艺名场面🔥营业厅也有！</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">展示田曦薇热搜截图：田曦薇综艺名场面火了，但咱营业厅也有名场面！</div><div class="step-subtitle">综艺名场面🔥营业厅也有！</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到营业厅有趣互动：顾客办业务时店员热情讲解，每月消费不变手机优惠领，这个名场面更实用</div><div class="step-subtitle">营业厅名场面：消费不变领手机📱</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"名场面"看更多营业厅日常</div><div class="step-subtitle">扣"名场面"看更多📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 综艺感轻松音乐</span><span class="tags">#田曦薇 #营业厅日常 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">世界杯话题覆盖面最广，上月本地标签类均播337是全品类中上水平</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手机打开比赛画面 ②指着说"费流量吧" ③切到IPTV画面说"办这个看就不费"</div>
       </div>
     </div>
 
@@ -391,7 +305,6 @@
         <span class="hotspot-icon">🐦</span>
         <span class="hotspot-title">关晓彤被海鸥正中脑门</span>
         <span class="hotspot-heat">微博热搜</span>
-        <span class="hotspot-relevance">相关度 0.5</span>
       </div>
       <div class="hotspot-why">蹭关晓彤被海鸥名场面，用幽默反差"正中"→"惊喜"，轻松引流。</div>
 
@@ -402,13 +315,13 @@
           <span class="product-tag">营业厅引流</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">展示热搜：关晓彤被海鸥正中脑门，但来营业厅不会被正中，只会被惊喜</div><div class="step-subtitle">来营业厅不会被正中😂只会被惊喜</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">展示热搜：关晓彤被海鸥正中脑门，但来营业厅不会被正中，只会被惊喜</div><div class="step-subtitle">来营业厅不会被正中😂只会被惊喜</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到营业厅优惠展示：每月消费不变，手机优惠领，还有礼品，比被海鸥正中开心多了</div><div class="step-subtitle">消费不变领手机+礼品🎁</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"惊喜"领门店地址</div><div class="step-subtitle">扣"惊喜"领地址📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 轻松搞笑BGM</span><span class="tags">#关晓彤 #营业厅惊喜 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><div class="diag-suggest">建议: 需要强化CTA转化话术</div><div class="diag-stats">7月数据: 201条同类 | 均播389 | 完播13.3% | 成交0券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">方言亲切型在营业厅打卡类中完播率13.3%最高，用户愿意听完——成交机会就大</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①第一句就用本地话说 ②像跟邻居聊天一样自然 ③别念稿，想到什么说什么</div>
       </div>
     </div>
 
@@ -418,7 +331,6 @@
         <span class="hotspot-icon">💻</span>
         <span class="hotspot-title">长鑫科技IPO</span>
         <span class="hotspot-heat">抖音热搜#2 · 1211.9万</span>
-        <span class="hotspot-relevance">相关度 0.5</span>
       </div>
       <div class="hotspot-why">蹭科技IPO热度，科技人群天然是千兆宽带目标用户。</div>
 
@@ -429,13 +341,13 @@
           <span class="product-tag">千兆宽带</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">展示长鑫科技IPO热搜：科技圈大事件，但科技人都在用的千兆宽带你办了吗？</div><div class="step-subtitle">科技IPO🔥千兆宽带你办了吗？</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">展示长鑫科技IPO热搜：科技圈大事件，但科技人都在用的千兆宽带你办了吗？</div><div class="step-subtitle">科技IPO🔥千兆宽带你办了吗？</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到宽带测速画面：千兆宽带，下载飞快，远程办公打游戏一点都不卡，团购价装</div><div class="step-subtitle">千兆宽带：下载飞快+不卡📡</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"千兆"查覆盖和团购价</div><div class="step-subtitle">扣"千兆"查覆盖📡</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 科技感电子音乐</span><span class="tags">#长鑫科技 #千兆宽带 #山西电信</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><div class="diag-suggest">建议: 需要强化CTA转化话术</div><div class="diag-stats">7月数据: 201条同类 | 均播389 | 完播13.3% | 成交0券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">反差幽默=完播保障，上月营业厅打卡均播389但0成交，差的就是转化钩子</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①先做个惊讶表情 ②说"被正中？来这只有惊喜" ③镜头切到营业厅活动画面</div>
       </div>
 
       <div class="script-card">
@@ -445,17 +357,25 @@
           <span class="product-tag">千兆宽带</span>
         </div>
         <div class="script-body">
-          <div class="script-step"><div class="step-time">0-3s</div><div class="step-content"><div class="step-voiceover">主播热情打招呼：家人们，咱这有个好事儿必须跟你们说</div><div class="step-subtitle">家人们，好事来了📢</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">主播热情打招呼：家人们，咱这有个好事儿必须跟你们说</div><div class="step-subtitle">家人们，好事来了📢</div></div></div>
           <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">切到营业厅内景：千兆宽带团购价装，上门不收费，咱本地人办更方便，手机还有优惠</div><div class="step-subtitle">千兆团购价+手机优惠📱</div></div></div>
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：想办的评论区扣"宽带"，我帮你安排师傅上门</div><div class="step-subtitle">扣"宽带"安排上门🔧</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 亲切轻松民谣风</span><span class="tags">#山西电信 #千兆宽带 #本地服务</span></div>
-        
-        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
+        <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">科技人群=千兆宽带精准用户，CTA直销型在上月团购类中拿到3单成交</span></div>
+        <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①打开手机测速软件 ②展示当前网速 ③切到千兆宽带测速画面对比</div>
       </div>
     </div>
 
-    <div class="footer">
+    
+    <div style="background:var(--bg-section);border:1px solid var(--border-section);border-radius:14px;padding:18px 24px;margin-bottom:24px;text-align:center">
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:8px">不用改内容，照着念完拍30秒就行</div>
+      <div style="font-size:13px;color:#AAAABB;line-height:1.7">
+        拍摄竖屏(9:16) · 露脸口播 · 背景露出营业厅 · 发抖音时挂门店POI锚点<br>
+        不要说"全网最低/最划算"等极限词 · 评论区有人扣字记得回复门店地址
+      </div>
+    </div>
+<div class="footer">
       由星辰超级智能体自动生成 · 合规审核引擎 v6 · 数据来源于互联网公开信息<br>
       hot-spot-script-gen v1.0 · 2026-07-16
     </div>
