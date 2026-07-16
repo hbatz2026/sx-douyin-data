@@ -78,6 +78,23 @@
     /* Page footer */
     .footer { text-align: center; padding: 28px 0; font-size: 13px; color: #777790; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
 
+
+    /* 数据诊断区块 */
+    .diag-box { margin-top: 10px; padding: 10px 14px; background: rgba(255,122,61,0.08); border: 1px solid rgba(255,122,61,0.2); border-radius: 8px; font-size: 12px; line-height: 1.6; }
+    .diag-label { color: var(--orange); font-weight: 700; margin-right: 6px; }
+    .diag-problem { display: inline-block; background: rgba(255,107,107,0.2); color: #FF8A8A; padding: 1px 8px; border-radius: 4px; margin: 2px 3px 2px 0; font-weight: 600; }
+    .diag-suggest { color: #C0C0D8; }
+    .diag-stats { color: #777790; margin-top: 4px; font-size: 11px; }
+    /* 总览面板 */
+    .overview-panel { background: var(--bg-section); border: 1px solid var(--border-section); border-radius: 14px; padding: 20px 24px; margin-bottom: 36px; }
+    .overview-panel h2 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 14px; }
+    .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .overview-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 10px; padding: 14px; }
+    .overview-card .cat-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .overview-card .cat-stat { font-size: 12px; color: #AAAABB; line-height: 1.6; }
+    .overview-card .cat-problem { font-size: 12px; color: #FF8A8A; font-weight: 600; margin-top: 4px; }
+    .overview-card .cat-suggest { font-size: 12px; color: var(--green); margin-top: 2px; }
+
     /* Responsive */
     @media (max-width: 600px) {
       .header h1 { font-size: 24px; }
@@ -96,12 +113,82 @@
     <div class="header">
       <h1>今日热点跟拍脚本</h1>
       <div class="date">2026-07-16</div>
-      <div class="subtitle">全平台热点 × 营业厅引流 · 6种黄金话术模式</div>
+      <div class="subtitle">全平台热点 × 营业厅引流 · 6种黄金话术 · 运营数据诊断</div>
       <div class="stats">
         <span class="stat">8 个热点</span>
         <span class="stat">12 条脚本</span>
         <span class="stat">12 条合规通过</span>
       </div>
+
+    <div class="overview-panel">
+      <h2>运营数据诊断 (7月1-15日)</h2>
+      <div class="overview-grid">
+      <div class="overview-card">
+        <div class="cat-name">手机/终端</div>
+        <div class="cat-stat">469条视频 | 均播444 | 中位108 | 完播8.7% | 互动率2.4%</div>
+        <div class="cat-stat">成交0券 / 0元</div>
+        <div class="cat-problem">有播无成交｜完播率低</div>
+        <div class="cat-suggest">强化CTA｜优化前3秒</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">宽带/IPTV</div>
+        <div class="cat-stat">468条视频 | 均播225 | 中位81 | 完播12.6% | 互动率3.5%</div>
+        <div class="cat-stat">成交1券 / 99元</div>
+        <div class="cat-problem">表现均衡</div>
+        <div class="cat-suggest">可尝试新话术</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">营业厅打卡</div>
+        <div class="cat-stat">201条视频 | 均播389 | 中位143 | 完播13.3% | 互动率3.3%</div>
+        <div class="cat-stat">成交0券 / 0元</div>
+        <div class="cat-problem">有播无成交</div>
+        <div class="cat-suggest">强化CTA</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">团购/优惠</div>
+        <div class="cat-stat">239条视频 | 均播97 | 中位44 | 完播12.2% | 互动率3.9%</div>
+        <div class="cat-stat">成交3券 / 150元</div>
+        <div class="cat-problem">播放不足｜有转化无触达</div>
+        <div class="cat-suggest">需热点引流｜扩大受众</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">流量/套餐</div>
+        <div class="cat-stat">99条视频 | 均播109 | 中位37 | 完播13.3% | 互动率2.8%</div>
+        <div class="cat-stat">成交0券 / 0元</div>
+        <div class="cat-problem">播放不足</div>
+        <div class="cat-suggest">需热点引流</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">本地标签</div>
+        <div class="cat-stat">269条视频 | 均播337 | 中位91 | 完播12.6% | 互动率3.3%</div>
+        <div class="cat-stat">成交1券 / 129元</div>
+        <div class="cat-problem">表现均衡</div>
+        <div class="cat-suggest">可尝试新话术</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">情感/生活</div>
+        <div class="cat-stat">150条视频 | 均播2751 | 中位310 | 完播8.8% | 互动率3.4%</div>
+        <div class="cat-stat">成交0券 / 0元</div>
+        <div class="cat-problem">有播无成交｜完播率低</div>
+        <div class="cat-suggest">强化CTA｜优化前3秒</div>
+      </div>
+      <div class="overview-card">
+        <div class="cat-name">其他</div>
+        <div class="cat-stat">2729条视频 | 均播582 | 中位57 | 完播5.2% | 互动率3.1%</div>
+        <div class="cat-stat">成交0券 / 0元</div>
+        <div class="cat-problem">有播无成交｜完播率低</div>
+        <div class="cat-suggest">强化CTA｜优化前3秒</div>
+      </div>
+      </div>
+      <div style="margin-top:18px">
+        <div style="font-size:14px;font-weight:700;color:var(--orange);margin-bottom:8px">需CTA强化门店 (有播放无成交 TOP5)</div>
+        <div class="cat-stat" style="color:#FF8A8A">中国电信长治市潞州区延安中路营业厅 — 播636,904 券0 → 需强化CTA转化</div><div class="cat-stat" style="color:#FF8A8A">中国电信(泽州县南村镇电信支局) — 播263,501 券0 → 需强化CTA转化</div><div class="cat-stat" style="color:#FF8A8A">中国电信(富民北路营业厅) — 播218,462 券0 → 需强化CTA转化</div><div class="cat-stat" style="color:#FF8A8A">中国电信(曲沃府西街自有营业厅) — 播76,618 券0 → 需强化CTA转化</div><div class="cat-stat" style="color:#FF8A8A">中国电信(鸿宇静升镇店) — 播61,039 券0 → 需强化CTA转化</div>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:8px">需引流门店 (有成交但播放低)</div>
+        <div class="cat-stat" style="color:var(--cyan)">中国电信(亲贤街营业厅) — 播1,517 券2 → 需热点引流拉播放</div><div class="cat-stat" style="color:var(--cyan)">中国电信(将军路营业厅) — 播4,861 券1 → 需热点引流拉播放</div><div class="cat-stat" style="color:var(--cyan)">中国电信(金融路营业厅) — 播2,103 券1 → 需热点引流拉播放</div>
+      </div>
+    </div>
     </div>
 
     <!-- 热点1: 满血iPhone -->
@@ -126,6 +213,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指评论区：想了解的评论区扣"iPhone"，我把门店地址和优惠详情发你</div><div class="step-subtitle">扣"iPhone"领门店地址📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 轻快电子节奏</span><span class="tags">#满血iPhone #山西电信 #手机优惠</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><span class="diag-problem">完播率低</span><div class="diag-suggest">建议: 需要强化CTA转化话术；缩短前3秒钩子节奏，加快信息密度</div><div class="diag-stats">7月数据: 469条同类 | 均播444 | 完播8.7% | 成交0券</div></div>
       </div>
 
       <div class="script-card">
@@ -140,6 +229,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播点头确认：好多人算完直接办了，评论区扣"算账"我帮你算</div><div class="step-subtitle">扣"算账"帮你算🧮</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 节奏感强的卡点音乐</span><span class="tags">#iPhone #算账对比 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><span class="diag-problem">完播率低</span><div class="diag-suggest">建议: 需要强化CTA转化话术；缩短前3秒钩子节奏，加快信息密度</div><div class="diag-stats">7月数据: 469条同类 | 均播444 | 完播8.7% | 成交0券</div></div>
       </div>
     </div>
 
@@ -165,6 +256,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"看球"，我把IPTV详情和门店地址发你</div><div class="step-subtitle">扣"看球"领详情📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 乒乓球击球声节奏采样</span><span class="tags">#乒乓球锦标赛 #IPTV看球 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
       </div>
     </div>
 
@@ -190,6 +283,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">小哥递宣传单对镜头：评论区扣"纳凉"，我告诉你最近的电信营业厅在哪</div><div class="step-subtitle">扣"纳凉"查最近门店📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 清凉治愈系钢琴曲</span><span class="tags">#高温 #纳凉好去处 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
       </div>
 
       <div class="script-card">
@@ -204,6 +299,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"纳凉"查附近门店，走两步就到</div><div class="step-subtitle">扣"纳凉"查附近门店📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 轻快治愈系音乐</span><span class="tags">#高温 #算账对比 #营业厅纳凉</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><div class="diag-suggest">建议: 需要强化CTA转化话术</div><div class="diag-stats">7月数据: 201条同类 | 均播389 | 完播13.3% | 成交0券</div></div>
       </div>
     </div>
 
@@ -229,6 +326,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"看片"，我把IPTV套餐详情发你</div><div class="step-subtitle">扣"看片"领详情📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 星爷电影经典BGM片段</span><span class="tags">#周星驰 #IPTV看大片 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
       </div>
     </div>
 
@@ -254,6 +353,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"世界杯"领IPTV详情和门店地址</div><div class="step-subtitle">扣"世界杯"领详情📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 《Waka Waka》高潮片段</span><span class="tags">#世界杯 #IPTV #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
       </div>
     </div>
 
@@ -279,6 +380,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"名场面"看更多营业厅日常</div><div class="step-subtitle">扣"名场面"看更多📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 综艺感轻松音乐</span><span class="tags">#田曦薇 #营业厅日常 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
       </div>
     </div>
 
@@ -304,6 +407,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"惊喜"领门店地址</div><div class="step-subtitle">扣"惊喜"领地址📍</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 轻松搞笑BGM</span><span class="tags">#关晓彤 #营业厅惊喜 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><div class="diag-suggest">建议: 需要强化CTA转化话术</div><div class="diag-stats">7月数据: 201条同类 | 均播389 | 完播13.3% | 成交0券</div></div>
       </div>
     </div>
 
@@ -329,6 +434,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：评论区扣"千兆"查覆盖和团购价</div><div class="step-subtitle">扣"千兆"查覆盖📡</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 科技感电子音乐</span><span class="tags">#长鑫科技 #千兆宽带 #山西电信</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">有播放无成交</span><div class="diag-suggest">建议: 需要强化CTA转化话术</div><div class="diag-stats">7月数据: 201条同类 | 均播389 | 完播13.3% | 成交0券</div></div>
       </div>
 
       <div class="script-card">
@@ -343,6 +450,8 @@
           <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">主播指引：想办的评论区扣"宽带"，我帮你安排师傅上门</div><div class="step-subtitle">扣"宽带"安排上门🔧</div></div></div>
         </div>
         <div class="script-footer"><span class="bgm">BGM: 亲切轻松民谣风</span><span class="tags">#山西电信 #千兆宽带 #本地服务</span></div>
+        
+        <div class="diag-box"><span class="diag-label">数据诊断:</span><span class="diag-problem">表现均衡</span><div class="diag-suggest">建议: 维持当前策略，可尝试新话术模式</div><div class="diag-stats">7月数据: 468条同类 | 均播225 | 完播12.6% | 成交1券</div></div>
       </div>
     </div>
 
