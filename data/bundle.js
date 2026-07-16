@@ -1,7 +1,7 @@
-// 抖本工坊 · 数据包（自动合并 10 文件）
-// 生成时间: 2026-07-16 08:56:38
-// 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Presets.js, t2Presets.js, t4Presets.js, techDB.js, topicPool.js
-// 大小: 102654 bytes ( 10 source files)
+// 抖本工坊 · 数据包（自动合并 11 文件）
+// 生成时间: 2026-07-16 09:09:21
+// 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Presets.js, t1ScriptStyles.js, t2Presets.js, t4Presets.js, techDB.js, topicPool.js
+// 大小: 105304 bytes ( 11 source files)
 
 // ===== bgmList.js =====
 // Auto-generated BGM
@@ -1324,6 +1324,76 @@ window.___t1Presets = {
     "120平三室两厅客厅+主卧各放一个组mesh全屋覆盖",
     "复式三层以上FTTR全屋光纤每间房信号都满格"
   ]
+};
+
+// ===== t1ScriptStyles.js =====
+// 抖本内容工坊 · T1 脚本标签/标题/动作映射
+// 作用：让 previewT1Talk 不再硬套「第一档/第二档/第三档」
+// 用法：previewT1Talk 中查此表，找不到走默认三档
+// 更新：2026-07-16
+window.___t1ScriptStyles = {
+
+  // ══════ A. 经典CTA型 → 用「招/步」══════
+
+  "家里网络老掉线先排查这3个原因": {
+    labels: ["第一步", "第二步", "第三步"],
+    sectionTitle: "排查 5-17秒 · 三步走",
+    actionNote: "→ 边排查边说，1-2-3 逐步递进",
+    emoji: "🔧"
+  },
+  "家里WiFi信号差？先别急着换路由器": {
+    labels: ["第一步", "第二步", "第三步"],
+    sectionTitle: "排查 5-17秒 · 三步走",
+    actionNote: "→ 边说边做，先免费后花钱逐步递进",
+    emoji: "📶"
+  },
+  "手机套餐隐藏权益大盘点": {
+    labels: ["第一招", "第二招", "第三招"],
+    sectionTitle: "薅羊毛 5-17秒 · 三招搞定",
+    actionNote: "→ 边讲解边说，每招递进",
+    emoji: "💰"
+  },
+
+  // ══════ C. 热梗植入型 → 用「种」══════
+
+  "FTTR到底值不值得装？用数据说话": {
+    labels: ["第一种", "第二种", "第三种"],
+    sectionTitle: "三种户型 5-17秒 · 对号入座",
+    actionNote: "→ 边比划边说，你家属于哪种？",
+    emoji: "🏠"
+  },
+  "打游戏用什么宽带？延迟对比实测": {
+    labels: ["第一种", "第二种", "第三种"],
+    sectionTitle: "三种延迟 5-17秒 · 对号入座",
+    actionNote: "→ 手比划 1-2-3，延迟越来越低",
+    emoji: "🎮"
+  },
+
+  // ══════ D. 方言亲切型 → 用「场景」══════
+
+  "老人手机套餐怎么选？3款适老套餐对比": {
+    labels: ["场景一", "场景二", "场景三"],
+    sectionTitle: "三种用法 5-17秒 · 咱爸咱妈对号入座",
+    actionNote: "→ 站在老人视角讲，越土越贴心",
+    emoji: "👴"
+  },
+  "异地跨省宽带怎么装最省钱": {
+    labels: ["场景一", "场景二", "场景三"],
+    sectionTitle: "三种方案 5-17秒 · 看哪种适合你",
+    actionNote: "→ 按你家房子数量选",
+    emoji: "🏡"
+  },
+
+  // ══════ F. 逻辑说服型（默认走三档）══════
+  // 不配置走默认 "第一档/第二档/第三档"
+
+  // ══════ 默认值（找不到映射时使用）══════
+  _default: {
+    labels: ["第一档", "第二档", "第三档"],
+    sectionTitle: "升级 5-17秒 · 三档对比",
+    actionNote: "→ 手画1-2-3，每档语速递进，最后一档加重",
+    emoji: "📈"
+  }
 };
 
 // ===== t2Presets.js =====
