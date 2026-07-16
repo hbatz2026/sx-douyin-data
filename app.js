@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-16 03:32:15
+// 构建时间: 2026-07-16 03:48:23
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2594,6 +2594,35 @@ function fillT1Presets() {
   // 3. Auto-generate 3 scenarios based on topic keywords
   var generated = generateT1Scenarios(topic);
   applyT1Presets(generated);
+  
+  // 4. Search-fallback: 异步搜索真实答案（不阻塞，有结果后自动更新）
+  // 只在用户没有手动填写场景A的情况下自动触发
+  var aField = document.getElementById('t1_a');
+  if (aField && topic.length > 4 && !window._t1SearchDone) {
+    window._t1SearchDone = true;
+    var city = (document.getElementById('t1_city')||{}).value || '';
+    fetch(window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.a) {
+        // 只在字段为空时更新（用户已手动修改的不覆盖）
+        ['a','b','c'].forEach(function(k, i) {
+          var val = data[i === 0 ? 'a' : i === 1 ? 'b' : 'c'];
+          var el = document.getElementById('t1_' + k);
+          if (el && val && !el.dataset.userEdited) {
+            el.value = val;
+            el.style.borderColor = '#1565C0';
+            el.style.background = '#E3F2FD';
+            el.title = '🌐 来自搜索结果';
+          }
+        });
+      }
+    }).catch(function(e) {
+      console.log('Search fallback:', e.message);
+    });
+  }
 }
 
 function applyT1Presets(presets) {
