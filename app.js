@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-16 03:48:23
+// 构建时间: 2026-07-16 03:53:23
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2577,6 +2577,7 @@ function fillT1Presets() {
   if (!topic) return;
   // Auto-select hook type based on topic
   autoSelectHook('t1', topic);
+  // 先填入预设或自动生成（瞬时反馈）
   // 1. Try exact match
   if (t1Presets[topic]) {
     applyT1Presets(t1Presets[topic]);
@@ -2594,35 +2595,50 @@ function fillT1Presets() {
   // 3. Auto-generate 3 scenarios based on topic keywords
   var generated = generateT1Scenarios(topic);
   applyT1Presets(generated);
-  
-  // 4. Search-fallback: 异步搜索真实答案（不阻塞，有结果后自动更新）
-  // 只在用户没有手动填写场景A的情况下自动触发
-  var aField = document.getElementById('t1_a');
-  if (aField && topic.length > 4 && !window._t1SearchDone) {
-    window._t1SearchDone = true;
-    var city = (document.getElementById('t1_city')||{}).value || '';
-    fetch(window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      if (data && data.a) {
-        // 只在字段为空时更新（用户已手动修改的不覆盖）
-        ['a','b','c'].forEach(function(k, i) {
-          var val = data[i === 0 ? 'a' : i === 1 ? 'b' : 'c'];
-          var el = document.getElementById('t1_' + k);
-          if (el && val && !el.dataset.userEdited) {
-            el.value = val;
-            el.style.borderColor = '#1565C0';
-            el.style.background = '#E3F2FD';
-            el.title = '🌐 来自搜索结果';
-          }
-        });
-      }
-    }).catch(function(e) {
-      console.log('Search fallback:', e.message);
+  // 显示搜索中状态
+  ['a','b','c'].forEach(function(k) {
+    var el = document.getElementById('t1_' + k);
+    if (el) el.title = '🔍 正在搜索真实数据...';
+  });
+  // 4. 异步搜索真实答案（Web 函数内置 searchT1，零成本、零 AI）
+  searchT1AndFill(topic);
+}
+
+// 异步从 Web 函数搜索 T1 真实数据
+function searchT1AndFill(topic) {
+  var city = (document.getElementById('t1_city')||{}).value || '';
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.a && data.b && data.c) {
+      ['a','b','c'].forEach(function(k, i) {
+        var val = data[k];
+        var el = document.getElementById('t1_' + k);
+        // 只在字段未手动修改时更新
+        if (el && val && !el.dataset.userEdited) {
+          el.value = val;
+          el.style.borderColor = '#1565C0';
+          el.style.background = '#E3F2FD';
+          el.title = '🌐 来自搜索结果（' + new Date().toLocaleTimeString() + '）';
+        }
+      });
+    } else {
+      // 搜索失败/无结果，保持 auto-generate 内容
+      ['a','b','c'].forEach(function(k) {
+        var el = document.getElementById('t1_' + k);
+        if (el) el.title = '🤖 AI 兜底生成（搜索失败）';
+      });
+    }
+  }).catch(function(e) {
+    console.log('Search T1 error:', e.message);
+    ['a','b','c'].forEach(function(k) {
+      var el = document.getElementById('t1_' + k);
+      if (el) el.title = '⚠️ 搜索异常，已用 AI 兜底';
     });
-  }
+  });
 }
 
 function applyT1Presets(presets) {
@@ -3044,6 +3060,36 @@ function fillT2Presets() {
   };
   var lbl = document.getElementById('t2_finding_label');
   if (lbl) lbl.textContent = labelMap[key] || '发现的具体问题';
+  // 异步搜索 T2 故事素材（零成本、零 AI）
+  searchT2AndFill(key);
+}
+
+// 异步从 Web 函数搜索 T2 故事素材
+function searchT2AndFill(preset) {
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'search-t2', preset: preset, topic: preset })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.snippets && data.snippets.length > 0) {
+      // 把搜索到的素材片段显示在 summary 字段下方作为参考
+      var summaryEl = document.getElementById('t2_summary');
+      if (summaryEl && !summaryEl.dataset.userEdited) {
+        // 拼接 2 条最相关的搜索片段作为参考
+        var refs = data.snippets.slice(0, 2).join(' / ').slice(0, 200);
+        // 在 tags 字段追加搜索标记
+        var tagsEl = document.getElementById('t2_tags');
+        if (tagsEl && !tagsEl.dataset.userEdited) {
+          var cur = tagsEl.value || '';
+          tagsEl.value = cur + (cur ? ' ' : '') + '#搜索素材' + (data.source === 'search' ? '✓' : '');
+          tagsEl.title = '🌐 搜索素材已添加';
+        }
+      }
+    }
+  }).catch(function(e) {
+    console.log('Search T2 error:', e.message);
+  });
 }
 
 function matchT2Preset() {
