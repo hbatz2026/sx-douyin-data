@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-13 08:06:44
+// 构建时间: 2026-07-16 01:53:07
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2363,32 +2363,40 @@ function previewT1Talk() {
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
   const bgm = c('bgm'), tags = c('tags');
+  function extPrice(t) { var m = t.match(/(\d+)元/); return m ? m[1]+'元' : ''; }
+  function extShort(t) { return t.split('，')[0] || t.slice(0,10); }
+  var pa = extPrice(a), pb = extPrice(b), pc = extPrice(cVal);
+  var sa = extShort(a), sb = extShort(b), sc = extShort(cVal);
   var hookText = '';
   var hookEl = document.getElementById('t1_hook_text');
   if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
   var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
+  var hooked = hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>' : '';
   const html = (variantHtml || '') + `
-<div class="stage">🎬 一镜到底 · 拍摄指南</div>
-<div class="info-tag">📱 全程一个镜头，手持或桌面支架 | ⏱ 约40秒 | 不剪辑</div>
-<div class="info-tag">🎵 BGM: ${bgm}（音量调25-30%，铺底不压人声）</div>
-<div class="stage">${hookText ? '【开场 0-5秒】🎯 黄金钩子' : '【开场 0-5秒】'}</div>
-${hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说出下面这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>\n' : ''}
-<div class="action-note">→ 手里拿一张纸或手机屏幕，上面写着三个关键词（对应三个场景）。</div>
-<div class="dialogue">"${city}的朋友，${topic}？别纠结，我30秒给你算清楚——先收藏，后面有用。"</div>
-<div class="stage">【中段 5-28秒】三个场景依次展开</div>
-<div class="action-note">→ 每说一个场景，伸一根手指（一、二、三），眼睛看镜头，像给朋友推荐</div>
-<div class="dialogue">"第一种情况——${a}。"</div>
-<div class="action-note">→ 点头，停顿1秒让观众消化</div>
-<div class="dialogue">"第二种——${b}。"</div>
-<div class="action-note">→ 换个手势，身体稍微前倾</div>
-<div class="dialogue">"第三种——${cVal}。"</div>
-<div class="action-note">→ 语气加重在价格差异上</div>
-<div class="stage">【结尾 28-40秒】价值锚定+收藏引导</div>
-<div class="dialogue">"所以你看到了，${a.split('，')[0]}、${b.split('，')[0]}、${cVal.split('，')[0]}，钱差在哪？就在你实际用不用得到。截图保存这一张，下次选套餐拿出来对照。你在${city}的话来店里聊，我帮你算得更细——地址在评论区。"</div>
-<div class="action-note">→ 画面定格，配上对比表卡（字幕标注三个场景的价格和配置）</div>
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${city}${topic}，看完不花冤枉钱</div>
+<div class="stage">🎬 口播脚本 · 钩子→升级→回报→CTA</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
+
+<div class="stage">🎣 【钩子 0-5秒】第1帧同时出现：大字标题+口播声+画面</div>
+${hookText ? hooked : '<div class="dialogue">"${topic}？30秒给你说清楚，看完不花冤枉钱。"</div>'}
+
+<div class="stage">📈 【升级 5-17秒】三档对比，逐级递进</div>
+<div class="action-note">→ 伸手指，从1到3。每档语气递增。</div>
+<div class="dialogue">"第一档——${a}"</div>
+<div class="action-note">→ 伸食指，语气平实</div>
+<div class="dialogue">"第二档——${b}"</div>
+<div class="action-note">→ 伸食指+中指，语气加重</div>
+<div class="dialogue">"第三档——${cVal}"</div>
+<div class="action-note">→ 伸三根手指，语气最有力量</div>
+
+<div class="stage">💰 【回报 17-20秒】选对方案的实际收益</div>
+<div class="dialogue">"所以你看——${sa}、${sb}、${sc}，区别不在宽带本身，在于你实际用不用得到。选对了每月省一杯奶茶钱。"</div>
+
+<div class="stage">🎯 【CTA 20-25秒】行动指令</div>
+<div class="dialogue">"评论区说说你的情况，我帮你推荐最划算的方案。${city}的朋友直接来店里，免费测网速不花钱。"</div>
+
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
 <div class="info-tag">🏷 标签: ${tags}</div>
-<div class="info-tag">💡 关键：结尾让观众"截图保存"——这句话决定了收藏率。</div>`;
+<div class="info-tag">💡 核心指标：收藏率 > 完播率 > 点赞率。引导用户「截图保存」提升收藏。</div>`;
   showT1Preview('preview1-talk', html);
 }
 
@@ -2792,43 +2800,40 @@ function previewT2Tell() {
   var hookLine = '';
   var hookEl = document.getElementById('t2_hook_text');
   if (hookEl && hookEl.value.trim()) {
-    hookLine = '<div class="stage">【0-5秒】🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="action-note">→ 镜头对着自己脸，语气坚定。这句话决定了80%的完播率。</div>\n<div class="dialogue">"' + esc(hookEl.value.trim()) + '"</div>\n';
+    hookLine = '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookEl.value.trim()) + '"</div>\n';
   }
-  // Narrative framework: only 3 categories, let user content drive the story
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
   var isOnsite = /上门|装机|维修/i.test(preset);
   var isOutreach = /社区|校园|政企/i.test(preset);
-  // Opening line: user fills time/customer/problem, we just stitch them
   var openLine = c('time') + '，' + c('customer') + '——' + c('problem');
-  var findPhrase = isOutreach ? '聊完发现——' : isOnsite ? '一到现场就发现问题了——' : '一问才知道——';
-  var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '弄完以后' : '聊完以后';
-  var ctaPhrase = isOutreach ? '你们社区/学校有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : '你们遇到过类似的事吗？评论区聊聊';
-  var shootTip = isOutreach ? '镜头拍活动现场，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
+  var findPhrase = isOutreach ? '聊完才发现——' : isOnsite ? '到现场一看就明白了——' : '一问才知道——';
+  var usePhrase = isOutreach ? '办完以后' : isOnsite ? '弄完以后' : '聊完以后';
+  var ctaPhrase = isOutreach ? '你们社区/学校有类似情况吗？评论区说说' : isOnsite ? '你们家网速也这样吗？评论区说说我帮你看看' : '你们遇到过类似的事吗？评论区聊聊';
+  var shootTip = isOutreach ? '拍活动现场，展示氛围' : isOnsite ? '镜头转向设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
   var variantHtml = tryVariantInjection(c('preset'), c('bgm'), 'preview2-tell');
   const html = (variantHtml || '') + `
-<div class="stage">🎬 一镜到底 · 拍摄指南</div>
-<div class="info-tag">📱 镜头对着自己，边走边说 | ⏱ 约40秒 | 不剪辑 | 现场原声</div>
-${hookLine ? hookLine + `
-<div class="stage">【3-8秒】进入故事</div>
-<div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
-<div class="dialogue">"${openLine}"</div>
-` : `<div class="stage">【0-5秒】抛出悬念</div>
-<div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
-<div class="dialogue">"${openLine}"</div>`}
-<div class="stage">${hookLine ? '【8-25秒】' : '【5-25秒】'}发现问题+操作</div>
-<div class="action-note">→ ${shootTip}。语速放慢，让观众看清。</div>
-<div class="dialogue">"${findPhrase}${c('finding')}。"</div>
-<div class="action-note">→ 拍操作过程，每个步骤配一个画面切换</div>
+<div class="stage">🎬 故事口播 · 钩子→升级→回报→CTA</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 原声口播 | 🎵 BGM: ${c('bgm') || '🔇 现场原声'}</div>
+
+<div class="stage">🎣 【钩子 0-5秒】</div>
+${hookLine ? hookLine : '<div class="dialogue">"今天遇到一件事，做这行越久越觉得值——"</div>'}
+<div class="action-note">→ 第1帧同时出现：悬念标题+口播+画面</div>
+
+<div class="stage">📈 【升级 5-18秒】故事推进</div>
+<div class="action-note">→ 语气像跟朋友聊天，镜头对着自己</div>
+<div class="dialogue">"${openLine}。${findPhrase}${c('finding')}。"</div>
+<div class="action-note">→ ${shootTip}。语速放慢，让观众看清</div>
 <div class="dialogue">"${c('steps').replace(/\n/g, '。')}"</div>
-<div class="stage">【25-35秒】客户真实反应</div>
-<div class="action-note">→ 关键！必须拍到客户的表情。如果客户说话用原声，不说话就用字幕。</div>
-<div class="dialogue">"${usePhrase}，${c('customer')}试了一下——</div>
-<div class="action-note">→ 画面切到客户，${c('reaction')}。停2秒给反应镜头。</div>
-<div class="stage">【35-40秒】总结+引导</div>
-<div class="dialogue">"其实${c('summary')}。${ctaPhrase}，说不定我能帮你看看。"</div>
-<div class="info-tag" style="margin-top:12px;">🎵 BGM: ${c('bgm') || '🔇 现场原声（推荐）'}</div>
-<div class="info-tag">🏷 标签: ${c('tags') || '#真实故事 #装维日常 #宽带小知识'}</div>
+
+<div class="stage">💰 【回报 18-22秒】客户真实反应</div>
+<div class="action-note">→ 关键——必须拍到客户表情。停2秒给反应镜头。</div>
+<div class="dialogue">"${usePhrase}，${c('customer')}试了一下——${c('reaction')}。"</div>
+
+<div class="stage">🎯 【CTA 22-25秒】引导</div>
+<div class="dialogue">"其实${c('summary')}。${ctaPhrase}，说不定我能帮你。"</div>
+
+<div class="info-tag" style="margin-top:12px;">🏷 标签: ${c('tags') || '#真实故事 #装维日常 #宽带小知识'}</div>
 <div class="info-tag">💡 关键：客户反应镜头是全片最重要的3秒——决定了观众会不会看完。</div>`;
   showT2Preview('preview2-tell', html);
 }
@@ -3672,19 +3677,25 @@ function previewT4Walk() {
   var topic = c('preset') || c('benefit');
   var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-walk');
   const html = (variantHtml || '') + `
-<div class="stage">🚶 探店口播 · 一镜到底</div>
-<div class="info-tag">📱 手持从地标拍到店门口 | ⏱ 约30秒 | 🎵 BGM: ${c('bgm')}</div>
-<div class="stage">【0-5秒】从地标开始</div>
-<div class="action-note">→ 镜头对准${c('landmark') || c('city')}最有辨识度的建筑/路牌，停留2秒</div>
-<div class="dialogue">"${c('city')}的朋友看过来——${c('landmark') ? c('landmark')+'旁边' : ''}这家${c('shop')}，有个隐藏福利你可能不知道！"</div>
-<div class="stage">【5-20秒】推进店门，展示福利</div>
-<div class="action-note">→ 边走边拍，从地标走到店门口，进门拍服务台/店内环境</div>
+<div class="stage">🎬 探店口播 · 钩子→升级→回报→CTA</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${c('bgm')}</div>
+
+<div class="stage">🎣 【钩子 0-5秒】</div>
+<div class="action-note">→ 第1帧：手持地标+大字标题</div>
+<div class="dialogue">"${c('city')}的朋友注意了——${c('landmark') ? c('landmark')+'旁边' : ''}这家${c('shop')}，有个隐藏福利知道的人不超过10%。"</div>
+
+<div class="stage">📈 【升级 5-15秒】福利详情</div>
+<div class="action-note">→ 从地标走到店门口，展示店内环境和服务</div>
 <div class="dialogue">"就是——${c('benefit')}！${c('desc')}"</div>
-<div class="stage">【20-28秒】实用信息</div>
-<div class="dialogue">"地址就在${c('addr')}，营业时间${c('hours')}。路过的时候进来看看，不用预约，直接来就行。"</div>
-<div class="stage">【28-30秒】行动引导</div>
-<div class="dialogue">"评论区告诉我你最近还发现了什么隐藏福利？记得加个位置标签，好找。"</div>
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${c('city')}${c('landmark')}这家${c('shop')}居然可以${c('benefit')}！</div>
+
+<div class="stage">💰 【回报 15-22秒】到店体验</div>
+<div class="action-note">→ 轻松语气，降低到店门槛</div>
+<div class="dialogue">"不办业务也没关系，进来看看坐坐。地址在${c('addr')}，${c('hours')}都营业。"</div>
+
+<div class="stage">🎯 【CTA 22-25秒】</div>
+<div class="dialogue">"评论区说说你最想要哪个福利？我帮你留一份。记得加位置标签，好找。"</div>
+
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${c('city')}${c('landmark')}这家${c('shop')}有个隐藏福利</div>
 <div class="info-tag">🏷 标签: ${c('tags')}</div>
 <div class="info-tag">📍 POI: 发布时一定要添加「${c('shop')}」位置标签</div>`;
   showT4Preview('preview4-walk', html);
