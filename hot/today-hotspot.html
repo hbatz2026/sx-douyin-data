@@ -3,79 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今日脚本 · 2026-07-16</title>
+  <title>今日跟拍脚本 · 2026-07-16</title>
   <style>
     :root {
-      --purple: #7873F5;
-      --cyan: #22D3EE;
-      --pink: #FF6EC7;
-      --orange: #FF7A3D;
-      --green: #34D399;
-      --bg-page: #0D0D1A;
-      --bg-section: #161628;
-      --bg-card: #1E1E36;
-      --bg-step: #252542;
-      --border-section: #2B2B4A;
-      --border-card: #333355;
+      --primary: #2563EB;
+      --accent: #7C3AED;
+      --green: #059669;
+      --orange: #EA580C;
+      --bg-page: #F8FAFC;
+      --bg-section: #FFFFFF;
+      --bg-card: #F1F5F9;
+      --bg-step: #E2E8F0;
+      --border: #CBD5E1;
+      --border-light: #E2E8F0;
+      --text-main: #1E293B;
+      --text-body: #334155;
+      --text-muted: #64748B;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg-page); color: #E5E5E5; line-height: 1.7; }
-    .container { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg-page); color: var(--text-main); line-height: 1.7; }
+    .container { max-width: 680px; margin: 0 auto; padding: 20px 16px; }
 
-    .header { text-align: center; padding: 48px 24px 36px; background: linear-gradient(135deg, #1a0033, #2d1b69, #0e7490); border-radius: 16px; margin-bottom: 36px; border-bottom: 1px solid rgba(34,211,238,0.25); }
-    .header h1 { font-size: 32px; font-weight: 800; background: linear-gradient(90deg, #34d399, #7873f5, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; letter-spacing: 1px; }
-    .header .date { font-size: 16px; color: rgba(255,255,255,0.85); font-weight: 600; }
-    .header .subtitle { font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 6px; }
-    .header .stats { display: inline-flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
-    .header .stat { font-size: 13px; color: #fff; background: rgba(255,255,255,0.15); padding: 5px 14px; border-radius: 20px; font-weight: 600; }
+    .header { text-align: center; padding: 36px 24px 28px; background: linear-gradient(135deg, #1E40AF, #7C3AED); border-radius: 14px; margin-bottom: 28px; }
+    .header h1 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .header .date { font-size: 15px; color: rgba(255,255,255,0.9); font-weight: 600; }
+    .header .subtitle { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+    .header .stats { display: inline-flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+    .header .stat { font-size: 12px; color: #fff; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-weight: 600; }
 
-    .section-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 20px; padding-left: 4px; }
-    .section-title .badge { font-size: 12px; background: var(--green); color: #0D0D1A; padding: 2px 10px; border-radius: 10px; margin-left: 8px; font-weight: 700; vertical-align: middle; }
+    .section-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; margin-top: 8px; }
+    .section-title .badge { font-size: 11px; background: var(--green); color: #fff; padding: 2px 10px; border-radius: 10px; margin-left: 6px; font-weight: 600; vertical-align: middle; }
     .section-title .badge-orange { background: var(--orange); }
 
-    .hotspot { margin-bottom: 28px; background: var(--bg-section); border: 1px solid var(--border-section); border-radius: 14px; padding: 20px 24px 24px; }
-    .hotspot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-    .hotspot-icon { font-size: 22px; flex-shrink: 0; }
-    .hotspot-title { font-size: 17px; font-weight: 700; color: #fff; }
-    .hotspot-heat { font-size: 12px; background: var(--orange); color: #fff; padding: 2px 10px; border-radius: 10px; font-weight: 600; }
-    .hotspot-why { font-size: 13px; color: var(--cyan); margin-bottom: 14px; padding-left: 32px; }
+    .hotspot { margin-bottom: 20px; background: var(--bg-section); border: 1px solid var(--border-light); border-radius: 12px; padding: 18px 20px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .hotspot-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .hotspot-icon { font-size: 20px; flex-shrink: 0; }
+    .hotspot-title { font-size: 16px; font-weight: 700; color: var(--text-main); }
+    .hotspot-heat { font-size: 11px; background: var(--orange); color: #fff; padding: 2px 10px; border-radius: 10px; font-weight: 600; }
+    .hotspot-why { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
 
-    .script-card { background: var(--bg-card); border-radius: 10px; padding: 18px 20px; border: 1px solid var(--border-card); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-    .script-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-    .pattern-tag { font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 6px; color: #fff; }
-    .pattern-search { background: var(--green); color: #0D0D1A; }
-    .pattern-meme { background: var(--orange); }
-    .compliance-pass { font-size: 12px; background: rgba(52,211,153,0.15); color: var(--green); padding: 3px 12px; border-radius: 6px; font-weight: 600; border: 1px solid rgba(52,211,153,0.3); }
+    .script-card { background: var(--bg-card); border-radius: 10px; padding: 16px 18px; border: 1px solid var(--border-light); }
+    .script-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .pattern-tag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 5px; }
+    .pattern-search { background: #DBEAFE; color: #1E40AF; }
+    .pattern-hot { background: #FED7AA; color: #9A3412; }
+    .compliance-pass { font-size: 11px; background: #D1FAE5; color: #065F46; padding: 3px 10px; border-radius: 5px; font-weight: 600; }
 
-    .script-step { display: flex; gap: 12px; margin-bottom: 8px; padding: 10px 14px; background: var(--bg-step); border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); }
-    .step-time { font-size: 12px; color: var(--cyan); min-width: 52px; flex-shrink: 0; padding-top: 2px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .script-step { display: flex; gap: 10px; margin-bottom: 6px; padding: 10px 12px; background: var(--bg-section); border-radius: 8px; border: 1px solid var(--border-light); }
+    .step-time { font-size: 12px; color: var(--primary); min-width: 48px; flex-shrink: 0; padding-top: 1px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .step-content { flex: 1; }
-    .step-voiceover { font-size: 14px; color: #F5F5F5; margin-bottom: 5px; line-height: 1.8; }
-    .step-subtitle { font-size: 13px; color: var(--cyan); font-weight: 600; }
+    .step-voiceover { font-size: 14px; color: var(--text-main); margin-bottom: 4px; line-height: 1.7; }
+    .step-subtitle { font-size: 12px; color: var(--primary); font-weight: 600; }
 
-    .script-footer { display: flex; gap: 16px; margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
-    .script-footer span { font-size: 12px; color: #AAAABB; }
-    .script-footer .bgm { color: #D4B8FF; }
-    .script-footer .tags { color: var(--cyan); }
+    .script-footer { display: flex; gap: 12px; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border-light); flex-wrap: wrap; }
+    .script-footer span { font-size: 12px; color: var(--text-muted); }
+    .script-footer .bgm { color: var(--accent); }
+    .script-footer .tags { color: var(--primary); }
 
-    .effect-box { margin-top: 10px; padding: 10px 14px; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 8px; }
-    .effect-label { font-size: 12px; color: var(--green); font-weight: 700; margin-right: 4px; }
-    .effect-text { font-size: 13px; color: #C0C0D8; line-height: 1.6; }
-    .shoot-box { margin-top: 6px; padding: 8px 14px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.15); border-radius: 8px; font-size: 13px; color: #AAAABB; line-height: 1.6; }
-    .shoot-label { color: var(--cyan); font-weight: 700; margin-right: 4px; }
+    .effect-box { margin-top: 8px; padding: 8px 12px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; }
+    .effect-label { font-size: 12px; color: var(--green); font-weight: 700; margin-right: 3px; }
+    .effect-text { font-size: 12px; color: #334155; line-height: 1.6; }
+    .shoot-box { margin-top: 5px; padding: 7px 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; font-size: 12px; color: #334155; line-height: 1.6; }
+    .shoot-label { color: var(--primary); font-weight: 700; margin-right: 3px; }
 
-    .common-tip { background: var(--bg-section); border: 1px solid var(--border-section); border-radius: 14px; padding: 18px 24px; margin-bottom: 24px; text-align: center; }
-    .common-tip .tip-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
-    .common-tip .tip-detail { font-size: 13px; color: #AAAABB; line-height: 1.7; }
+    .common-tip { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
+    .common-tip .tip-title { font-size: 15px; font-weight: 700; color: #92400E; margin-bottom: 6px; text-align: center; }
+    .common-tip .tip-detail { font-size: 12px; color: #78350F; line-height: 1.8; }
 
-    .footer { text-align: center; padding: 28px 0; font-size: 13px; color: #777790; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.04); }
+    .footer { text-align: center; padding: 24px 0; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border-light); }
 
     @media (max-width: 600px) {
-      .header h1 { font-size: 24px; }
-      .header { padding: 36px 16px 28px; }
-      .hotspot { padding: 16px 14px 18px; }
+      .header h1 { font-size: 22px; }
+      .header { padding: 28px 16px 22px; }
+      .hotspot { padding: 14px 16px 16px; }
       .script-card { padding: 14px; }
-      .script-step { flex-direction: column; gap: 4px; }
+      .script-step { flex-direction: column; gap: 2px; }
       .step-time { min-width: auto; }
       .hotspot-title { font-size: 15px; }
     }
@@ -93,244 +95,244 @@
       </div>
     </div>
 
-    <div class="section-title">搜索截流 · 用户搜到你就成交 <span class="badge">7条 · 长尾持续获客</span></div>
+    <div class="section-title">搜索截流 · 用户搜到你就成交 <span class="badge">7条</span></div>
 
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">办宽带到底要带啥？3分钟讲清楚</span>
-          <span class="hotspot-heat">搜索词: 宽带怎么办 / 办宽带流程</span>
+          <span class="hotspot-title">办宽带要带啥？别跑两趟</span>
+          <span class="hotspot-heat">搜: 宽带怎么办</span>
         </div>
-        <div class="hotspot-why">用户搜"宽带怎么办 / 办宽带流程"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">搜这个的人已经准备去办了，就差不知道带什么——你告诉他，他就来你这办</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">办宽带要带啥？带对了10分钟就办好</div><div class="step-subtitle">办宽带带啥？带对10分钟办好</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">只需要两样：身份证原件+本人手机号，手机号不是本人的也行，带着机主身份证一起</div><div class="step-subtitle">身份证+手机号，就这两样</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">不用排队不用预约，到电信营业厅直接办，当天装当天用。附近门店地址我放评论区了</div><div class="step-subtitle">到店10分钟办好，地址评论区</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">办宽带跑了三趟？其实带对东西一趟就够</div><div class="step-subtitle">办宽带别跑三趟，带对一趟就够</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">就两样：身份证原件，还有你本人手机号。手机号不是你的也行，带上机主身份证一起来</div><div class="step-subtitle">身份证+手机号，就两样</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">到了直接办，不用排队不用等，10分钟就好。不知道哪家近的评论区说你的小区，我帮你查</div><div class="step-subtitle">10分钟办好，评论区帮你查近的店</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 轻快日常BGM</span><span class="tags">#办宽带 #宽带怎么办 #山西电信 #营业厅</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">上月宽带类660条视频均播211但只有1单成交——用户搜到的是广告，不是解答。你拍一条'教程'，搜索排名比广告高</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①站在柜台前对着镜头 ②拿出身份证和手机一样一样指 ③最后说'带这两样来就行，10分钟办好'</div>
+          <div class="script-footer"><span class="bgm">BGM: 日常轻快BGM</span><span class="tags">#办宽带 #宽带怎么办 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">搜这个的人已经准备去办了，就差不知道带什么——你告诉他，他就来你这办</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①站在柜台前拍 ②拿出身份证举起来指 ③语速快一点，像帮朋友省时间</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">家里宽带越用越慢？3个原因自己先排查</span>
-          <span class="hotspot-heat">搜索词: 宽带太慢 / 网速慢怎么办</span>
+          <span class="hotspot-title">家里网速慢？先别花钱，3步自己排查</span>
+          <span class="hotspot-heat">搜: 宽带太慢/网速慢</span>
         </div>
-        <div class="hotspot-why">用户搜"宽带太慢 / 网速慢怎么办"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">搜'网速慢'的人在家急得不行——你先帮他免费排查，他信你了，升级自然找你</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">宽带越用越慢？先别急着换，3个原因自己先查</div><div class="step-subtitle">宽带越用越慢？先查3个原因</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">第一路由器太老，第二墙壁挡信号，第三同时连太多设备。先重启路由器试试，不行就挪到客厅中间</div><div class="step-subtitle">路由器老旧/墙壁遮挡/设备太多</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">试了还是慢？可能是该升级千兆了。来营业厅免费测速，不够快直接给你换，评论区扣'测速'</div><div class="step-subtitle">来厅免费测速，不够直接换</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">家里网速慢先别急着花钱换，三个地方先自己查一下</div><div class="step-subtitle">网速慢先别花钱，先查3个地方</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">第一，路由器用了几年了？老的光纤猫最多撑3年。第二，路由器放墙角信号挡一半，挪到客厅中间。第三，重启一下，很多问题重启就好</div><div class="step-subtitle">猫老了/路由器位置差/重启试试</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">试完还是慢？那可能是宽带该升级了，来营业厅免费帮你测速，不够快不要钱</div><div class="step-subtitle">还是慢来厅免费测速</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 节奏轻快问题解决BGM</span><span class="tags">#宽带慢 #网速慢 #千兆宽带 #山西电信</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">网速慢是用户最大痛点，搜这个的人已经在家着急了——你帮他排查，他就信你，办升级就找你</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①拿手机展示测速画面 ②一个一个说排查步骤 ③最后说'还是慢来找我免费上门检测'</div>
+          <div class="script-footer"><span class="bgm">BGM: 问题解决风BGM</span><span class="tags">#宽带慢 #网速慢怎么办 #千兆宽带 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">搜'网速慢'的人在家急得不行——你先帮他免费排查，他信你了，升级自然找你</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①拿手机拍测速画面 ②走到路由器旁边拍 ③语气像帮忙不是推销</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">旧手机别吃灰，以旧换新能抵不少</span>
-          <span class="hotspot-heat">搜索词: 手机以旧换新 / 旧手机能换多少</span>
+          <span class="hotspot-title">抽屉里的旧手机，能抵多少你真不知道</span>
+          <span class="hotspot-heat">搜: 手机以旧换新</span>
         </div>
-        <div class="hotspot-why">用户搜"手机以旧换新 / 旧手机能换多少"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">上月552条手机视频全在讲新机——没一条提旧机。用户最关心的'旧的怎么办'没人回答</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">旧手机还在抽屉吃灰？以旧换新能抵不少</div><div class="step-subtitle">旧手机别吃灰，能抵不少</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">苹果华为小米都能换，柜台有价目表你看——旧机能抵好几百，加上门店补贴，到手价划算多了</div><div class="step-subtitle">苹果华为都能换，抵好几百</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">带上旧手机和身份证来就行，现场评估现场抵扣。想看你的旧机能换多少，评论区扣'换新'</div><div class="step-subtitle">带旧机来现场抵，扣'换新'估价</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">你抽屉里那台旧手机，比我估计的值钱</div><div class="step-subtitle">旧手机比你以为的值钱</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">苹果华为小米都能以旧换新，旧的当场抵钱。比如一台旧iPhone能抵好几百，加上门店补贴，新机到手价你看价目表</div><div class="step-subtitle">当场抵几百+门店补贴，看价目表</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">带上旧机和身份证来就行，现场评估现场抵扣。想先估个价的评论区扣品牌型号，我帮你查</div><div class="step-subtitle">带旧机来现场抵，扣型号帮你估价</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 轻松购物风BGM</span><span class="tags">#以旧换新 #旧手机回收 #山西电信 #手机优惠</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">上月手机类552条全在讲新手机，没一条讲旧手机回收——这是用户最关心的问题：旧手机怎么办</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①左手拿旧手机右手拿新手机 ②说旧机能抵多少 ③拍柜台以旧换新价目表</div>
+          <div class="script-footer"><span class="bgm">BGM: 轻松购物BGM</span><span class="tags">#以旧换新 #旧手机 #手机优惠 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">上月552条手机视频全在讲新机——没一条提旧机。用户最关心的'旧的怎么办'没人回答</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①左手拿旧机右手拿新机 ②拍柜台回收价目表特写 ③说具体数字别含糊</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">流量又超了？别再交超标费了</span>
-          <span class="hotspot-heat">搜索词: 流量不够用 / 流量超了怎么办</span>
+          <span class="hotspot-title">流量又超标了？别再交冤枉钱</span>
+          <span class="hotspot-heat">搜: 流量不够用</span>
         </div>
-        <div class="hotspot-why">用户搜"流量不够用 / 流量超了怎么办"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">上月流量类完播率13.6%最高——用户看完了但没人告诉他怎么办。差的就是一句'来这办'</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">流量又超了对吧？别再交超标费了，划不来</div><div class="step-subtitle">流量又超了？别交超标费</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">超标1G扣5块10块的，一个月多好几十。办个大流量套餐，够用还不贵，具体档位我放评论区了</div><div class="step-subtitle">超标费太亏，办大流量更划算</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">也可以加个流量包应急，来营业厅或者线上都能办，评论区扣'流量'我发你套餐对比</div><div class="step-subtitle">扣'流量'发套餐对比</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">月底了又收到流量超标短信了吧，扣了多少钱这次</div><div class="step-subtitle">又流量超标了？扣了不少吧</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">超标1G扣5块，一个月超标几次就二三十了。办个大流量套餐，几十块钱流量管够，再也不会超标扣费</div><div class="step-subtitle">超标扣费太亏，大流量套餐管够</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">来营业厅就能办，也可以线上改。不知道哪个套餐合适的评论区扣'流量'，我根据你月消费帮你推荐</div><div class="step-subtitle">扣'流量'帮你推荐合适套餐</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 节奏感提醒风BGM</span><span class="tags">#流量不够 #流量超标 #大流量卡 #山西电信</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">流量套餐类上月完播率13.6%最高但0成交——用户看完了但没人告诉他'怎么办'，差的就是最后一句引导</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手机截图流量超标扣费画面 ②对比大流量套餐价格 ③指评论区</div>
+          <div class="script-footer"><span class="bgm">BGM: 提醒节奏BGM</span><span class="tags">#流量超标 #大流量卡 #流量套餐 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">上月流量类完播率13.6%最高——用户看完了但没人告诉他怎么办。差的就是一句'来这办'</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①截一张流量超标扣费的图 ②手指着说数字 ③对比大流量套餐价格</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">家里电视只能看直播？IPTV能点播能回看</span>
-          <span class="hotspot-heat">搜索词: IPTV怎么办 / 电视怎么看</span>
+          <span class="hotspot-title">家里电视只能看直播台？亏了</span>
+          <span class="hotspot-heat">搜: IPTV/电视怎么看</span>
         </div>
-        <div class="hotspot-why">用户搜"IPTV怎么办 / 电视怎么看"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">上月宽带唯一成交就是IPTV——但660条宽带视频没几条把IPTV讲明白。用户不知道IPTV能回看点播</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">家里电视只能看直播？IPTV能点播能回看，想看啥看啥</div><div class="step-subtitle">电视只看直播？IPTV能点播回看</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">电影电视剧综艺随时点，昨天的节目今天回看，4K画质不卡。办宽带就送，不用额外花钱</div><div class="step-subtitle">点播+回看+4K，办宽带就送</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">带上身份证到营业厅就办，当天就能看。想了解的评论区扣'IPTV'</div><div class="step-subtitle">到店当天办当天看，扣'IPTV'</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">你家电视还在一个台一个台换？那亏了</div><div class="step-subtitle">电视还一个台台换？亏了</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">办IPTV，电影电视剧综艺随时点，昨天的新闻今天也能回看。4K画质，一家老小都能看自己喜欢的</div><div class="step-subtitle">IPTV点播+回看+4K，全家都能看</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">关键是办宽带就送，不用另外掏钱。带身份证来营业厅，当天办当天看</div><div class="step-subtitle">办宽带就送，当天办当天看</div></div></div>
           </div>
           <div class="script-footer"><span class="bgm">BGM: 家庭温馨BGM</span><span class="tags">#IPTV #电视怎么看 #点播回看 #山西电信</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">宽带类有1单成交就是IPTV带来的——用户搜'电视怎么看'时没人告诉他IPTV能回看，这是真正的需求空白</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①拿IPTV遥控器展示点播画面 ②展示回看功能 ③说价格</div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">上月宽带唯一成交就是IPTV——但660条宽带视频没几条把IPTV讲明白。用户不知道IPTV能回看点播</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①拿IPTV遥控器展示点播画面 ②展示回看昨天节目 ③说'办宽带就送'这个关键信息</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">孩子电话手表怎么选？营业厅有套餐版</span>
-          <span class="hotspot-heat">搜索词: 电话手表怎么办 / 小孩电话手表</span>
+          <span class="hotspot-title">给孩子买手表别去商场，来这看看套餐版</span>
+          <span class="hotspot-heat">搜: 电话手表/儿童手表</span>
         </div>
-        <div class="hotspot-why">用户搜"电话手表怎么办 / 小孩电话手表"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">亲子场景是电信天然优势——电话手表+通话流量套餐，比商场单买划算。但上月0条视频拍这个</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">想给孩子买电话手表？营业厅有套餐版，比自己买划算</div><div class="step-subtitle">电话手表套餐版更划算</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">单独买手表好几百，办套餐版手表+通话流量一起，每月几十块就搞定，还能定位防走丢</div><div class="step-subtitle">手表+通话+定位，每月几十块</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">适合5-12岁孩子，带上身份证来营业厅就能办。想看款式的评论区扣'手表'</div><div class="step-subtitle">5-12岁适用，扣'手表'看款式</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">给孩子买电话手表先别急着去商场，看看这边套餐版再说</div><div class="step-subtitle">买手表先看套餐版，别急着去商场</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">商场买一台手表好几百，在这办套餐版，手表直接拿走，通话流量全包，每个月几十块，还能定位防走丢</div><div class="step-subtitle">手表拿走+通话流量全包，每月几十</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">适合5到12岁，带身份证来就能办。想看款式的评论区扣'手表'，我把图片发你</div><div class="step-subtitle">5-12岁适用，扣'手表'看图片</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 轻松亲子风BGM</span><span class="tags">#电话手表 #儿童手表 #山西电信 #亲子</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">亲子遛娃是电信天然场景，电话手表是刚需产品——但上月0条视频拍这个，完全是空白</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①柜台拿电话手表展示 ②说套餐版比自己买划算 ③让家长扣字</div>
+          <div class="script-footer"><span class="bgm">BGM: 轻松亲子BGM</span><span class="tags">#电话手表 #儿童手表 #亲子 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">亲子场景是电信天然优势——电话手表+通话流量套餐，比商场单买划算。但上月0条视频拍这个</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①柜台拿两款手表展示 ②说套餐版和自己买的差价 ③让家长扣字问款式</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔍</span>
-          <span class="hotspot-title">找不到电信营业厅？教你一秒查附近门店</span>
-          <span class="hotspot-heat">搜索词: 电信营业厅在哪 / 附近电信营业厅</span>
+          <span class="hotspot-title">找不到电信营业厅？教你10秒查到</span>
+          <span class="hotspot-heat">搜: 电信营业厅在哪</span>
         </div>
-        <div class="hotspot-why">用户搜"电信营业厅在哪 / 附近电信营业厅"时能看到你——这才是精准客户</div>
+        <div class="hotspot-why">4条成交视频全部挂了门店POI——到店是成交的前提。但很多人搜不到附近门店在哪</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-search">搜索截流型</span>
+            <span class="pattern-tag pattern-search">搜索截流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">找不到电信营业厅？手机一搜就有了</div><div class="step-subtitle">找不到营业厅？一搜就有</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">打开抖音搜'山西电信营业厅'，附近门店全部出来，还能看营业时间、电话。也可以在评论区问我</div><div class="step-subtitle">搜'山西电信营业厅'就出来</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">山西全省1100多家营业厅，你家附近肯定有。不知道哪家的评论区说你的城市，我帮你找</div><div class="step-subtitle">全省1100+门店，评论区帮你找</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">想办业务找不到电信营业厅？10秒教你查到</div><div class="step-subtitle">找不到营业厅？10秒查到</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">打开抖音直接搜'山西电信'，点门店，附近所有营业厅全出来，地址电话营业时间都有</div><div class="step-subtitle">搜'山西电信'→点门店→全出来</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">山西全省1100多家店，你附近肯定有。不知道哪家最近的评论区说你的位置，我帮你找</div><div class="step-subtitle">全省1100+店，评论区帮你找最近的</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 轻快指引BGM</span><span class="tags">#电信营业厅 #附近营业厅 #山西电信 #到店</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">4条成交视频全部挂了门店POI锚点——到店是成交的必要条件，但很多人不知道营业厅在哪</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手机演示打开抖音搜'电信营业厅' ②展示附近门店列表 ③说'评论区也有地址'</div>
+          <div class="script-footer"><span class="bgm">BGM: 轻快指引BGM</span><span class="tags">#电信营业厅 #附近营业厅 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">4条成交视频全部挂了门店POI——到店是成交的前提。但很多人搜不到附近门店在哪</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手机录屏演示搜营业厅 ②展示附近门店列表 ③说'评论区也能问'</div>
         </div>
       </div>
 
-    <div class="section-title" style="margin-top:12px">热点引流 · 冲播放拉曝光 <span class="badge badge-orange">3条 · 短期冲量</span></div>
+    <div class="section-title" style="margin-top:16px">热点引流 · 冲播放拉曝光 <span class="badge badge-orange">3条</span></div>
 
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔥</span>
-          <span class="hotspot-title">41度你还在家吹空调？来营业厅纳凉免费吹</span>
-          <span class="hotspot-heat">高温破纪录 41.3℃</span>
+          <span class="hotspot-title">41度还在家吹空调？电费不要钱了？</span>
+          <span class="hotspot-heat">高温41.3℃</span>
         </div>
-        <div class="hotspot-why">热点匹配营业厅场景，不突兀</div>
+        <div class="hotspot-why">纳凉到店是上月唯一'有成交+有场景'的组合。不是硬蹭——高温天营业厅确实凉快，确实能办业务</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-meme">热点引流型</span>
+            <span class="pattern-tag pattern-hot">热点引流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">41度还在家吹空调？电费受得了？来这免费吹</div><div class="step-subtitle">41度？来营业厅免费吹</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">电信营业厅空调开到最凉，有座位有水，顺便把手机宽带一块办了，两不耽误</div><div class="step-subtitle">空调免费+顺手办业务</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">纳凉还能优惠办宽带，比在家省电费。评论区扣'纳凉'我发你最近的门店地址</div><div class="step-subtitle">纳凉+办业务，扣'纳凉'领地址</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">41度还在家吹空调呢，电费不要钱了</div><div class="step-subtitle">41度在家吹空调？电费呢</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">来电信营业厅，空调免费吹，有座有水。顺手把手机宽带一块办了，比在家省电费</div><div class="step-subtitle">来厅空调免费+顺手办业务</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">最近的门店评论区扣'纳凉'我发你地址，全省都有</div><div class="step-subtitle">扣'纳凉'发你最近门店地址</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 清凉夏日BGM</span><span class="tags">#高温 #纳凉 #山西电信 #营业厅</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">纳凉到店是上月唯一'有成交+有场景'的组合——不是蹭热点，是热点刚好匹配营业厅场景，最自然</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①站在营业厅门口假装擦汗 ②镜头跟着走进厅里 ③指空调指座位说'免费坐'</div>
+          <div class="script-footer"><span class="bgm">BGM: 夏日清凉BGM</span><span class="tags">#高温 #纳凉 #山西电信 #营业厅</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">纳凉到店是上月唯一'有成交+有场景'的组合。不是硬蹭——高温天营业厅确实凉快，确实能办业务</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①站在门口拍阳光刺眼 ②走进厅里拍空调 ③表情从热到舒服的变化</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔥</span>
-          <span class="hotspot-title">iPhone满血了，在这办比官网划算</span>
-          <span class="hotspot-heat">满血iPhone发布</span>
+          <span class="hotspot-title">iPhone满血了，在这办省的是真金白银</span>
+          <span class="hotspot-heat">iPhone满血版</span>
         </div>
-        <div class="hotspot-why">热点匹配营业厅场景，不突兀</div>
+        <div class="hotspot-why">iPhone不用硬蹭，就是正经卖手机。上月手机类均播392说明用户爱看，差的是没讲清优惠具体多少</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-meme">热点引流型</span>
+            <span class="pattern-tag pattern-hot">热点引流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">iPhone终于满血了，但你知道在哪办更划算吗？</div><div class="step-subtitle">iPhone满血了，在这办更划算</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">官网价在这能优惠，旧手机还能以旧换新抵好几百，加上送礼品送配件，到手价省不少</div><div class="step-subtitle">官网价→到店优惠+以旧换新</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">想了解的评论区扣'iPhone'，我把门店地址和优惠详情发你</div><div class="step-subtitle">扣'iPhone'领地址和优惠</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">iPhone满血了，官网价一分不少？来这不一样</div><div class="step-subtitle">iPhone满血了，来这省真金白银</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">门店优惠直降，旧手机以旧换新再抵好几百，送的配件礼品一起拿。到手价比官网低不少</div><div class="step-subtitle">门店直降+以旧换新+送配件</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">想看具体到手价的评论区扣'iPhone'，我把优惠明细发你</div><div class="step-subtitle">扣'iPhone'发优惠明细</div></div></div>
           </div>
-          <div class="script-footer"><span class="bgm">BGM: 轻快电子节奏</span><span class="tags">#iPhone #手机优惠 #以旧换新 #山西电信</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">iPhone是通信行业天然产品，不是蹭热点而是正经卖手机——上月手机类均播392说明用户就是爱看手机内容</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手持iPhone怼镜头 ②指柜台价格牌 ③指评论区</div>
+          <div class="script-footer"><span class="bgm">BGM: 轻快电子BGM</span><span class="tags">#iPhone #手机优惠 #以旧换新 #山西电信</span></div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">iPhone不用硬蹭，就是正经卖手机。上月手机类均播392说明用户爱看，差的是没讲清优惠具体多少</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手持iPhone样机 ②指柜台价签说具体数字 ③提以旧换新双优惠</div>
         </div>
       </div>
       <div class="hotspot">
         <div class="hotspot-header">
           <span class="hotspot-icon">🔥</span>
-          <span class="hotspot-title">用流量看球心疼吧？IPTV看球不费流量还4K</span>
+          <span class="hotspot-title">流量看球一场好几G，不心疼吗</span>
           <span class="hotspot-heat">世界杯/赛事</span>
         </div>
-        <div class="hotspot-why">热点匹配营业厅场景，不突兀</div>
+        <div class="hotspot-why">不是硬蹭——用户真的在用流量看球，告诉他有更便宜的方式，这是帮他省钱不是打广告</div>
         <div class="script-card">
           <div class="script-meta">
-            <span class="pattern-tag pattern-meme">热点引流型</span>
+            <span class="pattern-tag pattern-hot">热点引流</span>
             <span class="compliance-pass">合规通过</span>
           </div>
           <div class="script-body">
-          <div class="script-step"><div class="step-time" style="color:var(--green)">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:700;color:#fff">用流量看球？一场下来好几G吧，心疼不</div><div class="step-subtitle">流量看球一场好几G？心疼</div></div></div>
-          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">办IPTV+宽带，4K画质不卡，全家一起看，一个月费用比你看一场球的流量费还低</div><div class="step-subtitle">IPTV 4K不卡，比流量费还低</div></div></div>
-          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">评论区扣'看球'我发你IPTV详情和最近的营业厅</div><div class="step-subtitle">扣'看球'领IPTV详情</div></div></div>
+          <div class="script-step"><div class="step-time" style="color:#2563EB;font-weight:700">0-3s 开头</div><div class="step-content"><div class="step-voiceover" style="font-weight:600;color:#1E293B">用流量看球一场好几G，月底账单一出来你就老实了</div><div class="step-subtitle">流量看球一场好几G，月底你就老实了</div></div></div>
+          <div class="script-step"><div class="step-time">3-15s</div><div class="step-content"><div class="step-voiceover">办IPTV加宽带，4K画质不卡，全家一起看。一个月宽带费比你一个晚上的流量费还少</div><div class="step-subtitle">IPTV 4K不卡，月费比一晚流量还少</div></div></div>
+          <div class="script-step"><div class="step-time">15-30s</div><div class="step-content"><div class="step-voiceover">带身份证来营业厅就办，当天装好看。扣'看球'我发你详情</div><div class="step-subtitle">扣'看球'发IPTV详情</div></div></div>
           </div>
           <div class="script-footer"><span class="bgm">BGM: 赛事节奏BGM</span><span class="tags">#世界杯 #IPTV看球 #不费流量 #山西电信</span></div>
-          <div class="effect-box"><span class="effect-label">为什么这条有效：</span><span class="effect-text">赛事+IPTV是最不突兀的组合——用户真的在用流量看球，你告诉他有更好的方式，这不是硬蹭是帮他</span></div>
-          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手机放比赛画面 ②指流量消耗截图 ③切IPTV画面</div>
+          <div class="effect-box"><span class="effect-label">为什么有效：</span><span class="effect-text">不是硬蹭——用户真的在用流量看球，告诉他有更便宜的方式，这是帮他省钱不是打广告</span></div>
+          <div class="shoot-box"><span class="shoot-label">怎么拍：</span>①手机放比赛画面+截流量消耗图 ②算一笔账 ③切IPTV画面</div>
         </div>
       </div>
 
     <div class="common-tip">
-      <div class="tip-title">不用改内容，照着念完拍30秒就行</div>
+      <div class="tip-title">照着念完拍30秒就行</div>
       <div class="tip-detail">
         竖屏9:16 · 露脸口播 · 背景露出营业厅 · 发抖音挂门店POI锚点<br>
-        不要说"全网最低/最划算"等极限词 · 评论区有人扣字记得回复门店地址<br>
-        搜索截流型脚本记得加种草搜索词（发视频时在"种草词"填上面对应的搜索词）
+        不要说"全网最低/最划算"等极限词 · 有人扣字记得回复门店地址<br>
+        搜索截流型脚本发的时候在"种草词"填上对应的搜索词
       </div>
     </div>
 
     <div class="footer">
-      由星辰超级智能体自动生成 · 搜索截流+热点引流混合策略 · 数据驱动选题<br>
-      hot-spot-script-gen v1.1 · 2026-07-16
+      搜索截流+热点引流 7:3混合策略 · 数据驱动选题<br>
+      2026-07-16 · 自动生成
     </div>
   </div>
 </body>
