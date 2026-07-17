@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-17 02:24:12
+// 构建时间: 2026-07-17 09:07:53
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -3829,16 +3829,20 @@ function previewT4Walk() {
   var fullScript = window.___t4ScriptFull && ___t4ScriptFull[topic.value || topic];
   if (fullScript) {
     var cityVal = c('city');
+    // 防重复：shop 已包含 city 时去重
+    var dedupShop = c('shop');
+    if (dedupShop && cityVal && dedupShop.indexOf(cityVal) === 0) dedupShop = dedupShop.slice(cityVal.length).trim();
+    var displayShop = dedupShop || c('shop') || '电信营业厅';
     var scriptText = fullScript.replace(/XX路/g, c('addr') || 'XX路')
-      .replace(/XX营业厅/g, c('shop') || '电信营业厅');
+      .replace(/XX营业厅/g, displayShop.startsWith('电信') ? displayShop : '电信营业厅');
     var previewA = (variantHtml || '') + `
 <div class="stage">🎬 探店口播</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${c('bgm')}</div>
 
 <div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${scriptText}"</div>
 
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${c('city')}${c('landmark') ? c('landmark')+' ' : ''}${c('shop')} · ${c('benefit')}</div>
-<div class="info-tag">💡 可直接复制使用，或修改福利/描述字段微调。</div>`;
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${cityVal}${c('landmark') ? c('landmark')+' ' : ''}${displayShop} · ${c('benefit')}</div>
+<div class="info-tag">💡 可直接复制使用，或在表单中微调福利/描述字段。</div>`;
     showT4Preview('preview4-walk', previewA);
     return;
   }
