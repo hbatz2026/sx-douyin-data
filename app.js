@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 09:13:24
+// 构建时间: 2026-07-20 09:15:00
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
