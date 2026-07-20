@@ -716,3 +716,8 @@
     .back-to-top { background: #333; }
     .back-to-top:hover { background: var(--blue); }
   }
+
+  /* 2026-07-20: 字段精简 — 不再需要用户填空，预览直接从ScriptFull读取 */
+  .field-hidden { display: none !important; }
+  .cover-hint { background: #F0F7FF; border: 1px solid #B3D4FC; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: #1A3C6E; }
+  .cover-hint strong { color: #0052CC; }
