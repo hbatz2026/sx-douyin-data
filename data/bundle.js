@@ -1,7 +1,7 @@
 // 抖本工坊 · 数据包（自动合并 18 文件）
-// 生成时间: 2026-07-20 07:58:14
+// 生成时间: 2026-07-20 08:12:53
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t2ScriptFull.js, t4Presets.js, t4ScriptFull.js, techDB.js, topicPool.js
-// 大小: 160552 bytes ( 18 source files)
+// 大小: 160568 bytes ( 18 source files)
 
 // ===== bgmList.js =====
 // Auto-generated BGM
@@ -969,8 +969,8 @@ async function triggerCommentAI(t, btn) {
     return;
   }
   // 2) 取脚本 + 标题 + 标签
-  var scriptEl = document.querySelector('.dialogue[style*="white-space:pre-line"]');
-  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').trim() : '';
+  var scriptEl = document.querySelector('[data-role="script-body"]');
+  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim() : '';
   var title = (document.querySelector('.info-tag') || {}).textContent || '';
   if (!scriptText || scriptText.length < 20) {
     toast('请先预览脚本，再点 AI 生成评论', 'error');
