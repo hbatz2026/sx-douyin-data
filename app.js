@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 07:58:13
+// 构建时间: 2026-07-20 08:12:52
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2471,8 +2471,8 @@ function previewT1Talk() {
     var hookStyle = 'background:#F5F3FF;border-left:4px solid #7C5CFF;border-radius:6px;padding:10px 12px;margin-bottom:8px;color:#5B3FD1;font-weight:600;font-size:14px;';
     var ctaStyle = 'background:#E0F7F0;border-left:4px solid #10B981;border-radius:6px;padding:10px 12px;margin-top:8px;color:#065F46;font-weight:600;font-size:14px;';
     var dialogHtml = personaHook
-      ? '<div style="' + hookStyle + '">💫 ' + pData.icon + ' ' + pData.label + ' 开口：<br>"' + esc(personaHook) + '"</div>\n<div style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>\n<div style="' + ctaStyle + '">🎯 ' + pData.icon + ' ' + pData.label + ' 收尾：<br>"' + esc(personaCta) + '"</div>'
-      : '<div style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>';
+      ? '<div data-role="hook" style="' + hookStyle + '">💫 ' + pData.icon + ' ' + pData.label + ' 开口：<br>"' + esc(personaHook) + '"</div>\n<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>\n<div data-role="cta" style="' + ctaStyle + '">🎯 ' + pData.icon + ' ' + pData.label + ' 收尾：<br>"' + esc(personaCta) + '"</div>'
+      : '<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>';
 
     // 2026-07-20: 脚本评分 + 记忆库命中
     var fullText = (personaHook + '\n' + fullScript + '\n' + personaCta);
