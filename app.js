@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 09:26:55
+// 构建时间: 2026-07-20 09:33:47
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1078,9 +1078,17 @@ function downloadAsImage(previewId) {
 function syncTopicDropdown() {
   var sel = document.getElementById('t1_topic');
   if (!sel) return;
-  // 2026-07-20: 立即清空旧选项（避免 JS 加载慢时用户选了硬编码但 topicPool 没的旧项）
+  // 立即清空旧选项
   sel.innerHTML = '<option value="">-- 加载中… --</option>';
-  if (!window.___topicPool) return;
+  if (!window.___topicPool) {
+    // 2026-07-20: 数据还没加载，200ms 后重试，最多 20 次（4秒）
+    var retries = parseInt(sel.getAttribute('data-retries') || '0', 10);
+    if (retries < 20) {
+      sel.setAttribute('data-retries', retries + 1);
+      setTimeout(syncTopicDropdown, 200);
+    }
+    return;
+  }
   var pool = window.___topicPool;
   // 2026-07-20: 过滤抖音禁止销售的单号卡类选题
   var banned = /学生套餐|老人手机套餐|手机卡套餐|套餐横向|5G套餐|4G套餐|流量不够用|流量包|加包|号卡|合约机|月租/;
@@ -1090,7 +1098,7 @@ function syncTopicDropdown() {
   topics.forEach(function(t) {
     html += '<option value="' + esc(t) + '">' + esc(t) + '</option>';
   });
-  if (html) { sel.innerHTML = html; try { labelDropdownOptions(); } catch(e) {} }
+  if (html) { sel.innerHTML = html; sel.removeAttribute('data-retries'); try { labelDropdownOptions(); } catch(e) {} }
 }
 
 function checkDataFiles() {
@@ -1103,6 +1111,14 @@ function checkDataFiles() {
   for (var k in map) { if (typeof window[k] === 'undefined') missing.push(map[k]); }
   var banner = document.getElementById('dataErrorBanner');
   if (missing.length > 0) {
+    // 2026-07-20: 数据还没加载完，500ms 后重试，最多 10 次
+    if (!checkDataFiles.retries) checkDataFiles.retries = 0;
+    if (checkDataFiles.retries < 10) {
+      checkDataFiles.retries++;
+      setTimeout(checkDataFiles, 500);
+      return missing.length;
+    }
+    // 重试 10 次后还没加载，才显示错误横幅
     if (!banner) {
       banner = document.createElement('div');
       banner.id = 'dataErrorBanner';
@@ -1111,8 +1127,9 @@ function checkDataFiles() {
     }
     banner.style.display = '';
     banner.innerHTML = '&#9888; 数据加载失败：' + missing.join('、') + '。请刷新页面重试，如持续出现请联系管理员。';
-  } else if (banner) {
-    banner.style.display = 'none';
+  } else {
+    checkDataFiles.retries = 0;
+    if (banner) banner.style.display = 'none';
   }
   return missing.length;
 }
