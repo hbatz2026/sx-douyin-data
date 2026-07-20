@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 01:38:59
+// 构建时间: 2026-07-20 03:02:20
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2388,6 +2388,7 @@ function previewT1Talk() {
   var fullScript = window.___t1ScriptFull && ___t1ScriptFull[topic];
   if (fullScript) {
     var html = (variantHtml || '') + `
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。</div>
 <div class="stage">🎬 口播脚本</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
@@ -2881,6 +2882,7 @@ function previewT2Tell() {
   var fullScript = window.___t2ScriptFull && ___t2ScriptFull[preset];
   if (fullScript) {
     var html = (variantHtml || '') + `
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>真实服务案例全流程（时间·客户·问题排查·解决方案·客户反应·总结）。</div>
 <div class="stage">🎬 故事口播</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 原声口播 | 🎵 BGM: ${bgm || '🔇 现场原声'}</div>
 
@@ -3776,6 +3778,7 @@ function previewT4Walk() {
     if (dedupShop && city && dedupShop.indexOf(city) === 0) dedupShop = dedupShop.slice(city.length).trim();
     var displayShop = dedupShop || shop || '电信营业厅';
     var html = (variantHtml || '') + `
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>具体福利介绍、到店引导、同城引流话术。</div>
 <div class="stage">🎬 探店口播</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${bgm}</div>
 
