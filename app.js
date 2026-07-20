@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-17 09:46:55
+// 构建时间: 2026-07-20 01:38:59
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1938,44 +1938,66 @@ function buildScriptPrompt(phone, topic, city, bgm) {
   var model = p.brand + ' ' + p.model;
   var price = p.guidePrice || p.price || '到店询';
   var topicDesc = TOPIC_ALIAS[topic] || topic + '体验';
-  // 获取当前人设
   var persona = getPersona();
   var pd = personaDB[persona] || personaDB['tech'];
   var scene = document.getElementById('t3_scene')?.value || 'store';
   var sceneLabel = SCENE_OPTIONS.find(function(s){return s.id===scene;})?.label || '🏪 店内';
 
   var lines = [];
-  lines.push('【角色设定】');
-  lines.push('你是山西电信' + city + '营业厅的' + pd.label + ' ' + pd.icon + '，' + pd.desc + '。');
-  lines.push('拍摄场景：' + sceneLabel.replace(/^.{1,2}/,''));
-  lines.push('说话风格：像给邻居朋友介绍手机一样自然，不用播音腔。' + pd.prompt);
+  lines.push('你是一个25-35岁的抖音博主，风格直接有自信不绕弯子。用户要看真实体验，不是产品说明书。');
   lines.push('');
-  lines.push('【任务】为下面这台手机生成约45秒的口播脚本，用于抖音短视频。');
+  lines.push('【写作原则】');
+  lines.push('❌ 不要产品说明书：禁止"搭载XX处理器""支持XX功能"');
+  lines.push('✅ 要人话：把参数翻译成"用起来怎么样"');
+  lines.push('✅ 真实场景：刷视频/玩王者/拍夜景/挤地铁/下雨天');
+  lines.push('✅ 反常识钩子：开头别"大家好"，直接抛痛点');
+  lines.push('✅ 具体数字：电池就说"出门一天不用充电宝"');
+  lines.push('✅ 价格对比：电信合约价 vs 电商价，差多少说多少');
   lines.push('');
-  lines.push('【产品数据 - 禁止修改、增删、编造 - 以下来自品牌公开资料】');
+  lines.push('【产品数据 - 禁止编造）');
   lines.push('手机型号：' + model);
-  lines.push('芯片：' + p.chip);
-  lines.push('影像系统：' + p.camera);
-  lines.push('电池：' + p.battery);
+  lines.push('芯片：' + p.chip + ' → 翻译成人话描述');
+  lines.push('影像：' + p.camera + ' → 翻译成人话描述');
+  lines.push('电池：' + p.battery + ' → 翻译成人话描述');
   lines.push('核心卖点：' + p.highlight);
   lines.push('参考价格：¥' + price + '（电信合约价）');
   lines.push('门店地址：' + city + '电信营业厅');
   lines.push('');
   lines.push('【选题方向】' + topicDesc);
   lines.push('');
-  lines.push('【脚本结构】总长约45秒，分4段：');
-  lines.push('1. 开场 0-8秒：结合「' + topicDesc + '」用一句口语化的话开头，亮出手机。不要反问句。');
-  lines.push('2. 卖点1 8-20秒：把「' + p.chip + '」自然融入，不念参数。');
-  lines.push('3. 卖点2 20-32秒：把「' + p.camera + '」或「' + p.battery + '」中与选题匹配的方向展开。');
-  lines.push('4. 结尾 32-45秒：自然引导到店/收藏，带出门店地址。');
+  lines.push('【45秒口播结构】');
+  lines.push('');
+  lines.push('▎0-8秒 开场钩子');
+  lines.push('- 一句话钩住：不讲废话，直接抛痛点/反常识/悬念');
+  lines.push('- 例："千元机打王者居然不卡？今天我测给你看。"');
+  lines.push('- 例："天天手机发热？这台xxxx你信不信？"');
+  lines.push('');
+  lines.push('▎8-20秒 核心卖点1（最该被记住的那个）');
+  lines.push('- 用"人用了什么感觉"，不用"搭载了什么"');
+  lines.push('- 错误："搭载天玑7300" → 正确："打游戏不卡，玩王者不掉帧"');
+  lines.push('- 必须 7-15 字一句话说清楚');
+  lines.push('');
+  lines.push('▎20-32秒 核心卖点2（选最反常识的）');
+  lines.push('- 大电池："出门一天不用带充电宝"');
+  lines.push('- 防水："下雨天也能拿手机拍"');
+  lines.push('- 长焦："演唱会坐山顶能拍清台上"');
+  lines.push('');
+  lines.push('▎32-45秒 结尾CTA');
+  lines.push('- 价格：电信合约价¥' + price + '，对比电商价');
+  lines.push('- 地点：' + city + '电信营业厅');
+  lines.push('- 行动：截图/评论区/到店');
   lines.push('');
   lines.push('【格式要求】');
   lines.push('- 口语化，用"你"不用"您"');
-  lines.push('- 每句话不超过25个字');
   lines.push('- 全文控制在150字以内');
   lines.push('- 不要"以下""众所周知""大家"等套话');
-  lines.push('- 每段标注时间，对话直接可念');
+  lines.push('- 开头第一句就是钩子，不要自我介绍');
+  lines.push('- 每段直接是可念的对话文本，不要分段标题');
   lines.push('- BGM：' + bgm + '（音量25%铺底不压人声）');
+  lines.push('');
+  lines.push('【参考风格】');
+  lines.push('- 贤贤小姐姐（临汾）：强CTA直销，每句话都有行动指令');
+  lines.push('- 沁县艳儿（长治）：亲切有温度，像跟朋友说话');
 
   return lines.join('\n');
 }
@@ -2357,67 +2379,26 @@ function switchT1Mode(mode) {
 }
 
 function previewT1Talk() {
-  const c = id => document.getElementById('t1_'+id).value;
-  if (!c('city') || !c('a')) { alert('请至少填写地名和场景A！'); return; }
-  const city = c('city');
-  const topic = c('topic');
-  const a = c('a'), b = c('b'), cVal = c('c');
-  const bgm = c('bgm'), tags = c('tags');
-  var hookText = '';
-  var hookEl = document.getElementById('t1_hook_text');
-  if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
-  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
-  
-  // ══════ 方案A：完整脚本（首选，无3档框架）══════
+  const city = (document.getElementById('t1_city')||{}).value;
+  const topic = (document.getElementById('t1_topic')||{}).value;
+  if (!city || !topic) { alert('请选一个选题！'); return; }
+  const bgm = (document.getElementById('t1_bgm')||{}).value || '';
+  const tags = (document.getElementById('t1_tags')||{}).value || '';
+  var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
   var fullScript = window.___t1ScriptFull && ___t1ScriptFull[topic];
   if (fullScript) {
-    var scriptText = hookText
-      ? '🎯 ' + hookText + '\n\n' + fullScript
-      : fullScript;
     var html = (variantHtml || '') + `
 <div class="stage">🎬 口播脚本</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
-<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${scriptText}"</div>
+<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${fullScript}"</div>
 
 <div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
-<div class="info-tag">🏷 标签: ${tags}</div>
-<div class="info-tag">💡 可直接复制使用，或手动修改场景A/B/C微调内容。</div>`;
+<div class="info-tag">🏷 标签: ${tags}</div>`;
     showT1Preview('preview1-talk', html);
-    return;
+  } else {
+    alert('该选题暂无精选脚本，请选择其他选题。');
   }
-  
-  // ══════ 方案B：三档框架（兜底，用于尚无完整脚本的选题）══════
-  function extPrice(t) { var m = t.match(/(\d+)元/); return m ? m[1]+'元' : ''; }
-  var pa = extPrice(a), pb = extPrice(b), pc = extPrice(cVal);
-  var prices = [pa, pb, pc].filter(Boolean);
-  var maxPrice = prices.length ? Math.max(...prices.map(p => parseInt(p) || 0)) : '';
-  var style = (window.___t1ScriptStyles && ___t1ScriptStyles._default)
-    || { labels: ['第一档','第二档','第三档'], sectionTitle: '升级 5-17秒 · 三档对比', actionNote: '→ 手画1-2-3，每档语速递进，最后一档加重', emoji: '📈' };
-  var html = (variantHtml || '') + `
-<div class="stage">🎬 口播脚本</div>
-<div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
-
-<div class="stage">🎣 【钩子 0-5秒】</div>
-<div class="dialogue">"${topic}？30秒给你算清楚，看完不花冤枉钱。"</div>
-<div class="action-note">→ 镜头对着自己脸，眼神坚定。这句话决定80%完播率。</div>
-
-<div class="stage">${style.emoji} 【${style.sectionTitle}】</div>
-<div class="action-note">${style.actionNote}</div>
-<div class="dialogue">"${a}"</div>
-<div class="dialogue">"${b}"</div>
-<div class="dialogue">"${cVal}"</div>
-
-<div class="stage">💰 【回报 17-20秒】</div>
-<div class="dialogue">"看完你就知道——区别不在选择本身，在于你实际用不用得到。选对了每月省${maxPrice || '几十'}块。"</div>
-
-<div class="stage">🎯 【CTA 20-25秒】</div>
-<div class="dialogue">"评论区说说你的情况，我帮你推荐最划算的。${city}的朋友直接来店里，免费测网速不花钱。"</div>
-
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
-<div class="info-tag">🏷 标签: ${tags}</div>
-<div class="info-tag">💡 关键：引导用户「截图保存」提升收藏率。</div>`;
-  showT1Preview('preview1-talk', html);
 }
 
 function previewT1Card() {
@@ -2888,72 +2869,28 @@ function switchT2Mode(mode) {
 }
 
 function previewT2Tell() {
-  const c = id => document.getElementById('t2_'+id).value;
-  if (!c('time') || !c('customer')) { alert('请至少填写时间和客户类型！'); return; }
-  var hookLine = '';
-  var hookEl = document.getElementById('t2_hook_text');
-  if (hookEl && hookEl.value.trim()) {
-    hookLine = '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookEl.value.trim()) + '"</div>\n';
-  }
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
+  if (!preset) { alert('请选一个故事场景！'); return; }
   var bgm = '';
   try { bgm = document.getElementById('t2_bgm').value; } catch(e) {}
   var tags = '';
   try { tags = document.getElementById('t2_tags').value; } catch(e) {}
-  var variantHtml = tryVariantInjection(c('preset'), bgm, 'preview2-tell');
+  var variantHtml = tryVariantInjection(preset, bgm, 'preview2-tell');
   
-  // ══════ 方案A：完整故事（首选，无槽位模板）══════
   var fullScript = window.___t2ScriptFull && ___t2ScriptFull[preset];
   if (fullScript) {
-    var scriptText = hookLine
-      ? hookLine.replace(/<\/div>$/, '') + '\n' + fullScript + '</div>'
-      : fullScript;
     var html = (variantHtml || '') + `
 <div class="stage">🎬 故事口播</div>
 <div class="info-tag">⏱ 约25秒 | 🎤 原声口播 | 🎵 BGM: ${bgm || '🔇 现场原声'}</div>
 
-${hookLine || ''}
 <div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${fullScript}"</div>
 
-<div class="info-tag" style="margin-top:12px;">🏷 标签: ${tags || '#真实故事 #装维日常 #宽带小知识'}</div>
-<div class="info-tag">💡 关键：直接复制使用，也可在表单中微调时间/客户/发现等字段。</div>`;
+<div class="info-tag" style="margin-top:12px;">🏷 标签: ${tags || '#真实故事 #装维日常 #宽带小知识'}</div>`;
     showT2Preview('preview2-tell', html);
-    return;
+  } else {
+    alert('该场景暂无精选故事，请选择其他场景。');
   }
-  
-  // ══════ 方案B：槽位模板（兜底）══════
-  var isOnsite = /上门|装机|维修/i.test(preset);
-  var isOutreach = /社区|校园|政企/i.test(preset);
-  var openLine = c('time') + '，' + c('customer') + '——' + c('problem');
-  var findPhrase = isOutreach ? '聊完才发现——' : isOnsite ? '到现场一看就明白了——' : '一问才知道——';
-  var usePhrase = isOutreach ? '办完以后' : isOnsite ? '弄完以后' : '聊完以后';
-  var ctaPhrase = isOutreach ? '你们社区/学校有类似情况吗？评论区说说' : isOnsite ? '你们家网速也这样吗？评论区说说我帮你看看' : '你们遇到过类似的事吗？评论区聊聊';
-  var shootTip = isOutreach ? '拍活动现场，展示氛围' : isOnsite ? '镜头转向设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
-  var html = (variantHtml || '') + `
-<div class="stage">🎬 故事口播 · 钩子→升级→回报→CTA</div>
-<div class="info-tag">⏱ 约25秒 | 🎤 原声口播 | 🎵 BGM: ${bgm || '🔇 现场原声'}</div>
-
-<div class="stage">🎣 【钩子 0-5秒】</div>
-${hookLine ? hookLine : '<div class="dialogue">"今天遇到一件事，做这行越久越觉得值——"</div>'}
-<div class="action-note">→ 第1帧同时出现：悬念标题+口播+画面</div>
-
-<div class="stage">📈 【升级 5-18秒】故事推进</div>
-<div class="action-note">→ 语气像跟朋友聊天，镜头对着自己</div>
-<div class="dialogue">"${openLine}。${findPhrase}${c('finding')}。"</div>
-<div class="action-note">→ ${shootTip}。语速放慢，让观众看清</div>
-<div class="dialogue">"${c('steps').replace(/\n/g, '。')}"</div>
-
-<div class="stage">💰 【回报 18-22秒】客户真实反应</div>
-<div class="action-note">→ 关键——必须拍到客户表情。停2秒给反应镜头。</div>
-<div class="dialogue">"${usePhrase}，${c('customer')}试了一下——${c('reaction')}。"</div>
-
-<div class="stage">🎯 【CTA 22-25秒】引导</div>
-<div class="dialogue">"其实${c('summary')}。${ctaPhrase}，说不定我能帮你。"</div>
-
-<div class="info-tag" style="margin-top:12px;">🏷 标签: ${tags || '#真实故事 #装维日常 #宽带小知识'}</div>
-<div class="info-tag">💡 关键：客户反应镜头是全片最重要的3秒——决定了观众会不会看完。</div>`;
-  showT2Preview('preview2-tell', html);
 }
 
 function previewT2Doc() {
@@ -3820,57 +3757,36 @@ function switchT4Mode(mode) {
 }
 
 function previewT4Walk() {
-  const c = id => document.getElementById('t4_'+id).value;
-  if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
-  var topic = c('preset') || c('benefit');
-  var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-walk');
+  const city = (document.getElementById('t4_city')||{}).value;
+  const preset = (document.getElementById('t4_preset')||{}).value;
+  if (!city || !preset) { alert('请选择活动和填写地名！'); return; }
+  const bgm = (document.getElementById('t4_bgm')||{}).value || '';
+  const shop = (document.getElementById('t4_shop')||{}).value || '电信营业厅';
+  const landmark = (document.getElementById('t4_landmark')||{}).value || '';
+  const addr = (document.getElementById('t4_addr')||{}).value || '';
+  const tags = (document.getElementById('t4_tags')||{}).value || '';
+  var variantHtml = tryVariantInjection(preset, bgm, 'preview4-walk');
   
-  // ══════ 方案A：完整脚本（首选，无槽位模板）══════
-  var fullScript = window.___t4ScriptFull && ___t4ScriptFull[topic.value || topic];
+  var fullScript = window.___t4ScriptFull && ___t4ScriptFull[preset];
   if (fullScript) {
-    var cityVal = c('city');
-    // 防重复：shop 已包含 city 时去重
-    var dedupShop = c('shop');
-    if (dedupShop && cityVal && dedupShop.indexOf(cityVal) === 0) dedupShop = dedupShop.slice(cityVal.length).trim();
-    var displayShop = dedupShop || c('shop') || '电信营业厅';
-    var scriptText = fullScript.replace(/XX路/g, c('addr') || 'XX路')
-      .replace(/XX营业厅/g, displayShop.startsWith('电信') ? displayShop : '电信营业厅');
-    var previewA = (variantHtml || '') + `
+    var scriptText = fullScript
+      .replace(/XX路/g, addr || 'XX路')
+      .replace(/XX营业厅/g, (shop.indexOf('电信')>=0 ? shop : ('电信' + shop)));
+    var dedupShop = shop;
+    if (dedupShop && city && dedupShop.indexOf(city) === 0) dedupShop = dedupShop.slice(city.length).trim();
+    var displayShop = dedupShop || shop || '电信营业厅';
+    var html = (variantHtml || '') + `
 <div class="stage">🎬 探店口播</div>
-<div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${c('bgm')}</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${bgm}</div>
 
 <div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${scriptText}"</div>
 
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${cityVal}${c('landmark') ? c('landmark')+' ' : ''}${displayShop} · ${c('benefit')}</div>
-<div class="info-tag">💡 可直接复制使用，或在表单中微调福利/描述字段。</div>`;
-    showT4Preview('preview4-walk', previewA);
-    return;
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${city}${landmark ? ' · '+landmark : ''}${displayShop ? ' · '+displayShop : ''}</div>
+<div class="info-tag">🏷 标签: ${tags}</div>`;
+    showT4Preview('preview4-walk', html);
+  } else {
+    alert('该活动暂无精选脚本，请选择其他活动。');
   }
-  
-  // ══════ 方案B：槽位模板（兜底）══════
-  var previewB = (variantHtml || '') + `
-<div class="stage">🎬 探店口播 · 钩子→升级→回报→CTA</div>
-<div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${c('bgm')}</div>
-
-<div class="stage">🎣 【钩子 0-5秒】</div>
-<div class="action-note">→ 第1帧：手持地标+大字标题</div>
-<div class="dialogue">"${c('city')}的朋友注意了——${c('landmark') ? c('landmark')+'旁边' : ''}这家${c('shop')}，有个隐藏福利知道的人不超过10%。"</div>
-
-<div class="stage">📈 【升级 5-15秒】福利详情</div>
-<div class="action-note">→ 从地标走到店门口，展示店内环境和服务</div>
-<div class="dialogue">"就是——${c('benefit')}！${c('desc')}"</div>
-
-<div class="stage">💰 【回报 15-22秒】到店体验</div>
-<div class="action-note">→ 轻松语气，降低到店门槛</div>
-<div class="dialogue">"不办业务也没关系，进来看看坐坐。地址在${c('addr')}，${c('hours')}都营业。"</div>
-
-<div class="stage">🎯 【CTA 22-25秒】</div>
-<div class="dialogue">"评论区说说你最想要哪个福利？我帮你留一份。记得加位置标签，好找。"</div>
-
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${c('city')}${c('landmark')}这家${c('shop')}有个隐藏福利</div>
-<div class="info-tag">🏷 标签: ${c('tags')}</div>
-<div class="info-tag">📍 POI: 发布时一定要添加「${c('shop')}」位置标签</div>`;
-  showT4Preview('preview4-walk', previewB);
 }
 
 function previewT4Mix() {
