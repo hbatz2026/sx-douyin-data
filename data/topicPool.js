@@ -1,5 +1,5 @@
 // Auto-generated topic pool
-// Updated: 2026-07-13
+// Updated: 2026-07-20
 window.___topicPool = {
   "decision": [
     "暑假孩子天天在家，宽带选多少兆够用？",
