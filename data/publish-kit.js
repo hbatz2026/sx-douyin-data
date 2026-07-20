@@ -73,7 +73,7 @@ function buildPublishKit(tpl, city, topic) {
   var html = '<div class="publish-kit" style="margin-top:16px;padding:0;background:#fff;border-radius:14px;border:1px solid #D3D1C7;overflow:hidden;">';
   html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:#888780;">';
   html += '<span style="font-weight:500;color:#5F5E5A;">发布准备</span>';
-  html += '<span style="margin-left:auto;">' + (scriptText ? Math.ceil(scriptText.length/4) + '秒' : '约15分钟') + '</span>';
+  html += '<span style="margin-left:auto;">' + (scriptText ? Math.ceil(scriptText.length/4) + '秒' : '约25秒') + '</span>';
   if (bgmText) html += '<span>' + esc(bgmText.slice(0,20)) + '</span>';
   html += '<span>' + bestTime + '</span>';
   html += '</div>';
