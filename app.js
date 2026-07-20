@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 07:36:31
+// 构建时间: 2026-07-20 07:58:13
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -469,12 +469,10 @@ function checkHasKeyword(text) {
 function renderChecklist(pageId, results) {
   var el = document.getElementById(pageId + '-checklist');
   if (!el) return;
+  // 2026-07-20: 精简为 2 项（钩子/收藏诱饵/关键词已被评分条覆盖）
   var items = [
-    {label:'3秒钩子到位', hint:'开头用问句/感叹/数字/冲突词(？/！/省钱/秘密/别再等)', pass:results.hasHook, icon:results.hasHook?'✅':'⚠️'},
-    {label:'收藏诱饵明显', hint:'含"截图保存/收藏/转发给XX/对比"等引导词', pass:results.hasCollect, icon:results.hasCollect?'✅':'⚠️'},
-    {label:'关键词在标题前15字', hint:'宽带/套餐/电信/WiFi/信号等关键词靠前', pass:results.hasKeyword, icon:results.hasKeyword?'✅':'⚠️'},
     {label:'无违禁词', hint:'绝对化用语、功效承诺、诱导互动等零出现', pass:results.noFw, icon:results.noFw?'✅':'❌'},
-    {label:'表单已填完', hint:'所有必填项都有内容', pass:results.allFilled, icon:results.allFilled?'✅':'⚠️'},
+    {label:'表单已填完', hint:'所有必填项都有内容', pass:results.allFilled, icon:results.allFilled?'✅':'⚠️'}
   ];
   el.innerHTML = '<h3>📋 发布前检查清单</h3>' + items.map(function(item) {
     var cls = item.pass ? 'pass' : (item.icon === '❌' ? 'fail' : 'warn');
@@ -483,6 +481,50 @@ function renderChecklist(pageId, results) {
   // Track checklist results
   track('checklist_' + (results.noFw ? 'pass' : 'fail'), pageId);
   if (!results.noFw) track('fw_detected', pageId);
+}
+
+// 2026-07-20: 脚本评分（钩子力/信任力/转化力）
+function scoreScript(scriptText) {
+  if (!scriptText) return { hook: 0, trust: 0, conv: 0, total: 0 };
+  var hookStarters = /^(你|大家|兄弟们|宝子|家人们|还在|不会|想|知道吗|说真的|说实话|我|这|一|上个月|昨天|今天)/;
+  var hookPunct = /[？?！!]/;
+  var trustKw = /(官方|正规|专业|免费|无忧|上门|营业厅|本地|靠谱|放心|安心|透明|24小时|老用户|电信|师傅|店员|小王|阿姨|王姐)/g;
+  var priceKw = /(\d+\s*元|\d+\s*兆|\d+\s*M|免费|0\s*元|9\.9|19|59|99|169|套餐|月租|年付|返|补贴)/g;
+  var ctaKw = /(扣\d|评论|私信|点击|预约|来店|到店|链接|扫码|关注|截图|保存|转发|主页|小红|群)/g;
+  var hookScore = (hookStarters.test(scriptText.trim()) ? 50 : 30) + (hookPunct.test(scriptText) ? 30 : 10);
+  var trustScore = Math.min(100, (scriptText.match(trustKw) || []).length * 22 + 30);
+  var priceScore = Math.min(100, (scriptText.match(priceKw) || []).length * 25 + 20);
+  var ctaScore = Math.min(100, (scriptText.match(ctaKw) || []).length * 18 + 20);
+  var convScore = Math.round((priceScore + ctaScore) / 2);
+  return {
+    hook: Math.min(100, hookScore),
+    trust: trustScore,
+    conv: convScore,
+    total: Math.round((hookScore + trustScore + convScore) / 3)
+  };
+}
+
+// 2026-07-20: 记忆库命中（痛点/信任/价格/CTA 关键词覆盖度）
+function matchMemoryBank(scriptText) {
+  if (!scriptText) return { total: 0, pct: 0, hits: [] };
+  var PAIN = ['卡顿', '慢', '贵', '坑', '骗', '亏', '不会', '难', '信号', '排队', '掉线', '网速', '差', '换', '升级', '怕', '烦恼'];
+  var TRUST = ['官方', '营业厅', '上门', '免费', '老用户', '专业', '透明', '无隐形', '电信', '师傅'];
+  var PRICE = ['元', '兆', 'M', '块', '免费', '套餐', '月租', '年付', '返', '补贴'];
+  var CTA = ['扣', '评论', '私信', '到店', '预约', '链接', '扫码', '关注', '截图', '保存', '转发'];
+  function matchOne(arr, label) { return arr.filter(function(k){ return scriptText.indexOf(k) >= 0; }).map(function(k){ return {tag:k, label:label}; }); }
+  var hits = matchOne(PAIN, '痛点').concat(matchOne(TRUST, '信任')).concat(matchOne(PRICE, '价格')).concat(matchOne(CTA, 'CTA'));
+  var TOTAL = PAIN.length + TRUST.length + PRICE.length + CTA.length;
+  return {
+    total: hits.length,
+    pct: Math.round(hits.length / TOTAL * 100),
+    hits: hits,
+    summary: {
+      pain: hits.filter(function(h){ return h.label === '痛点'; }).length,
+      trust: hits.filter(function(h){ return h.label === '信任'; }).length,
+      price: hits.filter(function(h){ return h.label === '价格'; }).length,
+      cta: hits.filter(function(h){ return h.label === 'CTA'; }).length
+    }
+  };
 }
 
 window.addEventListener('scroll', function() {
@@ -2424,10 +2466,49 @@ function previewT1Talk() {
     var pData = (window.personaDB && personaDB[personaKey]) || personaDB.sister;
     var personaHook = (pData.hook || '').replace(/\{topic\}/g, topic);
     var personaCta = (pData.cta || '');
+    // 2026-07-20: 浅底色块 + 文字色块区分结构（替代黑底黄字）
+    var scriptBg = 'background:#FAFAF8;border:1px solid #E8E5DC;border-radius:12px;padding:16px 18px;margin:8px 0;font-size:15px;line-height:1.85;color:#1E293B;';
+    var hookStyle = 'background:#F5F3FF;border-left:4px solid #7C5CFF;border-radius:6px;padding:10px 12px;margin-bottom:8px;color:#5B3FD1;font-weight:600;font-size:14px;';
+    var ctaStyle = 'background:#E0F7F0;border-left:4px solid #10B981;border-radius:6px;padding:10px 12px;margin-top:8px;color:#065F46;font-weight:600;font-size:14px;';
     var dialogHtml = personaHook
-      ? '<div class="dialogue" style="color:#1565C0;font-weight:600;margin-bottom:8px;font-size:14px;">"' + esc(personaHook) + '"</div>\n<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>\n<div class="dialogue" style="color:#1565C0;font-weight:600;margin-top:8px;font-size:14px;">"' + esc(personaCta) + '"</div>'
-      : '<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>';
-    // AI 配图提示词整合到发布准备区（buildPublishKit 内渲染），不在 T1 预览中重复显示
+      ? '<div style="' + hookStyle + '">💫 ' + pData.icon + ' ' + pData.label + ' 开口：<br>"' + esc(personaHook) + '"</div>\n<div style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>\n<div style="' + ctaStyle + '">🎯 ' + pData.icon + ' ' + pData.label + ' 收尾：<br>"' + esc(personaCta) + '"</div>'
+      : '<div style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>';
+
+    // 2026-07-20: 脚本评分 + 记忆库命中
+    var fullText = (personaHook + '\n' + fullScript + '\n' + personaCta);
+    var score = (typeof scoreScript === 'function') ? scoreScript(fullText) : null;
+    var mem = (typeof matchMemoryBank === 'function') ? matchMemoryBank(fullText) : null;
+    var scoreHtml = '';
+    if (score) {
+      function bar(s) {
+        var filled = Math.round(s / 10);
+        var empty = 10 - filled;
+        var color = s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444';
+        return '<span style="display:inline-block;width:' + (filled * 10) + 'px;height:8px;background:' + color + ';border-radius:4px;"></span>' +
+               '<span style="display:inline-block;width:' + (empty * 10) + 'px;height:8px;background:#E2E8F0;border-radius:4px;"></span>';
+      }
+      scoreHtml = '<div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#F0F7FF,#FEFEFE);border:1px solid #BFDBFE;border-radius:12px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
+        '<span style="font-weight:700;color:#0052CC;font-size:13px;">📊 脚本评分</span>' +
+        '<span style="font-size:11px;color:#64748B;background:#fff;padding:2px 8px;border-radius:8px;border:1px solid #E2E8F0;">综合 ' + score.total + ' / 100</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">' +
+        '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">🎯 钩子力 <b style="color:#1E293B;">' + score.hook + '</b></div>' + bar(score.hook) + '</div>' +
+        '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">🤝 信任力 <b style="color:#1E293B;">' + score.trust + '</b></div>' + bar(score.trust) + '</div>' +
+        '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">🛒 转化力 <b style="color:#1E293B;">' + score.conv + '</b></div>' + bar(score.conv) + '</div>' +
+        '</div>';
+      if (mem && mem.total > 0) {
+        scoreHtml += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #BFDBFE;">' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">' +
+          '<span style="font-weight:600;color:#0052CC;font-size:12px;">📚 记忆库命中 ' + mem.total + ' 个关键词</span>' +
+          '<span style="font-size:10px;color:#64748B;">(' + mem.pct + '%)</span>' +
+          '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:4px;">' +
+          mem.hits.map(function(h) { return '<span style="font-size:10px;padding:2px 6px;background:#E0F2FE;color:#0EA5E9;border-radius:8px;">' + h.label + ':' + h.tag + '</span>'; }).join('') +
+          '</div></div>';
+      }
+      scoreHtml += '</div>';
+    }
 
     var html = (variantHtml || '') + `
 <div class="cover-hint"><strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。</div>
@@ -2435,6 +2516,7 @@ function previewT1Talk() {
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
 ${dialogHtml}
+${scoreHtml}
 
 <div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
 <div class="info-tag">🏷 标签: ${tags}</div>`;
