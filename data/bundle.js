@@ -1,7 +1,7 @@
 // 抖本工坊 · 数据包（自动合并 16 文件）
-// 生成时间: 2026-07-20 03:17:11
+// 生成时间: 2026-07-20 04:06:55
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1Presets.js, t1ScriptFull.js, t1ScriptStyles.js, t1Titles.js, t2Presets.js, t2ScriptFull.js, t4Presets.js, t4ScriptFull.js, techDB.js, topicPool.js
-// 大小: 141145 bytes ( 16 source files)
+// 大小: 140678 bytes ( 16 source files)
 
 // ===== bgmList.js =====
 // Auto-generated BGM
