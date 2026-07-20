@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 06:50:10
+// 构建时间: 2026-07-20 06:57:35
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4156,29 +4156,29 @@ var liveMode = 'store';
 
 var liveProducts = {
   'store': [
-    {name:'宽带体验券（1元）', price:'1', desc:'到店体验千兆宽带，1元起'},
-    {name:'宽带提速礼包（30元）', price:'30', desc:'30元享专业宽带提速'},
-    {name:'宽带福利礼包（99元）', price:'99', desc:'领560元购机补贴'},
-    {name:'FTTR全光礼包（老用户）', price:'40', desc:'全屋光纤+千兆+智屏'},
-    {name:'免费贴膜/网检', price:'到店礼', desc:'到店即享免费服务'}
+    {name:'🔥 办千兆宽带送手机', price:'129', desc:'盛夏狂欢·vivo/荣耀/小米/OPPO任选'},
+    {name:'宽带新装预约（50元）', price:'50', desc:'300M/500M/1000M新装福利价'},
+    {name:'宽带提速升级千兆', price:'50', desc:'宽带提速到千兆'},
+    {name:'FTTR全光礼包（老用户）', price:'59', desc:'FTTR设备+智屏'},
+    {name:'到店领代金券', price:'50', desc:'50元得200元代金券到店领纸品'}
   ],
   'community': [
-    {name:'宽带体验券（1元）', price:'1', desc:'1元现场预约宽带体验'},
-    {name:'宽带提速礼包（30元）', price:'30', desc:'30元享宽带提速'},
-    {name:'宽带福利礼包（99元）', price:'99', desc:'领560元购机补贴'},
+    {name:'🔥 办千兆宽带送手机', price:'129', desc:'千兆+手机，盛夏狂欢价'},
+    {name:'宽带新装预约（50元）', price:'50', desc:'50元预约新装，划算'},
+    {name:'宽带提速升级', price:'50', desc:'提速到千兆'},
     {name:'免费WiFi测速', price:'0', desc:'现场免费测宽带速率'},
-    {name:'小礼品（数据线/支架）', price:'到店礼', desc:'扫码即送'}
+    {name:'到店送小礼品', price:'免费', desc:'扫码即送'}
   ],
   'outdoor': [
-    {name:'宽带体验券（1元）', price:'1', desc:'逛街路过顺便1元预约宽带'},
-    {name:'宽带福利礼包（99元）', price:'99', desc:'领560元购机补贴'},
+    {name:'🔥 宽带新装预约（50元）', price:'50', desc:'50元预约宽带'},
+    {name:'到店领代金券', price:'50', desc:'50元得200元代金券'},
     {name:'免费贴膜', price:'0', desc:'到店享免费贴膜'},
     {name:'到店路线指引', price:'免费', desc:'导航直达'}
   ],
   'home': [
-    {name:'宽带网络优化服务', price:'1', desc:'1元享宽带网络优化+福利品'},
-    {name:'宽带提速礼包（30元）', price:'30', desc:'30元享宽带提速'},
-    {name:'FTTR全光礼包（老用户）', price:'40', desc:'全屋光纤+千兆+智屏'},
+    {name:'宽带提速升级', price:'50', desc:'50元升至千兆'},
+    {name:'🔥 办千兆宽带送手机', price:'129', desc:'盛夏狂欢·vivo/荣耀任选'},
+    {name:'FTTR全光礼包（老用户）', price:'59', desc:'FTTR+智屏'},
     {name:'路由器以旧换新', price:'到店询', desc:'旧换新享补贴'},
     {name:'企业微信扫码', price:'免费', desc:'加企微，随时咨询'}
   ]
@@ -4235,10 +4235,12 @@ function updateLiveProductDesc() {
   }
   // Update price field based on product selection
   var priceMap = {
-    '1元宽带提速礼包':'1', '30元宽带提速礼包':'30', '618福利宽带礼包':'99',
-    '千兆宽带礼包预约':'50', 'FTTR全光礼包(老用户专享)':'40',
-    '宽带网络优化服务':'1', '免费贴膜':'0', '免费WiFi测速':'0',
-    '小度智能屏':'30'
+    '🔥 办千兆宽带送手机':'129', '宽带新装预约（50元）':'50',
+    '宽带提速升级千兆':'50', '宽带提速升级':'50',
+    'FTTR全光礼包（老用户）':'59', '到店领代金券':'50',
+    '免费贴膜':'0', '免费WiFi测速':'0',
+    '路由器以旧换新':'到店询', '企业微信扫码':'免费',
+    '到店送小礼品':'免费', '到店路线指引':'免费'
   };
   var priceEl = document.getElementById('lv_price');
   if (priceEl && priceMap[val]) {
