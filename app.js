@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 06:57:35
+// 构建时间: 2026-07-20 07:05:42
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1035,7 +1035,10 @@ function syncTopicDropdown() {
   var pool = window.___topicPool;
   var sel = document.getElementById('t1_topic');
   if (!sel) return;
-  var topics = (pool.decision || []).slice(0, 24);
+  // 2026-07-20: 过滤抖音禁止销售的单号卡类选题
+  var banned = /学生套餐|老人手机套餐|手机卡套餐|套餐横向|5G套餐|4G套餐|流量不够用|流量包|加包|号卡|合约机|月租/;
+  var topics = (pool.decision || []).filter(function(t) { return !banned.test(t); });
+  topics = topics.slice(0, 24);
   var html = '';
   topics.forEach(function(t) {
     html += '<option value="' + esc(t) + '">' + esc(t) + '</option>';
