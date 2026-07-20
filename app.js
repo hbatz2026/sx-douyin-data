@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 08:12:52
+// 构建时间: 2026-07-20 08:18:01
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -927,15 +927,18 @@ function copyPanelText(panelId, mode) {
   if (!panel) return;
   var text = '';
   if (mode === 'clean') {
-    // 仅提取台词内容：.stage 标题 + .dialogue 台词，过滤 action-note 和 info-tag
+    // 仅提取台词内容：.stage 标题 + .dialogue / [data-role] 台词，过滤 action-note 和 info-tag
     var parts = [];
-    var children = panel.querySelectorAll('.stage, .dialogue');
+    var children = panel.querySelectorAll('.stage, .dialogue, [data-role="hook"], [data-role="script-body"], [data-role="cta"]');
     for (var i = 0; i < children.length; i++) {
       var el = children[i];
-      // 跳过 "🎬 口播脚本 · 直接念就行" 这类纯元数据标签
       if (el.className === 'stage' && /口播脚本|拍摄指南|一镜到底/.test(el.textContent)) continue;
-      var t = el.textContent.trim();
-      if (t) parts.push(t);
+      var t = (el.textContent || '').trim();
+      if (t) {
+        // 剥掉 data-role 容器的标签文字（"💫 甜美学姐 开口：" 等）
+        t = t.replace(/^[^\u4e00-\u9fff"]*[：:]/, '').replace(/^[📖🎯💫]+\s*[^：:]*[：:]/, '').trim();
+        parts.push(t);
+      }
     }
     text = parts.join('\n');
   } else {
