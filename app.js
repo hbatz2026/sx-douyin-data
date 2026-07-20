@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 06:09:09
+// 构建时间: 2026-07-20 06:23:07
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2409,8 +2409,10 @@ function previewT1Talk() {
   const bgm = (document.getElementById('t1_bgm')||{}).value || '';
   const tags = (document.getElementById('t1_tags')||{}).value || '';
   var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
-  // 精确匹配 → 模糊匹配
-  var fullScript = (window.___t1ScriptFull && ___t1ScriptFull[topic])
+  // 别名映射 → 精确匹配 → 模糊匹配
+  var topicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
+  var fullScript = (window.___t1ScriptFull && ___t1ScriptFull[topicKey])
+    || (window.___t1ScriptFull && ___t1ScriptFull[topic])
     || findScriptFuzzy(window.___t1ScriptFull, topic);
   if (fullScript) {
     // 读取已绑定的厅店人设 → 拼接开场+结尾
@@ -2422,9 +2424,11 @@ function previewT1Talk() {
     var dialogHtml = personaHook
       ? '<div class="dialogue" style="color:#1565C0;font-weight:600;margin-bottom:8px;font-size:14px;">"' + esc(personaHook) + '"</div>\n<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>\n<div class="dialogue" style="color:#1565C0;font-weight:600;margin-top:8px;font-size:14px;">"' + esc(personaCta) + '"</div>'
       : '<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>';
-    // AI 配图提示词（豆包/即梦）
-    var imgPrompt = window.___t1ImagePrompts && ___t1ImagePrompts[topic]
-      || window.___t1ImagePrompts && findScriptFuzzy(window.___t1ImagePrompts, topic)
+    // AI 配图提示词（豆包/即梦）— 通过别名查找
+    var imgTopicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
+    var imgPrompt = window.___t1ImagePrompts && ___t1ImagePrompts[imgTopicKey]
+      || window.___t1ImagePrompts && findScriptFuzzy(window.___t1ImagePrompts, imgTopicKey)
+      || window.___t1ImagePrompts && ___t1ImagePrompts[topic]
       || '';
     var imgPromptHtml = imgPrompt ? `
 <div class="stage">🎨 AI配图提示词</div>
