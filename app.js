@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 04:06:55
+// 构建时间: 2026-07-20 06:09:09
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -61,22 +61,34 @@ var PERSONA_KEY = 'douyin_lab_persona';
 var personaDB = {
   sweet:   { label: '甜美学姐', icon: '🌸', tone: '亲切网感',   tags: '年轻女性 抖音原生 活泼语速 会用热梗',
              desc: '轻声快语、有网感、用抖音流行口吻拉近距离',
-             prompt: '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"之类称呼。语速活泼，善于用emoji和热梗拉近距离。' },
+             prompt: '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"之类称呼。语速活泼，善于用emoji和热梗拉近距离。',
+             hook: '宝子们！今天来聊聊{topic}，一分钟跟你讲清楚👇',
+             cta: '截图保存慢慢看～评论区说说你的情况，我帮你推荐最划算的～' },
   tech:    { label: '技术专家', icon: '🔧', tone: '数据硬核',   tags: '不分性别 参数对比 测试数据 专业术语',
              desc: '用数据说话，实测对比，专业但不生硬',
-             prompt: '你是电信营业厅的技术专家。用实测数据说话，喜欢对比参数和性能。专业但不死板，能用通俗方式解释技术。"今天测了""直接上数据""建议截图"是你的口头禅。' },
+             prompt: '你是电信营业厅的技术专家。用实测数据说话，喜欢对比参数和性能。专业但不死板，能用通俗方式解释技术。"今天测了""直接上数据""建议截图"是你的口头禅。',
+             hook: '直接说结论：{topic}，看完你就知道该怎么选了。',
+             cta: '建议截图保存。评论区说说你的情况，有问必答。' },
   biz:     { label: '商务精英', icon: '💼', tone: '简洁干练',   tags: '不分性别 信息密度 数字前置 直奔主题',
              desc: '直奔主题、信息密度高，适合政企商务场景',
-             prompt: '你是电信营业厅的商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。"建议""结论明确""数据来源"是你的风格。不讲废话。' },
+             prompt: '你是电信营业厅的商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。"建议""结论明确""数据来源"是你的风格。不讲废话。',
+             hook: '{topic}，结论前置——选对了每月省好几十。',
+             cta: '截图存一下，到店带着来。评论区私我也行。' },
   young:   { label: '活力小哥', icon: '😎', tone: '吐槽有梗',   tags: '年轻男性 快节奏 有情绪 夸张对比',
              desc: '口语化接地气、快节奏、有网感有情绪起伏',
-             prompt: '你是电信营业厅的年轻男员工。说话口语化、接地气，有网感。爱用"兄弟们"开头，喜欢吐槽、夸张对比。"你敢信""直接打脸""看了你就懂"是你的风格。' },
+             prompt: '你是电信营业厅的年轻男员工。说话口语化、接地气，有网感。爱用"兄弟们"开头，喜欢吐槽、夸张对比。"你敢信""直接打脸""看了你就懂"是你的风格。',
+             hook: '兄弟们！{topic}，这条干货直接截图，我不删的。',
+             cta: '截图存好。评论区滴滴我，一对一帮你算。' },
   master:  { label: '资深师傅', icon: '👔', tone: '经验稳重',   tags: '成熟男性 案例切入 娓娓道来 让人信任',
              desc: '经验感、用真实案例说话，稳重有分量',
-             prompt: '你是电信营业厅的资深老师傅。干了二十年装维，经验丰富。用真实案例说话，说话稳重有分量。"干了这么多年""信我一次""经验之谈"是你的口头禅。不吹不黑，实事求是。' },
+             prompt: '你是电信营业厅的资深老师傅。干了二十年装维，经验丰富。用真实案例说话，说话稳重有分量。"干了这么多年""信我一次""经验之谈"是你的口头禅。不吹不黑，实事求是。',
+             hook: '做了这么多年营业员，{topic}，我说几句实在的。',
+             cta: '截图留着，到店里直接找我，我当面帮你弄。' },
   sister:  { label: '暖心姐姐', icon: '💝', tone: '温暖共情',   tags: '成熟女性 故事切入 生活场景 亲切自然',
              desc: '用生活场景和真实故事打动客户，温暖有温度',
-             prompt: '你是电信营业厅的暖心姐姐。用客户故事和生活场景切入，温暖亲切。喜欢说"昨天来了个阿姨""门口的王姐"这种开头。让观众感觉你不是在推销，是在真心帮忙。' }
+             prompt: '你是电信营业厅的暖心姐姐。用客户故事和生活场景切入，温暖亲切。喜欢说"昨天来了个阿姨""门口的王姐"这种开头。让观众感觉你不是在推销，是在真心帮忙。',
+             hook: '昨天来了个客户，也是问{topic}，我帮他算了笔账👇',
+             cta: '截图发给需要的朋友。评论区说说你的情况，我帮你参谋。' }
 };
 
 var personaOrder = ['sweet','tech','biz','young','master','sister'];
@@ -2397,19 +2409,39 @@ function previewT1Talk() {
   const bgm = (document.getElementById('t1_bgm')||{}).value || '';
   const tags = (document.getElementById('t1_tags')||{}).value || '';
   var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
-  // 精确匹配 → 模糊匹配（取脚本 key 前 6 个字匹配 dropdown value）
+  // 精确匹配 → 模糊匹配
   var fullScript = (window.___t1ScriptFull && ___t1ScriptFull[topic])
     || findScriptFuzzy(window.___t1ScriptFull, topic);
   if (fullScript) {
+    // 读取已绑定的厅店人设 → 拼接开场+结尾
+    var personaKey = 'sister';
+    try { var profile = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}'); if (profile.persona) personaKey = profile.persona; } catch(e) {}
+    var pData = (window.personaDB && personaDB[personaKey]) || personaDB.sister;
+    var personaHook = (pData.hook || '').replace(/\{topic\}/g, topic);
+    var personaCta = (pData.cta || '');
+    var dialogHtml = personaHook
+      ? '<div class="dialogue" style="color:#1565C0;font-weight:600;margin-bottom:8px;font-size:14px;">"' + esc(personaHook) + '"</div>\n<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>\n<div class="dialogue" style="color:#1565C0;font-weight:600;margin-top:8px;font-size:14px;">"' + esc(personaCta) + '"</div>'
+      : '<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>';
+    // AI 配图提示词（豆包/即梦）
+    var imgPrompt = window.___t1ImagePrompts && ___t1ImagePrompts[topic]
+      || window.___t1ImagePrompts && findScriptFuzzy(window.___t1ImagePrompts, topic)
+      || '';
+    var imgPromptHtml = imgPrompt ? `
+<div class="stage">🎨 AI配图提示词</div>
+<div class="info-tag">复制 → 打开豆包/即梦 → 生成抖音封面</div>
+<div class="info-tag" style="background:#F0F7FF;border:1px solid #B3D4FC;border-radius:8px;padding:10px 14px;white-space:pre-wrap;line-height:1.5;color:#1A3C6E;cursor:pointer;" onclick="copyText('${esc(imgPrompt).replace(/'/g,'\\x27')}');toast('已复制','success')">📋 ${imgPrompt}</div>` : '';
+
     var html = (variantHtml || '') + `
 <div class="cover-hint"><strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。</div>
-<div class="stage">🎬 口播脚本</div>
+<div class="stage">🎬 口播脚本 <span style="font-size:11px;font-weight:400;color:#64748B;">· 人设：${pData.icon} ${pData.label}</span></div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
-<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${fullScript}"</div>
+${dialogHtml}
 
+<img-prompt-area>
 <div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
-<div class="info-tag">🏷 标签: ${tags}</div>`;
+<div class="info-tag">🏷 标签: ${tags}</div>
+${imgPromptHtml}`;
     showT1Preview('preview1-talk', html);
   } else {
     alert('该选题暂无精选脚本，请选择其他选题。');
