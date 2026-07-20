@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 03:17:10
+// 构建时间: 2026-07-20 04:06:55
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2378,6 +2378,18 @@ function switchT1Mode(mode) {
   updateMobileBarAction();
 }
 
+// 通用辅助：脚本模糊匹配（dropdown value 与 t1ScriptFull key 不完全一致时回退）
+// 匹配规则：取脚本 key 的前 6 个字，看是否出现在用户选项中
+function findScriptFuzzy(scriptMap, topic) {
+  if (!scriptMap || !topic) return null;
+  for (var key in scriptMap) {
+    if (key.indexOf(topic.substring(0, 6)) >= 0 || topic.indexOf(key.substring(0, 6)) >= 0) {
+      return scriptMap[key];
+    }
+  }
+  return null;
+}
+
 function previewT1Talk() {
   const city = (document.getElementById('t1_city')||{}).value;
   const topic = (document.getElementById('t1_topic')||{}).value;
@@ -2385,7 +2397,9 @@ function previewT1Talk() {
   const bgm = (document.getElementById('t1_bgm')||{}).value || '';
   const tags = (document.getElementById('t1_tags')||{}).value || '';
   var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
-  var fullScript = window.___t1ScriptFull && ___t1ScriptFull[topic];
+  // 精确匹配 → 模糊匹配（取脚本 key 前 6 个字匹配 dropdown value）
+  var fullScript = (window.___t1ScriptFull && ___t1ScriptFull[topic])
+    || findScriptFuzzy(window.___t1ScriptFull, topic);
   if (fullScript) {
     var html = (variantHtml || '') + `
 <div class="cover-hint"><strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。</div>
@@ -2879,7 +2893,8 @@ function previewT2Tell() {
   try { tags = document.getElementById('t2_tags').value; } catch(e) {}
   var variantHtml = tryVariantInjection(preset, bgm, 'preview2-tell');
   
-  var fullScript = window.___t2ScriptFull && ___t2ScriptFull[preset];
+  var fullScript = (window.___t2ScriptFull && ___t2ScriptFull[preset])
+    || findScriptFuzzy(window.___t2ScriptFull, preset);
   if (fullScript) {
     var html = (variantHtml || '') + `
 <div class="cover-hint"><strong>💡 本脚本覆盖：</strong>真实服务案例全流程（时间·客户·问题排查·解决方案·客户反应·总结）。</div>
@@ -3769,7 +3784,8 @@ function previewT4Walk() {
   const tags = (document.getElementById('t4_tags')||{}).value || '';
   var variantHtml = tryVariantInjection(preset, bgm, 'preview4-walk');
   
-  var fullScript = window.___t4ScriptFull && ___t4ScriptFull[preset];
+  var fullScript = (window.___t4ScriptFull && ___t4ScriptFull[preset])
+    || findScriptFuzzy(window.___t4ScriptFull, preset);
   if (fullScript) {
     var scriptText = fullScript
       .replace(/XX路/g, addr || 'XX路')
