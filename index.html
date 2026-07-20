@@ -175,32 +175,38 @@
         </div>
       </div>
 
-      <!-- T1 场景预设卡片 → 一键填入 A/B/C（可手动修改） -->
-      <div class="form-group">
-        <label>⚡ 快速选场景 <span class="hint">（点一个，自动填好三个对比场景；填完可手动改）</span></label>
-        <div class="scene-preset-grid" id="t1-scene-presets">
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('family')" title="自动填三种家庭宽带场景">👨‍👩‍👧 家庭用户</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('student')" title="自动填三种学生宽带场景">🎓 学生党</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('senior')" title="自动填三种银发宽带场景">👴 银发族</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('rent')" title="自动填三种租房宽带场景">🏠 租房族</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('gamer')" title="自动填三种游戏宽带场景">🎮 游戏玩家</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('streamer')" title="自动填三种追剧宽带场景">📺 追剧达人</button>
-        </div>
+      <!-- T1 脚本覆盖提示（字段已精简，无需填空） -->
+      <div class="cover-hint" id="t1-cover-hint">
+        <strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。选题选定后直接预览。<span style="opacity:0.6;">对比图卡/场景化算账模式已整合进口播脚本。</span>
       </div>
 
+      <!-- Hidden: scene presets and A/B/C fields (no longer user-editable) -->
+      <div class="field-hidden">
+      <div class="form-group">
+        <label>⚡ 快速选场景</label>
+        <div class="scene-preset-grid" id="t1-scene-presets">
+          <button class="scene-preset-btn" onclick="fillT1ScenePreset('family')">👨‍👩‍👧 家庭用户</button>
+          <button class="scene-preset-btn" onclick="fillT1ScenePreset('student')">🎓 学生党</button>
+          <button class="scene-preset-btn" onclick="fillT1ScenePreset('senior')">👴 银发族</button>
+          <button class="scene-preset-btn" onclick="fillT1ScenePreset('rent')">🏠 租房族</button>
+          <button class="scene-preset-btn" onclick="fillT1ScenePreset('gamer')">🎮 游戏玩家</button>
+          <button class="scene-preset-btn" onclick="fillT1ScenePreset('streamer')">📺 追剧达人</button>
+        </div>
+      </div>
       <div class="form-row form-row-3">
         <div class="form-group">
-          <label>场景A — 用户类型+兆数+月租</label>
+          <label>场景A</label>
           <input id="t1_a" placeholder="一个人住，刷抖音看视频，100兆够用，月租59元" onchange="this.dataset.userEdited='1'">
         </div>
         <div class="form-group">
-          <label>场景B — 用户类型+兆数+月租</label>
+          <label>场景B</label>
           <input id="t1_b" placeholder="三口之家，手机+平板+电视，300兆起步，月租99元" onchange="this.dataset.userEdited='1'">
         </div>
         <div class="form-group">
-          <label>场景C — 用户类型+兆数+月租</label>
+          <label>场景C</label>
           <input id="t1_c" placeholder="重度游戏/直播/4K，直接上1000兆，月租169元" onchange="this.dataset.userEdited='1'">
         </div>
+      </div>
       </div>
 
       <div class="form-group">
@@ -337,48 +343,16 @@
         <div id="t2-autofill-hint" style="margin-top:4px;font-size:11px;color:#999;">⬆ 选一个场景模板，下面自动填好所有内容。你只需要改时间/地名等关键信息。</div>
       </div>
 
-      <!-- T2 详细字段区（场景选择后自动展开） -->
-      <div id="t2-detail-area" style="display:none;">
-        <div style="background:#E8F5E9;padding:8px 12px;border-radius:6px;margin-bottom:8px;font-size:12px;color:#2E7D32;">
-          ✅ 已自动填充以下内容，修改关键信息后点预览即可
-        </div>
+      <!-- T2 覆盖提示（字段已精简） -->
+      <div class="cover-hint">
+        <strong>💡 本故事覆盖：</strong>真实服务案例的全流程叙事（时间·客户·问题排查·解决方案·客户反应·总结）。选题选定后直接预览。
+      </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>时间 <span class="hint">（今天/昨天/上午/下午）</span></label>
-            <input id="t2_time" placeholder="今天下午">
-          </div>
-          <div class="form-group">
-            <label>客户类型 <span class="hint">（阿姨/大叔/年轻人/学生）</span></label>
-            <input id="t2_customer" placeholder="阿姨">
-          </div>
-          <div class="form-group">
-            <label>客户遇到的问题</label>
-            <input id="t2_problem" placeholder="说家里网慢了3年，看视频一直转圈" oninput="matchT2Preset()">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label id="t2_finding_label">上门发现的具体问题</label>
-            <input id="t2_finding" placeholder="路由器塞在电视柜最里面，旁边还有微波炉" oninput="matchT2Preset()">
-          </div>
-          <div class="form-group">
-            <label>操作步骤（不超过3步）</label>
-            <textarea id="t2_steps" placeholder="1. 描述第一步操作&#10;2. 描述第二步操作&#10;3. 描述第三步操作"></textarea>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>客户反应</label>
-            <input id="t2_reaction" placeholder="客户当时的真实反应">
-          </div>
-          <div class="form-group">
-            <label>一句话总结原因</label>
-            <input id="t2_summary" placeholder="用一句话总结这个故事的启发">
-          </div>
-        </div>
+      <!-- T2 隐藏字段（保留DOM供内部使用） -->
+      <div class="field-hidden" id="t2-detail-area">
+        <input id="t2_time"><input id="t2_customer"><input id="t2_problem">
+        <input id="t2_finding"><textarea id="t2_steps"></textarea>
+        <input id="t2_reaction"><input id="t2_summary">
       </div>
 
       <div class="form-group">
@@ -644,14 +618,19 @@
         </div>
       </div>
 
-      <div class="form-row">
+      <!-- T4 覆盖提示 -->
+      <div class="cover-hint">
+        <strong>💡 本活动脚本覆盖：</strong>具体福利介绍、到店引导、同城引流话术。选择活动后直接预览。
+      </div>
+
+      <div class="form-row field-hidden">
         <div class="form-group">
           <label>意外福利/亮点</label>
-          <input id="t4_benefit" placeholder="免费贴膜" value="免费贴膜" oninput="matchT4Preset()">
+          <input id="t4_benefit" value="免费贴膜">
         </div>
         <div class="form-group">
-          <label>福利说明/服务内容</label>
-          <input id="t4_desc" placeholder="苹果安卓、曲面直屏都能贴，比外面30块的还好" value="苹果安卓、曲面直屏都能贴，比外面30块的还好">
+          <label>福利说明</label>
+          <input id="t4_desc" value="">
         </div>
       </div>
 
