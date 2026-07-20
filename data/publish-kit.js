@@ -60,7 +60,18 @@ function buildPublishKit(tpl, city, topic) {
   bestTime = getBestTime(poolIdx, city);
   var comments = null;
   try { comments = AppState.get('ai_comments_' + t, null); } catch(e) {}
-  if (!comments || comments.length < 3) { comments = getTemplateComments(t, city, topic, scriptText); }
+  // 2026-07-20: 优先读取预设精选评论（t1Comments/t2Comments/t4Comments）
+  if (!comments || comments.length < 3) {
+    var curatedComments = null;
+    if (t === 't1' && window.___t1Comments) curatedComments = window.___t1Comments[topic];
+    if (t === 't2' && window.___t2Comments) curatedComments = window.___t2Comments[topic];
+    if (t === 't4' && window.___t4Comments) curatedComments = window.___t4Comments[topic];
+    if (curatedComments && curatedComments.length >= 3) {
+      comments = curatedComments;
+    } else {
+      comments = getTemplateComments(t, city, topic, scriptText);
+    }
+  }
   var seoTitle = buildSeoTitle(t, loc, topic, scriptText);
   var storeName = loc; // 只取地市名，不带营业厅名称
   // 如果 loc 仍是占位符，尝试从表单读取
@@ -190,6 +201,13 @@ function extractTagKeywords(text) {
 // ════════════════════════════════════════
 
 function buildSeoTitle(tpl, loc, topic, scriptText) {
+  // 2026-07-20: 优先读取预设标题
+  var curatedTitle = null;
+  if (tpl === 't1' && window.___t1Titles) curatedTitle = window.___t1Titles[topic];
+  if (tpl === 't2' && window.___t2Titles) curatedTitle = window.___t2Titles[topic];
+  if (tpl === 't4' && window.___t4Titles) curatedTitle = window.___t4Titles[topic];
+  if (curatedTitle) return loc + '：' + curatedTitle;
+
   var ctx = (topic || '') + ' ' + (scriptText || '');
   var shortTopic = (topic || '').slice(0, 12);
   var kw = extractTagKeywords(ctx)[0] || '';
