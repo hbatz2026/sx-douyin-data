@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 08:24:20
+// 构建时间: 2026-07-20 08:39:55
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2457,28 +2457,42 @@ function previewT1Talk() {
   const bgm = (document.getElementById('t1_bgm')||{}).value || '';
   const tags = (document.getElementById('t1_tags')||{}).value || '';
   var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
-  // 别名映射 → 精确匹配 → 模糊匹配
+  // alias mapping → exact match → fuzzy
   var topicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
-  var fullScript = (window.___t1ScriptFull && ___t1ScriptFull[topicKey])
+  // 2026-07-20: 人设差异化脚本（完整版，非拼接）
+  var personaKey = 'sister';
+  try { var _p = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}'); if (_p.persona) personaKey = _p.persona; } catch(e) {}
+  var personaScript = window.___t1ScriptFullByPersona && ___t1ScriptFullByPersona[topicKey] && ___t1ScriptFullByPersona[topicKey][personaKey];
+  var fullScript = personaScript
+    || (window.___t1ScriptFull && ___t1ScriptFull[topicKey])
     || (window.___t1ScriptFull && ___t1ScriptFull[topic])
     || findScriptFuzzy(window.___t1ScriptFull, topic);
   if (fullScript) {
-    // 读取已绑定的厅店人设 → 拼接开场+结尾
-    var personaKey = 'sister';
-    try { var profile = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}'); if (profile.persona) personaKey = profile.persona; } catch(e) {}
     var pData = (window.personaDB && personaDB[personaKey]) || personaDB.sister;
-    var personaHook = (pData.hook || '').replace(/\{topic\}/g, topic);
-    var personaCta = (pData.cta || '');
-    // 2026-07-20: 浅底色块 + 文字色块区分结构（替代黑底黄字）
+    // 2026-07-20: 人设完整版 → 直接展示（无hook/cta拼接）；兜底版 → 用hook+cta
+    var isPersonaFull = personaScript === fullScript;
     var scriptBg = 'background:#FAFAF8;border:1px solid #E8E5DC;border-radius:12px;padding:16px 18px;margin:8px 0;font-size:15px;line-height:1.85;color:#1E293B;';
     var hookStyle = 'background:#F5F3FF;border-left:4px solid #7C5CFF;border-radius:6px;padding:10px 12px;margin-bottom:8px;color:#5B3FD1;font-weight:600;font-size:14px;';
     var ctaStyle = 'background:#E0F7F0;border-left:4px solid #10B981;border-radius:6px;padding:10px 12px;margin-top:8px;color:#065F46;font-weight:600;font-size:14px;';
-    var dialogHtml = personaHook
-      ? '<div data-role="hook" style="' + hookStyle + '">💫 ' + pData.icon + ' ' + pData.label + ' 开口：<br>"' + esc(personaHook) + '"</div>\n<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>\n<div data-role="cta" style="' + ctaStyle + '">🎯 ' + pData.icon + ' ' + pData.label + ' 收尾：<br>"' + esc(personaCta) + '"</div>'
-      : '<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>';
+    var dialogHtml;
+    if (isPersonaFull) {
+      dialogHtml = '<div style="' + scriptBg + '">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #E8E5DC;">' +
+        '<span style="font-size:14px;">' + pData.icon + '</span>' +
+        '<span style="font-weight:700;color:#5B3FD1;font-size:13px;">' + pData.label + '</span>' +
+        '<span style="font-size:10px;color:#94A3B8;">' + pData.tone + '</span>' +
+        '</div>' +
+        '<div style="white-space:pre-line;line-height:1.85;">"' + fullScript + '"</div></div>';
+    } else {
+      var personaHook = (pData.hook || '').replace(/\{topic\}/g, topic);
+      var personaCta = (pData.cta || '');
+      dialogHtml = personaHook
+        ? '<div data-role="hook" style="' + hookStyle + '">💫 ' + pData.icon + ' ' + pData.label + ' 开口：<br>"' + esc(personaHook) + '"</div>\n<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>\n<div data-role="cta" style="' + ctaStyle + '">🎯 ' + pData.icon + ' ' + pData.label + ' 收尾：<br>"' + esc(personaCta) + '"</div>'
+        : '<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>';
+    }
 
     // 2026-07-20: 脚本评分 + 记忆库命中
-    var fullText = (personaHook + '\n' + fullScript + '\n' + personaCta);
+    var fullText = isPersonaFull ? fullScript : ((pData.hook || '').replace(/\{topic\}/g, topic) + '\n' + fullScript + '\n' + (pData.cta || ''));
     var score = (typeof scoreScript === 'function') ? scoreScript(fullText) : null;
     var mem = (typeof matchMemoryBank === 'function') ? matchMemoryBank(fullText) : null;
     var scoreHtml = '';
