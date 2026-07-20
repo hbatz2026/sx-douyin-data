@@ -1,5 +1,5 @@
 // 抖本工坊 · 数据包（自动合并 19 文件）
-// 生成时间: 2026-07-20 09:15:02
+// 生成时间: 2026-07-20 09:20:39
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptFullByPersona.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t2ScriptFull.js, t4Presets.js, t4ScriptFull.js, techDB.js, topicPool.js
 // 大小: 169232 bytes ( 19 source files)
 
