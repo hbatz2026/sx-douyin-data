@@ -1,7 +1,7 @@
 // 抖本工坊 · 数据包（自动合并 18 文件）
-// 生成时间: 2026-07-20 07:24:16
+// 生成时间: 2026-07-20 07:36:33
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t2ScriptFull.js, t4Presets.js, t4ScriptFull.js, techDB.js, topicPool.js
-// 大小: 157186 bytes ( 18 source files)
+// 大小: 160552 bytes ( 18 source files)
 
 // ===== bgmList.js =====
 // Auto-generated BGM
@@ -873,8 +873,9 @@ function buildPublishKit(tpl, city, topic) {
   html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
   html += '<span style="font-weight:700;color:#0052CC;font-size:13px;">💬 ' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</span>';
   html += '<button onclick="triggerCommentOptimize(\'' + t + '\',this)" style="font-size:11px;background:linear-gradient(135deg,#E0F2FE,#DBEAFE);border:1px solid #93C5FD;color:#0052CC;border-radius:14px;padding:2px 10px;cursor:pointer;font-weight:500;">🔄 换一批</button>';
+  html += '<button onclick="triggerCommentAI(\'' + t + '\',this)" style="font-size:11px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid #F59E0B;color:#92400E;border-radius:14px;padding:2px 10px;cursor:pointer;font-weight:500;">🤖 AI 生成</button>';
   html += '</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+  html += '<div class="comment-list" style="display:flex;flex-direction:column;gap:6px;">';
   for (var c = 0; c < comments.length; c++) {
     html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">';
     html += '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>';
@@ -904,7 +905,7 @@ function buildPublishKit(tpl, city, topic) {
   return html;
 }
 
-// 2026-07-20: 评论区"换一批"按钮
+// 2026-07-20: 评论区"换一批"按钮 — 本地精选评论
 function triggerCommentOptimize(t, btn) {
   if (!btn) return;
   btn.disabled = true;
@@ -931,15 +932,7 @@ function triggerCommentOptimize(t, btn) {
       // 直接 DOM 更新：找 .comment-list 替换其内部 HTML
       var commentList = document.querySelector('.publish-kit .comment-list');
       if (commentList && fresh && fresh.length) {
-        var html = '';
-        for (var c = 0; c < fresh.length; c++) {
-          html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">' +
-            '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>' +
-            '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(fresh[c]) + '</span>' +
-            '<span onclick="copyText(\'' + esc(fresh[c]).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>' +
-            '</div>';
-        }
-        commentList.innerHTML = html;
+        commentList.innerHTML = renderCommentItems(fresh);
       }
       // 缓存最新评论
       try { AppState.set('ai_comments_' + t, fresh); } catch(e) {}
@@ -952,6 +945,84 @@ function triggerCommentOptimize(t, btn) {
       btn.innerHTML = orig;
     }
   }, 400);
+}
+
+// 渲染 3 条评论项 HTML
+function renderCommentItems(comments) {
+  var html = '';
+  for (var c = 0; c < comments.length; c++) {
+    html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">' +
+      '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>' +
+      '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(comments[c]) + '</span>' +
+      '<span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>' +
+      '</div>';
+  }
+  return html;
+}
+
+// 2026-07-20: AI 真实生成评论（调 SCF Web 函数）
+async function triggerCommentAI(t, btn) {
+  if (!btn) return;
+  // 1) 配额检查
+  if (typeof quotaRemaining === 'function' && quotaRemaining() <= 0) {
+    toast('今日 AI 配额已用完，明天再来', 'error');
+    return;
+  }
+  // 2) 取脚本 + 标题 + 标签
+  var scriptEl = document.querySelector('.dialogue[style*="white-space:pre-line"]');
+  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').trim() : '';
+  var title = (document.querySelector('.info-tag') || {}).textContent || '';
+  if (!scriptText || scriptText.length < 20) {
+    toast('请先预览脚本，再点 AI 生成评论', 'error');
+    return;
+  }
+  // 3) UI 状态
+  btn.disabled = true;
+  var orig = btn.innerHTML;
+  btn.innerHTML = '⏳ AI 生成中…';
+  var commentList = document.querySelector('.publish-kit .comment-list');
+  if (commentList) commentList.innerHTML = '<div style="padding:20px;text-align:center;color:#92400E;font-size:12px;">🤖 AI 正在生成匹配本条脚本的评论区引导（5-15秒）…</div>';
+  try {
+    var profile = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}');
+    var topic = (document.getElementById(t + '_topic') || {}).value || '';
+    var persona = profile.persona || 'sister';
+    // 调 SCF 评论生成
+    var resp = await fetch((window.PERSONALIZE_API || '') + '/generate-comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: topic,
+        script: scriptText.slice(0, 1500),
+        title: title.slice(0, 100),
+        persona: persona,
+        store: profile.name || '',
+        city: profile.city || ''
+      })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data = await resp.json();
+    var aiComments = (data && data.comments) || [];
+    if (aiComments.length < 3) throw new Error('AI 返回评论不足 3 条');
+    if (commentList) commentList.innerHTML = renderCommentItems(aiComments);
+    // 扣配额
+    if (typeof useDailyQuota === 'function') useDailyQuota();
+    // 缓存标记 AI 模式
+    try { AppState.set('ai_comments_' + t, aiComments); AppState.set('ai_comment_source_' + t, 'scf'); } catch(e) {}
+    // 标题改成 AI 智能评论
+    var headEl = commentList && commentList.previousElementSibling;
+    if (headEl && headEl.querySelector('span')) {
+      headEl.querySelector('span').innerHTML = '💬 AI 智能评论 <span style="font-size:10px;background:#F59E0B;color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px;">SCF 真实生成</span>';
+    }
+    toast('AI 已生成 ' + aiComments.length + ' 条评论', 'success');
+  } catch(e) {
+    console.error('AI 评论生成失败:', e);
+    toast('AI 失败：' + (e.message || '网络/服务异常'), 'error');
+    // 回退到本地精选评论
+    triggerCommentOptimize(t, btn);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
 }
 
 // ════════════════════════════════════════
