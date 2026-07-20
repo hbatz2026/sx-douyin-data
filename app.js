@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 08:39:55
+// 构建时间: 2026-07-20 08:53:28
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2484,11 +2484,14 @@ function previewT1Talk() {
         '</div>' +
         '<div style="white-space:pre-line;line-height:1.85;">"' + fullScript + '"</div></div>';
     } else {
-      var personaHook = (pData.hook || '').replace(/\{topic\}/g, topic);
-      var personaCta = (pData.cta || '');
-      dialogHtml = personaHook
-        ? '<div data-role="hook" style="' + hookStyle + '">💫 ' + pData.icon + ' ' + pData.label + ' 开口：<br>"' + esc(personaHook) + '"</div>\n<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>\n<div data-role="cta" style="' + ctaStyle + '">🎯 ' + pData.icon + ' ' + pData.label + ' 收尾：<br>"' + esc(personaCta) + '"</div>'
-        : '<div data-role="script-body" style="' + scriptBg + '">📖 主体：<br><span style="white-space:pre-line;display:block;margin-top:4px;">"' + fullScript + '"</span></div>';
+      // 2026-07-20: 兜底时不再强行包 hook/cta（避免"人格错位"）
+      // 直接展示通用 body，并标注"通用版，等生成完整人设版"
+      dialogHtml = '<div data-role="script-body" style="' + scriptBg + '">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed #E8E5DC;">' +
+        '<span style="font-size:13px;">📄 通用版脚本</span>' +
+        '<span style="font-size:10px;color:#94A3B8;">' + pData.icon + ' ' + pData.label + ' · 主体通用，开口/收尾按人设</span>' +
+        '</div>' +
+        '<div style="white-space:pre-line;line-height:1.85;">"' + fullScript + '"</div></div>';
     }
 
     // 2026-07-20: 脚本评分 + 记忆库命中
