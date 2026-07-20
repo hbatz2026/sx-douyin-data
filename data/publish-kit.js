@@ -218,8 +218,8 @@ async function triggerCommentAI(t, btn) {
     return;
   }
   // 2) 取脚本 + 标题 + 标签
-  var scriptEl = document.querySelector('.dialogue[style*="white-space:pre-line"]');
-  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').trim() : '';
+  var scriptEl = document.querySelector('[data-role="script-body"]');
+  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim() : '';
   var title = (document.querySelector('.info-tag') || {}).textContent || '';
   if (!scriptText || scriptText.length < 20) {
     toast('请先预览脚本，再点 AI 生成评论', 'error');
