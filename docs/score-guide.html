@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经营分管理规则（新版）- 交互式解读</title>
+<style>
+:root {
+  --primary: #4F46E5;
+  --primary-light: #818CF8;
+  --primary-bg: #EEF2FF;
+  --gold: #F59E0B;
+  --silver: #9CA3AF;
+  --bronze: #D97706;
+  --green: #10B981;
+  --red: #EF4444;
+  --blue: #3B82F6;
+  --text: #1F2937;
+  --text-light: #6B7280;
+  --bg: #F9FAFB;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+  --radius: 12px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; color: var(--text); background: var(--bg); line-height:1.7; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #A855F7 100%); color:#fff; padding:48px 24px 36px; text-align:center; position:relative; overflow:hidden; }
+.header::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background: radial-gradient(circle at 30% 70%, rgba(255,255,255,.08) 0%, transparent 50%); }
+.header h1 { font-size:2em; font-weight:700; margin-bottom:8px; position:relative; }
+.header p { font-size:1.05em; opacity:.9; position:relative; }
+.header .badge { display:inline-block; background:rgba(255,255,255,.2); border-radius:20px; padding:4px 16px; font-size:.85em; margin-top:12px; position:relative; }
+
+/* Navigation */
+.nav-wrap { position:sticky; top:0; z-index:100; background:#fff; border-bottom:1px solid var(--border); box-shadow:var(--shadow); }
+.nav { display:flex; justify-content:center; gap:4px; padding:10px 16px; max-width:800px; margin:0 auto; flex-wrap:wrap; }
+.nav a { padding:6px 18px; border-radius:20px; font-size:.9em; color:var(--text-light); text-decoration:none; transition:all .2s; font-weight:500; }
+.nav a:hover, .nav a.active { background:var(--primary); color:#fff; }
+
+/* Container */
+.container { max-width:860px; margin:0 auto; padding:24px 20px 60px; }
+
+/* Section */
+.section { margin-bottom:36px; }
+.section-title { font-size:1.35em; font-weight:700; color:var(--primary); margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--primary-light); display:flex; align-items:center; gap:8px; }
+.section-title .icon { font-size:1.2em; }
+
+/* Card */
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; margin-bottom:16px; box-shadow:var(--shadow); transition:all .25s; }
+.card:hover { box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+.card h3 { font-size:1.05em; font-weight:600; margin-bottom:10px; color:var(--text); }
+.card p { font-size:.92em; color:var(--text-light); line-height:1.8; }
+
+/* Score Calculator */
+.calc-wrap { background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%); border-radius:var(--radius); padding:28px; margin-bottom:24px; border:1px solid #C7D2FE; }
+.calc-title { font-size:1.15em; font-weight:700; color:var(--primary); margin-bottom:20px; text-align:center; }
+.calc-bar-wrap { margin-bottom:20px; }
+.calc-bar-bg { background:#E5E7EB; border-radius:8px; height:28px; overflow:hidden; position:relative; }
+.calc-bar-fill { height:100%; border-radius:8px; transition:width .5s ease; display:flex; }
+.calc-bar-seg { height:100%; display:flex; align-items:center; justify-content:center; font-size:.75em; font-weight:600; color:#fff; transition:width .5s ease; overflow:hidden; white-space:nowrap; }
+.calc-bar-seg.s1 { background:var(--green); }
+.calc-bar-seg.s2 { background:var(--blue); }
+.calc-bar-seg.s3 { background:var(--primary-light); }
+.calc-bar-seg.s4 { background:var(--gold); }
+.calc-total { text-align:center; font-size:1.8em; font-weight:800; color:var(--primary); margin-bottom:16px; }
+.calc-total span { font-size:.5em; font-weight:400; color:var(--text-light); }
+
+.calc-modules { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media(max-width:600px) { .calc-modules { grid-template-columns:1fr; } }
+.calc-mod { background:#fff; border-radius:10px; padding:16px; border:1px solid var(--border); }
+.calc-mod-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.calc-mod-name { font-weight:600; font-size:.95em; }
+.calc-mod-score { font-weight:700; color:var(--primary); font-size:1.1em; }
+.calc-mod-max { font-size:.8em; color:var(--text-light); }
+.calc-mod-bar { background:#E5E7EB; height:6px; border-radius:3px; margin-top:6px; }
+.calc-mod-bar-fill { height:100%; border-radius:3px; transition:width .4s; }
+
+.calc-slider { width:100%; margin-top:8px; accent-color:var(--primary); }
+.calc-hint { font-size:.82em; color:var(--text-light); margin-top:4px; }
+
+/* Task Cards */
+.task-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:16px; }
+@media(max-width:600px) { .task-grid { grid-template-columns:1fr; } }
+.task-card { background:var(--card); border-radius:var(--radius); padding:18px 20px; border:1px solid var(--border); cursor:pointer; transition:all .25s; position:relative; overflow:hidden; }
+.task-card:hover { box-shadow:var(--shadow-lg); }
+.task-card.expanded { border-color:var(--primary-light); }
+.task-card .tc-icon { font-size:1.5em; margin-bottom:6px; }
+.task-card .tc-title { font-weight:700; font-size:1em; margin-bottom:4px; }
+.task-card .tc-score { font-size:.85em; color:var(--primary); font-weight:600; }
+.task-card .tc-desc { font-size:.85em; color:var(--text-light); margin-top:6px; }
+.task-card .tc-detail { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+.task-card.expanded .tc-detail { max-height:500px; }
+.tc-detail-inner { padding-top:12px; border-top:1px solid var(--border); margin-top:10px; }
+.tc-detail-inner ul { list-style:none; padding:0; }
+.tc-detail-inner li { padding:5px 0; font-size:.88em; color:var(--text-light); display:flex; align-items:flex-start; gap:6px; }
+.tc-detail-inner li::before { content:""; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--primary-light); margin-top:7px; flex-shrink:0; }
+
+/* Benefits */
+.benefit-tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.benefit-tab { padding:6px 18px; border-radius:20px; font-size:.88em; cursor:pointer; border:1px solid var(--border); background:#fff; transition:all .2s; font-weight:500; }
+.benefit-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.benefit-panel { display:none; }
+.benefit-panel.active { display:block; }
+.benefit-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:10px; display:flex; gap:14px; align-items:flex-start; }
+.benefit-icon { font-size:1.5em; flex-shrink:0; }
+.benefit-info h4 { font-size:.95em; font-weight:600; margin-bottom:3px; }
+.benefit-info p { font-size:.85em; color:var(--text-light); }
+.benefit-tag { display:inline-block; font-size:.72em; padding:2px 8px; border-radius:10px; font-weight:600; margin-left:6px; vertical-align:middle; }
+.benefit-tag.new { background:#DCFCE7; color:#16A34A; }
+.benefit-tag.upgrade { background:#FEF3C7; color:#D97706; }
+
+/* Medal Progression */
+.medal-track { display:flex; align-items:center; justify-content:center; gap:8px; padding:24px; background:linear-gradient(135deg,#FFFBEB,#FEF3C7,#F5F3FF); border-radius:var(--radius); border:1px solid #FDE68A; margin-bottom:20px; flex-wrap:wrap; }
+.medal-step { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.medal-circle { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.4em; font-weight:700; border:3px solid; }
+.medal-circle.bronze { background:linear-gradient(135deg,#FDE68A,#F59E0B); border-color:#D97706; color:#92400E; }
+.medal-circle.silver { background:linear-gradient(135deg,#E5E7EB,#D1D5DB); border-color:#9CA3AF; color:#374151; }
+.medal-circle.gold { background:linear-gradient(135deg,#FEF3C7,#F59E0B); border-color:#B45309; color:#78350F; }
+.medal-label { font-size:.82em; font-weight:600; color:var(--text); text-align:center; }
+.medal-arrow { font-size:1.2em; color:var(--text-light); }
+.medal-hint { font-size:.78em; color:var(--text-light); text-align:center; margin-top:4px; }
+
+/* FAQ Accordion */
+.faq-item { background:var(--card); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; overflow:hidden; }
+.faq-q { padding:14px 18px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:.95em; transition:background .2s; }
+.faq-q:hover { background:var(--primary-bg); }
+.faq-q .arrow { transition:transform .3s; font-size:.8em; color:var(--text-light); }
+.faq-item.open .faq-q .arrow { transform:rotate(180deg); }
+.faq-a { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+.faq-item.open .faq-a { max-height:600px; }
+.faq-a-inner { padding:0 18px 14px; font-size:.9em; color:var(--text-light); line-height:1.8; border-top:1px solid var(--border); padding-top:12px; }
+
+/* Score System Comparison */
+.score-table { width:100%; border-collapse:separate; border-spacing:0; border-radius:10px; overflow:hidden; border:1px solid var(--border); margin-bottom:16px; }
+.score-table th { background:var(--primary); color:#fff; padding:10px 14px; font-size:.85em; font-weight:600; text-align:left; }
+.score-table td { padding:10px 14px; font-size:.85em; border-bottom:1px solid var(--border); color:var(--text-light); }
+.score-table tr:last-child td { border-bottom:none; }
+.score-table tr:hover td { background:var(--primary-bg); }
+.score-table td:first-child { font-weight:600; color:var(--primary); }
+
+/* Platform Declaration */
+.declaration { background:#FFF7ED; border:1px solid #FDBA74; border-radius:var(--radius); padding:20px 24px; }
+.declaration h3 { font-size:1em; font-weight:700; color:#C2410C; margin-bottom:10px; }
+.declaration ul { padding-left:20px; }
+.declaration li { font-size:.85em; color:#9A3412; margin-bottom:6px; line-height:1.7; }
+
+/* Footer */
+.footer { text-align:center; padding:24px; font-size:.82em; color:var(--text-light); border-top:1px solid var(--border); margin-top:40px; }
+
+/* Print */
+@media print {
+  .nav-wrap, .calc-slider, .benefit-tabs { display:none; }
+  .card:hover { transform:none; box-shadow:none; }
+  .tc-detail { max-height:none !important; }
+  .faq-a { max-height:none !important; }
+  body { background:#fff; }
+}
+
+/* Animations */
+@keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.section { animation: fadeInUp .5s ease both; }
+.section:nth-child(2) { animation-delay:.1s; }
+.section:nth-child(3) { animation-delay:.2s; }
+.section:nth-child(4) { animation-delay:.3s; }
+.section:nth-child(5) { animation-delay:.4s; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>经营分管理规则（新版）</h1>
+  <p>抖音生活服务 | 交互式解读指南</p>
+  <div class="badge">2026年6月全面升级</div>
+</div>
+
+<!-- Navigation -->
+<div class="nav-wrap">
+  <div class="nav">
+    <a href="#s1" class="active">改了什么</a>
+    <a href="#s2">分数体系</a>
+    <a href="#s3">8大权益</a>
+    <a href="#s4">如何使用</a>
+    <a href="#s5">常见问题</a>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Section 1: 改了什么 -->
+<div class="section" id="s1">
+  <div class="section-title"><span class="icon">🔄</span> 一、新版经营分改了什么？</div>
+  
+  <div class="card">
+    <h3>经营分定位</h3>
+    <p>「经营分」由抖音生活服务官方出品，通过任务分值体系衡量商家经营水平和健康度。商家跟随产品做任务、涨分数、得权益，经营分高的商家可获得更多的平台资源支持。</p>
+    <p style="margin-top:8px;color:var(--primary);font-weight:600;">2026年6月全面升级：任务更有用、权益更有价值，助力商家更好成长！</p>
+  </div>
+
+  <div class="card">
+    <h3>经营分有什么用？</h3>
+    <p>提升商家经营能力，夯实长效生意增长基础。经营分越高，门店流量越多、生意越好，同时还能解锁金银铜牌，获得官方口碑背书！</p>
+    <ul style="list-style:none;padding:0;margin-top:10px;">
+      <li style="padding:4px 0;font-size:.9em;">✅ <strong>单店商家</strong>：快速了解平台经营方法论，通过做任务的方式边做边学</li>
+      <li style="padding:4px 0;font-size:.9em;">✅ <strong>连锁商家</strong>：快速识别弱店/好店，高效提升门店经营水平</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--primary);">
+    <h3>本次升级三大变化</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;">
+      <div style="text-align:center;padding:14px;background:var(--primary-bg);border-radius:10px;">
+        <div style="font-size:1.6em;font-weight:800;color:var(--primary);">120</div>
+        <div style="font-size:.82em;color:var(--text-light);margin-top:4px;">总分统一<br>（原中小200/头部100）</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:#ECFDF5;border-radius:10px;">
+        <div style="font-size:1.6em;font-weight:800;color:var(--green);">4+1</div>
+        <div style="font-size:.82em;color:var(--text-light);margin-top:4px;">任务体系升级<br>4大模块+5选N</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:#FEF3C7;border-radius:10px;">
+        <div style="font-size:1.6em;font-weight:800;color:var(--gold);">8</div>
+        <div style="font-size:.82em;color:var(--text-light);margin-top:4px;">大权益升级<br>（原仅2个）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 2: Score System -->
+<div class="section" id="s2">
+  <div class="section-title"><span class="icon">📊</span> 二、120分体系详解</div>
+
+  <!-- Interactive Calculator -->
+  <div class="calc-wrap">
+    <div class="calc-title">经营分模拟计算器</div>
+    <div class="calc-total"><span id="totalScore">0</span> <span>/ 120 分</span></div>
+    <div class="calc-bar-wrap">
+      <div class="calc-bar-bg">
+        <div class="calc-bar-fill" id="calcBar">
+          <div class="calc-bar-seg s1" id="bar1" style="width:0%">搭门店</div>
+          <div class="calc-bar-seg s2" id="bar2" style="width:0%">做货架</div>
+          <div class="calc-bar-seg s3" id="bar3" style="width:0%">扩流量</div>
+          <div class="calc-bar-seg s4" id="bar4" style="width:0%">拿收益</div>
+        </div>
+      </div>
+    </div>
+    <div class="calc-modules">
+      <div class="calc-mod">
+        <div class="calc-mod-head"><span class="calc-mod-name">🏠 搭门店</span><span class="calc-mod-score"><span id="s1v">0</span><span class="calc-mod-max"> / 20分</span></span></div>
+        <div style="font-size:.8em;color:var(--text-light);">门店装修：外显小图、相册图等</div>
+        <input type="range" class="calc-slider" id="slider1" min="0" max="20" value="0" oninput="updateCalc()">
+        <div class="calc-mod-bar"><div class="calc-mod-bar-fill" id="bar1m" style="width:0%;background:var(--green)"></div></div>
+      </div>
+      <div class="calc-mod">
+        <div class="calc-mod-head"><span class="calc-mod-name">📦 做货架</span><span class="calc-mod-score"><span id="s2v">0</span><span class="calc-mod-max"> / 20分</span></span></div>
+        <div style="font-size:.8em;color:var(--text-light);">丰富商品、优质价格</div>
+        <input type="range" class="calc-slider" id="slider2" min="0" max="20" value="0" oninput="updateCalc()">
+        <div class="calc-mod-bar"><div class="calc-mod-bar-fill" id="bar2m" style="width:0%;background:var(--blue)"></div></div>
+      </div>
+      <div class="calc-mod">
+        <div class="calc-mod-head"><span class="calc-mod-name">📢 扩流量</span><span class="calc-mod-score"><span id="s3v">0</span><span class="calc-mod-max"> / 50分</span></span></div>
+        <div style="font-size:.8em;color:var(--text-light);">5选N：直播/视频/投广/线下扫码/营销工具</div>
+        <input type="range" class="calc-slider" id="slider3" min="0" max="50" value="0" oninput="updateCalc()">
+        <div class="calc-mod-bar"><div class="calc-mod-bar-fill" id="bar3m" style="width:0%;background:var(--primary-light)"></div></div>
+      </div>
+      <div class="calc-mod">
+        <div class="calc-mod-head"><span class="calc-mod-name">💰 拿收益</span><span class="calc-mod-score"><span id="s4v">0</span><span class="calc-mod-max"> / 30分</span></span></div>
+        <div style="font-size:.8em;color:var(--text-light);">同类目×同城市核销排名</div>
+        <input type="range" class="calc-slider" id="slider4" min="0" max="30" value="0" oninput="updateCalc()">
+        <div class="calc-mod-bar"><div class="calc-mod-bar-fill" id="bar4m" style="width:0%;background:var(--gold)"></div></div>
+      </div>
+    </div>
+    <div id="medalResult" style="text-align:center;margin-top:16px;font-size:.95em;font-weight:600;color:var(--text-light);">拖动滑块查看牌级解锁情况</div>
+  </div>
+
+  <!-- Task Detail Cards -->
+  <div class="task-grid">
+    <div class="task-card" onclick="toggleTask(this)">
+      <div class="tc-icon">🏠</div>
+      <div class="tc-title">搭门店</div>
+      <div class="tc-score">20分 | 基建类</div>
+      <div class="tc-desc">把门店搭好，让顾客忍不住进来看</div>
+      <div class="tc-detail">
+        <div class="tc-detail-inner">
+          <ul>
+            <li>外显小图 — 完成即得分（2分）</li>
+            <li>相册图 — 配置指定张数（4分）</li>
+            <li>营业时间 — 设置门店营业时间</li>
+            <li>门店地址 — 完善地址信息</li>
+            <li>联系电话 — 填写有效联系方式</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="task-card" onclick="toggleTask(this)">
+      <div class="tc-icon">📦</div>
+      <div class="tc-title">做货架</div>
+      <div class="tc-score">20分 | 基建类</div>
+      <div class="tc-desc">丰富商品、优质价格，让顾客抢着下单</div>
+      <div class="tc-detail">
+        <div class="tc-detail-inner">
+          <ul>
+            <li>团购商品数量 — 保持一定在线商品数</li>
+            <li>商品评价 — 维持好评率</li>
+            <li>价格竞争力 — 提供有竞争力的价格</li>
+            <li>商品信息完整度 — 完善商品详情</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="task-card" onclick="toggleTask(this)">
+      <div class="tc-icon">📢</div>
+      <div class="tc-title">扩流量</div>
+      <div class="tc-score">最高50分 | 获流类（5选N）</div>
+      <div class="tc-desc">选你最擅长的做，做好宣传抢流量</div>
+      <div class="tc-detail">
+        <div class="tc-detail-inner">
+          <ul>
+            <li>直播 — 开播时长、场次等指标</li>
+            <li>短视频 — 发布数量、播放量等</li>
+            <li>投广 — 本地推等付费推广</li>
+            <li>线下扫码 — 到店扫码引流</li>
+            <li>营销工具 — 四大金刚营销工具报名</li>
+          </ul>
+          <p style="margin-top:8px;font-size:.85em;color:var(--primary);font-weight:600;">💡 多档位支持跨档达成：如视频第一档10分+第三档10分=20分（可跳过第二档）</p>
+        </div>
+      </div>
+    </div>
+    <div class="task-card" onclick="toggleTask(this)">
+      <div class="tc-icon">💰</div>
+      <div class="tc-title">拿收益</div>
+      <div class="tc-score">30分 | 结果类</div>
+      <div class="tc-desc">用心经营，冲刺行业更高水平</div>
+      <div class="tc-detail">
+        <div class="tc-detail-inner">
+          <ul>
+            <li>核销金额排名 — 同类目×同城市排名</li>
+            <li>完成即得分 — 按排名档位赋分</li>
+            <li>考核周期 — 近30天滚动计算</li>
+          </ul>
+          <p style="margin-top:8px;font-size:.85em;color:var(--primary);font-weight:600;">💡 核心逻辑：排名越靠前，得分越高</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3: Benefits -->
+<div class="section" id="s3">
+  <div class="section-title"><span class="icon">🎁</span> 三、8大权益体系</div>
+  
+  <div class="card" style="text-align:center;border-left:4px solid var(--gold);">
+    <div style="font-size:1.1em;font-weight:700;color:var(--gold);margin-bottom:6px;">流量激励效果</div>
+    <div style="display:flex;justify-content:center;gap:24px;">
+      <div><div style="font-size:2em;font-weight:800;color:var(--red);">17x</div><div style="font-size:.8em;color:var(--text-light);">GMV最高增长</div></div>
+      <div><div style="font-size:2em;font-weight:800;color:var(--blue);">8x</div><div style="font-size:.8em;color:var(--text-light);">曝光最高增长</div></div>
+    </div>
+    <div style="font-size:.75em;color:var(--text-light);margin-top:8px;">基于历史数据测算，最终效果以实际为准</div>
+  </div>
+
+  <div class="benefit-tabs">
+    <div class="benefit-tab active" onclick="switchBenefit('flow',this)">流量类</div>
+    <div class="benefit-tab" onclick="switchBenefit('fame',this)">名誉类</div>
+    <div class="benefit-tab" onclick="switchBenefit('privilege',this)">特权类</div>
+  </div>
+
+  <div class="benefit-panel active" id="bp-flow">
+    <div class="benefit-item">
+      <div class="benefit-icon">🎫</div>
+      <div class="benefit-info">
+        <h4>流量激励券 <span class="benefit-tag upgrade">升级</span></h4>
+        <p>分场域激励，覆盖直播、视频、商品卡等核心流量场；分数越高解锁流量场越多；灵活时段使用，有效期内可自由配置用券时间</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <div class="benefit-icon">🏷️</div>
+      <div class="benefit-info">
+        <h4>本地推立减券 <span class="benefit-tag upgrade">升级</span></h4>
+        <p>付费推广立减优惠，降低投广门槛（部分商家可用，以线上版本为准）</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="benefit-panel" id="bp-fame">
+    <div class="benefit-item">
+      <div class="benefit-icon">🏅</div>
+      <div class="benefit-info">
+        <h4>金银铜牌解锁 <span class="benefit-tag new">新权益</span></h4>
+        <p>满足门槛即可解锁牌级好店标识，获得官方口碑背书；逐步替代原服务分金银铜冠</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <div class="benefit-icon">🏆</div>
+      <div class="benefit-info">
+        <h4>热销/心动榜单入围 <span class="benefit-tag new">新权益</span></h4>
+        <p>经营分达标的商家可获得热销榜、心动榜入围资格</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="benefit-panel" id="bp-privilege">
+    <div class="benefit-item">
+      <div class="benefit-icon">🤝</div>
+      <div class="benefit-info">
+        <h4>达人优先推荐 <span class="benefit-tag new">新权益</span></h4>
+        <p>达人选品广场优先展示，更容易被优质达人选中合作</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <div class="benefit-icon">🎪</div>
+      <div class="benefit-info">
+        <h4>平台活动优先入选 <span class="benefit-tag new">新权益</span></h4>
+        <p>平台大促、营销活动优先入选参与</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <div class="benefit-icon">📚</div>
+      <div class="benefit-info">
+        <h4>精选课程包 <span class="benefit-tag new">新权益</span></h4>
+        <p>海量图文&视频攻略，手把手教你玩转经营分；真实商家案例参考</p>
+      </div>
+    </div>
+    <div class="benefit-item">
+      <div class="benefit-icon">💳</div>
+      <div class="benefit-info">
+        <h4>生意经免息贷 <span class="benefit-tag new">新权益</span></h4>
+        <p>经营分达标商家可享免息贷款支持</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Medal Progression -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏅</span> 牌级解锁路线</div>
+  <div class="medal-track">
+    <div class="medal-step">
+      <div class="medal-circle bronze">铜</div>
+      <div class="medal-label">铜牌好店</div>
+      <div class="medal-hint">基础达标</div>
+    </div>
+    <div class="medal-arrow">→</div>
+    <div class="medal-step">
+      <div class="medal-circle silver">银</div>
+      <div class="medal-label">银牌好店</div>
+      <div class="medal-hint">经营优秀</div>
+    </div>
+    <div class="medal-arrow">→</div>
+    <div class="medal-step">
+      <div class="medal-circle gold">金</div>
+      <div class="medal-label">金牌好店</div>
+      <div class="medal-hint">行业领先</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>金银铜牌 vs 金银铜冠</h3>
+    <p>金/银/铜牌好店是经营分的新荣誉标识，将逐步替代原服务分的金/银/铜冠好店。C端展示覆盖团购-美食频道页和POI详情页。想尽快拿到金银铜牌，请进入新版经营分集中提升！</p>
+  </div>
+</div>
+
+<!-- Section 4: How to Use -->
+<div class="section" id="s4">
+  <div class="section-title"><span class="icon">📱</span> 四、如何使用新版经营分？</div>
+  
+  <div class="task-grid">
+    <div class="task-card">
+      <div class="tc-icon">📲</div>
+      <div class="tc-title">App入口</div>
+      <div class="tc-desc">来客首页 → 经营分板块</div>
+    </div>
+    <div class="task-card">
+      <div class="tc-icon">💻</div>
+      <div class="tc-title">PC入口</div>
+      <div class="tc-desc">新版/旧版来客PC首页</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>连锁总户专属功能</h3>
+    <ul style="list-style:none;padding:0;">
+      <li style="padding:5px 0;font-size:.9em;">📊 <strong>门店平均分</strong>：显示所有门店平均分、门店牌级勋章数量占比</li>
+      <li style="padding:5px 0;font-size:.9em;">🔍 <strong>门店定点追进</strong>：按分数/牌级排序筛选，定向追进待提升门店</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>提分攻略</h3>
+    <ul style="list-style:none;padding:0;">
+      <li style="padding:5px 0;font-size:.9em;">📘 <strong>基础提分</strong>：点击「去完成」跟随攻略提分</li>
+      <li style="padding:5px 0;font-size:.9em;">📗 <strong>进阶提分</strong>：查阅提分攻略，了解更多策略和详细方法</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Section 5: FAQ -->
+<div class="section" id="s5">
+  <div class="section-title"><span class="icon">❓</span> 五、常见问题</div>
+
+  <!-- Score System Comparison -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;">
+    <div style="padding:16px 20px;font-weight:700;color:var(--primary);border-bottom:1px solid var(--border);">平台分值体系一览</div>
+    <table class="score-table" style="margin:0;border:none;border-radius:0;">
+      <thead>
+        <tr><th>体系</th><th>定位</th><th>满分</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>经营分</td><td>商家成长：衡量经营水平与健康度</td><td>120</td></tr>
+        <tr><td>评价分</td><td>用户口碑：量化用户主观评价</td><td>5星</td></tr>
+        <tr><td>违规分</td><td>治理底线：违规程度（越低越严重）</td><td>100</td></tr>
+        <tr><td>信用分</td><td>创作者规范：团购带货信用度</td><td>100</td></tr>
+        <tr style="opacity:.6;"><td>服务分</td><td>（已下线）综合服务能力</td><td>130</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FAQ Items -->
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">经营分分值每天什么时候更新？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner">分值每天15点前后更新。数据基于近30天滚动计算。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">为什么做体系升级和服务分下线？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner">为解决平台各个分值体系较多、商家感知和实际价值不清晰的痛点，对平台分值体系进行整合收敛升级。原服务分金银铜冠权益预计1月底统一升级为经营分金银铜牌权益。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">金银铜冠和金银铜牌有什么区别？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner"><strong>定位不同</strong>：金/银/铜牌好店属于经营分的新荣誉标识，金/银/铜冠好店属于服务分的荣誉标识。<br><strong>逐步切换</strong>：经营分牌级将逐步代替服务分冠级。想尽快拿到金银铜牌，请进入新版经营分集中提升。<br><strong>C端展示</strong>：牌级标识展示在团购-美食频道页和POI详情页。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">为什么我的来客端没有新版经营分？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner"><strong>行业覆盖</strong>：当前一期仅面向餐饮行业商家，综合、酒旅行业商家请耐心等待。<br><strong>灰度范围</strong>：为保证系统稳定性，本期经营分改版采取逐步覆盖的方式，预计在次年1月下旬前后完成全量覆盖，具体以线上页面展示为准。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">为什么商家经营分有些任务显示已完成？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner">如果商家在经营分产品上线前就已深度使用抖音来客，并主动进行了门店的装修、商品和内容的发布等，部分引导任务会显示已完成。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">如何知道得分规则和达标要求？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner">不同行业类目，经营分的得分规则不一样。针对具体任务和得分规则，以经营分产品页面展示为准。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">商家可以切换回旧版的经营分吗？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner">若商家的页面已生效新版经营分界面，当前暂不支持返回旧版。若有问题可联系BD在经营分改版内部答疑群反馈意见。</div></div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">扩流量5选N具体怎么操作？<span class="arrow">▼</span></div>
+    <div class="faq-a"><div class="faq-a-inner">5类任务可选做：直播/视频/投广/线下扫码/四大金刚营销工具，5种任务类型任商家选择。商家可选择1-2种做深成为「行业专家」，也可以5种任务都做成为「全能选手」。<br><strong>跨档达成</strong>：允许跨档完成直接拿到该档位的分值。例如视频类任务第一档10分+第三档10分=20分（可跳过第二档）。</div></div>
+  </div>
+</div>
+
+<!-- Platform Declaration -->
+<div class="section">
+  <div class="section-title"><span class="icon">⚖️</span> 六、平台声明</div>
+  <div class="declaration">
+    <h3>合规经营 · 公平竞争</h3>
+    <ul>
+      <li>商家应通过平台认可的方式参加活动，未经书面许可，权利不得转让</li>
+      <li>禁止任何不正当手段或舞弊行为，包括：使用非官方客户端、模拟器、插件、群控工具等</li>
+      <li>违规处罚：限制/撤销参与资格、撤销奖励、追讨同等价值金额、封禁账号等</li>
+      <li>严禁利用活动进行洗钱、套现、诈骗、博彩等违法行为</li>
+      <li>商家经营指标（差评率、投诉率等）长期不达标可能被限制参与</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  内容来源：抖音生活服务官方文档 | 2026年7月更新<br>
+  本页面为交互式解读，仅供参考，具体以线上版本为准
+</div>
+
+<script>
+// Calculator
+function updateCalc() {
+  const s1 = +document.getElementById('slider1').value;
+  const s2 = +document.getElementById('slider2').value;
+  const s3 = +document.getElementById('slider3').value;
+  const s4 = +document.getElementById('slider4').value;
+  const total = s1 + s2 + s3 + s4;
+  
+  document.getElementById('totalScore').textContent = total;
+  document.getElementById('s1v').textContent = s1;
+  document.getElementById('s2v').textContent = s2;
+  document.getElementById('s3v').textContent = s3;
+  document.getElementById('s4v').textContent = s4;
+  
+  const pct = v => (v/120*100).toFixed(1) + '%';
+  document.getElementById('bar1').style.width = pct(s1);
+  document.getElementById('bar2').style.width = pct(s2);
+  document.getElementById('bar3').style.width = pct(s3);
+  document.getElementById('bar4').style.width = pct(s4);
+  
+  document.getElementById('bar1m').style.width = (s1/20*100)+'%';
+  document.getElementById('bar2m').style.width = (s2/20*100)+'%';
+  document.getElementById('bar3m').style.width = (s3/50*100)+'%';
+  document.getElementById('bar4m').style.width = (s4/30*100)+'%';
+  
+  // Hide labels when segment too small
+  ['bar1','bar2','bar3','bar4'].forEach((id,i) => {
+    const vals = [s1,s2,s3,s4];
+    document.getElementById(id).style.fontSize = (vals[i]/120*100 > 8) ? '.75em' : '0';
+  });
+  
+  // Medal result
+  const mr = document.getElementById('medalResult');
+  if (total >= 100) {
+    mr.innerHTML = '<span style="color:#B45309;font-size:1.3em;">🥇 金牌好店</span> — 行业领先！';
+  } else if (total >= 70) {
+    mr.innerHTML = '<span style="color:#6B7280;font-size:1.3em;">🥈 银牌好店</span> — 经营优秀！';
+  } else if (total >= 40) {
+    mr.innerHTML = '<span style="color:#D97706;font-size:1.3em;">🥉 铜牌好店</span> — 基础达标！';
+  } else {
+    mr.innerHTML = '当前 <strong>' + total + '</strong> 分，距离铜牌还需 <strong>' + (40-total) + '</strong> 分';
+  }
+}
+
+// Task card toggle
+function toggleTask(el) {
+  el.classList.toggle('expanded');
+}
+
+// Benefit tabs
+function switchBenefit(cat, el) {
+  document.querySelectorAll('.benefit-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.benefit-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bp-' + cat).classList.add('active');
+}
+
+// FAQ accordion
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const wasOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+// Navigation active state
+const navLinks = document.querySelectorAll('.nav a');
+const sections = document.querySelectorAll('.section[id]');
+
+function updateNav() {
+  let current = '';
+  sections.forEach(s => {
+    const top = s.getBoundingClientRect().top;
+    if (top < 200) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateNav);
+navLinks.forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+</script>
+</body>
+</html>
