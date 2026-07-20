@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 09:20:38
+// 构建时间: 2026-07-20 09:26:55
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5141,7 +5141,10 @@ function syncBgmDropdowns() {
 
 // ═══════ init.js ═══════
 (function initAll() {
-  checkDataFiles();
+  // 2026-07-20: 延迟 100ms 再检查数据（让 bundle.js 完全加载）
+  setTimeout(function() {
+    checkDataFiles();
+  }, 100);
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
   try { loadHotContentPool(); } catch(e) { console.error('loadHotContentPool:', e); }
