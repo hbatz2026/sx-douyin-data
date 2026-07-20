@@ -1,7 +1,7 @@
 // 抖本工坊 · 数据包（自动合并 18 文件）
-// 生成时间: 2026-07-20 06:41:13
+// 生成时间: 2026-07-20 06:45:44
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t2ScriptFull.js, t4Presets.js, t4ScriptFull.js, techDB.js, topicPool.js
-// 大小: 155977 bytes ( 18 source files)
+// 大小: 156455 bytes ( 18 source files)
 
 // ===== bgmList.js =====
 // Auto-generated BGM
@@ -916,44 +916,42 @@ function triggerCommentOptimize(t, btn) {
       var loc = profile.city || '同城';
       var topic = (document.getElementById(t + '_topic') || {}).value || '';
       var topicKey = (window.___t1TopicAliases && t === 't1' && ___t1TopicAliases[topic]) || topic;
-      // 优先精选评论，再关键词生成，再随机打散顺序
+      // 收集可用评论池
       var pool = [];
       if (t === 't1' && window.___t1Comments) pool = pool.concat(___t1Comments[topicKey] || ___t1Comments[topic] || []);
       if (t === 't2' && window.___t2Comments) pool = pool.concat(___t2Comments[topicKey] || ___t2Comments[topic] || []);
       if (t === 't4' && window.___t4Comments) pool = pool.concat(___t4Comments[topicKey] || ___t4Comments[topic] || []);
-      if (pool.length < 3) {
-        var fresh = getTemplateComments(t, loc, topic, '');
-        // 换一批：随机打乱顺序
-        fresh = fresh.sort(function() { return Math.random() - 0.5; });
-        renderCommentBatch(t, fresh);
+      // 优先精选评论，否则用 getTemplateComments，再否则给兜底
+      var fresh;
+      if (pool.length >= 3) {
+        fresh = pool.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 3);
       } else {
-        // 精选评论换一批：随机选 3 条不同的
-        var shuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
-        renderCommentBatch(t, shuffled.slice(0, 3));
+        fresh = getTemplateComments(t, loc, topic, '');
       }
+      // 直接 DOM 更新：找 .comment-list 替换其内部 HTML
+      var commentList = document.querySelector('.publish-kit .comment-list');
+      if (commentList && fresh && fresh.length) {
+        var html = '';
+        for (var c = 0; c < fresh.length; c++) {
+          html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">' +
+            '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>' +
+            '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(fresh[c]) + '</span>' +
+            '<span onclick="copyText(\'' + esc(fresh[c]).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>' +
+            '</div>';
+        }
+        commentList.innerHTML = html;
+      }
+      // 缓存最新评论
+      try { AppState.set('ai_comments_' + t, fresh); } catch(e) {}
       toast('已换一批评论', 'success');
     } catch(e) {
       console.error('换一批评论失败:', e);
+      toast('换一批失败：' + (e.message || '未知错误'), 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = orig;
     }
   }, 400);
-}
-
-function renderCommentBatch(t, comments) {
-  // 找当前 publish-kit，替换评论列表
-  var pk = document.querySelector('.publish-kit');
-  if (!pk) return;
-  var lists = pk.querySelectorAll('.comment-list, [style*="border-top:1px dashed #E8F0FE"]');
-  // 直接刷 renderPublishKit —— 但 publish-kit 是在 buildPreviewFooter 内生成的，难精确替换
-  // 简化：调用对应 preview 函数重新渲染
-  try {
-    if (t === 't1') previewT1Talk();
-    else if (t === 't2') previewT2Tell();
-    else if (t === 't3') previewT3Talk();
-    else if (t === 't4') previewT4Walk();
-  } catch(e) {}
 }
 
 // ════════════════════════════════════════
