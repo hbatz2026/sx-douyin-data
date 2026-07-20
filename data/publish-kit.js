@@ -58,18 +58,19 @@ function buildPublishKit(tpl, city, topic) {
 
   var poolIdx = { t1:0,t2:1,t3:2,t4:3 }[t] || 0;
   bestTime = getBestTime(poolIdx, city);
+  // 2026-07-20: 用别名映射把 dropdown value 转成真实脚本键
+  var topicKey = (window.___t1TopicAliases && t === 't1' && ___t1TopicAliases[topic]) || topic;
   var comments = null;
   try { comments = AppState.get('ai_comments_' + t, null); } catch(e) {}
-  // 2026-07-20: 优先读取预设精选评论（t1Comments/t2Comments/t4Comments）
   if (!comments || comments.length < 3) {
     var curatedComments = null;
-    if (t === 't1' && window.___t1Comments) curatedComments = window.___t1Comments[topic];
-    if (t === 't2' && window.___t2Comments) curatedComments = window.___t2Comments[topic];
-    if (t === 't4' && window.___t4Comments) curatedComments = window.___t4Comments[topic];
+    if (t === 't1' && window.___t1Comments) curatedComments = window.___t1Comments[topicKey] || ___t1Comments[topic];
+    if (t === 't2' && window.___t2Comments) curatedComments = window.___t2Comments[topicKey] || ___t2Comments[topic];
+    if (t === 't4' && window.___t4Comments) curatedComments = window.___t4Comments[topicKey] || ___t4Comments[topic];
     if (curatedComments && curatedComments.length >= 3) {
       comments = curatedComments;
     } else {
-      comments = getTemplateComments(t, city, topic, scriptText);
+      comments = getTemplateComments(t, city, topicKey, scriptText);
     }
   }
   var seoTitle = buildSeoTitle(t, loc, topic, scriptText);
@@ -81,33 +82,127 @@ function buildPublishKit(tpl, city, topic) {
   }
   var hasAI = (function(){try{var cc=AppState.get('ai_comments_'+t,null);return cc&&cc.length>=3}catch(e){return false}})();
 
-  var html = '<div class="publish-kit" style="margin-top:16px;padding:0;background:#fff;border-radius:14px;border:1px solid #D3D1C7;overflow:hidden;">';
-  html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:#888780;">';
-  html += '<span style="font-weight:500;color:#5F5E5A;">发布准备</span>';
-  html += '<span style="margin-left:auto;">' + (scriptText ? Math.ceil(scriptText.length/4) + '秒' : '约25秒') + '</span>';
-  if (bgmText) html += '<span>' + esc(bgmText.slice(0,20)) + '</span>';
-  html += '<span>' + bestTime + '</span>';
+  var html = '<div class="publish-kit" style="margin-top:16px;background:#fff;border-radius:16px;border:1px solid #E2E8F0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);">';
+
+  // ── 头部信息条 ──
+  html += '<div style="padding:14px 18px;background:linear-gradient(135deg,#F0F7FF,#FFF);border-bottom:1px solid #E8F0FE;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:#64748B;">';
+  html += '<span style="font-weight:700;color:#0052CC;font-size:13px;">📋 发布准备</span>';
+  html += '<span style="background:#fff;border:1px solid #BFDBFE;border-radius:12px;padding:2px 8px;font-size:11px;color:#1E40AF;">⏱ ' + (scriptText ? Math.ceil(scriptText.length/4) + '秒' : '约25秒') + '</span>';
+  if (bgmText) html += '<span style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:2px 8px;font-size:11px;color:#475569;">🎵 ' + esc(bgmText.slice(0,16)) + '</span>';
+  html += '<span style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:2px 8px;font-size:11px;color:#475569;">⏰ ' + bestTime + '</span>';
   html += '</div>';
-  // 标签行：有复制按钮
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">标签 </span><span style="flex:1;">' + esc(tags) + '</span><span onclick="copyText(\'' + esc(tags).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">标题 </span><span style="flex:1;">' + esc(seoTitle) + '</span><span onclick="copyText(\'' + esc(seoTitle).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
-  // 位置行：不需要复制按钮
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;"><span style="font-weight:500;color:#5F5E5A;">位置 </span><span>' + esc(storeName) + '</span></div>';
-  html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;">';
-  html += '<div style="font-weight:500;font-size:13px;color:#5F5E5A;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><span>' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</span><button onclick="triggerCommentOptimize(\'' + t + '\',\'' + loc.replace(/'/g,'&#39;') + '\',\'' + (topic||'').replace(/'/g,'&#39;') + '\')" style="font-size:11px;background:none;border:1px dashed #1D9E75;color:#1D9E75;border-radius:4px;padding:1px 8px;cursor:pointer;white-space:nowrap;">🔄 AI 优化</button></div>';
-  html += '<div class="comment-list">';
+
+  // ── 一键复制按钮（最显眼位置）──
+  html += '<div style="padding:16px 18px 8px;">';
+  html += '<button onclick="copyPublishBundle()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1D9E75,#0EA968);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(29,158,117,0.25);">📋 一键复制发布包（脚本+标题+标签+评论）</button>';
+  html += '</div>';
+
+  // ── 标签行 ──
+  html += '<div style="padding:10px 18px;border-top:1px dashed #E8F0FE;font-size:12px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">🏷 标签</span>';
+  html += '<span style="flex:1;color:#1E293B;line-height:1.5;">' + esc(tags) + '</span>';
+  html += '<span onclick="copyText(\'' + esc(tags).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
+  html += '</div>';
+
+  // ── 标题行 ──
+  html += '<div style="padding:10px 18px;font-size:12px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">📌 标题</span>';
+  html += '<span style="flex:1;color:#1E293B;line-height:1.5;">' + esc(seoTitle) + '</span>';
+  html += '<span onclick="copyText(\'' + esc(seoTitle).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
+  html += '</div>';
+
+  // ── 位置行 ──
+  html += '<div style="padding:10px 18px;border-top:1px dashed #E8F0FE;font-size:12px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">📍 位置</span>';
+  html += '<span style="flex:1;color:#1E293B;">' + esc(storeName) + '</span>';
+  html += '</div>';
+
+  // ── 评论区 ──
+  html += '<div style="padding:14px 18px 8px;border-top:1px dashed #E8F0FE;">';
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+  html += '<span style="font-weight:700;color:#0052CC;font-size:13px;">💬 ' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</span>';
+  html += '<button onclick="triggerCommentOptimize(\'' + t + '\',this)" style="font-size:11px;background:linear-gradient(135deg,#E0F2FE,#DBEAFE);border:1px solid #93C5FD;color:#0052CC;border-radius:14px;padding:2px 10px;cursor:pointer;font-weight:500;">🔄 换一批</button>';
+  html += '</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px;">';
   for (var c = 0; c < comments.length; c++) {
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="font-size:12px;min-width:18px;color:#888780;">' + (c+1) + '</span><span style="flex:1;line-height:1.5;color:#2C2C2A;">' + esc(comments[c]) + '</span><span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;padding:2px 8px;border:0.5px solid #5DCAA5;border-radius:6px;">复制</span></div>';
+    html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">';
+    html += '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>';
+    html += '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(comments[c]) + '</span>';
+    html += '<span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>';
+    html += '</div>';
   }
-  html += '</div>';
-  
-  // Build full bundle for one-click copy (uses dynamic read for AI-updated comments)
-  html += '<div style="padding:14px 16px;">';
-  html += '<button onclick="copyPublishBundle()" style="width:100%;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;">一键复制发布包（脚本+标题+标签+评论）</button>';
-  html += '<div style="text-align:center;font-size:11px;color:#B4B2A9;margin-top:6px;">粘贴到抖音，配视频，发布</div>';
-  html += '</div>';
-  html += '</div>';
+  html += '</div></div>';
+
+  // ── T1 AI 配图提示词（仅 T1 显示）──
+  if (t === 't1' && window.___t1ImagePrompts) {
+    var imgKey = topicKey || topic;
+    var imgPrompt = ___t1ImagePrompts[imgKey] || findScriptFuzzy(window.___t1ImagePrompts, imgKey) || ___t1ImagePrompts[topic];
+    if (imgPrompt) {
+      html += '<div style="padding:14px 18px 18px;border-top:1px dashed #E8F0FE;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+      html += '<span style="font-weight:700;color:#7C3AED;font-size:13px;">🎨 AI 配图提示词</span>';
+      html += '<span style="font-size:10px;color:#94A3B8;">豆包/即梦 → 生成抖音封面</span>';
+      html += '<span onclick="copyText(\'' + esc(imgPrompt).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;border:0;padding:4px 14px;font-size:11px;border-radius:6px;font-weight:600;margin-left:auto;">📋 复制</span>';
+      html += '</div>';
+      html += '<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;color:#4C1D95;white-space:pre-wrap;cursor:text;">' + esc(imgPrompt) + '</div>';
+      html += '</div>';
+    }
+  }
+
+  html += '</div>';  // 关闭 publish-kit
   return html;
+}
+
+// 2026-07-20: 评论区"换一批"按钮
+function triggerCommentOptimize(t, btn) {
+  if (!btn) return;
+  btn.disabled = true;
+  var orig = btn.innerHTML;
+  btn.innerHTML = '⏳ 换一批中...';
+  setTimeout(function() {
+    try {
+      var profile = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}');
+      var loc = profile.city || '同城';
+      var topic = (document.getElementById(t + '_topic') || {}).value || '';
+      var topicKey = (window.___t1TopicAliases && t === 't1' && ___t1TopicAliases[topic]) || topic;
+      // 优先精选评论，再关键词生成，再随机打散顺序
+      var pool = [];
+      if (t === 't1' && window.___t1Comments) pool = pool.concat(___t1Comments[topicKey] || ___t1Comments[topic] || []);
+      if (t === 't2' && window.___t2Comments) pool = pool.concat(___t2Comments[topicKey] || ___t2Comments[topic] || []);
+      if (t === 't4' && window.___t4Comments) pool = pool.concat(___t4Comments[topicKey] || ___t4Comments[topic] || []);
+      if (pool.length < 3) {
+        var fresh = getTemplateComments(t, loc, topic, '');
+        // 换一批：随机打乱顺序
+        fresh = fresh.sort(function() { return Math.random() - 0.5; });
+        renderCommentBatch(t, fresh);
+      } else {
+        // 精选评论换一批：随机选 3 条不同的
+        var shuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
+        renderCommentBatch(t, shuffled.slice(0, 3));
+      }
+      toast('已换一批评论', 'success');
+    } catch(e) {
+      console.error('换一批评论失败:', e);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  }, 400);
+}
+
+function renderCommentBatch(t, comments) {
+  // 找当前 publish-kit，替换评论列表
+  var pk = document.querySelector('.publish-kit');
+  if (!pk) return;
+  var lists = pk.querySelectorAll('.comment-list, [style*="border-top:1px dashed #E8F0FE"]');
+  // 直接刷 renderPublishKit —— 但 publish-kit 是在 buildPreviewFooter 内生成的，难精确替换
+  // 简化：调用对应 preview 函数重新渲染
+  try {
+    if (t === 't1') previewT1Talk();
+    else if (t === 't2') previewT2Tell();
+    else if (t === 't3') previewT3Talk();
+    else if (t === 't4') previewT4Walk();
+  } catch(e) {}
 }
 
 // ════════════════════════════════════════
