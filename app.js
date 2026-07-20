@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 06:45:43
+// 构建时间: 2026-07-20 06:50:10
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2424,16 +2424,7 @@ function previewT1Talk() {
     var dialogHtml = personaHook
       ? '<div class="dialogue" style="color:#1565C0;font-weight:600;margin-bottom:8px;font-size:14px;">"' + esc(personaHook) + '"</div>\n<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>\n<div class="dialogue" style="color:#1565C0;font-weight:600;margin-top:8px;font-size:14px;">"' + esc(personaCta) + '"</div>'
       : '<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"' + fullScript + '"</div>';
-    // AI 配图提示词（豆包/即梦）— 通过别名查找
-    var imgTopicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
-    var imgPrompt = window.___t1ImagePrompts && ___t1ImagePrompts[imgTopicKey]
-      || window.___t1ImagePrompts && findScriptFuzzy(window.___t1ImagePrompts, imgTopicKey)
-      || window.___t1ImagePrompts && ___t1ImagePrompts[topic]
-      || '';
-    var imgPromptHtml = imgPrompt ? `
-<div class="stage">🎨 AI配图提示词</div>
-<div class="info-tag">复制 → 打开豆包/即梦 → 生成抖音封面</div>
-<div class="info-tag" style="background:#F0F7FF;border:1px solid #B3D4FC;border-radius:8px;padding:10px 14px;white-space:pre-wrap;line-height:1.5;color:#1A3C6E;cursor:pointer;" onclick="copyText('${esc(imgPrompt).replace(/'/g,'\\x27')}');toast('已复制','success')">📋 ${imgPrompt}</div>` : '';
+    // AI 配图提示词整合到发布准备区（buildPublishKit 内渲染），不在 T1 预览中重复显示
 
     var html = (variantHtml || '') + `
 <div class="cover-hint"><strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。</div>
@@ -2442,10 +2433,8 @@ function previewT1Talk() {
 
 ${dialogHtml}
 
-<img-prompt-area>
 <div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
-<div class="info-tag">🏷 标签: ${tags}</div>
-${imgPromptHtml}`;
+<div class="info-tag">🏷 标签: ${tags}</div>`;
     showT1Preview('preview1-talk', html);
   } else {
     alert('该选题暂无精选脚本，请选择其他选题。');
