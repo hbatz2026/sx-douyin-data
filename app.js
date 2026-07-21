@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-21 02:56:57
+// 构建时间: 2026-07-21 03:24:07
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4162,76 +4162,121 @@ function triggerVariantOptimize(cardId, topicKey) {
   fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl);
 }
 
+// 2026-07-21: 浏览器直调 SiliconFlow（绕过 SCF 网络问题）
+// 从 SCF 获取 AI key，然后直连 SiliconFlow API
+var __aiKey = null;
+var __aiKeyPromise = null;
+
+async function ensureAIKey() {
+  if (__aiKey) return __aiKey;
+  if (__aiKeyPromise) return __aiKeyPromise;
+  __aiKeyPromise = (async function() {
+    try {
+      var ctrl = new AbortController();
+      var tid = setTimeout(function(){ctrl.abort();}, 10000);
+      var res = await fetch(PERSONALIZE_API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({mode:'get-ai-key'}),
+        signal: ctrl.signal
+      });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      var data = await res.json();
+      if (!data.key) throw new Error('no key');
+      __aiKey = data.key;
+      return __aiKey;
+    } catch(e) {
+      console.warn('[AI key] 获取失败:', e.message);
+      __aiKey = null;
+      return null;
+    } finally {
+      __aiKeyPromise = null;
+    }
+  })();
+  return __aiKeyPromise;
+}
+
 async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
   var previewEl = document.getElementById(window['__preview_' + cardId] || '');
   if (!previewEl) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; } return; }
-  // Extract all quoted dialogue lines from the preview HTML
-  var fullHtml = previewEl.innerHTML;
-  var dialogueRegex = /"([^"]{6,})"/g;
-  var dialogueLines = [];
-  var match;
-  while ((match = dialogueRegex.exec(fullHtml)) !== null) {
-    dialogueLines.push(match[1]);
-  }
-  if (dialogueLines.length === 0) {
+  // Extract text from preview
+  var src = previewEl.textContent.replace(/\s{3,}/g,'\n').trim().slice(0, 3000);
+  if (!src) {
     if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">未找到台词，请先生成预览</span>';
     if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（全站剩余' + quotaRemaining() + '次）'; }
     return;
   }
-  // Build context for AI: structured text from preview
-  var src = previewEl.textContent.replace(/\s{3,}/g,'\n').trim().slice(0, 3000);
   try {
+    // 获取 AI key（首次缓存，后续复用）
+    var key = await ensureAIKey();
+    if (!key) throw new Error('no-ai-key');
+
     var tpl = detectTemplateType();
-    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},90000);
-    var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,templateType:tpl,script:src}),signal:ctrl.signal});
+    var persona = getPersona();
+    var p = personaDB[persona] || personaDB['sister'];
+
+    // 构造 prompt：使用人设风格改写台词
+    var systemPrompt = '你是山西电信营业厅的' + (p.label || '营业员') + '。' +
+      (p.hook ? '说话特点：' + p.hook : '') +
+      '请用自然的口语改写以下台词，让它更像你现场录制时说的话。' +
+      '保持原意、故事骨架、数字、价格不变。' +
+      '不要加分镜标记，不要加JSON标记，直接输出纯文本口播台词。';
+    var userPrompt = '帮我把这段台词改得更自然、更像口语化的现场表达：\n```\n' + src + '\n```';
+
+    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
+    var res = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        messages: [
+          {role: 'system', content: systemPrompt},
+          {role: 'user', content: userPrompt}
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      }),
+      signal: ctrl.signal
+    });
     clearTimeout(tid);
-    if (!res.ok) throw new Error('API '+res.status);
+    if (!res.ok) {
+      var errTxt = '';
+      try { errTxt = (await res.json()).message || ''; } catch(e) {}
+      throw new Error('SiliconFlow ' + res.status + ': ' + errTxt.slice(0,100));
+    }
     var data = await res.json();
-    // Check for backend error
-    if (data.error) throw new Error(data.error);
-    // New SCF returns {lines: [{orig,new},...]}, old returns {script} or {dialogue}
-    var rewrites = (data.lines && data.lines.length > 0) ? data.lines : null;
-    var fallbackScript = data.dialogue || data.script || '';
-    // Declare polishedText at function scope level
-    var polishedText = '';
-    var warns = data.warnings || [];
-    var aiComments = data.comments || null; // AI co-generated comments
-    if (rewrites) {
-      polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || (r.rewritten || ''); }).filter(Boolean).join('\n\n');
-    } else if (fallbackScript && fallbackScript.length > 10) {
-      polishedText = fallbackScript;
-      warns = data.warnings || [];
-    } else {
-      throw new Error('empty');
-    }
-    // Consume global quota (failure also counts)
+    var polished = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!polished) throw new Error('empty');
+
+    // 消费配额
     var rem = useDailyQuota();
-    renderVariantResult(cardId, polishedText, warns, rem, btn, bodyEl, quotaEl, '', rewrites);
-    // Cache AI comments for publish kit
-    if (aiComments && aiComments.length >= 3) {
-      try { AppState.set('ai_comments_' + tpl, aiComments); } catch(e) {}
-    }
+    // 检测违禁词
+    var warns = detectAdWords(polished);
+    renderVariantResult(cardId, polished, warns, rem, btn, bodyEl, quotaEl, '', null, topicKey);
   } catch(e) {
-    // Distinguish error types; don't consume quota for network errors
     var errType = 'unknown';
     var errMsg = e.message || '';
     if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
       errType = 'timeout';
-    } else if (errMsg.indexOf('API ' ) === 0) {
+    } else if (errMsg.indexOf('SiliconFlow') === 0) {
       errType = 'api';
-    } else if (errMsg === 'empty') {
+    } else if (errMsg === 'empty' || errMsg === 'no-ai-key') {
       errType = 'empty';
     }
-    // Only consume quota for real failures (not network issues)
-    var rem;
-    if (errType === 'timeout' || errType === 'api') {
-      // Network/system error — free retry, don't consume quota
-      rem = quotaRemaining();
-    } else {
-      rem = useDailyQuota();
-    }
+    var rem = (errType === 'timeout' || errType === 'api') ? quotaRemaining() : useDailyQuota();
     renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType, null, topicKey);
   }
+}
+
+function detectAdWords(text) {
+  var words = ['最好','最大','最全','最佳','最低','最高','最先','最新','最便宜','第一','唯一','独家','首创','顶级','极品','至尊','王牌','冠军','百分百','100%','绝对','保证','担保','肯定没问题','永不','永久','免费送','免费领','私信我','最后一天','史上最低','绝版'];
+  var found = [];
+  for (var i = 0; i < words.length; i++) { if (text.indexOf(words[i]) >= 0) found.push(words[i]); }
+  return found;
 }
 
 function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines, topicKey) {
