@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-20 09:52:05
+// 构建时间: 2026-07-21 02:56:57
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4230,12 +4230,23 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     } else {
       rem = useDailyQuota();
     }
-    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType);
+    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType, null, topicKey);
   }
 }
 
-function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines) {
+function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines, topicKey) {
   errType = errType || '';
+  // 2026-07-21: AI 失败时自动用本地人设脚本兜底（避免用户每次看到超时）
+  var fallbackScript = null;
+  if (!dlg && topicKey && (errType === 'timeout' || errType === 'api' || errType === 'unknown')) {
+    try {
+      var persona = (window['__persona_' + cardId]) || getPersona();
+      var db = window.___t1ScriptFullByPersona;
+      if (db && db[topicKey] && db[topicKey][persona]) {
+        fallbackScript = db[topicKey][persona];
+      }
+    } catch(e) {}
+  }
   if (dlg) {
     var usageCount = getDailyQuota().used;
     bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>'+
@@ -4259,6 +4270,18 @@ function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errT
       bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 广告法违禁词：'+esc(warns.join(', '))+'</div>';
     }
   } else {
+    if (fallbackScript) {
+      // AI 失败，渲染本地兜底
+      bodyEl.innerHTML = '<div style="padding:6px 10px;background:#FFF3E0;border:1px dashed #F59E0B;border-radius:6px;font-size:11px;color:#92400E;margin-bottom:6px;">⚠️ AI 服务暂不可用，已自动加载本地人设脚本</div>' +
+        '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(fallbackScript)+'</div>'+
+        '<div style="margin-top:6px;font-size:10px;color:#999;">📋 本地脚本 · 不消耗AI配额</div>';
+      // 恢复按钮文案，不消耗次数
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔄 重新尝试 AI';
+      }
+      return;
+    }
     var errText = '优化失败';
     if (errType === 'timeout') errText = '⏱ 生成超时（模型繁忙），建议稍后重试';
     else if (errType === 'api') errText = '🔧 服务端异常，正在恢复中，稍后重试';
