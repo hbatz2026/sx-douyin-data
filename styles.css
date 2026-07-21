@@ -520,6 +520,50 @@
     }
   }
 
+  /* v2.7.0: 左侧入口按钮组（尝鲜版/热点跟拍/经营分指南） */
+  #leftEntryBar {
+    position: fixed;
+    left: 12px;
+    top: 140px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .entry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .entry-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+  .entry-btn:active { transform: translateY(0); }
+  .entry-trial { background: linear-gradient(135deg, #FF6B00, #FF9A3D); box-shadow: 0 2px 8px rgba(255,107,0,.25); }
+  .entry-hot   { background: linear-gradient(135deg, #7873f5, #0ff);    box-shadow: 0 2px 8px rgba(120,115,245,.25); }
+  .entry-biz   { background: linear-gradient(135deg, #F59E0B, #F97316); box-shadow: 0 2px 8px rgba(245,158,11,.25); }
+  /* 桌面正常尺寸 */
+  @media (max-width: 1024px) {
+    .entry-btn { font-size: 12px; padding: 8px 12px; }
+    #leftEntryBar { left: 8px; top: 130px; gap: 8px; }
+  }
+  /* 手机端：紧凑、稍小、不抢主内容 */
+  @media (max-width: 640px) {
+    .entry-btn { font-size: 11px; padding: 6px 10px; gap: 4px; }
+    #leftEntryBar { left: 6px; top: 110px; gap: 6px; }
+  }
+  @media (max-width: 380px) {
+    .entry-btn { font-size: 10px; padding: 5px 8px; }
+    #leftEntryBar { left: 4px; top: 100px; gap: 5px; }
+  }
+
   /* v3.0: Schedule Header Bar（合并 tab + 折叠按钮） */
   .schedule-header-bar {
     display: flex;
