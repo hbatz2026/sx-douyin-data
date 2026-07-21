@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-21 03:24:07
+// 构建时间: 2026-07-21 03:27:39
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4164,11 +4164,26 @@ function triggerVariantOptimize(cardId, topicKey) {
 
 // 2026-07-21: 浏览器直调 SiliconFlow（绕过 SCF 网络问题）
 // 从 SCF 获取 AI key，然后直连 SiliconFlow API
+// 优先 localStorage 缓存，其次 SCF，最后手动输入
 var __aiKey = null;
 var __aiKeyPromise = null;
 
+function getCachedAIKey() {
+  try {
+    var k = localStorage.getItem('_dy_ai_key');
+    if (k && k.length > 20) return k;
+  } catch(e) {}
+  return null;
+}
+function setCachedAIKey(k) {
+  try { if (k && k.length > 20) localStorage.setItem('_dy_ai_key', k); } catch(e) {}
+}
+
 async function ensureAIKey() {
   if (__aiKey) return __aiKey;
+  // 先检查 localStorage 缓存
+  var cached = getCachedAIKey();
+  if (cached) { __aiKey = cached; return __aiKey; }
   if (__aiKeyPromise) return __aiKeyPromise;
   __aiKeyPromise = (async function() {
     try {
@@ -4185,9 +4200,17 @@ async function ensureAIKey() {
       var data = await res.json();
       if (!data.key) throw new Error('no key');
       __aiKey = data.key;
+      setCachedAIKey(data.key);
       return __aiKey;
     } catch(e) {
-      console.warn('[AI key] 获取失败:', e.message);
+      console.warn('[AI key] SCF获取失败:', e.message);
+      // 兜底：弹出对话框让用户粘贴 key（SiliconFlow 控制台可查）
+      var manualKey = prompt('输入你的 SiliconFlow API Key\n去 https://cloud.siliconflow.cn → API密钥 → 复制粘贴过来\n（只需输入一次，后续自动缓存）');
+      if (manualKey && manualKey.length > 20) {
+        __aiKey = manualKey.trim();
+        setCachedAIKey(__aiKey);
+        return __aiKey;
+      }
       __aiKey = null;
       return null;
     } finally {
