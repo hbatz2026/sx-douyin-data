@@ -143,7 +143,7 @@ function buildPublishKit(tpl, city, topic) {
       html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
       html += '<span style="font-weight:700;color:#7C3AED;font-size:13px;">🎨 AI 配图提示词</span>';
       html += '<span style="font-size:10px;color:#94A3B8;">豆包/即梦 → 生成抖音封面</span>';
-      html += '<span onclick="copyText(\'' + esc(imgPrompt).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;border:0;padding:4px 14px;font-size:11px;border-radius:6px;font-weight:600;margin-left:auto;">📋 复制</span>';
+      html += '<span onclick="copyImgPrompt(this)" style="cursor:pointer;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;border:0;padding:4px 14px;font-size:11px;border-radius:6px;font-weight:600;margin-left:auto;">📋 复制</span>';
       html += '</div>';
       html += '<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;color:#4C1D95;white-space:pre-wrap;cursor:text;">' + esc(imgPrompt) + '</div>';
       html += '</div>';
@@ -617,4 +617,13 @@ function extractKeyword(text, keywords) {
     if (text.indexOf(keywords[i]) !== -1) return keywords[i];
   }
   return '';
+}
+
+// 2026-07-22: 复制配图提示词（无需 inline 多行 onclick）
+function copyImgPrompt(btn) {
+  var textDiv = btn.parentElement && btn.parentElement.nextElementSibling;
+  if (textDiv) {
+    var txt = textDiv.textContent || textDiv.innerText || '';
+    if (txt) copyText(txt);
+  }
 }
