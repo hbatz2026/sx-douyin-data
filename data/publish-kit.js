@@ -101,14 +101,14 @@ function buildPublishKit(tpl, city, topic) {
   html += '<div style="padding:10px 18px;border-top:1px dashed #E8F0FE;font-size:12px;display:flex;align-items:center;gap:8px;">';
   html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">🏷 标签</span>';
   html += '<span style="flex:1;color:#1E293B;line-height:1.5;">' + esc(tags) + '</span>';
-  html += '<span onclick="copyText(\'' + esc(tags).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
+  html += '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
   html += '</div>';
 
   // ── 标题行 ──
   html += '<div style="padding:10px 18px;font-size:12px;display:flex;align-items:center;gap:8px;">';
   html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">📌 标题</span>';
   html += '<span style="flex:1;color:#1E293B;line-height:1.5;">' + esc(seoTitle) + '</span>';
-  html += '<span onclick="copyText(\'' + esc(seoTitle).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
+  html += '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
   html += '</div>';
 
   // ── 位置行 ──
@@ -129,7 +129,7 @@ function buildPublishKit(tpl, city, topic) {
     html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">';
     html += '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>';
     html += '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(comments[c]) + '</span>';
-    html += '<span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>';
+    html += '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>';
     html += '</div>';
   }
   html += '</div></div>';
@@ -203,7 +203,7 @@ function renderCommentItems(comments) {
     html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">' +
       '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>' +
       '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(comments[c]) + '</span>' +
-      '<span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'\\x27') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>' +
+      '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>' +
       '</div>';
   }
   return html;
@@ -625,5 +625,56 @@ function copyImgPrompt(btn) {
   if (textDiv) {
     var txt = textDiv.textContent || textDiv.innerText || '';
     if (txt) copyText(txt);
+  }
+}
+
+// 2026-07-23: 通用复制按钮——复制相邻 DOM 节点的文本
+// 按钮和文本在同一行：<span>文本内容</span><span onclick="copySiblingText(this)">复制</span>
+function copySiblingText(btn) {
+  var textSpan = btn && btn.previousElementSibling;
+  if (textSpan) {
+    var txt = textSpan.textContent || textSpan.innerText || '';
+    if (txt) copyText(txt);
+  }
+}
+
+// 2026-07-23: 一键复制发布包——收集所有发布包内容合并复制
+function copyPublishBundle() {
+  var kit = document.querySelector('.publish-kit');
+  if (!kit) { toast('找不到发布包内容', 'error'); return; }
+  var parts = [];
+  // 脚本部分（预览区域）
+  var previewEl = document.querySelector('[id^="preview"]:not([id*="calc"]):not([id*="walk"])');
+  if (previewEl && previewEl.textContent.trim().length > 20) {
+    parts.push('【脚本】\n' + previewEl.textContent.trim());
+  }
+  // 遍历所有行，按标签文字提取内容
+  var allDivs = kit.querySelectorAll('div');
+  for (var i = 0; i < allDivs.length; i++) {
+    var row = allDivs[i];
+    var txt = row.textContent || '';
+    if (txt.indexOf('🏷 标签') >= 0 && txt.indexOf('复制') >= 0) {
+      parts.push('【标签】\n' + txt.replace('🏷 标签', '').replace('复制', '').trim());
+    }
+    if (txt.indexOf('📌 标题') >= 0 && txt.indexOf('复制') >= 0) {
+      parts.push('【标题】\n' + txt.replace('📌 标题', '').replace('复制', '').trim());
+    }
+  }
+  // 评论列表
+  var commentList = kit.querySelector('.comment-list');
+  if (commentList) {
+    var commentTexts = [];
+    var commentSpans = commentList.querySelectorAll('span:not([onclick])');
+    for (var c = 0; c < commentSpans.length; c++) {
+      var t = (commentSpans[c].textContent || '').trim();
+      if (t && t.length > 2) commentTexts.push(t);
+    }
+    if (commentTexts.length) parts.push('【评论区】\n' + commentTexts.join('\n'));
+  }
+  var finalText = parts.join('\n\n');
+  if (finalText) {
+    copyText(finalText);
+  } else {
+    toast('发布包内容为空', 'error');
   }
 }
