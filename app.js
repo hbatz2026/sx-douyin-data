@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-23 04:06:02
+// 构建时间: 2026-07-23 04:16:12
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -3934,7 +3934,8 @@ function previewT4Walk() {
   const tags = (document.getElementById('t4_tags')||{}).value || '';
   var variantHtml = tryVariantInjection(preset, bgm, 'preview4-walk');
   
-  var fullScript = (window.___t4ScriptFull && ___t4ScriptFull[preset])
+  var fullScript = (window.___t4ScriptFullByPersona && ___t4ScriptFullByPersona[preset] && ___t4ScriptFullByPersona[preset][getPersona()])
+    || (window.___t4ScriptFull && ___t4ScriptFull[preset])
     || findScriptFuzzy(window.___t4ScriptFull, preset);
   if (fullScript) {
     var scriptText = fullScript
