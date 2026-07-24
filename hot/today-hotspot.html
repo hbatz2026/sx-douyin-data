@@ -3,299 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>今日跟拍脚本 · 2026-07-23</title>
-<style>:root{--primary:#2563EB;--accent:#7C3AED;--green:#059669;--orange:#EA580C;--bg-page:#F8FAFC;--bg-section:#FFFFFF;--bg-card:#F1F5F9;--border:#CBD5E1;--border-light:#E2E8F0;--text-main:#1E293B;--text-body:#334155;--text-muted:#64748B}
+<title>跟拍脚本 | 2026年7月24日</title>
+<style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg-page);color:var(--text-main);line-height:1.7}
-.container{max-width:720px;margin:0 auto;padding:20px 16px}
-.header{text-align:center;padding:36px 24px 28px;background:linear-gradient(135deg,#1E40AF,#7C3AED);border-radius:14px;margin-bottom:24px}
-.header h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:8px}
-.header .date{font-size:15px;color:rgba(255,255,255,0.9);font-weight:600}
-.header .subtitle{font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px}
-.header .stats{display:inline-flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center}
-.header .stat{font-size:12px;color:#fff;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:16px;font-weight:600}
-.insight-box{background:#FFFFFF;border:1px solid var(--border-light);border-radius:12px;padding:16px 18px;margin-bottom:24px}
-.insight-title{font-size:14px;font-weight:700;color:var(--text-main);margin-bottom:10px}
-.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.insight-item{background:var(--bg-card);border-radius:8px;padding:8px 10px}
-.insight-num{font-size:18px;font-weight:800;color:var(--primary)}
-.insight-label{font-size:11px;color:var(--text-muted);line-height:1.4;margin-top:2px}
-.section-title{font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:14px;margin-top:8px;display:flex;align-items:center}
-.section-title .badge{font-size:11px;color:#fff;padding:2px 10px;border-radius:10px;margin-left:8px;font-weight:600}
-.badge-green{background:var(--green)}.badge-orange{background:var(--orange)}
-.card{margin-bottom:20px;background:var(--bg-section);border:1px solid var(--border-light);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
-.card-head{padding:18px 20px 14px;border-bottom:1px solid var(--border-light);position:relative}
-.card-head .idx{position:absolute;right:20px;top:14px;font-size:48px;font-weight:900;color:#EFF6FF;line-height:1;z-index:0}
-.card-head .tag-row{display:flex;flex-wrap:wrap;gap:6px;position:relative;z-index:1}
-.tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px}
-.tag-blue{background:#DBEAFE;color:#1E40AF}.tag-orange{background:#FED7AA;color:#9A3412}.tag-green{background:#D1FAE5;color:#065F46}.tag-gray{background:#F1F5F9;color:#64748B}
-.card-head h2{font-size:17px;font-weight:800;margin-top:10px;position:relative;z-index:1;color:var(--text-main)}
-.source-line{font-size:12.5px;color:var(--text-muted);margin-top:5px;position:relative;z-index:1}
-.source-line b{color:var(--orange)}
-.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border-light);border-bottom:1px solid var(--border-light)}
-.info-cell{background:#fff;padding:10px 14px}
-.info-cell .k{font-size:11px;color:var(--text-muted);letter-spacing:0.5px}
-.info-cell .v{font-size:13.5px;font-weight:700;color:var(--text-main);margin-top:2px}
-.effect-box{margin:14px 20px 0;padding:9px 12px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px}
-.effect-label{font-size:12px;color:var(--green);font-weight:700}
-.effect-text{font-size:13px;color:#334155;line-height:1.6}
-.shot-table{width:calc(100% - 40px);border-collapse:collapse;font-size:13.5px;margin:14px 20px 0}
-.shot-table th{background:var(--bg-card);color:var(--text-muted);font-weight:700;text-align:left;padding:8px 10px;font-size:11.5px;letter-spacing:0.5px;border-bottom:2px solid var(--border-light)}
-.shot-table td{padding:10px;border-bottom:1px solid #F1F5F9;vertical-align:top}
-.shot-table tr:last-child td{border-bottom:none}
-td.shot-no{width:40px;color:var(--primary);font-weight:800;text-align:center}
-td.shot-visual{width:38%;color:#475569;font-size:12.5px}
-td.shot-vo{color:var(--text-main);line-height:1.65}
-td.shot-vo b{color:var(--primary)}
-td.shot-cap{width:22%;color:var(--primary);font-size:12px;font-weight:600}
-.cta-box{margin:10px 20px 0;padding:9px 12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;font-size:12.5px;color:#92400E;line-height:1.6}
-.cta-label{color:var(--orange);font-weight:700}
-.script-footer{display:flex;gap:16px;padding:10px 20px 14px;flex-wrap:wrap;border-top:1px solid var(--border-light);margin-top:10px}
-.script-footer span{font-size:12px;color:var(--text-muted)}
-.bgm{color:var(--accent)!important}.tags{color:var(--primary)!important}
-.shoot-box{padding:10px 20px 14px;font-size:12px;color:#334155;line-height:1.6}
-.shoot-label{color:var(--primary);font-weight:700}
-.schedule-box{background:#FFFFFF;border:1px solid var(--border-light);border-radius:12px;padding:16px 20px;margin-bottom:20px}
-.schedule-title{font-size:14px;font-weight:700;color:var(--text-main);margin-bottom:10px}
-.schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.schedule-day{text-align:center;padding:8px 4px;background:var(--bg-card);border-radius:8px;font-size:11px}
-.schedule-day .day{font-weight:700;color:var(--primary);margin-bottom:2px}
-.schedule-day .desc{color:var(--text-muted);line-height:1.4;font-size:10.5px}
-.tips{background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 20px;margin-bottom:16px}
-.tips-title{font-size:15px;font-weight:700;color:#92400E;margin-bottom:6px;text-align:center}
-.tips-detail{font-size:12px;color:#78350F;line-height:1.9}
-.footer{text-align:center;padding:24px 0;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border-light)}
-@media(max-width:600px){.header h1{font-size:22px}.insight-grid{grid-template-columns:1fr}.info-grid{grid-template-columns:repeat(2,1fr)}.shot-table{width:calc(100% - 28px);margin:14px 14px 0}td.shot-cap{display:none}.effect-box,.cta-box,.script-footer,.shoot-box{margin-left:14px;margin-right:14px}.card-head{padding:14px 14px 10px}.schedule-grid{grid-template-columns:repeat(2,1fr)}}
-@media print{body{background:#fff}.card{box-shadow:none;break-inside:avoid;margin-top:12px}.header{box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}.insight-box,.schedule-box,.tips{break-inside:avoid}.shot-table{font-size:11px}.tag,.info-cell{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
+body{font-family:'Microsoft YaHei','Helvetica Neue',sans-serif;background:#F8FAFC;color:#1E293B;line-height:1.6}
+.header{background:linear-gradient(135deg,#1E40AF,#7C3AED);color:#fff;padding:30px 20px;text-align:center}
+.header h1{font-size:24px;margin-bottom:8px}
+.header .subtitle{font-size:14px;opacity:.9;margin-bottom:12px}
+.header .tags{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.header .tags span{background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:13px}
+.container{max-width:900px;margin:0 auto;padding:20px}
+.insight{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.insight-title{font-size:16px;font-weight:bold;color:#1E40AF;margin-bottom:15px;border-bottom:2px solid #E0E7FF;padding-bottom:8px}
+.insight-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.insight-item{text-align:center}
+.insight-item .num{font-size:22px;font-weight:bold;color:#2563EB}
+.insight-item .label{font-size:12px;color:#64748B;margin-top:4px}
+.section-header{font-size:20px;font-weight:bold;margin:25px 0 15px;padding-left:12px;border-left:4px solid #2563EB}
+.section-header.hot{border-color:#7C3AED;color:#7C3AED}
+.script-card{background:#fff;border-radius:12px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid #F1F5F9}
+.card-title{font-size:17px;font-weight:bold;color:#1E293B}
+.source{font-size:13px;color:#64748B;margin-top:4px}
+.relevance{font-size:12px;color:#7C3AED;margin-top:2px}
+.tag-row{padding:10px 20px;display:flex;gap:6px;flex-wrap:wrap}
+.tag{padding:3px 10px;border-radius:12px;font-size:12px;color:#fff}
+.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E2E8F0;margin:0 20px;border-radius:8px;overflow:hidden}
+.meta-item{background:#F8FAFC;padding:10px;text-align:center}
+.meta-label{display:block;font-size:11px;color:#94A3B8}
+.meta-value{display:block;font-size:13px;font-weight:bold;color:#334155;margin-top:2px}
+.section-title{font-size:14px;font-weight:bold;margin-bottom:6px}
+.why-box{background:#ECFDF5;margin:12px 20px;padding:12px;border-radius:8px;border-left:3px solid #10B981}
+.why-box .section-title{color:#047857}
+.why-box p{font-size:13px;color:#065F46}
+.steps-box{margin:12px 20px}
+.steps-table{width:100%;border-collapse:collapse;font-size:13px}
+.steps-table th{background:#F1F5F9;padding:8px;text-align:left;font-size:12px;color:#475569;border:1px solid #E2E8F0}
+.steps-table td{padding:8px;border:1px solid #E2E8F0;vertical-align:top}
+.step-no{text-align:center;font-weight:bold;color:#2563EB;width:40px}
+.step-time{text-align:center;color:#64748B;white-space:nowrap;width:60px}
+.step-visual{width:22%;color:#334155}
+.step-voice{width:35%}
+.step-sub{color:#64748B;font-size:12px}
+.steps-table b{color:#1E40AF;font-weight:bold}
+.cta-box{background:#FFFBEB;margin:12px 20px;padding:12px;border-radius:8px;border-left:3px solid #F59E0B}
+.cta-box .section-title{color:#B45309}
+.cta-box p{font-size:13px;color:#92400E}
+.cta-box b{color:#B45309}
+.tip-box{background:#EFF6FF;margin:12px 20px;padding:12px;border-radius:8px;border-left:3px solid #2563EB}
+.tip-box .section-title{color:#1E40AF}
+.tip-box p{font-size:13px;color:#1E40AF}
+.tip-box b{color:#1E3A8A}
+.card-bottom{padding:10px 20px;border-top:1px solid #F1F5F9;display:flex;gap:12px;flex-wrap:wrap}
+.bgm-tag{font-size:12px;color:#64748B;background:#F1F5F9;padding:4px 8px;border-radius:6px}
+.tags-tag{font-size:12px;color:#6366F1}
+.schedule-box{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.schedule-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.schedule-table th{background:#F1F5F9;padding:8px;text-align:left;border:1px solid #E2E8F0;color:#475569}
+.schedule-table td{padding:8px;border:1px solid #E2E8F0}
+.cat-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.cat-table th{background:#F1F5F9;padding:6px;text-align:left;border:1px solid #E2E8F0;color:#475569;font-size:12px}
+.cat-table td{padding:6px;border:1px solid #E2E8F0;text-align:center}
+.bottom-tip{background:#FFFBEB;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #FCD34D}
+.bottom-tip h3{color:#B45309;margin-bottom:10px}
+.bottom-tip ul{list-style:none;padding-left:0}
+.bottom-tip li{padding:4px 0;color:#92400E;font-size:13px}
+.footer{text-align:center;padding:20px;color:#94A3B8;font-size:12px}
+@media print{.script-card{break-inside:avoid}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#fff}}
+</style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
+<div class="header">
     <h1>今日跟拍脚本</h1>
-    <div class="date">2026-07-23</div>
-    <div class="subtitle">照脚本念 · 按要点拍 · 今天就能发</div>
-    <div class="stats">
-      <span class="stat">7 条搜索截流</span>
-      <span class="stat">3 条热点引流</span>
+    <div class="subtitle">照脚本念 · 按要点拍 · 今天就能发 | 2026年7月24日</div>
+    <div class="tags"><span>7条 搜索截流</span><span>3条 热点引流</span><span>7:3 策略</span></div>
+</div>
+<div class="container">
+    <div class="insight">
+        <div class="insight-title">数据洞察 - 选题依据</div>
+        <div class="insight-grid">
+            <div class="insight-item"><div class="num">7883</div><div class="label">视频总数</div></div>
+            <div class="insight-item"><div class="num">294</div><div class="label">业务类均播</div></div>
+            <div class="insight-item"><div class="num">576</div><div class="label">其他类均播</div></div>
+            <div class="insight-item"><div class="num">61</div><div class="label">总成交(单)</div></div>
+            <div class="insight-item"><div class="num">100%</div><div class="label">种草词空白率</div></div>
+        </div>
+        <div style="margin-top:15px"><table class="cat-table"><tr><th>大类</th><th>视频数</th><th>均播</th><th>成交</th><th>完播率</th><th>种草词</th></tr><tr><td>宽带/网络</td><td>1348</td><td>226</td><td>15</td><td>11.47%</td><td>空白</td></tr><tr><td>手机/终端</td><td>730</td><td>439</td><td>14</td><td>9.44%</td><td>空白</td></tr><tr><td>流量/套餐</td><td>254</td><td>240</td><td>4</td><td>14.13%</td><td>空白</td></tr><tr><td>电视/IPTV</td><td>8</td><td>74</td><td>0</td><td>11.03%</td><td>空白</td></tr><tr><td>亲子/手表</td><td>20</td><td>138</td><td>0</td><td>11.55%</td><td>空白</td></tr><tr><td>营业厅/服务</td><td>295</td><td>315</td><td>3</td><td>13.62%</td><td>空白</td></tr><tr><td>其他</td><td>5228</td><td>576</td><td>25</td><td>5.78%</td><td>空白</td></tr></table></div>
     </div>
-  </div>
-
-  <div class="insight-box">
-<div class="insight-title">数据洞察 · 选题依据</div>
-<div class="insight-grid">
-  <div class="insight-item"><div class="insight-num">6675</div><div class="insight-label">视频总数</div></div>
-  <div class="insight-item"><div class="insight-num">14单</div><div class="insight-label">手机终端成交居首</div></div>
-  <div class="insight-item"><div class="insight-num">28.5%</div><div class="insight-label">IPTV完播率居首</div></div>
-  <div class="insight-item"><div class="insight-num">7条</div><div class="insight-label">IPTV视频仅7条(缺口大)</div></div>
-  <div class="insight-item"><div class="insight-num">0条</div><div class="insight-label">种草搜索词空白</div></div>
-</div>
-</div>
-
-  <div class="section-title">搜索截流 <span class="badge badge-green">精准获客</span></div>
-  <div class="card">
-<div class="card-head">
-  <div class="idx">1</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">帮排查型</span><span class="tag tag-gray">长尾</span><span class="tag tag-green">合规通过</span></div>
-  <h2>电视搜不到台？先别急着报修</h2>
-  <div class="source-line">搜索词: <b>电视搜不到台</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅电视专柜</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">IPTV开通</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">电视IPTV类仅7条视频(全大类居末)，但完播率28.5%居首，说明用户搜索需求强但内容严重空缺</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员手持遥控器对准电视反复按</td><td class="shot-vo">**电视搜不到台？先别急着报修**，3步自己排查</td><td class="shot-cap">搜不到台先排查</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">镜头切到电视IPTV主界面，遥控器操作菜单</td><td class="shot-vo">一是检查信号线有没有松，二是遥控器按'菜单'选'自动搜台'，**三是搜完还不出就办个IPTV，直播点播回看全有**</td><td class="shot-cap">3步排查+IPTV方案</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员展示IPTV回看界面，指向评论区</td><td class="shot-vo">我们营业厅就能办，到店帮你调试好，扣'电视'我发你门店地址</td><td class="shot-cap">扣电视领地址</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'电视'->自动回复IPTV详情+门店导航->引导到店开通</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜搜不到台的遥控器操作是钩子——用户正在经历这个痛点，拍出急切感</div>
-<div class="script-footer"><span class="tags">#IPTV #电视搜不到台 #营业厅</span><span class="bgm">BGM: 轻快日常</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">2</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">帮省时间型</span><span class="tag tag-gray">长尾</span><span class="tag tag-green">合规通过</span></div>
-  <h2>搬家了宽带怎么移？别重新装</h2>
-  <div class="source-line">搜索词: <b>宽带移机</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">35秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员+手机演示</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅柜台</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">宽带移机到店</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">宽带类1037条视频但'移机'意图匹配极少，宽带类有4笔成交，是成交第二高的大类</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员举着钥匙做开门动作</td><td class="shot-vo">**搬家了宽带别重新装，移机就行**，省几百块</td><td class="shot-cap">搬家别重装宽带</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">手机展示电信App移机页面</td><td class="shot-vo">带上身份证，到店5分钟搞定，**不用拆旧线不用等安装**，新地址直接通</td><td class="shot-cap">到店5分钟搞定</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指引评论区，背景展示营业厅门头</td><td class="shot-vo">不知道移机要带啥的扣'移机'，我发你清单和最近门店地址</td><td class="shot-cap">扣移机领清单</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'移机'->自动回复移机材料清单+门店导航->引导到店办理</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第2镜手机App移机页面特写是关键——让用户一眼看到流程有多简单</div>
-<div class="script-footer"><span class="tags">#宽带移机 #搬家 #营业厅</span><span class="bgm">BGM: 温暖日常</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">3</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">产品讲解型</span><span class="tag tag-orange">应季</span><span class="tag tag-green">合规通过</span></div>
-  <h2>IPTV到底怎么看？一图教懂</h2>
-  <div class="source-line">搜索词: <b>IPTV怎么看</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅电视墙前</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">IPTV开通</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">电视IPTV类完播率28.5%居首但视频仅7条，暑假追剧高峰是开通IPTV黄金期</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员按遥控器，电视弹出IPTV界面</td><td class="shot-vo">**IPTV到底怎么看？30秒教懂你**</td><td class="shot-cap">IPTV30秒教懂</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">电视画面切到回看和点播栏目</td><td class="shot-vo">直播能看，**昨天错过的剧按回看就能补**，电影综艺点播随意选，家里老人小孩都爱用</td><td class="shot-cap">回看+点播全都有</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指向评论区</td><td class="shot-vo">到营业厅就能开通，扣'IPTV'我帮你查附近门店</td><td class="shot-cap">扣IPTV查门店</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'IPTV'->自动回复IPTV节目单+门店导航->引导到店开通</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第2镜按遥控器弹出回看列表那一刻是核心转化点——用户亲眼看到'昨天的剧今天能看'</div>
-<div class="script-footer"><span class="tags">#IPTV #怎么看 #营业厅</span><span class="bgm">BGM: 轻松愉快</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">4</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">帮省时间型</span><span class="tag tag-gray">长尾</span><span class="tag tag-green">合规通过</span></div>
-  <h2>办宽带要带啥？别跑两趟</h2>
-  <div class="source-line">搜索词: <b>宽带怎么办</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">35秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅宽带办理柜台</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">到店办宽带</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">宽带类1037条视频、4笔成交居成交榜第二，'怎么办'类意图匹配数低于5条，内容缺口大</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员拿起身份证举到镜头前特写</td><td class="shot-vo">**办宽带带这一张证就行**，别跑两趟</td><td class="shot-cap">办宽带带一张证就行</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">柜台窗口，店员模拟填表</td><td class="shot-vo">到店填个表，选好套餐，**师傅当天就能上门装好**，不用等几天</td><td class="shot-cap">到店当天就能装</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指向评论区</td><td class="shot-vo">不确定你家能不能装的扣'宽带'，我帮你查覆盖范围和最近门店</td><td class="shot-cap">扣宽带查覆盖</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'宽带'->自动回复材料清单+门店导航+覆盖查询->引导到店办理</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜身份证举到镜头前特写是钩子——'带这个就行'让用户觉得简单</div>
-<div class="script-footer"><span class="tags">#宽带怎么办 #办宽带 #营业厅</span><span class="bgm">BGM: 节奏轻快</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">5</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">帮省时间型</span><span class="tag tag-gray">长尾</span><span class="tag tag-green">合规通过</span></div>
-  <h2>去营业厅办业务带啥？清单在这</h2>
-  <div class="source-line">搜索词: <b>办业务带什么</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">25秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅门口</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">到店办业务</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">营业厅服务类265条视频成交4笔，'带什么'意图匹配数为0，完全无人教用户准备材料</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员站在营业厅门口</td><td class="shot-vo">**去营业厅办业务别空手去**，清单给你备好了</td><td class="shot-cap">办业务带啥清单</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">手机画面展示材料清单</td><td class="shot-vo">办宽带带身份证，补卡带身份证，**改套餐带身份证就行**，三个字记住够用</td><td class="shot-cap">办业务带身份证</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指引</td><td class="shot-vo">扣'清单'我把详细材料清单和门店地址发你</td><td class="shot-cap">扣清单领详情</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'清单'->自动回复业务材料清单+导航->引导到店</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜站在营业厅门口开讲——场景感强，用户一看就知道是本地厅</div>
-<div class="script-footer"><span class="tags">#办业务带什么 #营业厅 #补卡</span><span class="bgm">BGM: 日常温馨</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">6</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">帮省时间型</span><span class="tag tag-gray">长尾</span><span class="tag tag-green">合规通过</span></div>
-  <h2>手机卡丢了别慌3步搞定</h2>
-  <div class="source-line">搜索词: <b>补卡怎么办</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅柜台</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">到店补卡</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">营业厅服务类成交4笔，'补卡'意图匹配极少，高频刚需但内容覆盖不足</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员拿出空白SIM卡怼镜头</td><td class="shot-vo">**手机卡丢了别慌，3步搞定**</td><td class="shot-cap">手机卡丢了3步搞定</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">柜台操作演示</td><td class="shot-vo">带身份证到营业厅，**5分钟新卡就办好，号码不变话费不变**</td><td class="shot-cap">5分钟办好号不变</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指引评论区</td><td class="shot-vo">异地也能补，扣'补卡'我发你最近门店地址</td><td class="shot-cap">扣补卡领地址</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'补卡'->自动回复补卡材料+门店导航->引导到店补卡</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜拿出空白SIM卡怼镜头——视觉冲击强，用户立刻知道这是补卡</div>
-<div class="script-footer"><span class="tags">#补卡怎么办 #手机卡丢了 #营业厅</span><span class="bgm">BGM: 轻松明快</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">7</div>
-  <div class="tag-row"><span class="tag tag-blue">截流</span><span class="tag tag-gray">算账对比型</span><span class="tag tag-gray">长尾</span><span class="tag tag-green">合规通过</span></div>
-  <h2>给爸妈换手机别乱买</h2>
-  <div class="source-line">搜索词: <b>老人手机</b></div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">35秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员+手机展示</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅手机专柜</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">到店购机</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">手机终端类505条视频成交14笔居首，但'老人手机'意图匹配极少，银发市场未被覆盖</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员拿着大屏手机对镜头</td><td class="shot-vo">**给爸妈换手机别乱买**，选对省不少</td><td class="shot-cap">给爸妈换手机别乱买</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">手机屏幕大字体特写+语音播报演示</td><td class="shot-vo">**大字体一键拨号，还有语音播报**，到店优惠力度大，每月消费不变就能拿</td><td class="shot-cap">大字体+一键拨号</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员展示柜台多款机型</td><td class="shot-vo">孝心不能等，带爸妈来营业厅选，扣'老人'我发你机型清单和门店地址</td><td class="shot-cap">扣老人领机型清单</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'老人'->自动回复老人手机推荐+门店导航->引导到店体验</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第2镜手机大字体特写是说服点——老人看到大字'这我能看清'</div>
-<div class="script-footer"><span class="tags">#老人手机 #大字体 #营业厅</span><span class="bgm">BGM: 温暖舒适</span></div>
-</div>
-
-  <div class="section-title">热点引流 <span class="badge badge-orange">冲曝光</span></div>
-  <div class="card">
-<div class="card-head">
-  <div class="idx">1</div>
-  <div class="tag-row"><span class="tag tag-orange">热点</span><span class="tag tag-gray">热梗植入型</span><span class="tag tag-green">时效强</span><span class="tag tag-green">合规通过</span></div>
-  <h2>iPhone18量产了你的旧手机值多少</h2>
-  <div class="source-line">热点: <b>iPhone18系列已量产</b> · 抖音热搜第8位 914.8万热度</div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员+手机展示</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅手机专柜</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">以旧换新到店</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">手机终端类成交14笔居首，iPhone18量产触发换机需求，以旧换新是强转化场景</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">手机展示抖音iPhone18热搜截图</td><td class="shot-vo">**iPhone18量产了，你手里的旧手机值多少钱？**</td><td class="shot-cap">旧手机值多少钱</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">店员拿起旧手机做估价动作</td><td class="shot-vo">别吃灰了，到营业厅直接抵钱，**苹果华为都能换，旧机当钱花新机到手**</td><td class="shot-cap">旧机抵钱换新机</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">柜台多款新机展示</td><td class="shot-vo">想看你的旧手机值多少，扣'估价'我帮你查</td><td class="shot-cap">扣估价查旧机价格</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'估价'->自动回复旧机估价入口+门店导航->引导到店以旧换新</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜手机展示iPhone18热搜截图——3秒切入热点不等用户猜</div>
-<div class="script-footer"><span class="tags">#iPhone18 #以旧换新 #营业厅</span><span class="bgm">BGM: 科技感</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">2</div>
-  <div class="tag-row"><span class="tag tag-orange">热点</span><span class="tag tag-gray">逻辑说服型</span><span class="tag tag-green">时效强</span><span class="tag tag-green">合规通过</span></div>
-  <h2>大暑40度来营业厅蹭空调办业务</h2>
-  <div class="source-line">热点: <b>今日大暑</b> · 抖音热搜第11位 895.7万热度</div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅内景(空调出风口特写)</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">到店纳凉+办业务</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">高温热点有强场景(到店纳凉)，大暑当天发时效性拉满，营业厅有空调是自然引流点</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">空调出风口吹起店员头发</td><td class="shot-vo">**外面40度，我们这空调随便蹭**</td><td class="shot-cap">40度来蹭空调</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">营业厅内顾客坐着吹空调+手机展示WiFi测速</td><td class="shot-vo">来吹空调顺便办个宽带，**装好回家WiFi也这么快**，刷剧不卡还凉快</td><td class="shot-cap">蹭空调+办宽带</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指引评论区</td><td class="shot-vo">扣'空调'我发你最近的营业厅地址，空调24小时开着</td><td class="shot-cap">扣空调领门店地址</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'空调'->自动回复门店地址+纳凉业务指引->引导到店</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜空调出风口风吹头发是核心画面——冰凉感传达精准</div>
-<div class="script-footer"><span class="tags">#大暑 #蹭空调 #营业厅</span><span class="bgm">BGM: 夏日清凉</span></div>
-</div><div class="card">
-<div class="card-head">
-  <div class="idx">3</div>
-  <div class="tag-row"><span class="tag tag-orange">热点</span><span class="tag tag-gray">产品讲解型</span><span class="tag tag-green">时效强</span><span class="tag tag-green">合规通过</span></div>
-  <h2>出去旅游手机没信号多扫兴</h2>
-  <div class="source-line">热点: <b>这世界大得让你很难不旅游</b> · 抖音热搜第14位 878.1万热度</div>
-</div>
-<div class="info-grid">
-  <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-  <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-  <div class="info-cell"><div class="k">场景</div><div class="v">营业厅门口(旅游背包道具)</div></div>
-  <div class="info-cell"><div class="k">转化目标</div><div class="v">流量包+信号覆盖</div></div>
-</div>
-<div class="effect-box"><span class="effect-label">为什么有效</span><br><span class="effect-text">暑假出游高峰+抖音旅游热榜，出游痛点=信号差+流量不够，直接关联流量包和覆盖查询</span></div>
-<table class="shot-table"><tr><th>镜号</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="shot-no">1</td><td class="shot-visual">店员背着旅行包在营业厅门口</td><td class="shot-vo">**出去旅游手机没信号，多扫兴**</td><td class="shot-cap">旅游手机没信号</td></tr><tr><td class="shot-no">2</td><td class="shot-visual">手机展示流量包页面+信号地图</td><td class="shot-vo">大流量包走起，**到了景点信号照样满格**，导航拍照发朋友圈不卡顿</td><td class="shot-cap">大流量+信号满格</td></tr><tr><td class="shot-no">3</td><td class="shot-visual">店员指引</td><td class="shot-vo">出发前扣'旅游'，我帮你查目的地信号覆盖和流量方案</td><td class="shot-cap">扣旅游查覆盖</td></tr></table>
-<div class="cta-box"><span class="cta-label">引导闭环</span><br>扣'旅游'->自动回复流量包详情+信号覆盖查询->引导到店办理</div>
-<div class="shoot-box"><span class="shoot-label">拍摄提示</span><br>第1镜背着旅行包在营业厅门口——场景代入感强</div>
-<div class="script-footer"><span class="tags">#旅游 #流量包 #信号覆盖</span><span class="bgm">BGM: 活力旅行</span></div>
-</div>
-
-  <div class="schedule-box">
-<div class="schedule-title">7天发布排期建议</div>
-<div class="schedule-grid"><div class="schedule-day"><div class="day">7/23 周三</div><div class="desc">大暑蹭空调</div></div><div class="schedule-day"><div class="day">7/24 周四</div><div class="desc">iPhone18换新</div></div><div class="schedule-day"><div class="day">7/25 周五</div><div class="desc">旅游流量包</div></div><div class="schedule-day"><div class="day">7/26 周六</div><div class="desc">IPTV开通</div></div><div class="schedule-day"><div class="day">7/27 周日</div><div class="desc">宽带移机</div></div><div class="schedule-day"><div class="day">7/28 周一</div><div class="desc">补卡办业务</div></div><div class="schedule-day"><div class="day">7/29 周二</div><div class="desc">老人手机</div></div></div>
-</div>
-
-  <div class="tips">
-    <div class="tips-title">照着念完拍30秒就行</div>
-    <div class="tips-detail">
-      竖屏9:16 · 露脸口播 · 背景露出营业厅 · 发抖音挂门店POI锚点<br>
-      口播严格遵守营业厅合规(不要说极限词如'最'字开头等/不说资费数字/不说竞品名) · 有人扣字记得回复门店地址<br>
-      搜索截流型脚本发的时候在"种草词"填上对应的搜索词<br>
-      口播加粗部分是重点句，念的时候加重语气
+    <div class="section-header">搜索截流脚本（7条）- 精准获客</div>
+    <div class="script-card"><div class="card-header"><div class="card-title">月租越交越多？一招教你换对套餐</div><div class="source">搜索词：换套餐</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">算账对比型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">35秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员口播+白板算账</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店换套餐</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>流量套餐类254条视频成交4单、完播率14.13%最高，但0条视频教用户怎么换套餐，内容缺口大、转化场景明确。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">白板上写'你的月租是不是越交越多？'，店员用红笔圈出</td><td class="step-voice"><b>每个月话费是不是越交越多？</b> 可能不是你打得多，是套餐该换了</td><td class="step-sub">月租越交越多？</td></tr><tr><td class="step-no">2</td><td class="step-time">3-20s</td><td class="step-visual">白板分两栏写旧套餐和新套餐月费，逐步算差价</td><td class="step-voice">很多朋友的套餐是几年前办的，流量少月租高。现在换个新套餐，<b>每月消费不变甚至更少，流量翻倍</b>，一年下来能省不少</td><td class="step-sub">旧套餐流量少→换新省一半</td></tr><tr><td class="step-no">3</td><td class="step-time">20-35s</td><td class="step-visual">店员拿着清单指向镜头，旁边放套餐对比表</td><td class="step-voice">不知道自己适合哪个套餐？评论区扣'换套餐'，<b>我把套餐对比清单发你，帮你算哪档划算</b></td><td class="step-sub">扣&#x27;换套餐&#x27;领清单</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'换套餐'→自动回复套餐对比清单+附近门店→引导到店办理</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜白板上'多花了多少钱'用红笔圈出是钩子，要让观众一眼看到自己也在多花钱</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻快算账BGM</span><span class="tags-tag">#换套餐 #话费太贵 #套餐对比 #电信营业厅 #省钱攻略</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">旧手机别扔，到店抵钱换新机</div><div class="source">搜索词：手机以旧换新</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">经典CTA直销型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">30秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+旧手机演示</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">手机专柜</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店以旧换新</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>手机终端类730条视频成交14单，是成交第二大类，换机是强转化场景，暑假正是换机高峰。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起一部屏幕碎裂的旧手机怼镜头特写</td><td class="step-voice"><b>旧手机别吃灰了，能抵钱换新机</b></td><td class="step-sub">旧手机能抵钱！</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">放下旧手机，拿起一部新手机展示，背后是手机展柜</td><td class="step-voice">到电信以旧换新，旧机直接估价抵扣，华为苹果小米都能换，<b>每月消费不变新手机直接带走</b></td><td class="step-sub">旧机抵扣→新机到手</td></tr><tr><td class="step-no">3</td><td class="step-time">18-30s</td><td class="step-visual">店员指引评论区，背景顾客在办换新业务</td><td class="step-voice">想知道你的旧机值多少？评论区扣'以旧换新'，<b>我帮你在线估价，到店直接换</b></td><td class="step-sub">扣&#x27;以旧换新&#x27;估价</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'以旧换新'→自动回复旧机估价入口→引导到店办理换新</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜旧手机屏幕裂痕特写+旁边放崭新的新手机，新旧对比视觉冲击是留人关键</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 节奏感促销BGM</span><span class="tags-tag">#手机以旧换新 #旧手机回收 #换新手机 #电信营业厅 #暑假换机</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">还在用4G套餐？5G到底值不值得换</div><div class="source">搜索词：5G套餐</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">产品讲解型</span><span class="tag" style="background:#6B7280">长尾</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">40秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+手机测速演示</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">手机专柜</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店升5G套餐</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>流量套餐类254条视频中20条提到5G但成交仅4单，说明用户有5G疑问但无人讲清换不换的区别，讲解型内容缺口明确。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员拿着手机，屏幕显示4G网络信号</td><td class="step-voice"><b>还在用4G套餐？你可能亏了流量还不知道</b></td><td class="step-sub">4G用户可能亏了</td></tr><tr><td class="step-no">2</td><td class="step-time">3-25s</td><td class="step-visual">手机先在4G下打开视频加载慢，切换5G后秒开+测速数字飙升</td><td class="step-voice">4G和5G最大的区别不是网速，是套餐里的流量和权益。现在5G套餐流量更多，很多还送会员权益。<b>同样每个月消费不变，5G套餐流量多出一截</b></td><td class="step-sub">4G→5G流量翻倍权益更多</td></tr><tr><td class="step-no">3</td><td class="step-time">25-40s</td><td class="step-visual">店员指手机屏幕上的对比表，然后指镜头</td><td class="step-voice">不知道自己该不该换5G？评论区扣'5G'，<b>我发你一份4G和5G套餐对比清单，一看就明白</b></td><td class="step-sub">扣&#x27;5G&#x27;领对比清单</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'5G'→自动回复5G vs 4G对比清单→引导到店咨询升级</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜手机切到5G后测速数字飙升的瞬间是信息高潮，要让数字变化有视觉冲击</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 科技感讲解BGM</span><span class="tags-tag">#5G套餐 #5G网络 #4G转5G #电信营业厅 #套餐升级</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">人在外地手机卡丢了？别慌这样补</div><div class="source">搜索词：异地补卡</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">帮省时间型</span><span class="tag" style="background:#6B7280">长尾</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">25秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员口播+身份证演示</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店异地补卡</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>营业厅服务类295条视频0条教异地补卡流程，但该类成交3单说明到店需求强，异地补卡是高频痛点无人覆盖。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起身份证怼镜头特写</td><td class="step-voice"><b>人在外地手机卡丢了，不用回老家补</b></td><td class="step-sub">外地丢卡不用回老家</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">店员在柜台操作补卡，旁边放身份证</td><td class="step-voice">带上身份证，到附近任何一家电信营业厅就能办异地补卡。<b>不用回开户地，十分钟就能拿到新卡</b>，号码不变</td><td class="step-sub">带身份证→10分钟出新卡</td></tr><tr><td class="step-no">3</td><td class="step-time">18-25s</td><td class="step-visual">店员指镜头，旁边显示门店导航画面</td><td class="step-voice">不知道附近哪有营业厅？评论区扣'补卡'，<b>我发你材料清单和门店地址</b></td><td class="step-sub">扣&#x27;补卡&#x27;领清单+地址</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'补卡'→自动回复异地补卡材料清单+附近门店导航→引导到店</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜身份证怼镜头特写是信息锚点，让观众立刻知道'只要带身份证就行'</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 实用信息BGM</span><span class="tags-tag">#异地补卡 #补卡怎么办 #手机卡丢了 #电信营业厅 #补卡流程</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">宽带快到期了？续费前先看这个</div><div class="source">搜索词：宽带续费</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">方言亲切型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">30秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员方言口播</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">门店门口</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店续费宽带</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>宽带网络类1348条视频仅1条提到续费，1348条视频里15成交说明宽带转化力强，但续费提醒内容几乎空白。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员站在营业厅门口，热情挥手</td><td class="step-voice"><b>家人们，咱宽带是不是快到期了？到期前得看看这个</b></td><td class="step-sub">宽带快到期了？</td></tr><tr><td class="step-no">2</td><td class="step-time">3-20s</td><td class="step-visual">店内柜台，店员展示宽带续费流程</td><td class="step-voice">宽带到期了不续，网直接就断了。到咱营业厅续费，带上身份证就行，<b>续费还能看看有没有新的优惠活动，比自己在手机上点划算</b></td><td class="step-sub">带身份证到店续费更划算</td></tr><tr><td class="step-no">3</td><td class="step-time">20-30s</td><td class="step-visual">店员指镜头，旁边显示手机查到期时间画面</td><td class="step-voice">不知道自己宽带啥时候到期？评论区扣'续费'，<b>我帮你查到期时间，顺便看看续费方案</b></td><td class="step-sub">扣&#x27;续费&#x27;查到期时间</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'续费'→帮你查宽带到期时间+续费方案→引导到店办理</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜店员站在门口微笑用方言打招呼，亲切感是方言型视频的留存关键</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 亲切温暖BGM</span><span class="tags-tag">#宽带续费 #宽带到期 #续费宽带 #电信营业厅 #千兆宽带</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">10秒找到最近的电信营业厅</div><div class="source">搜索词：营业厅在哪</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">指路型</span><span class="tag" style="background:#6B7280">长尾</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">20秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+手机地图演示</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">门店门口</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">导航到店</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>营业厅服务类295条视频均播315次为各业务类最高，说明'找营业厅'是强需求，但仅4条视频教用户怎么找，内容缺口明显。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起手机，地图App打开</td><td class="step-voice"><b>想办业务找不到电信营业厅？10秒搞定</b></td><td class="step-sub">找营业厅只要10秒</td></tr><tr><td class="step-no">2</td><td class="step-time">3-15s</td><td class="step-visual">手机地图搜索'电信营业厅'，弹出多个附近门店标记</td><td class="step-voice">打开地图搜'电信营业厅'，附近哪家都出来了，<b>点开还能看营业时间和电话，到了直接办</b></td><td class="step-sub">搜&#x27;电信营业厅&#x27;→导航到店</td></tr><tr><td class="step-no">3</td><td class="step-time">15-20s</td><td class="step-visual">店员指镜头+手机导航画面</td><td class="step-voice">评论区扣'在哪'，<b>我把附近门店导航链接发你，直接跟着走</b></td><td class="step-sub">扣&#x27;在哪&#x27;领导航</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'在哪'→自动回复门店导航链接→引导直接导航到店</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜手机地图上多个营业厅图标弹出的画面是指路核心镜头，要让观众看到'附近就有'</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 简洁明快BGM</span><span class="tags-tag">#营业厅在哪 #附近营业厅 #电信营业厅 #导航到店 #办业务</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">旧手机吃灰不如换钱，能抵多少你真不知道</div><div class="source">搜索词：旧手机回收</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">痛点切入型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">35秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+多部旧手机</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">手机专柜</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店回收旧机</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>手机终端类730条视频10条提到回收，14成交说明换机转化力强，但单独讲'回收估价'的内容缺口明确，用户不知道旧机值多少。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">桌上排开3部不同年份的旧手机，店员指着它们</td><td class="step-voice"><b>你抽屉里的旧手机，可能比你以为的值钱</b></td><td class="step-sub">旧手机比你以为的值钱</td></tr><tr><td class="step-no">2</td><td class="step-time">3-22s</td><td class="step-visual">店员拿起每部手机展示型号，旁边标估价区间</td><td class="step-voice">很多人觉得旧手机一文不值就扔了，其实到电信门店就能估价回收，<b>苹果华为小米都可以，旧机抵的钱直接用来换新机</b>，比放抽屉吃灰强多了</td><td class="step-sub">旧机估价→抵钱换新机</td></tr><tr><td class="step-no">3</td><td class="step-time">22-35s</td><td class="step-visual">店员举一部旧手机指向镜头</td><td class="step-voice">想知道你的旧机值多少？评论区扣'回收'，<b>我帮你在线估价，满意了到店直接换</b></td><td class="step-sub">扣&#x27;回收&#x27;在线估价</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'回收'→自动回复旧机在线估价入口→引导到店回收</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜桌上排开三部不同年份旧手机的画面是痛点钩子，让用户想到自己抽屉里也有一部</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻松生活BGM</span><span class="tags-tag">#旧手机回收 #手机回收 #以旧换新 #电信营业厅 #旧机估价</span></div></div>
+    <div class="section-header hot">热点引流脚本（3条）- 维持曝光</div>
+    <div class="script-card"><div class="card-header"><div class="card-title">39度高温去哪躲？营业厅免费吹空调办业务</div><div class="source">热点：高温天气如何防护 | 微博热搜第20位 峰值187.7万</div><div class="relevance">相关度：0.7 | 蹭法：高温→到营业厅纳凉顺便办业务，有因果有场景</div></div><div class="tag-row"><span class="tag" style="background:#7C3AED">热点引流</span><span class="tag" style="background:#6366F1">逻辑说服型</span><span class="tag" style="background:#EF4444">时效强</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">30秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员口播+店内空调画面</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅大厅</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店纳凉+办宽带</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>营业厅服务类295条视频均播315次为各业务类最高，到店需求强。高温热点+到店纳凉场景天然匹配，宽带类15成交说明到店转化力强。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员站在凉爽明亮的营业厅内，镜头透过玻璃门拍门外烈日</td><td class="step-voice"><b>外面39度，我们这儿免费吹空调</b></td><td class="step-sub">39度→来营业厅吹空调</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">店内空调节能画面+顾客坐在等候区喝水</td><td class="step-voice">高温天不想出门？来营业厅歇歇，有空调有水有座位，顺便把宽带续费、套餐换新都办了，<b>一趟搞定不跑第二趟</b></td><td class="step-sub">吹空调+顺便办业务</td></tr><tr><td class="step-no">3</td><td class="step-time">18-30s</td><td class="step-visual">店员指镜头+手机导航画面</td><td class="step-voice">评论区扣'纳凉'，<b>我把附近门店地址发你，过来歇歇顺便办个事</b></td><td class="step-sub">扣&#x27;纳凉&#x27;领门店地址</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'纳凉'→自动回复附近门店地址→引导到店吹空调+办业务</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜店员站在凉爽的营业厅里，对比门外烈日的画面是热梗钩子，温差反差留人</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 夏日清凉BGM</span><span class="tags-tag">#高温天气 #营业厅纳凉 #吹空调 #宽带办理 #电信营业厅</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">保罗乔治来中国了，追比赛别用流量烧钱</div><div class="source">热点：保罗乔治抵达中国 | 抖音热榜 峰值915.7万</div><div class="relevance">相关度：0.7 | 蹭法：NBA球星来华→追比赛费流量→IPTV看球不卡，有因果有场景</div></div><div class="tag-row"><span class="tag" style="background:#7C3AED">热点引流</span><span class="tag" style="background:#6366F1">热梗植入型</span><span class="tag" style="background:#EF4444">时效强</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">30秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+手机热搜画面</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅电视展区</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店办IPTV</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>保罗乔治来华催生大量体育讨论，追比赛是流量大户。IPTV类仅8条视频0成交是巨大缺口，用户用手机流量看比赛又贵又卡。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">手机展示抖音热搜'保罗乔治抵达中国'页面</td><td class="step-voice"><b>保罗乔治来中国了，追比赛你还在用手机流量？</b></td><td class="step-sub">追比赛别烧流量</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">镜头切到营业厅电视大屏播放比赛画面，4K清晰</td><td class="step-voice">手机看比赛又卡又费流量，办个IPTV，<b>电视大屏4K看，不卡不费流量，全家一起看</b></td><td class="step-sub">手机流量→IPTV大屏4K</td></tr><tr><td class="step-no">3</td><td class="step-time">18-30s</td><td class="step-visual">店员指评论区+电视画面</td><td class="step-voice">想看比赛不费流量？评论区扣'看球'，<b>我把IPTV详情发你，到店就能开通</b></td><td class="step-sub">扣&#x27;看球&#x27;领IPTV详情</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'看球'→自动回复IPTV办理详情→引导到店开通</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜手机热搜'保罗乔治抵达中国'画面是蹭热点钩子，必须前3秒出现热点信息</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 运动节奏BGM</span><span class="tags-tag">#保罗乔治 #NBA #IPTV #看比赛 #电信营业厅</span></div></div>
+<div class="script-card"><div class="card-header"><div class="card-title">故宫免费开放别光顾着激动，出门流量够用吗</div><div class="source">热点：故宫下周一免费开放 | 微博热搜第10位 峰值143.3万</div><div class="relevance">相关度：0.6 | 蹭法：故宫免费开放→出行旅游→流量不够信号差→大流量包，有因果有场景</div></div><div class="tag-row"><span class="tag" style="background:#7C3AED">热点引流</span><span class="tag" style="background:#6366F1">产品讲解型</span><span class="tag" style="background:#EF4444">时效强</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">25秒</span></div>
+        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+手机旅游视频</span></div>
+        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">手机专柜</span></div>
+        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店办理大流量包</span></div>
+    </div><div class="why-box"><div class="section-title">为什么有效</div><p>流量套餐类254条视频4成交完播率14.13%最高，说明流量类内容用户接受度强。旅游出行是流量需求的天然触发场景。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">手机展示故宫免费开放热搜+故宫照片</td><td class="step-voice"><b>故宫下周一免费开放，你激动归激动，手机流量够用吗？</b></td><td class="step-sub">故宫免费→流量够吗？</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">店员展示手机导航+拍照消耗流量的画面</td><td class="step-voice">旅游一天拍照发视频导航，流量蹭蹭就没了。到电信办个大流量包，<b>出门在外不怕超，信号也稳</b></td><td class="step-sub">旅游一天→流量秒没→办大流量包</td></tr><tr><td class="step-no">3</td><td class="step-time">18-25s</td><td class="step-visual">店员指镜头+流量包宣传画面</td><td class="step-voice">评论区扣'流量'，<b>我发你大流量包方案，出门前到店办了就行</b></td><td class="step-sub">扣&#x27;流量&#x27;领方案</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'流量'→自动回复大流量包方案→引导到店办理</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜故宫画面+热搜标题叠加是蹭热点钩子，让用户立刻联想到'我也要去'</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 旅行轻快BGM</span><span class="tags-tag">#故宫免费开放 #旅游流量 #大流量包 #电信营业厅 #出门必备</span></div></div>
+    <div class="schedule-box">
+        <div class="insight-title">7天发布排期建议</div>
+        <table class="schedule-table"><tr><th>日期</th><th>脚本</th><th>搜索词/热点</th><th>类型</th><th>时效</th></tr><tr><td>今天</td><td>h2</td><td>保罗乔治抵达中国→IPTV看球</td><td><span style="color:#7C3AED;font-weight:bold">热点</span></td><td>时效强</td></tr><tr><td>今天</td><td>h1</td><td>高温纳凉+宽带</td><td><span style="color:#7C3AED;font-weight:bold">热点</span></td><td>时效强</td></tr><tr><td>明天</td><td>h3</td><td>故宫免费开放→大流量包</td><td><span style="color:#7C3AED;font-weight:bold">热点</span></td><td>时效强</td></tr><tr><td>后天</td><td>s2</td><td>手机以旧换新</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第3天</td><td>s7</td><td>旧手机回收</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第4天</td><td>s1</td><td>换套餐</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第5天</td><td>s3</td><td>5G套餐</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>长尾</td></tr><tr><td>第6天</td><td>s4</td><td>异地补卡</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>长尾</td></tr><tr><td>第7天</td><td>s5</td><td>宽带续费</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>补充</td><td>s6</td><td>营业厅在哪</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>长尾</td></tr></table>
     </div>
-  </div>
-
-  <div class="footer">
-    搜索截流+热点引流 7:3混合策略 · 数据驱动选题<br>
-    2026-07-23 · 自动生成
-  </div>
+    <div class="bottom-tip">
+        <h3>拍摄要点</h3>
+        <ul>
+            <li>- 照着口播念就行，加粗的句子重读，是关键信息点</li>
+            <li>- 每条视频20-40秒，拍完直接发，不用剪辑</li>
+            <li>- CTA要照着念：评论区扣关键词是核心动作</li>
+            <li>- 热点脚本时效强，优先当天拍发</li>
+            <li>- 搜索截流脚本可一周内循环使用</li>
+            <li>- 发布时挂门店POI，到店才能成交</li>
+        </ul>
+    </div>
+    <div class="footer">
+        <p>7:3 策略 | 70% 搜索截流 + 30% 热点引流 | 2026年7月24日 自动生成</p>
+        <p>山西电信 抖本内容工坊 | 数据驱动选题 · 合规五级审核</p>
+    </div>
 </div>
 </body>
 </html>
