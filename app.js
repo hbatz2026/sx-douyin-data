@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 05:53:39
+// 构建时间: 2026-07-25 06:09:38
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5415,6 +5415,43 @@ function tryRenderBgm() {
         if (grid) grid.innerHTML = '<div style="grid-column:1/-1;color:#999;text-align:center;padding:20px;">BGM数据加载失败，请检查网络后刷新页面</div>';
       }
     }, 200);
+  }
+}
+
+// v2.8: 手动刷新BGM（浏览器直调 SiliconFlow）
+async function manualRefreshBGM() {
+  var btn = event.target;
+  var oldText = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ 生成中...';
+  try {
+    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-lshlazfvzcohfpxyimzpdqiaamrswskintayloiwdqzcxzod' },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        messages: [{
+          role: 'system',
+          content: '你是抖音音乐趋势专家。输出营业厅短视频BGM推荐JSON。结构：{"对比推荐":{"轻快对比":["歌名-歌手",...],"算账节奏":[...]},"服务故事":{"温情叙事":[...],"快节奏爽片":[...]},"开箱实测":{"科技感":[...]},"本地福利":{"探店活力":[...],"福利快闪":[...]},"直播":{"暖场":[...],"逼单":[...]}}。歌曲必须是抖音能搜到的真实热门BGM（最近30天抖音热歌/挑战榜/平台推荐）。每sub至少5首。纯JSON无markdown。'
+        }, {
+          role: 'user',
+          content: '生成2026年7月抖音营业厅短视频可蹭的热门BGM推荐。聚焦：7月抖音热歌/营业厅口播/探店/服务/测评适配。25-50岁电信营业厅员工能直接用。直接输出JSON对象。'
+        }],
+        max_tokens: 3500, temperature: 0.9
+      })
+    });
+    var data = await resp.json();
+    var content = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+    var jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('AI返回格式错误');
+    window.___bgmList = JSON.parse(jsonMatch[0]);
+    if (typeof renderBgmRecommend === 'function') renderBgmRecommend();
+    if (typeof syncBgmDropdowns === 'function') syncBgmDropdowns();
+    btn.textContent = '✅ 已刷新';
+    setTimeout(function(){ btn.textContent = oldText; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = '⚠️ 刷新失败';
+    setTimeout(function(){ btn.textContent = oldText; btn.disabled = false; }, 2000);
+    console.error('BGM refresh error:', e);
   }
 }
 
