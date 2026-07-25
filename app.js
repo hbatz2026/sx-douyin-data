@@ -1,10 +1,12 @@
 'use strict';
-// 抖本内容工坊 v2.7.0 — 模块化构建
-// 构建时间: 2026-07-23 04:16:12
+// 抖本内容工坊 v2.8.0 — 模块化构建
+// 构建时间: 2026-07-25 02:51:47
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
 // ═══════ core.js ═══════
+'use strict';
+
 'use strict';
 
 'use strict';
@@ -483,7 +485,6 @@ function renderChecklist(pageId, results) {
   if (!results.noFw) track('fw_detected', pageId);
 }
 
-// 2026-07-20: 脚本评分（钩子力/信任力/转化力）
 function scoreScript(scriptText) {
   if (!scriptText) return { hook: 0, trust: 0, conv: 0, total: 0 };
   var hookStarters = /^(你|大家|兄弟们|宝子|家人们|还在|不会|想|知道吗|说真的|说实话|我|这|一|上个月|昨天|今天)/;
@@ -504,7 +505,78 @@ function scoreScript(scriptText) {
   };
 }
 
-// 2026-07-20: 记忆库命中（痛点/信任/价格/CTA 关键词覆盖度）
+const ALGO_WEIGHTS = {
+  collect: 0.30,   // 收藏力（最高权重，内容长期价值，触发7天慢推流）
+  revisit: 0.22,   // 复访力（系列化/关注，长效流量）
+  interact: 0.20,  // 互动力（评论 + 铁粉共鸣 + 转发裂变）
+  retention: 0.18, // 留存力（5秒钩子 + 完播结构，门槛级）
+  convert: 0.10    // 转化力（到店核销，业务KPI，算法不直接加权但营业厅必需）
+};
+
+function scoreScriptV2(scriptText) {
+  if (!scriptText) return { retention: 0, collect: 0, interact: 0, convert: 0, revisit: 0, total: 0 };
+  var t = (scriptText || '').trim();
+
+  // —— 留存力：5秒钩子 + 完播结构 ——
+  var hookStarters = /^(你|大家|兄弟们|宝子|家人们|姐妹|哥|说真的|说实话|上个月|昨天|今天|前两天|还在|不会|想|知道吗|一|这|别|谁|为什么|怎么)/;
+  var hookPunct = /[？?！!]/;
+  var hasStruct = /(\d+|\u5bf9\u7167|对比|第一|第二|第三|方案|步|种|vs|：)/; // 信息密度
+  var hookScore = (hookStarters.test(t) ? 55 : 30) + (hookPunct.test(t.slice(0, 30)) ? 25 : 8);
+  var structScore = hasStruct.test(t) ? 40 : 15;
+  var retention = Math.min(100, hookScore + structScore);
+
+  // —— 收藏力：可留存价值锚点 ——
+  var collectKw = /(截图|保存|收藏|对照表|速查|清单|流程|指南|数据卡|留存|存好|留档|到厅对照|翻出来|拿出来看|记下来)/g;
+  var collect = Math.min(100, (t.match(collectKw) || []).length * 35 + 25);
+
+  // —— 互动力：评论 + 铁粉共鸣 + 转发 ——
+  var commentKw = /(评论|说说|聊聊|告诉我|评论区|你怎么看|你的情况|你用什么|聊聊你|你住|你家|你月租|你体验)/g;
+  var shareKw = /(转发|发给|分享给|发给你|转给)/g;
+  var empathyKw = /(你|咱们|咱|兄弟|姐妹|宝子|家人们|阿姨|大姐|小伙|老人|孩子)/g;
+  var commentScore = Math.min(60, (t.match(commentKw) || []).length * 30 + 15);
+  var shareScore = Math.min(20, (t.match(shareKw) || []).length * 20);
+  var empathyScore = Math.min(30, (t.match(empathyKw) || []).length > 2 ? 30 : 12);
+  var interact = Math.min(100, commentScore + shareScore + empathyScore);
+
+  // —— 转化力：到店 / 核销 / 私信 ——
+  var convertKw = /(到店|来店|来营业厅|营业厅|预约|私信|扫码|链接|核销|门店|厅里|店里|办理|当场)/g;
+  var convert = Math.min(100, (t.match(convertKw) || []).length * 22 + 22);
+
+  // —— 复访力：系列化 / 关注 ——
+  var revisitKw = /(关注|下期|系列|主页|持续|记得看|点关注|关注我|下回|下次|后续|追更|每周)/g;
+  var revisit = Math.min(100, (t.match(revisitKw) || []).length * 40 + 15);
+
+  var total = Math.round(
+    collect * ALGO_WEIGHTS.collect +
+    revisit * ALGO_WEIGHTS.revisit +
+    interact * ALGO_WEIGHTS.interact +
+    retention * ALGO_WEIGHTS.retention +
+    convert * ALGO_WEIGHTS.convert
+  );
+  return { retention: retention, collect: collect, interact: interact, convert: convert, revisit: revisit, total: total };
+}
+
+function auditScript(scriptText) {
+  var s = scoreScriptV2(scriptText);
+  var checks = [
+    { name: '5秒钩子', ok: s.retention >= 50, detail: '开头需冲突/利益/悬念，拉住前3秒' },
+    { name: '收藏锚点', ok: s.collect >= 40, detail: '需含截图/对照表/流程等可留存价值' },
+    { name: '评论指令', ok: s.interact >= 45, detail: '需引导用户评论（说说/聊聊/告诉我）' },
+    { name: '复访钩子', ok: s.revisit >= 30, detail: '需含关注/下期/系列化引导' },
+    { name: '转化CTA', ok: s.convert >= 40, detail: '需含到店/核销/私信等行动指令' }
+  ];
+  var adWords = (typeof detectAdWords === 'function') ? detectAdWords(scriptText || '') : [];
+  checks.push({ name: '违禁词', ok: adWords.length === 0, detail: adWords.length ? ('含：' + adWords.join('、')) : '无绝对化/违规表述' });
+  var pass = checks.every(function (c) { return c.ok; });
+  return { pass: pass, checks: checks, score: s };
+}
+
+function isBenchmark(scriptText) {
+  var s = scoreScriptV2(scriptText);
+  var ok = s.total >= 80 && s.collect >= 50 && s.revisit >= 40 && s.interact >= 50 && s.retention >= 60 && s.convert >= 40;
+  return { benchmark: ok, score: s };
+}
+
 function matchMemoryBank(scriptText) {
   if (!scriptText) return { total: 0, pct: 0, hits: [] };
   var PAIN = ['卡顿', '慢', '贵', '坑', '骗', '亏', '不会', '难', '信号', '排队', '掉线', '网速', '差', '换', '升级', '怕', '烦恼'];
@@ -1872,11 +1944,6 @@ function genHotspotComment(h) {
   return snippet + '... 你们遇到过吗？评论区聊聊 👇';
 }
 
-// ============================================================
-// T3 卖点翻译层 (v2.7) — phonePool 结构化规格 → 宣传文案
-// ============================================================
-
-// 规格→宣传文案映射
 var SPEC_SUFFIXES = {
   chip: '性能强劲',
   camera: '细节清晰',
@@ -1911,7 +1978,6 @@ function translateSpecToSlogan(raw, type) {
   return text;
 }
 
-// v2.7 扩展：仅提取事实数据（不带结论词后缀），用于口播脚本
 function translateSpecToFact(raw, type) {
   if (!raw) return '';
   var text = String(raw);
@@ -1934,7 +2000,6 @@ function translateSpecToFact(raw, type) {
   return text;
 }
 
-// 从 phonePool 获取3条卖点
 function getPhoneSellPoints(deviceName) {
   var phone = findPhoneByName(deviceName);
   if (!phone) return null;
@@ -1945,7 +2010,6 @@ function getPhoneSellPoints(deviceName) {
   ];
 }
 
-// 渲染卖点展示区
 function renderT3SellPointSection(deviceName, city) {
   var area = document.getElementById('t3_slogan_area');
   if (!area) return;
@@ -1988,10 +2052,6 @@ function renderT3SellPointSection(deviceName, city) {
   var tagsEl = document.getElementById('t3_tags');
   if (tagsEl) tagsEl.value = tagStr;
 }
-
-// ============================================================
-// v2.7: T3 脚本生成提示词（复制→DeepSeek/豆包）
-// ============================================================
 
 var SCENE_OPTIONS = [
   { id:'store', label:'🏪 店内（柜台前，手持手机）' },
@@ -2151,6 +2211,158 @@ function renderT3AutoSection(deviceName) {
     '</div>';
 
   area.style.display = 'block';
+}
+
+function findScriptFuzzy(scriptMap, topic) {
+  if (!scriptMap || !topic) return null;
+  for (var key in scriptMap) {
+    if (key.indexOf(topic.substring(0, 6)) >= 0 || topic.indexOf(key.substring(0, 6)) >= 0) {
+      return scriptMap[key];
+    }
+  }
+  return null;
+}
+
+function searchT1AndFill(topic) {
+  var city = (document.getElementById('t1_city')||{}).value || '';
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.a && data.b && data.c) {
+      // 区分数据来源：知识库(蓝) / 搜索(绿) / 无数据(灰)
+      var sourceColors = { knowledge: '#1565C0', search: '#2E7D32', partial: '#E65100', 'no-data': '#666' };
+      var sourceLabels = { knowledge: '🏛️ 知识库', search: '🌐 实时搜索', partial: '⚠️ 部分数据', 'no-data': '❌ 无数据' };
+      var color = sourceColors[data.source] || '#1565C0';
+      var label = sourceLabels[data.source] || '';
+      var ts = new Date().toLocaleTimeString();
+      
+      ['a','b','c'].forEach(function(k, i) {
+        var val = data[k];
+        var el = document.getElementById('t1_' + k);
+        if (el && val && !el.dataset.userEdited) {
+          el.value = val;
+          el.style.borderColor = color;
+          el.style.background = color + '18';
+          el.title = label + ' | ' + ts + (data.matchedKey ? ' | ' + data.matchedKey : '');
+        }
+      });
+    } else if (data && data.a && data.source === 'no-data') {
+      // 无数据：保留兜底但变色提示
+      ['a','b','c'].forEach(function(k) {
+        var el = document.getElementById('t1_' + k);
+        if (el) {
+          el.title = '❌ 搜索无数据，请手动填写 | ' + new Date().toLocaleTimeString();
+          el.style.color = '#999';
+        }
+      });
+    } else {
+      // 搜索失败：保持 auto-generate
+      ['a','b','c'].forEach(function(k) {
+        var el = document.getElementById('t1_' + k);
+        if (el) el.title = '🤖 AI 兜底（搜索失败） | ' + new Date().toLocaleTimeString();
+      });
+    }
+  }).catch(function(e) {
+    console.log('Search T1 error:', e.message);
+    ['a','b','c'].forEach(function(k) {
+      var el = document.getElementById('t1_' + k);
+      if (el) el.title = '⚠️ 搜索异常，已用 AI 兜底';
+    });
+  });
+}
+
+function searchT2AndFill(preset) {
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'search-t2', preset: preset, topic: preset })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.snippets && data.snippets.length > 0) {
+      // 把搜索到的素材片段显示在 summary 字段下方作为参考
+      var summaryEl = document.getElementById('t2_summary');
+      if (summaryEl && !summaryEl.dataset.userEdited) {
+        // 拼接 2 条最相关的搜索片段作为参考
+        var refs = data.snippets.slice(0, 2).join(' / ').slice(0, 200);
+        // 在 tags 字段追加搜索标记
+        var tagsEl = document.getElementById('t2_tags');
+        if (tagsEl && !tagsEl.dataset.userEdited) {
+          var cur = tagsEl.value || '';
+          tagsEl.value = cur + (cur ? ' ' : '') + '#搜索素材' + (data.source === 'search' ? '✓' : '');
+          tagsEl.title = '🌐 搜索素材已添加';
+        }
+      }
+    }
+  }).catch(function(e) {
+    console.log('Search T2 error:', e.message);
+  });
+}
+
+var __aiKey = null;
+
+var __aiKeyPromise = null;
+
+function getCachedAIKey() {
+  try {
+    var k = localStorage.getItem('_dy_ai_key');
+    if (k && k.length > 20) return k;
+  } catch(e) {}
+  return null;
+}
+
+function setCachedAIKey(k) {
+  try { if (k && k.length > 20) localStorage.setItem('_dy_ai_key', k); } catch(e) {}
+}
+
+async function ensureAIKey() {
+  if (__aiKey) return __aiKey;
+  // 先检查 localStorage 缓存
+  var cached = getCachedAIKey();
+  if (cached) { __aiKey = cached; return __aiKey; }
+  if (__aiKeyPromise) return __aiKeyPromise;
+  __aiKeyPromise = (async function() {
+    try {
+      var ctrl = new AbortController();
+      var tid = setTimeout(function(){ctrl.abort();}, 10000);
+      var res = await fetch(PERSONALIZE_API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({mode:'get-ai-key'}),
+        signal: ctrl.signal
+      });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      var data = await res.json();
+      if (!data.key) throw new Error('no key');
+      __aiKey = data.key;
+      setCachedAIKey(data.key);
+      return __aiKey;
+    } catch(e) {
+      console.warn('[AI key] SCF获取失败:', e.message);
+      // 兜底：弹出对话框让用户粘贴 key（SiliconFlow 控制台可查）
+      var manualKey = prompt('输入你的 SiliconFlow API Key\n去 https://cloud.siliconflow.cn → API密钥 → 复制粘贴过来\n（只需输入一次，后续自动缓存）');
+      if (manualKey && manualKey.length > 20) {
+        __aiKey = manualKey.trim();
+        setCachedAIKey(__aiKey);
+        return __aiKey;
+      }
+      __aiKey = null;
+      return null;
+    } finally {
+      __aiKeyPromise = null;
+    }
+  })();
+  return __aiKeyPromise;
+}
+
+function detectAdWords(text) {
+  var words = ['最好','最大','最全','最佳','最低','最高','最先','最新','最便宜','第一','唯一','独家','首创','顶级','极品','至尊','王牌','冠军','百分百','100%','绝对','保证','担保','肯定没问题','永不','永久','免费送','免费领','私信我','最后一天','史上最低','绝版'];
+  var found = [];
+  for (var i = 0; i < words.length; i++) { if (text.indexOf(words[i]) >= 0) found.push(words[i]); }
+  return found;
 }
 
 // ═══════ schedule.js ═══════
@@ -2457,18 +2669,6 @@ function switchT1Mode(mode) {
   updateMobileBarAction();
 }
 
-// 通用辅助：脚本模糊匹配（dropdown value 与 t1ScriptFull key 不完全一致时回退）
-// 匹配规则：取脚本 key 的前 6 个字，看是否出现在用户选项中
-function findScriptFuzzy(scriptMap, topic) {
-  if (!scriptMap || !topic) return null;
-  for (var key in scriptMap) {
-    if (key.indexOf(topic.substring(0, 6)) >= 0 || topic.indexOf(key.substring(0, 6)) >= 0) {
-      return scriptMap[key];
-    }
-  }
-  return null;
-}
-
 function previewT1Talk() {
   const city = (document.getElementById('t1_city')||{}).value;
   const topic = (document.getElementById('t1_topic')||{}).value;
@@ -2515,27 +2715,41 @@ function previewT1Talk() {
 
     // 2026-07-20: 脚本评分 + 记忆库命中
     var fullText = isPersonaFull ? fullScript : ((pData.hook || '').replace(/\{topic\}/g, topic) + '\n' + fullScript + '\n' + (pData.cta || ''));
-    var score = (typeof scoreScript === 'function') ? scoreScript(fullText) : null;
+    var score = (typeof scoreScriptV2 === 'function') ? scoreScriptV2(fullText) : null;
+    var audit = (typeof auditScript === 'function') ? auditScript(fullText) : null;
+    var bench = (typeof isBenchmark === 'function') ? isBenchmark(fullText) : null;
     var mem = (typeof matchMemoryBank === 'function') ? matchMemoryBank(fullText) : null;
     var scoreHtml = '';
     if (score) {
-      function bar(s) {
+      function bar5(s, th) {
         var filled = Math.round(s / 10);
         var empty = 10 - filled;
         var color = s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444';
-        return '<span style="display:inline-block;width:' + (filled * 10) + 'px;height:8px;background:' + color + ';border-radius:4px;"></span>' +
-               '<span style="display:inline-block;width:' + (empty * 10) + 'px;height:8px;background:#E2E8F0;border-radius:4px;"></span>';
+        var mark = s >= th ? '✅' : '⚠️';
+        return '<span style="display:inline-block;width:' + (filled * 9) + 'px;height:8px;background:' + color + ';border-radius:4px;"></span>' +
+               '<span style="display:inline-block;width:' + (empty * 9) + 'px;height:8px;background:#E2E8F0;border-radius:4px;"></span>' +
+               ' <span style="font-size:9px;color:#94A3B8;">' + mark + '</span>';
       }
+      var dims = [
+        { k:'collect', label:'📌 收藏力', th:40 },
+        { k:'revisit', label:'🔁 复访力', th:30 },
+        { k:'interact', label:'💬 互动力', th:45 },
+        { k:'retention', label:'⏱ 留存力', th:50 },
+        { k:'convert', label:'🛒 转化力', th:40 }
+      ];
+      var dimHtml = dims.map(function(d){
+        return '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">' + d.label + ' <b style="color:#1E293B;">' + score[d.k] + '</b></div>' + bar5(score[d.k], d.th) + '</div>';
+      }).join('');
+      var auditBadge = (audit && audit.pass) ? '<span style="font-size:11px;color:#fff;background:#10B981;padding:2px 8px;border-radius:8px;">✅ 新算法审核通过</span>' : '<span style="font-size:11px;color:#fff;background:#F59E0B;padding:2px 8px;border-radius:8px;">⚠️ 待优化</span>';
+      var benchBadge = (bench && bench.benchmark) ? '<span style="font-size:11px;color:#fff;background:#7C3AED;padding:2px 8px;border-radius:8px;">⭐ 标杆脚本</span>' : '';
       scoreHtml = '<div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#F0F7FF,#FEFEFE);border:1px solid #BFDBFE;border-radius:12px;">' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
-        '<span style="font-weight:700;color:#0052CC;font-size:13px;">📊 脚本评分</span>' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">' +
+        '<span style="font-weight:700;color:#0052CC;font-size:13px;">📊 抖音新算法评分</span>' +
         '<span style="font-size:11px;color:#64748B;background:#fff;padding:2px 8px;border-radius:8px;border:1px solid #E2E8F0;">综合 ' + score.total + ' / 100</span>' +
+        auditBadge + benchBadge +
         '</div>' +
-        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">' +
-        '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">🎯 钩子力 <b style="color:#1E293B;">' + score.hook + '</b></div>' + bar(score.hook) + '</div>' +
-        '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">🤝 信任力 <b style="color:#1E293B;">' + score.trust + '</b></div>' + bar(score.trust) + '</div>' +
-        '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">🛒 转化力 <b style="color:#1E293B;">' + score.conv + '</b></div>' + bar(score.conv) + '</div>' +
-        '</div>';
+        '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">' + dimHtml + '</div>' +
+        '<div style="font-size:10px;color:#94A3B8;margin-top:8px;">权重：收藏30% › 复访22% › 互动20% › 留存18% › 转化10%（2026-05 抖音算法大改）</div>';
       if (mem && mem.total > 0) {
         scoreHtml += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #BFDBFE;">' +
           '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">' +
@@ -2545,6 +2759,10 @@ function previewT1Talk() {
           '<div style="display:flex;flex-wrap:wrap;gap:4px;">' +
           mem.hits.map(function(h) { return '<span style="font-size:10px;padding:2px 6px;background:#E0F2FE;color:#0EA5E9;border-radius:8px;">' + h.label + ':' + h.tag + '</span>'; }).join('') +
           '</div></div>';
+      }
+      if (audit && !audit.pass) {
+        var fails = audit.checks.filter(function(c){ return !c.ok; }).map(function(c){ return c.name; });
+        scoreHtml += '<div style="margin-top:8px;font-size:11px;color:#B45309;background:#FFFBEB;padding:6px 10px;border-radius:8px;border:1px solid #FDE68A;">⚠️ 待补强要素：' + fails.join('、') + '</div>';
       }
       scoreHtml += '</div>';
     }
@@ -2763,66 +2981,6 @@ function fillT1Presets() {
   applyT1Presets(generated);
   // 【2026-07-16】实时搜索已下线（搜索结果质量差，改用离线话术库）
   // searchT1AndFill(topic);
-}
-
-/*
- * 【2026-07-16】实时搜索已下线
- * 
- * 原因：搜索引擎返回的通用网页摘要无法提取电信套餐结构化数据，
- *       结果质量差（噪音词残留、档位混乱、缺价格锚点）。
- *       改用离线 AI 生成 + 知识库 + 本地预设三层方案。
- *       
- * 保留代码供参考，不再调用。
- */
-function searchT1AndFill(topic) {
-  var city = (document.getElementById('t1_city')||{}).value || '';
-  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
-  fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data && data.a && data.b && data.c) {
-      // 区分数据来源：知识库(蓝) / 搜索(绿) / 无数据(灰)
-      var sourceColors = { knowledge: '#1565C0', search: '#2E7D32', partial: '#E65100', 'no-data': '#666' };
-      var sourceLabels = { knowledge: '🏛️ 知识库', search: '🌐 实时搜索', partial: '⚠️ 部分数据', 'no-data': '❌ 无数据' };
-      var color = sourceColors[data.source] || '#1565C0';
-      var label = sourceLabels[data.source] || '';
-      var ts = new Date().toLocaleTimeString();
-      
-      ['a','b','c'].forEach(function(k, i) {
-        var val = data[k];
-        var el = document.getElementById('t1_' + k);
-        if (el && val && !el.dataset.userEdited) {
-          el.value = val;
-          el.style.borderColor = color;
-          el.style.background = color + '18';
-          el.title = label + ' | ' + ts + (data.matchedKey ? ' | ' + data.matchedKey : '');
-        }
-      });
-    } else if (data && data.a && data.source === 'no-data') {
-      // 无数据：保留兜底但变色提示
-      ['a','b','c'].forEach(function(k) {
-        var el = document.getElementById('t1_' + k);
-        if (el) {
-          el.title = '❌ 搜索无数据，请手动填写 | ' + new Date().toLocaleTimeString();
-          el.style.color = '#999';
-        }
-      });
-    } else {
-      // 搜索失败：保持 auto-generate
-      ['a','b','c'].forEach(function(k) {
-        var el = document.getElementById('t1_' + k);
-        if (el) el.title = '🤖 AI 兜底（搜索失败） | ' + new Date().toLocaleTimeString();
-      });
-    }
-  }).catch(function(e) {
-    console.log('Search T1 error:', e.message);
-    ['a','b','c'].forEach(function(k) {
-      var el = document.getElementById('t1_' + k);
-      if (el) el.title = '⚠️ 搜索异常，已用 AI 兜底';
-    });
-  });
 }
 
 function applyT1Presets(presets) {
@@ -3225,34 +3383,6 @@ function fillT2Presets() {
   if (lbl) lbl.textContent = labelMap[key] || '发现的具体问题';
   // 异步搜索 T2 故事素材（零成本、零 AI）
   searchT2AndFill(key);
-}
-
-// 异步从 Web 函数搜索 T2 故事素材
-function searchT2AndFill(preset) {
-  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
-  fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode: 'search-t2', preset: preset, topic: preset })
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data && data.snippets && data.snippets.length > 0) {
-      // 把搜索到的素材片段显示在 summary 字段下方作为参考
-      var summaryEl = document.getElementById('t2_summary');
-      if (summaryEl && !summaryEl.dataset.userEdited) {
-        // 拼接 2 条最相关的搜索片段作为参考
-        var refs = data.snippets.slice(0, 2).join(' / ').slice(0, 200);
-        // 在 tags 字段追加搜索标记
-        var tagsEl = document.getElementById('t2_tags');
-        if (tagsEl && !tagsEl.dataset.userEdited) {
-          var cur = tagsEl.value || '';
-          tagsEl.value = cur + (cur ? ' ' : '') + '#搜索素材' + (data.source === 'search' ? '✓' : '');
-          tagsEl.title = '🌐 搜索素材已添加';
-        }
-      }
-    }
-  }).catch(function(e) {
-    console.log('Search T2 error:', e.message);
-  });
 }
 
 function matchT2Preset() {
@@ -4164,64 +4294,6 @@ function triggerVariantOptimize(cardId, topicKey) {
   fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl);
 }
 
-// 2026-07-21: 浏览器直调 SiliconFlow（绕过 SCF 网络问题）
-// 从 SCF 获取 AI key，然后直连 SiliconFlow API
-// 优先 localStorage 缓存，其次 SCF，最后手动输入
-var __aiKey = null;
-var __aiKeyPromise = null;
-
-function getCachedAIKey() {
-  try {
-    var k = localStorage.getItem('_dy_ai_key');
-    if (k && k.length > 20) return k;
-  } catch(e) {}
-  return null;
-}
-function setCachedAIKey(k) {
-  try { if (k && k.length > 20) localStorage.setItem('_dy_ai_key', k); } catch(e) {}
-}
-
-async function ensureAIKey() {
-  if (__aiKey) return __aiKey;
-  // 先检查 localStorage 缓存
-  var cached = getCachedAIKey();
-  if (cached) { __aiKey = cached; return __aiKey; }
-  if (__aiKeyPromise) return __aiKeyPromise;
-  __aiKeyPromise = (async function() {
-    try {
-      var ctrl = new AbortController();
-      var tid = setTimeout(function(){ctrl.abort();}, 10000);
-      var res = await fetch(PERSONALIZE_API, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({mode:'get-ai-key'}),
-        signal: ctrl.signal
-      });
-      clearTimeout(tid);
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      var data = await res.json();
-      if (!data.key) throw new Error('no key');
-      __aiKey = data.key;
-      setCachedAIKey(data.key);
-      return __aiKey;
-    } catch(e) {
-      console.warn('[AI key] SCF获取失败:', e.message);
-      // 兜底：弹出对话框让用户粘贴 key（SiliconFlow 控制台可查）
-      var manualKey = prompt('输入你的 SiliconFlow API Key\n去 https://cloud.siliconflow.cn → API密钥 → 复制粘贴过来\n（只需输入一次，后续自动缓存）');
-      if (manualKey && manualKey.length > 20) {
-        __aiKey = manualKey.trim();
-        setCachedAIKey(__aiKey);
-        return __aiKey;
-      }
-      __aiKey = null;
-      return null;
-    } finally {
-      __aiKeyPromise = null;
-    }
-  })();
-  return __aiKeyPromise;
-}
-
 async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
   var previewEl = document.getElementById(window['__preview_' + cardId] || '');
   if (!previewEl) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; } return; }
@@ -4246,7 +4318,13 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
       (p.hook ? '说话特点：' + p.hook : '') +
       '请用自然的口语改写以下台词，让它更像你现场录制时说的话。' +
       '保持原意、故事骨架、数字、价格不变。' +
-      '不要加分镜标记，不要加JSON标记，直接输出纯文本口播台词。';
+      '不要加分镜标记，不要加JSON标记，直接输出纯文本口播台词。' +
+      '【抖音2026新算法强制要素】改写时务必覆盖以下五项，缺失则补、已有则保留，不要重复堆砌：' +
+      '1)开头用冲突/利益/悬念钩子拉住前3秒（如"别再XX了""XX其实亏了"）；' +
+      '2)植入可收藏价值锚点（如"截图保存这个对照表/到厅直接对照"）拉升收藏率（新算法第一权重）；' +
+      '3)结尾引导用户评论（如"评论说说你的情况，我帮你参谋"）；' +
+      '4)加复访钩子（如"关注我看下期/这是个系列，下条讲XX"）；' +
+      '5)保留到店/核销等转化指令。';
     var userPrompt = '帮我把这段台词改得更自然、更像口语化的现场表达：\n```\n' + src + '\n```';
 
     var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
@@ -4295,13 +4373,6 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     var rem = (errType === 'timeout' || errType === 'api') ? quotaRemaining() : useDailyQuota();
     renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType, null, topicKey);
   }
-}
-
-function detectAdWords(text) {
-  var words = ['最好','最大','最全','最佳','最低','最高','最先','最新','最便宜','第一','唯一','独家','首创','顶级','极品','至尊','王牌','冠军','百分百','100%','绝对','保证','担保','肯定没问题','永不','永久','免费送','免费领','私信我','最后一天','史上最低','绝版'];
-  var found = [];
-  for (var i = 0; i < words.length; i++) { if (text.indexOf(words[i]) >= 0) found.push(words[i]); }
-  return found;
 }
 
 function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines, topicKey) {
@@ -5050,7 +5121,6 @@ function generateDouyinPrompt() {
   panel.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 兼容旧调用
 function buildAiPrompt(mode) { generateDouyinPrompt(); }
 
 const hotspotData = (function() {
@@ -5249,6 +5319,90 @@ function syncBgmDropdowns() {
   });
 }
 
+function copyBenchmarkScript(idx) {
+  var e = window.___benchmarkEntries && window.___benchmarkEntries[idx];
+  if (!e) return;
+  var text = e.fullText;
+  if (typeof copyText === 'function') {
+    copyText(text);
+  } else if (navigator && navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){ alert('✅ 已复制标杆脚本'); });
+  } else {
+    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('✅ 已复制标杆脚本');
+  }
+}
+
+function renderBenchmark() {
+  var el = document.getElementById('benchmarkContent');
+  if (!el) return;
+  var entries = [];
+
+  function addEntry(scriptText, type, label, persona) {
+    if (!scriptText || scriptText.length < 30) return;
+    if (typeof isBenchmark !== 'function') return;
+    var b = isBenchmark(scriptText);
+    if (!b.benchmark) return;
+    entries.push({
+      type: type, label: label, persona: persona || '',
+      text: esc(scriptText.slice(0, 220)).replace(/\n/g, '<br>'),
+      fullText: scriptText, score: b.score
+    });
+  }
+
+  try {
+    var t1 = window.___t1ScriptFullByPersona;
+    if (t1) for (var topic in t1) for (var persona in t1[topic]) addEntry(t1[topic][persona], '📊 决策指南', topic, persona);
+    var t2 = window.___t2ScriptFullByPersona;
+    if (t2) for (var p in t2) for (var persona in t2[p]) addEntry(t2[p][persona], '🎬 一线场景', p, persona);
+    var t4 = window.___t4ScriptFullByPersona;
+    if (t4) for (var a in t4) for (var persona in t4[a]) addEntry(t4[a][persona], '📍 本地活动', a, persona);
+    var hs = window.___hotspotData;
+    if (hs) for (var i=0; i<hs.length; i++) addEntry(hs[i].steps.map(function(s){return s.shot;}).join('\n'), '🔥 热点跟拍', hs[i].title, '');
+    var dl = window.___dailyScripts;
+    if (dl && dl.scripts) for (var i=0; i<dl.scripts.length; i++) {
+      var sc = dl.scripts[i]; for (var p in sc.variants) addEntry(sc.variants[p].script, '📅 每日脚本', sc.typeName + ' · ' + (sc.variants[p].title||''), p);
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="card" style="color:#EF4444;">⚠️ 数据加载失败：' + esc(e.message) + '</div>';
+    return;
+  }
+
+  entries.sort(function(a,b){ return b.score.total - a.score.total; });
+  window.___benchmarkEntries = entries;
+
+  var html = '';
+  if (entries.length === 0) {
+    html = '<div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无标杆脚本入围。脚本总评分 ≥ 80 且五维全线达标时，会自动进入标杆库。</div>';
+  } else {
+    html = '<div style="display:grid;gap:12px;">';
+    var dims = [{k:'collect',icon:'📌',n:'收藏'},{k:'revisit',icon:'🔁',n:'复访'},{k:'interact',icon:'💬',n:'互动'},{k:'retention',icon:'⏱',n:'留存'},{k:'convert',icon:'🛒',n:'转化'}];
+    for (var i=0; i<entries.length; i++) {
+      var e = entries[i], s = e.score;
+      html += '<div class="card" style="border-left:4px solid #7C3AED;">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+        '<span style="font-size:11px;background:#7C3AED;color:#fff;padding:2px 8px;border-radius:8px;">' + e.type + '</span>' +
+        (e.persona ? '<span style="font-size:11px;background:#E0E7FF;color:#4338CA;padding:2px 8px;border-radius:8px;">' + e.persona + '</span>' : '') +
+        '<b style="font-size:14px;color:#1E293B;">' + e.label + '</b>' +
+        '<span style="margin-left:auto;font-size:18px;font-weight:700;color:#7C3AED;">⭐ ' + s.total + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;color:#64748B;line-height:1.7;max-height:90px;overflow:hidden;margin-bottom:10px;background:#F8FAFC;padding:8px 10px;border-radius:8px;">' + e.text + '…</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+        (function(){
+          var rows = '';
+          for (var j=0; j<dims.length; j++){
+            var v = s[dims[j].k], col = v>=80?'#10B981':v>=60?'#F59E0B':'#EF4444';
+            rows += '<span style="font-size:10px;background:#F1F5F9;padding:3px 8px;border-radius:8px;font-weight:600;">'+dims[j].icon+'<span style="color:'+col+';"> '+v+'</span></span>';
+          }
+          return rows;
+        })() +
+        '<button style="margin-left:auto;font-size:11px;padding:5px 14px;background:#F0F7FF;border:1px solid #BFDBFE;border-radius:8px;color:#0052CC;cursor:pointer;" onclick="copyBenchmarkScript(' + i + ')">📋 复制完整脚本</button>' +
+        '</div></div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
 // ═══════ init.js ═══════
 (function initAll() {
   // 2026-07-20: 延迟 100ms 再检查数据（让 bundle.js 完全加载）
@@ -5261,6 +5415,7 @@ function syncBgmDropdowns() {
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
   try { buildHistory(); } catch(e) { console.error('buildHistory:', e); }
   try { renderHotspots(); } catch(e) { console.error('renderHotspots:', e); }
+  try { renderBenchmark(); } catch(e) { console.error('renderBenchmark:', e); }
   try { addHotspotSummary(); } catch(e) { console.error('addHotspotSummary:', e); }
   try { labelDropdownOptions(); } catch(e) { console.error('labelDropdownOptions:', e); }
   try { injectBGMButtons(); } catch(e) { console.error('injectBGMButtons:', e); }
