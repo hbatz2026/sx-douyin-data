@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 14:41:31
+// 构建时间: 2026-07-25 15:05:06
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -841,6 +841,11 @@ function injectBGMButtons() {
 let currentPage = 'schedule';
 
 const pageHistory = ['schedule'];
+
+// v2.8: weekly banner 占位（功能待 v3.0 实现；stub 防 ReferenceError 回归）
+function injectWeeklyBanner(name) {
+  // TODO: v3.0 在模板页注入本周推荐横幅
+}
 
 function switchPage(name, el, noPush) {
   // Save current template form before leaving
@@ -5620,7 +5625,6 @@ function renderBenchmark() {
   }, 100);
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
-  try { loadHotContentPool(); } catch(e) { console.error('loadHotContentPool:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
   try { renderHotspots(); } catch(e) { console.error('renderHotspots:', e); }
   try { renderBenchmark(); } catch(e) { console.error('renderBenchmark:', e); }
