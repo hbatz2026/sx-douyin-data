@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 03:16:28
+// 构建时间: 2026-07-25 03:39:21
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2082,61 +2082,40 @@ function buildScriptPrompt(phone, topic, city, bgm) {
   var scene = document.getElementById('t3_scene')?.value || 'store';
   var sceneLabel = SCENE_OPTIONS.find(function(s){return s.id===scene;})?.label || '🏪 店内';
 
+  // 提取人设风格指导
+  var personaGuide = {
+    sweet: { voice: '甜美活泼，像闺蜜闲聊。用语气词"呀/哦/嘛"，但别过度。节奏轻快不拖沓。', hook: '身边好朋友发现了什么好东西非要分享给你那种兴奋感。' },
+    tech: { voice: '硬核不废话。数据前置、结论先行。不加任何修饰词。', hook: '直接扔出一个别人不知道的参数真相。' },
+    biz: { voice: '商务干练，像给同事汇报。干净利落每句话有营养。', hook: '这本账你算完就懂了——三句话点透性价比。' },
+    young: { voice: '抖音原生感：梗快、信息密、不喊不卖。', hook: '像刷到一条很炸裂的视频忍不住要分享给朋友。' },
+    master: { voice: '有阅历有分寸。不卖弄不啰嗦，一句话顶十句。', hook: '凭经验告诉你一件事——很普通但别人不会说。' },
+    sister: { voice: '可亲小妹妹：热情但不聒噪，像给家里人介绍好东西。', hook: '我今天测完这个真的被惊到了。' }
+  };
+  var guide = personaGuide[persona] || personaGuide['tech'];
+
   var lines = [];
-  lines.push('你是一个25-35岁的抖音博主，风格直接有自信不绕弯子。用户要看真实体验，不是产品说明书。');
+  // 精简系统指令
+  lines.push('你是' + pd.icon + ' ' + pd.label + '人设的抖音博主。');
+  lines.push('风格：' + guide.voice);
   lines.push('');
-  lines.push('【写作原则】');
-  lines.push('❌ 不要产品说明书：禁止"搭载XX处理器""支持XX功能"');
-  lines.push('✅ 要人话：把参数翻译成"用起来怎么样"');
-  lines.push('✅ 真实场景：刷视频/玩王者/拍夜景/挤地铁/下雨天');
-  lines.push('✅ 反常识钩子：开头别"大家好"，直接抛痛点');
-  lines.push('✅ 具体数字：电池就说"出门一天不用充电宝"');
-  lines.push('✅ 价格对比：电信合约价 vs 电商价，差多少说多少');
+  lines.push('【产品】');
+  lines.push(model);
+  lines.push('芯片' + p.chip + ' | 影像' + p.camera + ' | 电池' + p.battery);
+  lines.push('卖点：' + p.highlight);
+  lines.push('电信合约价¥' + price + ' | ' + city + '电信营业厅');
   lines.push('');
-  lines.push('【产品数据 - 禁止编造）');
-  lines.push('手机型号：' + model);
-  lines.push('芯片：' + p.chip + ' → 翻译成人话描述');
-  lines.push('影像：' + p.camera + ' → 翻译成人话描述');
-  lines.push('电池：' + p.battery + ' → 翻译成人话描述');
-  lines.push('核心卖点：' + p.highlight);
-  lines.push('参考价格：¥' + price + '（电信合约价）');
-  lines.push('门店地址：' + city + '电信营业厅');
+  lines.push('【选题】' + topicDesc);
+  lines.push('【场景】' + sceneLabel);
   lines.push('');
-  lines.push('【选题方向】' + topicDesc);
+  // 核心创作指令
+  lines.push('写一段45秒口播脚本（约120-150字），要求：');
+  lines.push('1. 第一句就是钩子——' + guide.hook);
+  lines.push('2. 把芯片/影像/电池这三个参数翻译成三个"用起来什么感觉"');
+  lines.push('3. 最后三句是行动指令：价格+到店+收藏');
+  lines.push('4. 用口语写，避免"大家""众所周知""搭载"');
+  lines.push('5. 直接给可念的对话文本，不要分段小标题');
   lines.push('');
-  lines.push('【45秒口播结构】');
-  lines.push('');
-  lines.push('▎0-8秒 开场钩子');
-  lines.push('- 一句话钩住：不讲废话，直接抛痛点/反常识/悬念');
-  lines.push('- 例："千元机打王者居然不卡？今天我测给你看。"');
-  lines.push('- 例："天天手机发热？这台xxxx你信不信？"');
-  lines.push('');
-  lines.push('▎8-20秒 核心卖点1（最该被记住的那个）');
-  lines.push('- 用"人用了什么感觉"，不用"搭载了什么"');
-  lines.push('- 错误："搭载天玑7300" → 正确："打游戏不卡，玩王者不掉帧"');
-  lines.push('- 必须 7-15 字一句话说清楚');
-  lines.push('');
-  lines.push('▎20-32秒 核心卖点2（选最反常识的）');
-  lines.push('- 大电池："出门一天不用带充电宝"');
-  lines.push('- 防水："下雨天也能拿手机拍"');
-  lines.push('- 长焦："演唱会坐山顶能拍清台上"');
-  lines.push('');
-  lines.push('▎32-45秒 结尾CTA');
-  lines.push('- 价格：电信合约价¥' + price + '，对比电商价');
-  lines.push('- 地点：' + city + '电信营业厅');
-  lines.push('- 行动：截图/评论区/到店');
-  lines.push('');
-  lines.push('【格式要求】');
-  lines.push('- 口语化，用"你"不用"您"');
-  lines.push('- 全文控制在150字以内');
-  lines.push('- 不要"以下""众所周知""大家"等套话');
-  lines.push('- 开头第一句就是钩子，不要自我介绍');
-  lines.push('- 每段直接是可念的对话文本，不要分段标题');
-  lines.push('- BGM：' + bgm + '（音量25%铺底不压人声）');
-  lines.push('');
-  lines.push('【参考风格】');
-  lines.push('- 贤贤小姐姐（临汾）：强CTA直销，每句话都有行动指令');
-  lines.push('- 沁县艳儿（长治）：亲切有温度，像跟朋友说话');
+  lines.push('BGM：' + bgm + '（铺底音量25%）');
 
   return lines.join('\n');
 }
