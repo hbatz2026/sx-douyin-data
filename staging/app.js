@@ -1,29 +1,19 @@
 'use strict';
-// 抖本内容工坊 v2.6.0 — 模块化构建
-// 构建时间: 2026-07-09 03:10:05
+// 抖本内容工坊 v2.8.0 — 模块化构建
+// 构建时间: 2026-07-25 14:57:56
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
 // ═══════ core.js ═══════
 'use strict';
 
-function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
+'use strict';
 
-function findPhoneByName(deviceName) {
-  var pool = window.___phonePool || (typeof phonePool !== 'undefined' ? phonePool : []);
-  if (!pool.length || !deviceName) return null;
-  for (var i = 0; i < pool.length; i++) {
-    var p = pool[i];
-    var fullName = (p.brand || '') + ' ' + (p.model || '');
-    if (fullName.trim() === deviceName.trim()) return p;
-  }
-  for (var i = 0; i < pool.length; i++) {
-    var p = pool[i];
-    if (p.brand && p.model && deviceName.indexOf(p.brand) >= 0 && deviceName.indexOf(p.model) >= 0) return p;
-    if (p.model && deviceName.indexOf(p.model) >= 0) return p;
-  }
-  return null;
-}
+'use strict';
+
+'use strict';
+
+function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
 
 function sanitizeFilename(name) {
   return String(name).replace(/[\/\\:*?"<>|]/g, '-').replace(/\s+/g, '_').slice(0, 80);
@@ -57,42 +47,6 @@ function safeCall(fn) {
   }
 }
 
-function initT3DeviceOptions() {
-  var sel = document.getElementById('t3_device');
-  var og = document.getElementById('t3_phone_optgroup');
-  if (!sel || !og) return;
-  var pool = window.___phonePool || (typeof phonePool !== 'undefined' ? phonePool : []);
-  if (!pool.length) { og.innerHTML = '<option value="">-- 暂无手机数据 --</option>'; return; }
-  var byBrand = {};
-  for (var i = 0; i < pool.length; i++) {
-    var p = pool[i];
-    var brand = p.brand || '其他';
-    if (!byBrand[brand]) byBrand[brand] = [];
-    byBrand[brand].push(p);
-  }
-  var html = '';
-  var brands = Object.keys(byBrand).sort();
-  for (var b = 0; b < brands.length; b++) {
-    var brand = brands[b];
-    var phones = byBrand[brand];
-    html += '<optgroup label="' + brand + '">';
-    for (var j = 0; j < phones.length; j++) {
-      var p = phones[j];
-      var label = p.brand + ' ' + p.model;
-      if (p.specs) label += ' ' + p.specs;
-      if (p.guidePrice) label += ' \u00a5' + p.guidePrice;
-      if (p.isCore) label += ' \u2605';
-      var value = p.brand + ' ' + p.model;
-      html += '<option value="' + esc(value) + '">' + label + '</option>';
-    }
-    html += '</optgroup>';
-  }
-  // Insert brand optgroups AFTER the placeholder, then remove placeholder
-  // (cannot nest <optgroup> inside <optgroup> — invalid HTML, browser drops them)
-  og.insertAdjacentHTML('afterend', html);
-  og.remove();
-}
-
 var PERSONA_KEY = 'douyin_lab_persona';
 
 (function cleanOldCaches() {
@@ -109,22 +63,34 @@ var PERSONA_KEY = 'douyin_lab_persona';
 var personaDB = {
   sweet:   { label: '甜美学姐', icon: '🌸', tone: '亲切网感',   tags: '年轻女性 抖音原生 活泼语速 会用热梗',
              desc: '轻声快语、有网感、用抖音流行口吻拉近距离',
-             prompt: '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"之类称呼。语速活泼，善于用emoji和热梗拉近距离。' },
+             prompt: '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"之类称呼。语速活泼，善于用emoji和热梗拉近距离。',
+             hook: '宝子们！今天来聊聊{topic}，一分钟跟你讲清楚👇',
+             cta: '截图保存慢慢看～' },
   tech:    { label: '技术专家', icon: '🔧', tone: '数据硬核',   tags: '不分性别 参数对比 测试数据 专业术语',
              desc: '用数据说话，实测对比，专业但不生硬',
-             prompt: '你是电信营业厅的技术专家。用实测数据说话，喜欢对比参数和性能。专业但不死板，能用通俗方式解释技术。"今天测了""直接上数据""建议截图"是你的口头禅。' },
+             prompt: '你是电信营业厅的技术专家。用实测数据说话，喜欢对比参数和性能。专业但不死板，能用通俗方式解释技术。"今天测了""直接上数据""建议截图"是你的口头禅。',
+             hook: '直接说结论：{topic}，看完你就知道该怎么选了。',
+             cta: '建议截图保存。' },
   biz:     { label: '商务精英', icon: '💼', tone: '简洁干练',   tags: '不分性别 信息密度 数字前置 直奔主题',
              desc: '直奔主题、信息密度高，适合政企商务场景',
-             prompt: '你是电信营业厅的商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。"建议""结论明确""数据来源"是你的风格。不讲废话。' },
+             prompt: '你是电信营业厅的商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。"建议""结论明确""数据来源"是你的风格。不讲废话。',
+             hook: '{topic}，结论前置——选对了每月省好几十。',
+             cta: '截图存一下，到店带着来。' },
   young:   { label: '活力小哥', icon: '😎', tone: '吐槽有梗',   tags: '年轻男性 快节奏 有情绪 夸张对比',
              desc: '口语化接地气、快节奏、有网感有情绪起伏',
-             prompt: '你是电信营业厅的年轻男员工。说话口语化、接地气，有网感。爱用"兄弟们"开头，喜欢吐槽、夸张对比。"你敢信""直接打脸""看了你就懂"是你的风格。' },
+             prompt: '你是电信营业厅的年轻男员工。说话口语化、接地气，有网感。爱用"兄弟们"开头，喜欢吐槽、夸张对比。"你敢信""直接打脸""看了你就懂"是你的风格。',
+             hook: '兄弟们！{topic}，这条干货直接截图，我不删的。',
+             cta: '截图存好这条。' },
   master:  { label: '资深师傅', icon: '👔', tone: '经验稳重',   tags: '成熟男性 案例切入 娓娓道来 让人信任',
              desc: '经验感、用真实案例说话，稳重有分量',
-             prompt: '你是电信营业厅的资深老师傅。干了二十年装维，经验丰富。用真实案例说话，说话稳重有分量。"干了这么多年""信我一次""经验之谈"是你的口头禅。不吹不黑，实事求是。' },
+             prompt: '你是电信营业厅的资深老师傅。干了二十年装维，经验丰富。用真实案例说话，说话稳重有分量。"干了这么多年""信我一次""经验之谈"是你的口头禅。不吹不黑，实事求是。',
+             hook: '做了这么多年营业员，{topic}，我说几句实在的。',
+             cta: '截图留着，到店里直接找我。' },
   sister:  { label: '暖心姐姐', icon: '💝', tone: '温暖共情',   tags: '成熟女性 故事切入 生活场景 亲切自然',
              desc: '用生活场景和真实故事打动客户，温暖有温度',
-             prompt: '你是电信营业厅的暖心姐姐。用客户故事和生活场景切入，温暖亲切。喜欢说"昨天来了个阿姨""门口的王姐"这种开头。让观众感觉你不是在推销，是在真心帮忙。' }
+             prompt: '你是电信营业厅的暖心姐姐。用真实场景和共情切入，温暖亲切。开头要多样——场景描述、反问、数据对比、邻居闲聊都行，不要千篇一律。让观众感觉你不是在推销，是在真心帮忙。',
+             hook: '{topic}，帮你算笔明白账，不花冤枉钱👇',
+             cta: '拿不准随时来问我～' }
 };
 
 var personaOrder = ['sweet','tech','biz','young','master','sister'];
@@ -505,12 +471,10 @@ function checkHasKeyword(text) {
 function renderChecklist(pageId, results) {
   var el = document.getElementById(pageId + '-checklist');
   if (!el) return;
+  // 2026-07-20: 精简为 2 项（钩子/收藏诱饵/关键词已被评分条覆盖）
   var items = [
-    {label:'3秒钩子到位', hint:'开头用问句/感叹/数字/冲突词(？/！/省钱/秘密/别再等)', pass:results.hasHook, icon:results.hasHook?'✅':'⚠️'},
-    {label:'收藏诱饵明显', hint:'含"截图保存/收藏/转发给XX/对比"等引导词', pass:results.hasCollect, icon:results.hasCollect?'✅':'⚠️'},
-    {label:'关键词在标题前15字', hint:'宽带/套餐/电信/WiFi/信号等关键词靠前', pass:results.hasKeyword, icon:results.hasKeyword?'✅':'⚠️'},
     {label:'无违禁词', hint:'绝对化用语、功效承诺、诱导互动等零出现', pass:results.noFw, icon:results.noFw?'✅':'❌'},
-    {label:'表单已填完', hint:'所有必填项都有内容', pass:results.allFilled, icon:results.allFilled?'✅':'⚠️'},
+    {label:'表单已填完', hint:'所有必填项都有内容', pass:results.allFilled, icon:results.allFilled?'✅':'⚠️'}
   ];
   el.innerHTML = '<h3>📋 发布前检查清单</h3>' + items.map(function(item) {
     var cls = item.pass ? 'pass' : (item.icon === '❌' ? 'fail' : 'warn');
@@ -519,6 +483,120 @@ function renderChecklist(pageId, results) {
   // Track checklist results
   track('checklist_' + (results.noFw ? 'pass' : 'fail'), pageId);
   if (!results.noFw) track('fw_detected', pageId);
+}
+
+function scoreScript(scriptText) {
+  if (!scriptText) return { hook: 0, trust: 0, conv: 0, total: 0 };
+  var hookStarters = /^(你|大家|兄弟们|宝子|家人们|还在|不会|想|知道吗|说真的|说实话|我|这|一|上个月|昨天|今天)/;
+  var hookPunct = /[？?！!]/;
+  var trustKw = /(官方|正规|专业|免费|无忧|上门|营业厅|本地|靠谱|放心|安心|透明|24小时|老用户|电信|师傅|店员|小王|阿姨|王姐)/g;
+  var priceKw = /(\d+\s*元|\d+\s*兆|\d+\s*M|免费|0\s*元|9\.9|19|59|99|169|套餐|月租|年付|返|补贴)/g;
+  var ctaKw = /(扣\d|评论|私信|点击|预约|来店|到店|链接|扫码|关注|截图|保存|转发|主页|小红|群)/g;
+  var hookScore = (hookStarters.test(scriptText.trim()) ? 50 : 30) + (hookPunct.test(scriptText) ? 30 : 10);
+  var trustScore = Math.min(100, (scriptText.match(trustKw) || []).length * 22 + 30);
+  var priceScore = Math.min(100, (scriptText.match(priceKw) || []).length * 25 + 20);
+  var ctaScore = Math.min(100, (scriptText.match(ctaKw) || []).length * 18 + 20);
+  var convScore = Math.round((priceScore + ctaScore) / 2);
+  return {
+    hook: Math.min(100, hookScore),
+    trust: trustScore,
+    conv: convScore,
+    total: Math.round((hookScore + trustScore + convScore) / 3)
+  };
+}
+
+const ALGO_WEIGHTS = {
+  collect: 0.30,   // 收藏力（最高权重，内容长期价值，触发7天慢推流）
+  revisit: 0.22,   // 复访力（系列化/关注，长效流量）
+  interact: 0.20,  // 互动力（评论 + 铁粉共鸣 + 转发裂变）
+  retention: 0.18, // 留存力（5秒钩子 + 完播结构，门槛级）
+  convert: 0.10    // 转化力（到店核销，业务KPI，算法不直接加权但营业厅必需）
+};
+
+function scoreScriptV2(scriptText) {
+  if (!scriptText) return { retention: 0, collect: 0, interact: 0, convert: 0, revisit: 0, total: 0 };
+  var t = (scriptText || '').trim();
+
+  // —— 留存力：5秒钩子 + 完播结构 ——
+  var hookStarters = /^(你|大家|兄弟们|宝子|家人们|姐妹|哥|说真的|说实话|上个月|昨天|今天|前两天|还在|不会|想|知道吗|一|这|别|谁|为什么|怎么)/;
+  var hookPunct = /[？?！!]/;
+  var hasStruct = /(\d+|\u5bf9\u7167|对比|第一|第二|第三|方案|步|种|vs|：)/; // 信息密度
+  var hookScore = (hookStarters.test(t) ? 55 : 30) + (hookPunct.test(t.slice(0, 30)) ? 25 : 8);
+  var structScore = hasStruct.test(t) ? 40 : 15;
+  var retention = Math.min(100, hookScore + structScore);
+
+  // —— 收藏力：可留存价值锚点 ——
+  var collectKw = /(截图|保存|收藏|对照表|速查|清单|流程|指南|数据卡|留存|存好|留档|到厅对照|翻出来|拿出来看|记下来)/g;
+  var collect = Math.min(100, (t.match(collectKw) || []).length * 35 + 25);
+
+  // —— 互动力：评论 + 铁粉共鸣 + 转发 ——
+  var commentKw = /(评论|说说|聊聊|告诉我|评论区|你怎么看|你的情况|你用什么|聊聊你|你住|你家|你月租|你体验)/g;
+  var shareKw = /(转发|发给|分享给|发给你|转给)/g;
+  var empathyKw = /(你|咱们|咱|兄弟|姐妹|宝子|家人们|阿姨|大姐|小伙|老人|孩子)/g;
+  var commentScore = Math.min(60, (t.match(commentKw) || []).length * 30 + 15);
+  var shareScore = Math.min(20, (t.match(shareKw) || []).length * 20);
+  var empathyScore = Math.min(30, (t.match(empathyKw) || []).length > 2 ? 30 : 12);
+  var interact = Math.min(100, commentScore + shareScore + empathyScore);
+
+  // —— 转化力：到店 / 核销 / 私信 ——
+  var convertKw = /(到店|来店|来营业厅|营业厅|预约|私信|扫码|链接|核销|门店|厅里|店里|办理|当场)/g;
+  var convert = Math.min(100, (t.match(convertKw) || []).length * 22 + 22);
+
+  // —— 复访力：系列化 / 关注 ——
+  var revisitKw = /(关注|下期|系列|主页|持续|记得看|点关注|关注我|下回|下次|后续|追更|每周)/g;
+  var revisit = Math.min(100, (t.match(revisitKw) || []).length * 40 + 15);
+
+  var total = Math.round(
+    collect * ALGO_WEIGHTS.collect +
+    revisit * ALGO_WEIGHTS.revisit +
+    interact * ALGO_WEIGHTS.interact +
+    retention * ALGO_WEIGHTS.retention +
+    convert * ALGO_WEIGHTS.convert
+  );
+  return { retention: retention, collect: collect, interact: interact, convert: convert, revisit: revisit, total: total };
+}
+
+function auditScript(scriptText) {
+  var s = scoreScriptV2(scriptText);
+  var checks = [
+    { name: '5秒钩子', ok: s.retention >= 50, detail: '开头需冲突/利益/悬念，拉住前3秒' },
+    { name: '收藏锚点', ok: s.collect >= 40, detail: '需含截图/对照表/流程等可留存价值' },
+    { name: '评论指令', ok: s.interact >= 45, detail: '需引导用户评论（说说/聊聊/告诉我）' },
+    { name: '复访钩子', ok: s.revisit >= 30, detail: '需含关注/下期/系列化引导' },
+    { name: '转化CTA', ok: s.convert >= 40, detail: '需含到店/核销/私信等行动指令' }
+  ];
+  var adWords = (typeof detectAdWords === 'function') ? detectAdWords(scriptText || '') : [];
+  checks.push({ name: '违禁词', ok: adWords.length === 0, detail: adWords.length ? ('含：' + adWords.join('、')) : '无绝对化/违规表述' });
+  var pass = checks.every(function (c) { return c.ok; });
+  return { pass: pass, checks: checks, score: s };
+}
+
+function isBenchmark(scriptText) {
+  var s = scoreScriptV2(scriptText);
+  var ok = s.total >= 80 && s.collect >= 50 && s.revisit >= 40 && s.interact >= 50 && s.retention >= 60 && s.convert >= 40;
+  return { benchmark: ok, score: s };
+}
+
+function matchMemoryBank(scriptText) {
+  if (!scriptText) return { total: 0, pct: 0, hits: [] };
+  var PAIN = ['卡顿', '慢', '贵', '坑', '骗', '亏', '不会', '难', '信号', '排队', '掉线', '网速', '差', '换', '升级', '怕', '烦恼'];
+  var TRUST = ['官方', '营业厅', '上门', '免费', '老用户', '专业', '透明', '无隐形', '电信', '师傅'];
+  var PRICE = ['元', '兆', 'M', '块', '免费', '套餐', '月租', '年付', '返', '补贴'];
+  var CTA = ['扣', '评论', '私信', '到店', '预约', '链接', '扫码', '关注', '截图', '保存', '转发'];
+  function matchOne(arr, label) { return arr.filter(function(k){ return scriptText.indexOf(k) >= 0; }).map(function(k){ return {tag:k, label:label}; }); }
+  var hits = matchOne(PAIN, '痛点').concat(matchOne(TRUST, '信任')).concat(matchOne(PRICE, '价格')).concat(matchOne(CTA, 'CTA'));
+  var TOTAL = PAIN.length + TRUST.length + PRICE.length + CTA.length;
+  return {
+    total: hits.length,
+    pct: Math.round(hits.length / TOTAL * 100),
+    hits: hits,
+    summary: {
+      pain: hits.filter(function(h){ return h.label === '痛点'; }).length,
+      trust: hits.filter(function(h){ return h.label === '信任'; }).length,
+      price: hits.filter(function(h){ return h.label === '价格'; }).length,
+      cta: hits.filter(function(h){ return h.label === 'CTA'; }).length
+    }
+  };
 }
 
 window.addEventListener('scroll', function() {
@@ -707,7 +785,8 @@ const week = getWeekRange();
 
 document.getElementById('weekLabel').textContent = `📅 本周：${week.label}`;
 
-var _wr = document.getElementById('weekRange');
+const _wr = document.getElementById('weekRange');
+
 if (_wr) _wr.textContent = week.label;
 
 let bgmAudio = null;
@@ -762,6 +841,11 @@ function injectBGMButtons() {
 let currentPage = 'schedule';
 
 const pageHistory = ['schedule'];
+
+// v2.8: weekly banner 占位（功能待 v3.0 实现；stub 防 ReferenceError 回归）
+function injectWeeklyBanner(name) {
+  // TODO: v3.0 在模板页注入本周推荐横幅
+}
 
 function switchPage(name, el, noPush) {
   // Save current template form before leaving
@@ -915,38 +999,156 @@ let bankFilter = 'all';
 
 let currentTab = -1;
 
-function copyPanelText(panelId) {
+function copyPanelText(panelId, mode) {
   var panel = document.getElementById(panelId);
   if (!panel) return;
-  var text = panel.textContent || panel.innerText || '';
+  var text = '';
+  if (mode === 'clean') {
+    // 仅提取台词内容：.stage 标题 + .dialogue / [data-role] 台词，过滤 action-note 和 info-tag
+    var parts = [];
+    var children = panel.querySelectorAll('.stage, .dialogue, [data-role="hook"], [data-role="script-body"], [data-role="cta"]');
+    for (var i = 0; i < children.length; i++) {
+      var el = children[i];
+      if (el.className === 'stage' && /口播脚本|拍摄指南|一镜到底/.test(el.textContent)) continue;
+      var t = (el.textContent || '').trim();
+      if (t) {
+        // 剥掉 data-role 容器的标签文字（"💫 甜美学姐 开口：" 等）
+        t = t.replace(/^[^\u4e00-\u9fff"]*[：:]/, '').replace(/^[📖🎯💫]+\s*[^：:]*[：:]/, '').trim();
+        parts.push(t);
+      }
+    }
+    text = parts.join('\n');
+  } else {
+    // 全文模式
+    text = panel.textContent || panel.innerText || '';
+  }
+  var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
   navigator.clipboard.writeText(text).then(function() {
-    var btn = panel.querySelector('.copy-script-btn');
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
     if (typeof track === 'function') track('copy_script_' + panelId);
+    markScriptUsed(panelId);
   }).catch(function() {
     var ta = document.createElement('textarea');
     ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); } catch(e) {}
     document.body.removeChild(ta);
-    var btn = panel.querySelector('.copy-script-btn');
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+    markScriptUsed(panelId);
   });
+}
+
+// v2.8: 带元信息的复制（追加标签和地址）
+function copyPanelTextWithMeta(panelId, mode) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
+  var text = '';
+  if (mode === 'clean') {
+    var parts = [];
+    var children = panel.querySelectorAll('.stage, .dialogue, [data-role="hook"], [data-role="script-body"], [data-role="cta"]');
+    for (var i = 0; i < children.length; i++) {
+      var el = children[i];
+      if (el.className === 'stage' && /口播脚本|拍摄指南|一镜到底/.test(el.textContent)) continue;
+      var t = (el.textContent || '').trim();
+      if (t) { t = t.replace(/^[^\u4e00-\u9fff"]*[：:]/, '').replace(/^[📖🎯💫]+\s*[^：:]*[：:]/, '').trim(); parts.push(t); }
+    }
+    text = parts.join('\n');
+  } else {
+    text = panel.textContent || panel.innerText || '';
+  }
+  // 追加地址和标签
+  var city=(document.getElementById('t3_city')||document.getElementById('t1_city')||document.getElementById('t4_city')||document.getElementById('t2_city')||{}).value||'';
+  var tags=(document.getElementById('t3_tags')||document.getElementById('t1_tags')||document.getElementById('t4_tags')||document.getElementById('t2_tags')||{}).value||'#电信 #同城推荐';
+  text += '\n\n📍 '+ (city||'山西电信营业厅') +'\n'+ tags +'\n📌 收藏这条，下次直接翻开拍';
+  // 违禁词检查
+  checkBannedWrapped(text);
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
+    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+    markScriptUsed(panelId);
+  });
+}
+
+function checkBannedWrapped(text) {
+  var found = BANNED.filter(function(w) { return text.indexOf(w) >= 0; });
+  if (found.length) { toast('⚠️ 含违禁词: ' + found.join(', '), 'warn'); }
+}
+
+function findPhoneByName(name) {
+  if (!name) return null;
+  var pool = window.___phonePool || phonePool || [];
+  // v2.7: 去掉下拉选里的 "(8G+256G)" 后缀，因为下拉选value含 storage 但 phonePool.brand+model 不含
+  var cleanName = String(name).replace(/\s*\([^)]+\)\s*$/, '').trim();
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    if (p.model === cleanName || p.model === name) return p;
+    if (p.brand && (p.brand + ' ' + p.model === cleanName || p.brand + ' ' + p.model === name)) return p;
+  }
+  return null;
+}
+
+function initT3DeviceOptions() {
+  var og = document.getElementById('t3_phone_optgroup');
+  if (!og) return;
+  var pool = window.___phonePool || phonePool || [];
+  if (!pool || !pool.length) return;
+  var html = '';
+  var brands = {};
+  for (var i = 0; i < pool.length; i++) {
+    var p = pool[i];
+    var brand = p.brand || p.model.split(' ')[0];
+    if (!brands[brand]) { brands[brand] = []; }
+    brands[brand].push(p);
+  }
+  var brandKeys = Object.keys(brands).sort();
+  for (var bi = 0; bi < brandKeys.length; bi++) {
+    var bk = brandKeys[bi];
+    var models = brands[bk];
+    html += '<optgroup label="' + bk + '">';
+    for (var mi = 0; mi < models.length; mi++) {
+      var m = models[mi];
+      var displayName = m.brand ? (m.brand + ' ' + m.model) : m.model;
+      if (m.storage) displayName += ' (' + m.storage + ')';
+      html += '<option value="' + displayName + '">' + displayName + ' ¥' + (m.guidePrice || m.price || '') + (m.isCore ? ' ★' : '') + '</option>';
+    }
+    html += '</optgroup>';
+  }
+  og.insertAdjacentHTML('afterend', html);
+  og.remove();
 }
 
 function addCopyButton(panelId) {
   var panel = document.getElementById(panelId);
   if (!panel) return;
-  var existing = panel.querySelector('.copy-script-btn');
+  var existing = panel.querySelector('.copy-script-wrap');
   if (existing) existing.remove();
   var wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:10px;';
-  var btn = document.createElement('button');
-  btn.className = 'copy-script-btn';
-  btn.style.cssText = 'padding:6px 14px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;';
-  btn.innerHTML = '📋 复制全文';
-  btn.onclick = function() { copyPanelText(panelId); };
-  wrap.appendChild(btn);
+  wrap.className = 'copy-script-wrap';
+  wrap.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;align-items:center;';
+  
+  // v2.8: 收藏星星
+  var starSpan = document.createElement('span');
+  starSpan.className = 'fav-star';
+  starSpan.textContent = '☆';
+  starSpan.style.cssText = 'margin-right:8px;';
+  starSpan.onclick = function() { toggleFav(panelId, starSpan); };
+  if (isFav(panelId)) { starSpan.classList.add('saved'); starSpan.textContent = '⭐'; }
+  wrap.appendChild(starSpan);
+  
+  // 仅台词按钮（默认主推）
+  var cleanBtn = document.createElement('button');
+  cleanBtn.className = 'copy-clean-btn';
+  cleanBtn.style.cssText = 'padding:6px 14px;background:#008A5C;color:#fff;border:none;border-radius:6px 0 0 6px;cursor:pointer;font-size:13px;font-weight:600;';
+  cleanBtn.innerHTML = '📋 复制台词';
+  cleanBtn.onclick = function() { copyPanelTextWithMeta(panelId, 'clean'); };
+  // 全文按钮
+  var fullBtn = document.createElement('button');
+  fullBtn.className = 'copy-script-btn';
+  fullBtn.style.cssText = 'padding:6px 14px;background:#0052CC;color:#fff;border:none;border-radius:0 6px 6px 0;cursor:pointer;font-size:13px;font-weight:600;';
+  fullBtn.innerHTML = '全文';
+  fullBtn.onclick = function() { copyPanelText(panelId, 'full'); };
+  wrap.appendChild(cleanBtn);
+  wrap.appendChild(fullBtn);
   panel.insertBefore(wrap, panel.firstChild);
 }
 
@@ -999,28 +1201,49 @@ function downloadAsImage(previewId) {
 }
 
 function syncTopicDropdown() {
-  if (!window.___topicPool) return;
-  var pool = window.___topicPool;
   var sel = document.getElementById('t1_topic');
   if (!sel) return;
-  var topics = (pool.decision || []).slice(0, 24);
+  // 立即清空旧选项
+  sel.innerHTML = '<option value="">-- 加载中… --</option>';
+  if (!window.___topicPool) {
+    // 2026-07-20: 数据还没加载，200ms 后重试，最多 20 次（4秒）
+    var retries = parseInt(sel.getAttribute('data-retries') || '0', 10);
+    if (retries < 20) {
+      sel.setAttribute('data-retries', retries + 1);
+      setTimeout(syncTopicDropdown, 200);
+    }
+    return;
+  }
+  var pool = window.___topicPool;
+  // 2026-07-20: 过滤抖音禁止销售的单号卡类选题
+  var banned = /学生套餐|老人手机套餐|手机卡套餐|套餐横向|5G套餐|4G套餐|流量不够用|流量包|加包|号卡|合约机|月租/;
+  var topics = (pool.decision || []).filter(function(t) { return !banned.test(t); });
+  topics = topics.slice(0, 24);
   var html = '';
   topics.forEach(function(t) {
     html += '<option value="' + esc(t) + '">' + esc(t) + '</option>';
   });
-  if (html) { sel.innerHTML = html; try { labelDropdownOptions(); } catch(e) {} }
+  if (html) { sel.innerHTML = html; sel.removeAttribute('data-retries'); try { labelDropdownOptions(); } catch(e) {} }
 }
 
 function checkDataFiles() {
   var map = {
-    '___topicPool': '选题库', '___t1Presets': '决策指南预设', '___t2Presets': '一线场景预设',
-    '___t4Presets': '本地事件预设', '___phonePool': '手机评测池', '___techDB': '技术知识库',
+    '___topicPool': '选题库', '___t1Presets': '对比推荐预设', '___t2Presets': '服务故事预设',
+    '___t4Presets': '本地福利预设', '___phonePool': '手机评测池', '___techDB': '技术知识库',
     '___hotspotData': '热点跟拍', '___bgmList': 'BGM推荐'
   };
   var missing = [];
   for (var k in map) { if (typeof window[k] === 'undefined') missing.push(map[k]); }
   var banner = document.getElementById('dataErrorBanner');
   if (missing.length > 0) {
+    // 2026-07-20: 数据还没加载完，500ms 后重试，最多 10 次
+    if (!checkDataFiles.retries) checkDataFiles.retries = 0;
+    if (checkDataFiles.retries < 10) {
+      checkDataFiles.retries++;
+      setTimeout(checkDataFiles, 500);
+      return missing.length;
+    }
+    // 重试 10 次后还没加载，才显示错误横幅
     if (!banner) {
       banner = document.createElement('div');
       banner.id = 'dataErrorBanner';
@@ -1029,8 +1252,9 @@ function checkDataFiles() {
     }
     banner.style.display = '';
     banner.innerHTML = '&#9888; 数据加载失败：' + missing.join('、') + '。请刷新页面重试，如持续出现请联系管理员。';
-  } else if (banner) {
-    banner.style.display = 'none';
+  } else {
+    checkDataFiles.retries = 0;
+    if (banner) banner.style.display = 'none';
   }
   return missing.length;
 }
@@ -1773,6 +1997,465 @@ function genHotspotComment(h) {
   return snippet + '... 你们遇到过吗？评论区聊聊 👇';
 }
 
+var SPEC_SUFFIXES = {
+  chip: '性能强劲',
+  camera: '细节清晰',
+  battery: '续航持久'
+};
+
+function translateSpecToSlogan(raw, type) {
+  if (!raw) return '';
+  var suffix = SPEC_SUFFIXES[type] || '';
+  var text = String(raw);
+
+  // 芯片：保留型号+结论词
+  if (type === 'chip') {
+    return text + ' · ' + suffix;
+  }
+
+  // 相机：提取像素数值+结论词
+  if (type === 'camera') {
+    var mp = text.match(/(\d+万)/);
+    if (mp) return mp[1] + '像素 · ' + suffix;
+    // 没有像素数值时用"超清"代替
+    return '超清影像 · ' + suffix;
+  }
+
+  // 电池：提取容量+结论词
+  if (type === 'battery') {
+    var cap = text.match(/(\d+mAh)/i);
+    if (cap) return cap[1] + ' · ' + suffix;
+    return '持久续航 · ' + suffix;
+  }
+
+  return text;
+}
+
+function translateSpecToFact(raw, type) {
+  if (!raw) return '';
+  var text = String(raw);
+  if (type === 'camera') {
+    var mp = text.match(/(\d+万[主长]?摄?)/);
+    if (mp) return mp[1];
+    var yi = text.match(/(\d+亿[主]?长?焦?)/);
+    if (yi) return yi[1];
+    return text;
+  }
+  if (type === 'battery') {
+    var cap = text.match(/(\d+mAh)/i);
+    if (cap) return cap[1] + '容量电池';
+    return text;
+  }
+  if (type === 'highlight') {
+    // highlight 提取核心短语
+    return text.replace(/·/g, '，').replace(/[，,\s]+$/, '');
+  }
+  return text;
+}
+
+function getPhoneSellPoints(deviceName) {
+  var phone = findPhoneByName(deviceName);
+  if (!phone) return null;
+  return [
+    { icon: '📷', label: '影像', text: translateSpecToSlogan(phone.camera, 'camera') },
+    { icon: '🔲', label: '芯片', text: translateSpecToSlogan(phone.chip, 'chip') },
+    { icon: '🔋', label: '续航', text: translateSpecToSlogan(phone.battery, 'battery') }
+  ];
+}
+
+function renderT3SellPointSection(deviceName, city) {
+  var area = document.getElementById('t3_slogan_area');
+  if (!area) return;
+
+  var points = getPhoneSellPoints(deviceName);
+  var phone = findPhoneByName(deviceName);
+  var displayName = phone ? (phone.brand + ' ' + phone.model) : deviceName;
+  var priceStr = phone ? ('¥' + (phone.guidePrice || phone.price || '到店询')) : '';
+  city = city || document.getElementById('t3_city').value || '本地';
+
+  if (!points) {
+    area.style.display = 'none';
+    return;
+  }
+
+  var cards = points.map(function(p) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F8F6F0;border:1.5px solid #E4DCC8;border-radius:8px;">' +
+      '<div style="flex-shrink:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;font-size:16px;">' + p.icon + '</div>' +
+      '<div style="flex:1;"><div style="font-size:10px;color:#8C7A5E;letter-spacing:1px;">' + p.label + '</div>' +
+      '<div style="font-size:14px;font-weight:700;color:#2C1810;">' + esc(p.text) + '</div></div></div>';
+  }).join('');
+
+  // 引导收藏文案
+  var tagStr = ('#' + (phone ? phone.brand + phone.model.replace(/ /g,'') : deviceName.replace(/ /g,'')) + ' #手机评测 #' + city + '电信');
+
+  area.innerHTML =
+    '<div style="max-width:460px;margin:12px auto 0;padding:16px;background:#FFFDF7;border:2px solid #D4C9A8;">' +
+      '<div style="font-size:18px;font-weight:800;color:#2C1810;margin-bottom:12px;font-family:serif;">' + esc(displayName) + ' · 实力派' +
+        (priceStr ? '<span style="float:right;font-size:14px;color:#C0392B;font-weight:700;">' + esc(priceStr) + '</span>' : '') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;">' + cards + '</div>' +
+      '<div style="font-size:10px;color:#9B8E7A;margin-top:8px;text-align:right;">参数来源：品牌公开资料 · 请到店确认实物</div>' +
+      // 引导收藏
+      '<div style="margin-top:12px;padding:8px 12px;background:#F0EDE4;border-left:3px solid #C4B998;font-size:11px;color:#5C5040;">' +
+        '📌 发抖音时附上：<br><b>' + esc('收藏这条，买手机不踩坑') + '</b><br><span style="font-size:10px;color:#8B7A60;">' + esc(tagStr) + '</span></div>' +
+    '</div>';
+  area.style.display = 'block';
+
+  // 更新引导收藏标签输入框
+  var tagsEl = document.getElementById('t3_tags');
+  if (tagsEl) tagsEl.value = tagStr;
+}
+
+var SCENE_OPTIONS = [
+  { id:'store', label:'🏪 店内（柜台前，手持手机）' },
+  { id:'community', label:'🏘 小区（活动现场，外景收音）' },
+  { id:'outdoor', label:'🚶 户外（商圈探店，边走边聊）' },
+  { id:'home', label:'🔧 入户（用户家中，问题解决）' }
+];
+
+var TOPIC_ALIAS = {
+  '续航':'续航和充电体验',
+  '拍照':'拍照和影像测评',
+  '样张':'拍照和影像测评',
+  '5G':'5G网络和信号',
+  '网速':'5G网络和信号',
+  '信号':'5G网络和信号',
+  '合约':'合约和优惠',
+  '优惠':'合约和优惠',
+  '划算':'合约和优惠'
+};
+
+function buildScriptPrompt(phone, topic, city, bgm) {
+  var p = phone;
+  var model = p.brand + ' ' + p.model;
+  var price = p.guidePrice || p.price || '到店询';
+  var topicDesc = TOPIC_ALIAS[topic] || topic + '体验';
+  var persona = getPersona();
+  var pd = personaDB[persona] || personaDB['tech'];
+  var scene = document.getElementById('t3_scene')?.value || 'store';
+  var sceneLabel = SCENE_OPTIONS.find(function(s){return s.id===scene;})?.label || '🏪 店内';
+
+  // 提取人设风格指导
+  var personaGuide = {
+    sweet: { voice: '甜美活泼，像闺蜜闲聊。用语气词"呀/哦/嘛"，但别过度。节奏轻快不拖沓。', hook: '身边好朋友发现了什么好东西非要分享给你那种兴奋感。' },
+    tech: { voice: '硬核不废话。数据前置、结论先行。不加任何修饰词。', hook: '直接扔出一个别人不知道的参数真相。' },
+    biz: { voice: '商务干练，像给同事汇报。干净利落每句话有营养。', hook: '这本账你算完就懂了——三句话点透性价比。' },
+    young: { voice: '抖音原生感：梗快、信息密、不喊不卖。', hook: '像刷到一条很炸裂的视频忍不住要分享给朋友。' },
+    master: { voice: '有阅历有分寸。不卖弄不啰嗦，一句话顶十句。', hook: '凭经验告诉你一件事——很普通但别人不会说。' },
+    sister: { voice: '可亲小妹妹：热情但不聒噪，像给家里人介绍好东西。', hook: '我今天测完这个真的被惊到了。' }
+  };
+  var guide = personaGuide[persona] || personaGuide['tech'];
+
+  var lines = [];
+  // 极简人设指令
+  lines.push('你是' + pd.icon + ' ' + pd.label + '人设的抖音博主，风格：' + guide.voice);
+  lines.push('');
+  lines.push('【产品】' + model);
+  lines.push('芯片 ' + p.chip + ' | 拍照 ' + p.camera + ' | 电池 ' + p.battery);
+  lines.push('亮点：' + p.highlight);
+  lines.push('');
+  lines.push('【选题】' + topicDesc + ' | 场景：' + sceneLabel + ' | 营业厅：' + city);
+  lines.push('');
+
+  // 核心创作指令
+  lines.push('写一段40-50秒口播脚本（约130-160字）。');
+  lines.push('1. 第一句抓注意——' + guide.hook);
+  lines.push('2. 把芯片/拍照/电池用「用起来啥感觉」讲，可以自然提芯片型号/像素，别堆参数');
+  lines.push('3. 结尾给地址（' + city + '电信营业厅）+收藏引导');
+  lines.push('');
+  lines.push('【铁律】');
+  lines.push('· 不要「合约」「号卡」「合约价」「月租」「合约机」等违禁词');
+  lines.push('· 不在价格前加「电信」「合约」等修饰词，只说数字');
+  lines.push('· 不要「大家」「众所周知」「搭载」等套话');
+
+  return lines.join('\n');
+}
+
+function renderT3AutoSection(deviceName) {
+  // 不再渲染卖点区海报预览（去除中间的视觉冗余）
+  // 用户复制提示词到豆包即梦即可生图
+
+  var area = document.getElementById('t3_auto_section');
+  if (!area) return;
+
+  var phone = findPhoneByName(deviceName);
+  var city = document.getElementById('t3_city')?.value || '本地';
+  var topic = document.getElementById('t3_topic')?.value || '';
+  var bgm = document.getElementById('t3_bgm')?.value || 'Windy Hill - 羽肿';
+  var tags = document.getElementById('t3_tags')?.value || '';
+
+  if (!phone) {
+    area.style.display = 'none';
+    return;
+  }
+
+  // 脚本生成提示词（精简版）
+  var scriptPrompt = buildScriptPrompt(phone, topic, city, bgm);
+
+  // 图片生成提示词（封面图直接复制可用）
+  var imgPrompt = [
+    '一张抖音9:16竖版卖点海报（约1080×1920）。',
+    '设计风格：简洁高级、深蓝色底（#0A1628），暖橙渐变过渡。',
+    '画面排版：',
+    '  顶部：大字标题 "' + phone.brand + ' ' + phone.model + '"，副标题 "实力派"',
+    '  中部：3个磨砂白圆角卡片，从上到下依次为：',
+    '    影像：' + (phone.camera || ''),
+    '    芯片：' + (phone.chip || ''),
+    '    电池：' + (phone.battery || ''),
+    '  卡片下方：到店询价',
+    '  底部："到店体验真机 · ' + city + '电信营业厅"',
+    '',
+    '【要求】',
+    '  - 禁止出现手机实物照片。用大字号+磨砂卡代替',
+    '  - 不要疑问句。文字不重叠',
+    '  - 不带「合约」「号卡」等字样'
+  ].join('\n');
+
+  area.innerHTML =
+    '<div style="margin-top:16px;background:#FFFDF7;border:2px solid #D4C9A8;border-radius:8px;padding:16px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<span style="font-size:14px;">🤖</span>' +
+        '<span style="font-weight:700;font-size:13px;color:#2C1810;">生成口播脚本</span>' +
+        '<span style="font-size:10px;color:#8C7A5E;">复制 → DeepSeek/豆包 → 一段输出完整脚本</span>' +
+      '</div>' +
+      '<textarea readonly id="t3ScriptPromptText" style="width:100%;height:180px;font-size:12px;line-height:1.6;border:1px solid #E4DCC8;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;color:#3C3024;">' + esc(scriptPrompt) + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'t3ScriptPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#2C1810;color:#FFFDF7;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:12px;background:#F0F4FF;border:1.5px solid #B5D4F4;border-radius:8px;padding:16px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<span style="font-size:14px;">🖼</span>' +
+        '<span style="font-weight:700;font-size:13px;color:#185FA5;">生成卖点海报</span>' +
+        '<span style="font-size:10px;color:#5F5E5A;">复制 → 豆包/即梦 → 9:16封面图</span>' +
+      '</div>' +
+      '<textarea readonly id="t3ImgPromptText" style="width:100%;height:140px;font-size:12px;line-height:1.6;border:1px solid #B5D4F4;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;">' + esc(imgPrompt) + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'t3ImgPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:8px;padding:8px 12px;background:#F8F6F0;border:1px solid #E4DCC8;border-radius:6px;font-size:11px;color:#5C5040;">' +
+      '📌 两条提示词分别复制。脚本 → DeepSeek/豆包。海报 → 豆包/即梦。' +
+      (tags ? '<br><b>标签：</b>' + esc(tags) : '') +
+    '</div>';
+
+  area.style.display = 'block';
+}
+
+function findScriptFuzzy(scriptMap, topic) {
+  if (!scriptMap || !topic) return null;
+  for (var key in scriptMap) {
+    if (key.indexOf(topic.substring(0, 6)) >= 0 || topic.indexOf(key.substring(0, 6)) >= 0) {
+      return scriptMap[key];
+    }
+  }
+  return null;
+}
+
+function searchT1AndFill(topic) {
+  var city = (document.getElementById('t1_city')||{}).value || '';
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'search-t1', topic: topic, city: city })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.a && data.b && data.c) {
+      // 区分数据来源：知识库(蓝) / 搜索(绿) / 无数据(灰)
+      var sourceColors = { knowledge: '#1565C0', search: '#2E7D32', partial: '#E65100', 'no-data': '#666' };
+      var sourceLabels = { knowledge: '🏛️ 知识库', search: '🌐 实时搜索', partial: '⚠️ 部分数据', 'no-data': '❌ 无数据' };
+      var color = sourceColors[data.source] || '#1565C0';
+      var label = sourceLabels[data.source] || '';
+      var ts = new Date().toLocaleTimeString();
+      
+      ['a','b','c'].forEach(function(k, i) {
+        var val = data[k];
+        var el = document.getElementById('t1_' + k);
+        if (el && val && !el.dataset.userEdited) {
+          el.value = val;
+          el.style.borderColor = color;
+          el.style.background = color + '18';
+          el.title = label + ' | ' + ts + (data.matchedKey ? ' | ' + data.matchedKey : '');
+        }
+      });
+    } else if (data && data.a && data.source === 'no-data') {
+      // 无数据：保留兜底但变色提示
+      ['a','b','c'].forEach(function(k) {
+        var el = document.getElementById('t1_' + k);
+        if (el) {
+          el.title = '❌ 搜索无数据，请手动填写 | ' + new Date().toLocaleTimeString();
+          el.style.color = '#999';
+        }
+      });
+    } else {
+      // 搜索失败：保持 auto-generate
+      ['a','b','c'].forEach(function(k) {
+        var el = document.getElementById('t1_' + k);
+        if (el) el.title = '🤖 AI 兜底（搜索失败） | ' + new Date().toLocaleTimeString();
+      });
+    }
+  }).catch(function(e) {
+    console.log('Search T1 error:', e.message);
+    ['a','b','c'].forEach(function(k) {
+      var el = document.getElementById('t1_' + k);
+      if (el) el.title = '⚠️ 搜索异常，已用 AI 兜底';
+    });
+  });
+}
+
+function searchT2AndFill(preset) {
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'search-t2', preset: preset, topic: preset })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.snippets && data.snippets.length > 0) {
+      // 把搜索到的素材片段显示在 summary 字段下方作为参考
+      var summaryEl = document.getElementById('t2_summary');
+      if (summaryEl && !summaryEl.dataset.userEdited) {
+        // 拼接 2 条最相关的搜索片段作为参考
+        var refs = data.snippets.slice(0, 2).join(' / ').slice(0, 200);
+        // 在 tags 字段追加搜索标记
+        var tagsEl = document.getElementById('t2_tags');
+        if (tagsEl && !tagsEl.dataset.userEdited) {
+          var cur = tagsEl.value || '';
+          tagsEl.value = cur + (cur ? ' ' : '') + '#搜索素材' + (data.source === 'search' ? '✓' : '');
+          tagsEl.title = '🌐 搜索素材已添加';
+        }
+      }
+    }
+  }).catch(function(e) {
+    console.log('Search T2 error:', e.message);
+  });
+}
+
+var __aiKey = null;
+
+var __aiKeyPromise = null;
+
+function getCachedAIKey() {
+  try {
+    var k = localStorage.getItem('_dy_ai_key');
+    if (k && k.length > 20) return k;
+  } catch(e) {}
+  return null;
+}
+
+function setCachedAIKey(k) {
+  try { if (k && k.length > 20) localStorage.setItem('_dy_ai_key', k); } catch(e) {}
+}
+
+async function ensureAIKey() {
+  if (__aiKey) return __aiKey;
+  // 先检查 localStorage 缓存
+  var cached = getCachedAIKey();
+  if (cached) { __aiKey = cached; return __aiKey; }
+  if (__aiKeyPromise) return __aiKeyPromise;
+  __aiKeyPromise = (async function() {
+    try {
+      var ctrl = new AbortController();
+      var tid = setTimeout(function(){ctrl.abort();}, 10000);
+      var res = await fetch(PERSONALIZE_API, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({mode:'get-ai-key'}),
+        signal: ctrl.signal
+      });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      var data = await res.json();
+      if (!data.key) throw new Error('no key');
+      __aiKey = data.key;
+      setCachedAIKey(data.key);
+      return __aiKey;
+    } catch(e) {
+      console.warn('[AI key] SCF获取失败:', e.message);
+      // 兜底：弹出对话框让用户粘贴 key（SiliconFlow 控制台可查）
+      var manualKey = prompt('输入你的 SiliconFlow API Key\n去 https://cloud.siliconflow.cn → API密钥 → 复制粘贴过来\n（只需输入一次，后续自动缓存）');
+      if (manualKey && manualKey.length > 20) {
+        __aiKey = manualKey.trim();
+        setCachedAIKey(__aiKey);
+        return __aiKey;
+      }
+      __aiKey = null;
+      return null;
+    } finally {
+      __aiKeyPromise = null;
+    }
+  })();
+  return __aiKeyPromise;
+}
+
+function detectAdWords(text) {
+  var words = ['最好','最大','最全','最佳','最低','最高','最先','最新','最便宜','第一','唯一','独家','首创','顶级','极品','至尊','王牌','冠军','百分百','100%','绝对','保证','担保','肯定没问题','永不','永久','免费送','免费领','私信我','最后一天','史上最低','绝版'];
+  var found = [];
+  for (var i = 0; i < words.length; i++) { if (text.indexOf(words[i]) >= 0) found.push(words[i]); }
+  return found;
+}
+
+// ═══════════ v2.8 优化: 搜索+收藏+复制追加+违禁词+已选+新鲜度 ═══════════
+function searchScripts(q) {
+  if (!q || q.length < 2) { document.querySelectorAll('.search-highlight').forEach(function(e){e.outerHTML=e.textContent}); return; }
+  q = q.toLowerCase();
+  document.querySelectorAll('.preview-panel,.talk-script,.silent-preview,.dialogue,.card').forEach(function(p){
+    if (p.innerText.toLowerCase().indexOf(q)>=0) {
+      p.scrollIntoView({behavior:'smooth',block:'center'});
+      var re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+      if (!p._oh) p._oh = p.innerHTML;
+      p.innerHTML = p._oh.replace(re,'<span class="search-highlight">$1</span>');
+    }
+  });
+}
+
+function copyScriptWithMeta(btn,textareaId) {
+  var t=document.getElementById(textareaId); if(!t) return;
+  var city=(document.getElementById('t3_city')||document.getElementById('t1_city')||document.getElementById('t4_city')||{}).value||'';
+  var tags=(document.getElementById('t3_tags')||document.getElementById('t1_tags')||document.getElementById('t4_tags')||{}).value||'#电信 #同城推荐';
+  var full = t.value+'\n\n\u{1f4cd} '+ (city||'山西电信营业厅')+'\n'+tags+'\n\u{1f4cc} 收藏这条，下次直接翻开拍';
+  navigator.clipboard.writeText(full).then(function(){if(btn){btn.textContent='\u2705 已复制';setTimeout(function(){btn.textContent='\u{1f4cb} 复制'},1500)}});
+  markScriptUsed(textareaId);
+}
+
+var _favs=[]; try{_favs=JSON.parse(localStorage.getItem('douyin_favs')||'[]')}catch(e){}
+var _used={}; try{_used=JSON.parse(localStorage.getItem('douyin_used')||'{}')}catch(e){}
+function isFav(n){return _favs.some(function(f){return f.name===n})}
+function isUsed(n){return _used[n]}
+function markScriptUsed(n){if(!n)return;_used[n]=new Date().toISOString();localStorage.setItem('douyin_used',JSON.stringify(_used))}
+
+function addFavStar(pid,name) {
+  var p=document.getElementById(pid); if(!p||p.querySelector('.fav-star')) return;
+  var s=document.createElement('span'); s.className='fav-star'+(isFav(name)?' saved':''); s.textContent=isFav(name)?'\u2b50':'\u2606';
+  s.onclick=function(e){e.stopPropagation();toggleFav(name,s)};
+  var w=document.createElement('div'); w.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px';
+  w.appendChild(s);
+  if(isUsed(name)){var b=document.createElement('span');b.className='script-used-badge';b.textContent='\u2713 已选过';w.appendChild(b)}
+  p.insertBefore(w,p.firstChild);
+}
+
+function toggleFav(name,star) {
+  var i=_favs.findIndex(function(f){return f.name===name});
+  if(i>=0){_favs.splice(i,1);if(star){star.classList.remove('saved');star.textContent='\u2606'}}
+  else{_favs.push({name:name,date:new Date().toISOString()});if(star){star.classList.add('saved');star.textContent='\u2b50'}}
+  localStorage.setItem('douyin_favs',JSON.stringify(_favs));updateFavCount();
+}
+
+function updateFavCount(){var e=document.getElementById('favCount');if(e){var n=_favs.length;e.textContent=n>0?'('+n+')':''}}
+
+var BANNED=['合约','号卡','合约价','合约机','月租','最好','第一','唯一','全网最低','100%','免费送'];
+function checkBanned(elId){var e=document.getElementById(elId);if(!e)return;var t=e.innerText,f=[];BANNED.forEach(function(w){if(t.indexOf(w)>=0)f.push(w)});if(f.length){toast('\u26a0\ufe0f 含违禁词: '+f.join(', '),'warn')}}
+
+function renderFavs(){
+  var a=document.getElementById('favoritesContent');if(!a)return;
+  if(_favs.length===0){a.innerHTML='<div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无收藏。去模板页点 ⭐ 收藏喜欢的脚本吧。</div>';return}
+  a.innerHTML=_favs.map(function(f,i){return '<div class="card" style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center"><b>'+esc(f.name)+'</b><span class="fav-star saved" onclick="event.stopPropagation();_favs.splice('+i+',1);localStorage.setItem(\'douyin_favs\',JSON.stringify(_favs));renderFavs();updateFavCount()">⭐</span></div><div style="font-size:11px;color:#999;">'+new Date(f.date).toLocaleDateString()+'</div></div>'}).join('')
+}
+
+function updateFreshness(){var b=document.getElementById('freshnessBadge');if(!b)return;var dl=window.___dailyScripts;b.innerHTML=dl&&dl.date?'<span class="freshness-dot"></span>'+dl.date+' 更新':'内容已加载'}
+setTimeout(function(){updateFreshness();updateFavCount();renderFavs()},800);
+
+function updateMobileNav(){var ap=document.querySelector('.page.active');if(!ap)return;var id=ap.id.replace('page-','');var items=document.querySelectorAll('.mobile-nav .mn-item');var map={schedule:0,template1:1,template2:2,template4:3,favorites:4};items.forEach(function(it){it.classList.remove('active')});if(map[id]!==undefined)items[map[id]].classList.add('active')}
+
 // ═══════ schedule.js ═══════
 function getBestTime(idx, city) {
   const bases = [[12,14],[8,10],[20,22],[16,18],[15,16]];
@@ -1950,14 +2633,16 @@ function buildTopicBank() {
     el.innerHTML = html + (bankFilter !== 'all' && bankFilter !== 'thisweek' && bankFilter !== 'context' ? 
       `<div style="font-size:11px;color:#999;text-align:center;padding:4px;">筛选结果：${visibleCount} 个</div>` : '');
   });
+  // 渲染历史周卡（仅在全部选题视图下刷新，避免筛选时闪烁）
+  if (!bankFilter || bankFilter === 'all') { try { buildHistory(); } catch(e) {} }
 }
 
 function buildHistory() {
-  const el = document.getElementById('historyContent');
+  const el = document.getElementById('historyInline');
   if (!el) return;
   let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">';
   const pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
-  const typeNames = ['决策指南型', '一线场景型', '深度测评型', '本地化事件型'];
+  const typeNames = ['对比推荐型', '服务故事型', '开箱实测型', '本地化福利型'];
   for (let w = Math.max(1, currentWeekNum - 8); w <= currentWeekNum; w++) {
     const isThisWeek = w === currentWeekNum;
     html += `<div class="card" style="${isThisWeek ? 'border:2px solid var(--orange);' : ''}padding:12px;">
@@ -2078,39 +2763,118 @@ function switchT1Mode(mode) {
 }
 
 function previewT1Talk() {
-  const c = id => document.getElementById('t1_'+id).value;
-  if (!c('city') || !c('a')) { alert('请至少填写地名和场景A！'); return; }
-  const city = c('city');
-  const topic = c('topic');
-  const a = c('a'), b = c('b'), cVal = c('c');
-  const bgm = c('bgm'), tags = c('tags');
-  var hookText = '';
-  var hookEl = document.getElementById('t1_hook_text');
-  if (hookEl && hookEl.value.trim()) hookText = hookEl.value.trim();
-  var variantHtml = tryVariantInjection(getTemplateTopic('t1'), bgm, 'preview1-talk');
-  const html = (variantHtml || '') + `
-<div class="stage">🎬 一镜到底 · 拍摄指南</div>
-<div class="info-tag">📱 全程一个镜头，手持或桌面支架 | ⏱ 约40秒 | 不剪辑</div>
-<div class="info-tag">🎵 BGM: ${bgm}（音量调25-30%，铺底不压人声）</div>
-<div class="stage">${hookText ? '【开场 0-5秒】🎯 黄金钩子' : '【开场 0-5秒】'}</div>
-${hookText ? '<div style="font-size:12px;color:#E65100;margin-bottom:4px;">🎯 黄金钩子 — 对着镜头直接说出下面这句话</div>\n<div class="dialogue" style="color:#BF360C;font-weight:700;">"' + esc(hookText) + '"</div>\n' : ''}
-<div class="action-note">→ 手里拿一张纸或手机屏幕，上面写着三个关键词（对应三个场景）。</div>
-<div class="dialogue">"${city}的朋友，${topic}？别纠结，我30秒给你算清楚——先收藏，后面有用。"</div>
-<div class="stage">【中段 5-28秒】三个场景依次展开</div>
-<div class="action-note">→ 每说一个场景，伸一根手指（一、二、三），眼睛看镜头，像给朋友推荐</div>
-<div class="dialogue">"第一种情况——${a}。"</div>
-<div class="action-note">→ 点头，停顿1秒让观众消化</div>
-<div class="dialogue">"第二种——${b}。"</div>
-<div class="action-note">→ 换个手势，身体稍微前倾</div>
-<div class="dialogue">"第三种——${cVal}。"</div>
-<div class="action-note">→ 语气加重在价格差异上</div>
-<div class="stage">【结尾 28-40秒】价值锚定+收藏引导</div>
-<div class="dialogue">"所以你看到了，${a.split('，')[0]}、${b.split('，')[0]}、${cVal.split('，')[0]}，钱差在哪？就在你实际用不用得到。截图保存这一张，下次选套餐拿出来对照。你在${city}的话来店里聊，我帮你算得更细——地址在评论区。"</div>
-<div class="action-note">→ 画面定格，配上对比表卡（字幕标注三个场景的价格和配置）</div>
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${city}${topic}，看完不花冤枉钱</div>
-<div class="info-tag">🏷 标签: ${tags}</div>
-<div class="info-tag">💡 关键：结尾让观众"截图保存"——这句话决定了收藏率。</div>`;
-  showT1Preview('preview1-talk', html);
+  const city = (document.getElementById('t1_city')||{}).value;
+  const topic = (document.getElementById('t1_topic')||{}).value;
+  if (!city || !topic) { alert('请选一个选题！'); return; }
+  const bgm = (document.getElementById('t1_bgm')||{}).value || '';
+  const tags = (document.getElementById('t1_tags')||{}).value || '';
+  var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
+  // alias mapping → exact match → fuzzy
+  var topicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
+  // 2026-07-20: 人设差异化脚本（完整版，非拼接）
+  var personaKey = 'sister';
+  try { var _p = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}'); if (_p.persona) personaKey = _p.persona; } catch(e) {}
+  var personaScript = window.___t1ScriptFullByPersona && ___t1ScriptFullByPersona[topicKey] && ___t1ScriptFullByPersona[topicKey][personaKey];
+  var fullScript = personaScript
+    || (window.___t1ScriptFull && ___t1ScriptFull[topicKey])
+    || (window.___t1ScriptFull && ___t1ScriptFull[topic])
+    || findScriptFuzzy(window.___t1ScriptFull, topic);
+  if (fullScript) {
+    var pData = (window.personaDB && personaDB[personaKey]) || personaDB.sister;
+    // 2026-07-20: 人设完整版 → 直接展示（无hook/cta拼接）；兜底版 → 用hook+cta
+    var isPersonaFull = personaScript === fullScript;
+    var scriptBg = 'background:#FAFAF8;border:1px solid #E8E5DC;border-radius:12px;padding:16px 18px;margin:8px 0;font-size:15px;line-height:1.85;color:#1E293B;';
+    var hookStyle = 'background:#F5F3FF;border-left:4px solid #7C5CFF;border-radius:6px;padding:10px 12px;margin-bottom:8px;color:#5B3FD1;font-weight:600;font-size:14px;';
+    var ctaStyle = 'background:#E0F7F0;border-left:4px solid #10B981;border-radius:6px;padding:10px 12px;margin-top:8px;color:#065F46;font-weight:600;font-size:14px;';
+    var dialogHtml;
+    if (isPersonaFull) {
+      dialogHtml = '<div style="' + scriptBg + '">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #E8E5DC;">' +
+        '<span style="font-size:14px;">' + pData.icon + '</span>' +
+        '<span style="font-weight:700;color:#5B3FD1;font-size:13px;">' + pData.label + '</span>' +
+        '<span style="font-size:10px;color:#94A3B8;">' + pData.tone + '</span>' +
+        '</div>' +
+        '<div style="white-space:pre-line;line-height:1.85;">"' + fullScript + '"</div></div>';
+    } else {
+      // 2026-07-20: 兜底时不再强行包 hook/cta（避免"人格错位"）
+      // 直接展示通用 body，并标注"通用版，等生成完整人设版"
+      dialogHtml = '<div data-role="script-body" style="' + scriptBg + '">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed #E8E5DC;">' +
+        '<span style="font-size:13px;">📄 通用版脚本</span>' +
+        '<span style="font-size:10px;color:#94A3B8;">' + pData.icon + ' ' + pData.label + ' · 主体通用，开口/收尾按人设</span>' +
+        '</div>' +
+        '<div style="white-space:pre-line;line-height:1.85;">"' + fullScript + '"</div></div>';
+    }
+
+    // 2026-07-20: 脚本评分 + 记忆库命中
+    var fullText = isPersonaFull ? fullScript : ((pData.hook || '').replace(/\{topic\}/g, topic) + '\n' + fullScript + '\n' + (pData.cta || ''));
+    var score = (typeof scoreScriptV2 === 'function') ? scoreScriptV2(fullText) : null;
+    var audit = (typeof auditScript === 'function') ? auditScript(fullText) : null;
+    var bench = (typeof isBenchmark === 'function') ? isBenchmark(fullText) : null;
+    var mem = (typeof matchMemoryBank === 'function') ? matchMemoryBank(fullText) : null;
+    var scoreHtml = '';
+    if (score) {
+      function bar5(s, th) {
+        var filled = Math.round(s / 10);
+        var empty = 10 - filled;
+        var color = s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444';
+        var mark = s >= th ? '✅' : '⚠️';
+        return '<span style="display:inline-block;width:' + (filled * 9) + 'px;height:8px;background:' + color + ';border-radius:4px;"></span>' +
+               '<span style="display:inline-block;width:' + (empty * 9) + 'px;height:8px;background:#E2E8F0;border-radius:4px;"></span>' +
+               ' <span style="font-size:9px;color:#94A3B8;">' + mark + '</span>';
+      }
+      var dims = [
+        { k:'collect', label:'📌 收藏力', th:40 },
+        { k:'revisit', label:'🔁 复访力', th:30 },
+        { k:'interact', label:'💬 互动力', th:45 },
+        { k:'retention', label:'⏱ 留存力', th:50 },
+        { k:'convert', label:'🛒 转化力', th:40 }
+      ];
+      var dimHtml = dims.map(function(d){
+        return '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">' + d.label + ' <b style="color:#1E293B;">' + score[d.k] + '</b></div>' + bar5(score[d.k], d.th) + '</div>';
+      }).join('');
+      var auditBadge = (audit && audit.pass) ? '<span style="font-size:11px;color:#fff;background:#10B981;padding:2px 8px;border-radius:8px;">✅ 新算法审核通过</span>' : '<span style="font-size:11px;color:#fff;background:#F59E0B;padding:2px 8px;border-radius:8px;">⚠️ 待优化</span>';
+      var benchBadge = (bench && bench.benchmark) ? '<span style="font-size:11px;color:#fff;background:#7C3AED;padding:2px 8px;border-radius:8px;">⭐ 标杆脚本</span>' : '';
+      scoreHtml = '<div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,#F0F7FF,#FEFEFE);border:1px solid #BFDBFE;border-radius:12px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">' +
+        '<span style="font-weight:700;color:#0052CC;font-size:13px;">📊 抖音新算法评分</span>' +
+        '<span style="font-size:11px;color:#64748B;background:#fff;padding:2px 8px;border-radius:8px;border:1px solid #E2E8F0;">综合 ' + score.total + ' / 100</span>' +
+        auditBadge + benchBadge +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">' + dimHtml + '</div>' +
+        '<div style="font-size:10px;color:#94A3B8;margin-top:8px;">权重：收藏30% › 复访22% › 互动20% › 留存18% › 转化10%（2026-05 抖音算法大改）</div>';
+      if (mem && mem.total > 0) {
+        scoreHtml += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #BFDBFE;">' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">' +
+          '<span style="font-weight:600;color:#0052CC;font-size:12px;">📚 记忆库命中 ' + mem.total + ' 个关键词</span>' +
+          '<span style="font-size:10px;color:#64748B;">(' + mem.pct + '%)</span>' +
+          '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:4px;">' +
+          mem.hits.map(function(h) { return '<span style="font-size:10px;padding:2px 6px;background:#E0F2FE;color:#0EA5E9;border-radius:8px;">' + h.label + ':' + h.tag + '</span>'; }).join('') +
+          '</div></div>';
+      }
+      if (audit && !audit.pass) {
+        var fails = audit.checks.filter(function(c){ return !c.ok; }).map(function(c){ return c.name; });
+        scoreHtml += '<div style="margin-top:8px;font-size:11px;color:#B45309;background:#FFFBEB;padding:6px 10px;border-radius:8px;border:1px solid #FDE68A;">⚠️ 待补强要素：' + fails.join('、') + '</div>';
+      }
+      scoreHtml += '</div>';
+    }
+
+    var coverText = getCoverageHint(topic);
+    var html = (variantHtml || '') + `
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>${coverText}</div>
+<div class="stage">🎬 口播脚本 <span style="font-size:11px;font-weight:400;color:#64748B;">· 人设：${pData.icon} ${pData.label}</span></div>
+<div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
+
+${dialogHtml}
+${scoreHtml}
+
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${topic} | 看完不花冤枉钱</div>
+<div class="info-tag">🏷 标签: ${tags}</div>`;
+    showT1Preview('preview1-talk', html);
+  } else {
+    alert('该选题暂无精选脚本，请选择其他选题。');
+  }
 }
 
 function previewT1Card() {
@@ -2286,11 +3050,21 @@ function clearT1() {
   });
 }
 
+function clearT1Preview() {
+  ['preview1-talk','preview1-card','preview1-calc'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  });
+}
+
 function fillT1Presets() {
   const topic = document.getElementById('t1_topic').value;
-  if (!topic) return;
+  if (!topic) { clearT1Preview(); return; }
   // Auto-select hook type based on topic
   autoSelectHook('t1', topic);
+  // v2.8: 选题变更时清空旧预览（避免上一轮 AI 优化结果残留）
+  clearT1Preview();
+  // 先填入预设或自动生成（瞬时反馈）
   // 1. Try exact match
   if (t1Presets[topic]) {
     applyT1Presets(t1Presets[topic]);
@@ -2308,6 +3082,8 @@ function fillT1Presets() {
   // 3. Auto-generate 3 scenarios based on topic keywords
   var generated = generateT1Scenarios(topic);
   applyT1Presets(generated);
+  // 【2026-07-16】实时搜索已下线（搜索结果质量差，改用离线话术库）
+  // searchT1AndFill(topic);
 }
 
 function applyT1Presets(presets) {
@@ -2325,6 +3101,16 @@ function applyT1Presets(presets) {
 
 function generateT1Scenarios(topic) {
   var t = topic.toLowerCase();
+  // === 直播/避坑/带货（删除乱给套话的内容，宁可不给也别误导）===
+  // 之前这段给了"先看价格区间"这种通用鸡汤，问题是用户选了"直播带宽带"实际
+  // 想要的是"上行速度"的技术内容，自动生成器无法准确回答
+  if (/直播|带货|避坑|避雷|指南|主播|短视频|自拍|网络|欠费|坑/i.test(topic)) {
+    return [
+      '⚠️ 该选题太具体，自动生成器无法给出准确答案，请在【场景A】中搜索真实数据后手动填写',
+      '⚠️ 请在【场景B】补充数据来源或相关实测，避免用通用模板',
+      '⚠️ 建议直接联系营业厅现场测速，或在官网/知乎搜索"宽带上行速度"等技术贴'
+    ];
+  }
   // === 携号转网/号码携带 ===
   if (/携号转网|号码携带|转网|换运营商|不换号/i.test(topic)) {
     return [
@@ -2494,6 +3280,25 @@ function generateT1Scenarios(topic) {
   ];
 }
 
+function getCoverageHint(topic) {
+  var t = topic || '';
+  if (/宽带.*选|选多少兆|多少M|带宽/i.test(t)) return '带宽对比 · 适用场景 · 价格区间 · 省钱建议';
+  if (/FTTR|光纤|全屋|WiFi.*布局|覆盖|Mesh|组网/i.test(t)) return '全屋WiFi方案对比 · 设备成本 vs 月租 · 适用户型建议';
+  if (/套餐|月费|月租|流量|通话/i.test(t)) return '套餐对比 · 流量/通话用量分析 · 省钱换套餐策略';
+  if (/购机|裸机|以旧换新|合约机|买手机/i.test(t)) return '购机 vs 裸机成本对比 · 以旧换新补贴 · 三年总支出';
+  if (/直播|带货|主播/i.test(t)) return '直播网络要求 · 上行速率对比 · 避坑建议';
+  if (/游戏|延迟|卡顿|掉线|排位/i.test(t)) return '不同宽带延迟实测 · 游戏体验对比 · 推荐带宽';
+  if (/老人|爸妈|老年|孝心/i.test(t)) return '适老套餐对比 · 流量/通话用量 · 省钱建议';
+  if (/学生|校园|大学/i.test(t)) return '学生套餐横向对比 · 流量额度 · 合约条件';
+  if (/老房子|没预埋|网线|布线|明线|电力猫/i.test(t)) return '老房子无网线方案 · 明线/电力猫/Mesh对比 · 成本与体验';
+  if (/租房|合租|搬家|短期/i.test(t)) return '租房宽带选择 · 短期vs长期 · 搬家违约金规避';
+  if (/携号转网|换运营商|不换号/i.test(t)) return '携转全流程 · 条件检查 · 到店办理指引';
+  if (/监控|摄像头|智能|门锁/i.test(t)) return '设备网络需求 · 带宽选择 · 4G/宽带对比';
+  if (/续费|到期|换套餐.*决策/i.test(t)) return '续费 vs 换套餐决策 · 到期福利 · 省钱计算';
+  if (/电视.*盒子|看.*电视|卡顿/i.test(t)) return '电视盒子卡顿排查 · 宽带问题 vs 设备问题';
+  return '电信业务对比 · 场景分析 · 省钱建议 · 到店指引';
+}
+
 function switchT2Mode(mode) {
   ['tell','doc','short'].forEach(m => {
     document.getElementById('t2-mode-'+m).classList.remove('active');
@@ -2508,50 +3313,31 @@ function switchT2Mode(mode) {
 }
 
 function previewT2Tell() {
-  const c = id => document.getElementById('t2_'+id).value;
-  if (!c('time') || !c('customer')) { alert('请至少填写时间和客户类型！'); return; }
-  var hookLine = '';
-  var hookEl = document.getElementById('t2_hook_text');
-  if (hookEl && hookEl.value.trim()) {
-    hookLine = '<div class="stage">【0-5秒】🎯 黄金钩子 — 对着镜头直接说这句话</div>\n<div class="action-note">→ 镜头对着自己脸，语气坚定。这句话决定了80%的完播率。</div>\n<div class="dialogue">"' + esc(hookEl.value.trim()) + '"</div>\n';
-  }
-  // Narrative framework: only 3 categories, let user content drive the story
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
-  var isOnsite = /上门|装机|维修/i.test(preset);
-  var isOutreach = /社区|校园|政企/i.test(preset);
-  // Opening line: user fills time/customer/problem, we just stitch them
-  var openLine = c('time') + '，' + c('customer') + '——' + c('problem');
-  var findPhrase = isOutreach ? '聊完发现——' : isOnsite ? '一到现场就发现问题了——' : '一问才知道——';
-  var usePhrase = isOutreach ? '解答完以后' : isOnsite ? '弄完以后' : '聊完以后';
-  var ctaPhrase = isOutreach ? '你们社区/学校有类似的活动吗？评论区说说' : isOnsite ? '你们家WiFi卡吗？评论区说说' : '你们遇到过类似的事吗？评论区聊聊';
-  var shootTip = isOutreach ? '镜头拍活动现场，展示氛围' : isOnsite ? '镜头转向环境/设备，手指向问题所在' : '镜头对着自己和客户，自然交流';
-  var variantHtml = tryVariantInjection(c('preset'), c('bgm'), 'preview2-tell');
-  const html = (variantHtml || '') + `
-<div class="stage">🎬 一镜到底 · 拍摄指南</div>
-<div class="info-tag">📱 镜头对着自己，边走边说 | ⏱ 约40秒 | 不剪辑 | 现场原声</div>
-${hookLine ? hookLine + `
-<div class="stage">【3-8秒】进入故事</div>
-<div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
-<div class="dialogue">"${openLine}"</div>
-` : `<div class="stage">【0-5秒】抛出悬念</div>
-<div class="action-note">→ 镜头对着自己脸，边走。语气像跟朋友分享今天的经历。</div>
-<div class="dialogue">"${openLine}"</div>`}
-<div class="stage">${hookLine ? '【8-25秒】' : '【5-25秒】'}发现问题+操作</div>
-<div class="action-note">→ ${shootTip}。语速放慢，让观众看清。</div>
-<div class="dialogue">"${findPhrase}${c('finding')}。"</div>
-<div class="action-note">→ 拍操作过程，每个步骤配一个画面切换</div>
-<div class="dialogue">"${c('steps').replace(/\n/g, '。')}"</div>
-<div class="stage">【25-35秒】客户真实反应</div>
-<div class="action-note">→ 关键！必须拍到客户的表情。如果客户说话用原声，不说话就用字幕。</div>
-<div class="dialogue">"${usePhrase}，${c('customer')}试了一下——</div>
-<div class="action-note">→ 画面切到客户，${c('reaction')}。停2秒给反应镜头。</div>
-<div class="stage">【35-40秒】总结+引导</div>
-<div class="dialogue">"其实${c('summary')}。${ctaPhrase}，说不定我能帮你看看。"</div>
-<div class="info-tag" style="margin-top:12px;">🎵 BGM: ${c('bgm') || '🔇 现场原声（推荐）'}</div>
-<div class="info-tag">🏷 标签: ${c('tags') || '#真实故事 #装维日常 #宽带小知识'}</div>
-<div class="info-tag">💡 关键：客户反应镜头是全片最重要的3秒——决定了观众会不会看完。</div>`;
-  showT2Preview('preview2-tell', html);
+  if (!preset) { alert('请选一个故事场景！'); return; }
+  var bgm = '';
+  try { bgm = document.getElementById('t2_bgm').value; } catch(e) {}
+  var tags = '';
+  try { tags = document.getElementById('t2_tags').value; } catch(e) {}
+  var variantHtml = tryVariantInjection(preset, bgm, 'preview2-tell');
+  
+  var fullScript = (window.___t2ScriptFullByPersona && ___t2ScriptFullByPersona[preset] && ___t2ScriptFullByPersona[preset][getPersona()])
+    || (window.___t2ScriptFull && ___t2ScriptFull[preset])
+    || findScriptFuzzy(window.___t2ScriptFull, preset);
+  if (fullScript) {
+    var html = (variantHtml || '') + `
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>真实服务案例全流程（时间·客户·问题排查·解决方案·客户反应·总结）。</div>
+<div class="stage">🎬 故事口播</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 原声口播 | 🎵 BGM: ${bgm || '🔇 现场原声'}</div>
+
+<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${fullScript}"</div>
+
+<div class="info-tag" style="margin-top:12px;">🏷 标签: ${tags || '#真实故事 #装维日常 #宽带小知识'}</div>`;
+    showT2Preview('preview2-tell', html);
+  } else {
+    alert('该场景暂无精选故事，请选择其他场景。');
+  }
 }
 
 function previewT2Doc() {
@@ -2702,7 +3488,7 @@ function fillT2Presets() {
   var subCat = '温情叙事';
   if (p.tags && (p.tags.indexOf('装维') > -1 || p.tags.indexOf('装机') > -1)) subCat = '快节奏爽片';
   else if (p.tags && (p.tags.indexOf('突发') > -1 || p.tags.indexOf('投诉') > -1)) subCat = '轻纪录片';
-  autoFillBGM('template2', 't2_bgm', '一线场景', subCat);
+  autoFillBGM('template2', 't2_bgm', '服务故事', subCat);
   // v2.0: Auto-select best hook type for this story template
   autoSelectHook('t2', key);
   // Dynamic label: change "上门发现的具体问题" → scene-appropriate wording
@@ -2717,6 +3503,8 @@ function fillT2Presets() {
   };
   var lbl = document.getElementById('t2_finding_label');
   if (lbl) lbl.textContent = labelMap[key] || '发现的具体问题';
+  // 异步搜索 T2 故事素材（零成本、零 AI）
+  searchT2AndFill(key);
 }
 
 function matchT2Preset() {
@@ -2806,12 +3594,12 @@ function getPhoneTopics(modelName) {
     p3: '亮点：' + (phone.highlight || specInfo),
   }});
 
-  // 选题目录（根据卖点条件匹配）
+  // 选题目录（根据卖点条件匹配，缺参数时用价格段+型号推断）
   var topicTemplates = [
-    { key:'续航实测', cond: function(){ return (phone.battery || '').replace(/[^0-9]/g,'') >= 5500; }, score:3, data:{ item:displayName, func:'续航实测', title:displayName + '重度使用能撑多久？一天实测告诉你', tags:'#手机续航 #电池实测 #' + brand + ' #换机参考', p1:'早上8点满电出门，开5G+蓝牙+定位，模拟日常使用', p2:'刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电', p3:(phone.battery||'大电池')+'电池，' + displayName + '比同价位机型多撑半天' }},
-    { key:'快充体验', cond: function(){ return /闪充|快充|100W|90W|80W/.test(phone.highlight||'') || phone.battery >= 6500; }, score:2, data:{ item:displayName, func:'快充体验', title:displayName + '充电有多快？实测从0到100%', tags:'#快充 #' + brand + ' #手机评测', p1:'电量耗尽开始充电，每隔5分钟记录一次电量', p2:'对比普通充电和快充模式，差多少时间', p3:(phone.battery||'大电池')+'配快充，碎片时间充10分钟够用半天' }},
-    { key:'拍照样张', cond: function(){ return /OIS|长焦|人像|哈苏|徕卡|光变|XMAGE|潜望|2亿/.test(phone.camera||'') || /2亿|哈苏|人像|拍人/.test(phone.highlight||''); }, score:3, data:{ item:displayName, func:'拍照样张', title:displayName + '拍照到底怎么样？实拍样张对比', tags:'#手机拍照 #' + brand + ' #影像评测 #换机指南', p1:'白天场景：主摄直出，色彩还原度和解析力如何', p2:'夜景/人像：('+(phone.camera||'')+') 暗光与人像表现', p3:(phone.highlight||'影像实力')+'，和旧手机拍的照片放一起对比' }},
-    { key:'5G实测', cond: function(){ return phone.chip && !/小天才|手表|儿童/.test(brand+modelName); }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand + ' #网速测试', p1:'电信5G实测：市区/室内/地库三场景信号对比', p2:phone.chip+'芯片性能：日常应用启动速度和后台保活', p3:'刷抖音/看直播/视频通话，全程流畅不卡顿' }},
+    { key:'续航实测', cond: function(){ var b = (phone.battery || '').replace(/[^0-9]/g,''); return b && b >= 5500 || (!b && price > 2000); }, score:3, data:{ item:displayName, func:'续航实测', title:displayName + '重度使用能撑多久？一天实测告诉你', tags:'#手机续航 #电池实测 #' + brand + ' #换机参考', p1:'早上8点满电出门，开5G+蓝牙+定位，模拟日常使用', p2:'刷抖音2小时+打游戏1小时+拍照100张，看看剩多少电', p3:(phone.battery||'大电池')+'电池，' + displayName + '比同价位机型多撑半天' }},
+    { key:'快充体验', cond: function(){ return /闪充|快充|100W|90W|80W/.test(phone.highlight||'') || (phone.battery && phone.battery >= 6500) || price > 3000; }, score:2, data:{ item:displayName, func:'快充体验', title:displayName + '充电有多快？实测从0到100%', tags:'#快充 #' + brand + ' #手机评测', p1:'电量耗尽开始充电，每隔5分钟记录一次电量', p2:'对比普通充电和快充模式，差多少时间', p3:(phone.battery||'大电池')+'配快充，碎片时间充10分钟够用半天' }},
+    { key:'拍照样张', cond: function(){ return /OIS|长焦|人像|哈苏|徕卡|光变|XMAGE|潜望|2亿/.test(phone.camera||'') || /2亿|哈苏|人像|拍人/.test(phone.highlight||'') || price > 2500; }, score:3, data:{ item:displayName, func:'拍照样张', title:displayName + '拍照到底怎么样？实拍样张对比', tags:'#手机拍照 #' + brand + ' #影像评测 #换机指南', p1:'白天场景：主摄直出，色彩还原度和解析力如何', p2:'夜景/人像：('+(phone.camera||'高清摄像头')+') 暗光与人像表现', p3:(phone.highlight||'影像实力')+'，和旧手机拍的照片放一起对比' }},
+    { key:'5G实测', cond: function(){ return (phone.chip || /5G/i.test(modelName)) && !/小天才|手表|儿童/.test(brand+modelName); }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand + ' #网速测试', p1:'电信5G实测：市区/室内/地库三场景信号对比', p2:(phone.chip||'处理器')+'性能：日常应用启动速度和后台保活', p3:'刷抖音/看直播/视频通话，全程流畅不卡顿' }},
     { key:'性价比', cond: function(){ return price < 2000; }, score:2, data:{ item:displayName, func:'性价比之王', title:displayName + '为什么是' + (price<1200?'百元':'千元') + '机里的性价比之王？', tags:'#性价比 #' + brand + ' #手机推荐 #百元机', p1:'同价位机型对比：' + displayName + '的('+(phone.chip||'')+'+'+(phone.battery||'')+')配置碾压竞品', p2:'日常体验：刷抖音不卡、拍照够用、电池一天一充', p3:'电信合约价'+priceStr+'，还能分期0首付，学生打工人都能上车' }},
     { key:'旗舰横评', cond: function(){ return price > 4000; }, score:2, data:{ item:displayName, func:'旗舰横评', title:displayName + ' vs 同价位旗舰，怎么选？', tags:'#旗舰手机 #' + brand + ' #手机推荐', p1:displayName + '核心卖点：'+ (phone.highlight||specInfo), p2:'对比同价位：' + (phone.chip||'旗舰芯片') + ' ' + (phone.camera||'旗舰影像') + ' ' + (phone.battery||'大电池'), p3:'适合谁：' + (price>6000?'追求极致体验的用户':'预算充足的品质用户') }},
     { key:'大存储', cond: function(){ return /1T|1TB/i.test(phone.storage||''); }, score:2, data:{ item:displayName, func:'大存储方案', title:displayName + ' 1T存储够不够用？教你判断该选多大', tags:'#手机存储 #' + brand + ' #换机指南', p1:'1TB到底能存多少：2万张照片+500个App+100部电影', p2:'谁需要1T：摄影爱好者/视频创作者/工作文件多的人', p3:'对比256G/512G版本差价，算算每GB成本值不值' }},
@@ -2821,8 +3609,8 @@ function getPhoneTopics(modelName) {
     { key:'生态联动', cond: function(){ return /华为|苹果|HarmonyOS|iOS/.test(brand) && price > 4000; }, score:2, data:{ item:displayName, func:'生态联动', title:displayName + '和家里其他' + brand + '设备怎么联动？', tags:'#' + brand + '生态 #全家桶 #智能生活', p1:brand+'全家桶：手机+平板+手表+电视，一个账号打通', p2:'实用场景：手机上复制→平板上粘贴，手表接电话→手机看消息', p3:'电信全家桶套餐：' + brand + '手机+宽带+电视，比单买省30%' }},
     // 儿童专属
     { key:'儿童安全', cond: function(){ return /小天才|儿童|手表/i.test(brand+modelName); }, score:5, data:{ item:displayName, func:'儿童安全', title:displayName + '孩子定位防护全攻略', tags:'#儿童手表 #小天才 #安全教育 #家长必看', p1:'实时定位+安全围栏：孩子进出校门/到家自动通知', p2:'上课禁用+通话白名单：防沉迷，只接家人电话', p3:priceStr+'电信儿童副卡：共享主卡流量，月租低至10元' }},
-    // 默认兜底
-    { key:'5G实测', cond: function(){ return true; }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand, p1:'电信5G网络下，' + displayName + '的下载上传速度实测', p2:'日常使用：微信/抖音/导航，一整天流畅度体验', p3:'到' + (phone.store||'附近电信营业厅') + '，免费测速+体验真机' }},
+    // 默认兜底（排除儿童手表，已有专用选题）
+    { key:'5G实测', cond: function(){ return !/小天才|儿童|手表/i.test(brand+modelName); }, score:1, data:{ item:displayName, func:'电信5G实测', title:displayName + '电信5G实测：信号+网速', tags:'#手机评测 #电信5G #' + brand, p1:'电信5G网络下，' + displayName + '的下载上传速度实测', p2:'日常使用：微信/抖音/导航，一整天流畅度体验', p3:'到' + (phone.store||'附近电信营业厅') + '，免费测速+体验真机' }},
   ];
 
   // 过滤并排序：满足条件的选题按分数降序
@@ -2851,8 +3639,16 @@ function getPhoneTopics(modelName) {
     var t = top4[i];
     result[t.key] = t.data;
   }
-  // 合约机优惠始终排在最后
-  result['合约机优惠'] = {
+  // 合约/优惠始终排在最后（儿童手表显示副卡方案）
+  var isChild = /小天才|儿童|手表/i.test(brand+modelName);
+  result['合约机优惠'] = isChild ? {
+    item: displayName, func: '儿童副卡方案',
+    title: displayName + '电信儿童副卡怎么开最划算？',
+    tags: '#儿童手表 #小天才 #电信副卡 #省钱攻略',
+    p1: '儿童副卡月租低至10元/月，共享主卡流量',
+    p2: '定位+通话每月流量消耗不到1GB，主卡流量完全够用',
+    p3: '来' + (phone.store||'电信营业厅') + '免费开卡，当场设置好安全围栏',
+  } : {
     item: displayName, func: '合约机方案',
     title: displayName + '电信合约机怎么买最划算？3种方案对比',
     tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
@@ -2904,52 +3700,6 @@ function loadTopicsByDevice() {
   }
 }
 
-function buildFallbackTopics(device) {
-  var brand = '';
-  var brands = ['华为','荣耀','苹果','iPhone','小米','红米','Redmi','OPPO','vivo','一加','三星','小天才'];
-  for (var i = 0; i < brands.length; i++) {
-    if (device.indexOf(brands[i]) >= 0) { brand = brands[i]; break; }
-  }
-  if (!brand && /华为|荣耀|苹果|iPhone|小米|红米|Redmi|OPPO|vivo|一加|三星|小天才/.test(device)) {
-    brand = device.match(/华为|荣耀|苹果|iPhone|小米|红米|Redmi|OPPO|vivo|一加|三星|小天才/)[0];
-  }
-  if (!brand) brand = '手机';
-  return {
-    '卖点展示': {
-      item: device, func: '核心卖点',
-      title: device + '卖点一图看：值不值得买？',
-      tags: '#' + brand + ' #手机推荐 #换机指南 #电信合约机',
-      p1: '外观：手感、配色、做工，第一印象怎么样',
-      p2: '性能：日常使用流畅度，游戏和拍照表现',
-      p3: '价格：对比同价位机型，性价比如何',
-    },
-    '5G网络实测': {
-      item: device, func: '电信5G实测',
-      title: device + '电信5G实测：信号+网速+续航',
-      tags: '#手机评测 #电信5G #' + brand + ' #网速测试',
-      p1: '5G下载速度：电信5G实测，峰值可达800-1200Mbps',
-      p2: '信号覆盖：电梯/地库/郊区三场景，电信比友商强在哪',
-      p3: '日常体验：刷抖音/看直播/视频通话，全程流畅不卡顿',
-    },
-    '拍照体验': {
-      item: device, func: '拍照样张',
-      title: device + '拍照到底怎么样？带你看看实拍样张',
-      tags: '#手机拍照 #' + brand + ' #影像评测 #换机指南',
-      p1: '白天场景：主摄直出，色彩还原度和解析力如何',
-      p2: '夜间模式：暗光下对比普通模式和夜景模式的差距',
-      p3: '人像模式：背景虚化效果+美颜算法，自拍党的真实体验',
-    },
-    '合约机优惠': {
-      item: device, func: '合约机方案',
-      title: device + '电信合约机怎么买最划算？3种方案对比',
-      tags: '#合约机 #' + brand + ' #电信优惠 #省钱攻略',
-      p1: '方案一：裸机购买，没优惠但最自由',
-      p2: '方案二：套餐合约，最低月消费XX元，立减300-500',
-      p3: '方案三：融合套餐，宽带+手机+电视打包，比单买省30%',
-    },
-  };
-}
-
 function autoFillTech() {
   const device = document.getElementById('t3_device').value;
   const topic = document.getElementById('t3_topic').value;
@@ -2987,6 +3737,19 @@ function autoFillTech() {
   document.getElementById('t3_tags').value = data.tags || '';
   summary.textContent = '设备: ' + (data.item || device) + ' | 选题: ' + topic + ' | 标题: ' + data.title + ' | 3个要点已自动填入';
   infoDiv.style.display = 'block';
+
+  // v2.7: 手机类强制走 phonePool 翻译层（替换 techDB 话术）
+  var phone = findPhoneByName(device);
+  if (phone) {
+    document.getElementById('t3_item').value = phone.brand + ' ' + phone.model;
+    document.getElementById('t3_p1').value = translateSpecToSlogan(phone.camera, 'camera');
+    document.getElementById('t3_p2').value = translateSpecToSlogan(phone.chip, 'chip');
+    document.getElementById('t3_p3').value = translateSpecToSlogan(phone.battery, 'battery');
+    document.getElementById('t3_title').value = phone.brand + ' ' + phone.model;
+    summary.textContent = '设备: ' + phone.brand + ' ' + phone.model + ' | 选题: ' + topic + ' ✅ 自动生成已就绪';
+    // 自动渲染三大区
+    renderT3AutoSection(device);
+  }
 }
 
 function fuzzyTechFill(device, topic) {
@@ -3086,45 +3849,99 @@ function previewT3Talk() {
 
 function buildPhoneTalkScript(phone, topic, city, bgm, title, tags, userHook) {
   const model = phone.model;
-  const chip = phone.chip;
-  const battery = phone.battery;
-  const camera = phone.camera;
-  const highlight = phone.highlight;
-  const price = phone.price;
+  const price = phone.guidePrice || phone.price || 0;
+  // v2.7: phonePool 字段走翻译层（口语化版本，不带结论词后缀）
+  const chip = translateSpecToFact(phone.chip, 'chip') || (price > 4000 ? '旗舰芯片' : price > 2000 ? '性能芯片' : '高性价比芯片');
+  const battery = translateSpecToFact(phone.battery, 'battery') || (price > 3000 ? '大容量电池' : price > 1500 ? '长续航电池' : '日常够用电池');
+  const camera = translateSpecToFact(phone.camera, 'camera') || (price > 3500 ? '旗舰级影像系统' : price > 2000 ? '高清多摄' : '高清主摄');
+  const highlight = translateSpecToFact(phone.highlight, 'highlight') || (price > 4000 ? '旗舰性能·顶级体验' : price > 2000 ? '均衡实力派' : '入门首选·物超所值');
   // Choose hook and talking points based on topic category
   var hook = '', p1 = '', p2 = '', p3 = '';
   if (topic.includes('续航')) {
-    hook = '你们是不是也这样——手机用到下午三四点就没电，到处找充电宝？';
-    p1 = '我今天说的' + model + '，电池' + battery + '。什么概念呢？你早上8点满电出门，刷抖音、看微信、中午打两把游戏，到晚上回家还剩20%。你想想你现在的手机能不能撑到下班？咱不吹，' + battery + '这个数字在这儿摆着，你拿同价位的比一圈就懂了。而且' + chip + '功耗控制得也好，续航这东西芯片+电池都得看。';
-    p2 = '充电也快——你利用洗脸刷牙那十几分钟插上，够你用半天了。不用非得睡觉前充一宿。这个习惯其实对电池寿命也有好处。';
-    p3 = highlight + '，这个价位有这个续航，讲真性价比挺能打的。你要是一天到晚到处跑、开会、出差，真的别再忍充电宝了，换个大电池的该换了。';
-  } else if (topic.includes('拍照') || topic.includes('样张')) {
-    hook = '买手机最怕什么？网上看样张美得不行，到手一拍——就这？';
-    p1 = model + '用的' + camera + '。我们先不说参数——你知道怎么判断一个手机拍照好不好？教你们一个最简单的办法：直接来店里，拿你现在的手机跟我这台站同一个位置、拍同一个东西，两张放一起比。参数都是虚的，你自己的眼睛不会骗你。';
-    p2 = '日常拍照最容易翻车的是什么？不是白天，是晚上。餐馆灯光暗、路边光线杂——' + model + '的' + camera + '在暗光这块，' + highlight + '。你想想你手机相册里糊掉的那些照片，是不是都是晚上拍的？';
-    p3 = '最后说一句掏心窝的话：' + price + '这个价位，你要想拍照，' + model + '值得你来店里摸摸。别信网上的评测图，来店里自己拍两张，你说了算。';
-  } else if (topic.includes('5G') || topic.includes('网速') || topic.includes('信号')) {
-    hook = '你有没有遇到过——明明显示5G满格，视频就是加载不出来？';
-    p1 = '问题不在手机，在运营商。' + model + '搭配电信5G网络，我给大家说个真实的——电信的基站覆盖密度在咱山西这边，尤其是太原市区，你在地下车库、电梯里都不断网。这不是手机好，这是电信的信号好。你用别的运营商的卡，同样的手机，信号差一截。';
-    p2 = chip + '这个处理器本身就支持完整的5G频段，电信的N78主流频段完美适配。简单说就是：手机和网络都拉满了。你打视频电话不会花屏、看直播不会转圈。';
-    p3 = '怎么验证？来店里我直接用' + model + '给你跑个测速，你自己看数字——下载速度几百兆、延迟十几毫秒。不用我说，数据说话。' + city + '的朋友有空过来，就当路过看看。';
-  } else if (topic.includes('合约') || topic.includes('优惠') || topic.includes('划算')) {
-    hook = '你买手机是直接掏' + price + '买裸机，还是走合约省几百？';
-    p1 = '先说裸机——' + model + '官方价' + price + '。去哪都是这个价，没毛病。但你如果正好要办宽带，或者要续费你现在的套餐——那合约机至少帮你省两三百，有时候更多。';
-    p2 = '这个省钱原理很简单——电信跟手机厂商拿货有集采价，你本质上是把宽带的钱、套餐的钱汇总在一起，电信把采购差价让利给你。你要是不办宽带也不办套餐，那直接买裸机就行，不强求。';
-    p3 = highlight + '，' + camera + '，' + battery + '续航，' + chip + '——东西是好东西，怎么买划算你自己算。来' + city + '营业厅我帮你算清楚，算完不买也没事，至少你知道这个手机到底该花多少钱。';
-  } else {
-    // 卖点展示/通用
-    hook = '最近好多人问我：' + model + '到底值不值得买？我今天不念参数，就说三点。';
-    // If userHook suggests a "缺点" structure, flip p1 to lead with flaw first
-    if (userHook && /缺点|先说|不足/i.test(userHook)) {
-      p1 = '先说缺点——' + chip + '虽然日常完全够用，但重度游戏党可能会觉得不如旗舰机。不过说实话，这个价格段你找不出更好的了。';
-      p2 = '但优点太强了。第一是续航——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
-      p3 = '第二是' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+    var isChildDevice = /小天才|儿童|手表/.test(phone.brand + phone.model + (phone.highlight||''));
+    if (isChildDevice) {
+      hook = '给孩子买手表，最怕什么？学校还没放学，手表没电了，联系不上！';
+      p1 = model + '用的是' + battery + '，正常使用能用1-2天。什么概念？早上孩子戴出门，白天定位一直开着、偶尔打个电话，到晚上回家还有电。你不用天天记着充电，周末充一次差不多够一周上学用。';
+      p2 = '待机长还有一个好处——安全围栏和实时定位不会断。最怕的就是孩子手表没电了你找不到人。' + model + '的低电量会自动提醒你，还剩15%就发通知，你提前就知道，不会突然失联。';
+      p3 = highlight + '，' + (price||'') + '。' + city + '的家长来店里，我帮你设置好低电量提醒和安全围栏，回去直接用，省心。';
     } else {
-      p1 = '第一，处理器' + chip + '——性能这块你完全不用担心。刷抖音、打游戏、开好几个App来回切，它不卡。我这么说吧，日常使用两年内你不会觉得慢。';
-      p2 = '第二，续航和充电——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
-      p3 = '第三，最打动人的——' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+      hook = '你们是不是也这样——手机用到下午三四点就没电，到处找充电宝？';
+      p1 = '我今天说的' + model + '，电池' + battery + '。什么概念呢？你早上8点满电出门，刷抖音、看微信、中午打两把游戏，到晚上回家还剩20%。你想想你现在的手机能不能撑到下班？咱不吹，' + battery + '这个数字在这儿摆着，你拿同价位的比一圈就懂了。而且' + chip + '功耗控制得也好，续航这东西芯片+电池都得看。';
+      p2 = '充电也快——你利用洗脸刷牙那十几分钟插上，够你用半天了。不用非得睡觉前充一宿。这个习惯其实对电池寿命也有好处。';
+      p3 = highlight + '，这个价位有这个续航，讲真性价比挺能打的。你要是一天到晚到处跑、开会、出差，真的别再忍充电宝了，换个大电池的该换了。';
+    }
+  } else if (topic.includes('拍照') || topic.includes('样张')) {
+    var isChildDevice = /小天才|儿童|手表/.test(phone.brand + phone.model + (phone.highlight||''));
+    if (isChildDevice) {
+      hook = '很多家长问我：' + model + '能视频通话吗？画质怎么样？';
+      p1 = model + '有' + camera + '。很多家长最关心的问题——孩子在学校想你了，能不能清楚地看到你？这个双摄就是干这个的，前置视频通话，后置拍作业、拍环境。';
+      p2 = '实际体验怎么样？' + highlight + '。光线好的时候很清楚，光线暗的时候也不会一片黑。孩子放学路上、在公园里，你打开手机随时能看到他在干嘛。';
+      p3 = '最后说一句：' + (price||'') + '，买的不只是手表，是 peace of mind。' + city + '的家长来店里，我帮你设置好视频通话，回去就能跟孩子连上。';
+    } else {
+      hook = '买手机最怕什么？网上看样张美得不行，到手一拍——就这？';
+      p1 = model + '用的' + camera + '。我们先不说参数——你知道怎么判断一个手机拍照好不好？教你们一个最简单的办法：直接来店里，拿你现在的手机跟我这台站同一个位置、拍同一个东西，两张放一起比。参数都是虚的，你自己的眼睛不会骗你。';
+      p2 = '日常拍照最容易翻车的是什么？不是白天，是晚上。餐馆灯光暗、路边光线杂——' + model + '的' + camera + '在暗光这块，' + highlight + '。你想想你手机相册里糊掉的那些照片，是不是都是晚上拍的？';
+      p3 = '最后说一句掏心窝的话：' + price + '这个价位，你要想拍照，' + model + '值得你来店里摸摸。别信网上的评测图，来店里自己拍两张，你说了算。';
+    }
+  } else if (topic.includes('5G') || topic.includes('网速') || topic.includes('信号')) {
+    var isChildDevice = /小天才|儿童|手表/.test(phone.brand + phone.model + (phone.highlight||''));
+    if (isChildDevice) {
+      hook = '很多家长担心：' + model + '通话会不会断？定位准不准？';
+      p1 = model + '用的电信4G全网通，信号稳。孩子在学校、在小区、在公园，你打电话过去秒接通。不会出现"暂时无法接通"那种让家长心跳加速的情况。咱营业厅实测过，地下车库、电梯里，通话不会断。';
+      p2 = '定位靠什么？靠的是4G+GPS+WiFi三重定位，电信基站覆盖密度在咱山西是领先的。孩子走到哪，你手机上看得一清二楚，定位刷新延迟不超过30秒。' + highlight + '——说白了就是让你放心。';
+      p3 = '怎么验证？来' + city + '营业厅，我拿' + model + '当场给你演示：你手机装个App，手表绑上去，你走出店门看定位刷新多快。亲眼看到比你听我说一百遍都管用。';
+    } else {
+      hook = '你有没有遇到过——明明显示5G满格，视频就是加载不出来？';
+      p1 = '问题不在手机，在运营商。' + model + '搭配电信5G网络，我给大家说个真实的——电信的基站覆盖密度在咱山西这边，尤其是太原市区，你在地下车库、电梯里都不断网。这不是手机好，这是电信的信号好。你用别的运营商的卡，同样的手机，信号差一截。';
+      p2 = chip + '这个处理器本身就支持完整的5G频段，电信的N78主流频段完美适配。简单说就是：手机和网络都拉满了。你打视频电话不会花屏、看直播不会转圈。';
+      p3 = '怎么验证？来店里我直接用' + model + '给你跑个测速，你自己看数字——下载速度几百兆、延迟十几毫秒。不用我说，数据说话。' + city + '的朋友有空过来，就当路过看看。';
+    }
+  } else if (topic.includes('合约') || topic.includes('优惠') || topic.includes('划算')) {
+    var isChildDevice = /小天才|儿童|手表/.test(phone.brand + phone.model + (phone.highlight||''));
+    if (isChildDevice) {
+      hook = '给孩子买' + model + '，怎么买最省钱？我给你算笔账。';
+      p1 = model + '单买是' + (price||'') + '。但如果你家里已经有电信宽带或者套餐，办一张儿童副卡——月租低至10块，手表' + highlight + '一起打包，整体比单买能省不少。你等于把手表和以后每月的通话流量钱一起解决了。';
+      p2 = '很多人不知道——电信儿童副卡是共享主卡流量的。你家里宽带给的那几十G流量，全家用不完，分10G给孩子手表绰绰有余。手表导航定位、视频通话、语音消息，一个月根本用不了多少流量。';
+      p3 = '最后说句实在的：' + (price||'') + '买的是安心。定位+围栏+上课禁用+副卡低月租，打包算下来比外面单买划算。' + city + '的家长来店里，我帮你把主卡副卡全部设置好，你回去插卡就能用。';
+    } else {
+      hook = '你买手机是直接掏' + price + '买裸机，还是走合约省几百？';
+      p1 = '先说裸机——' + model + '官方价' + price + '。去哪都是这个价，没毛病。但你如果正好要办宽带，或者要续费你现在的套餐——那合约机至少帮你省两三百，有时候更多。';
+      p2 = '这个省钱原理很简单——电信跟手机厂商拿货有集采价，你本质上是把宽带的钱、套餐的钱汇总在一起，电信把采购差价让利给你。你要是不办宽带也不办套餐，那直接买裸机就行，不强求。';
+      p3 = highlight + '，' + camera + '，' + battery + '续航，' + chip + '——东西是好东西，怎么买划算你自己算。来' + city + '营业厅我帮你算清楚，算完不买也没事，至少你知道这个手机到底该花多少钱。';
+    }
+  } else {
+    // 卖点展示/通用——根据机型类型生成不同话术
+    var isChildDevice = /小天才|儿童|手表/.test(phone.brand + phone.model + (phone.highlight||''));
+    var isSeniorPhone = /老年|老人|大字|简易/.test(phone.model + (phone.highlight||''));
+    
+    if (isChildDevice) {
+      hook = '最近好多家长问我：' + model + '到底值不值得买？我今天不说参数，就说三点。';
+      if (userHook && /缺点|先说|不足/i.test(userHook)) {
+        p1 = '先说缺点——' + model + '毕竟不是手机，屏幕小、不能装游戏App。但这就是我要给家长推荐的：孩子不该整天抱着手机刷短视频。';
+        p2 = '但定位这块太强了。实时定位+安全围栏，孩子放学到没到小区门口，手机立刻通知你。上课禁用模式一开，上课时间段只能看时间，什么电话都打不进来。';
+        p3 = '第三，' + highlight + '。' + (price||'') + '，电信儿童副卡月租低至10块。' + city + '的家长来店里，我帮你设置好安全围栏和上课时段，回去直接用。';
+      } else {
+        p1 = '第一，定位——' + model + '支持实时定位+安全围栏。孩子进校门、出校门、到家，你手机第一时间收到通知。不是大概位置，是精准到小区哪栋楼。';
+        p2 = '第二，上课禁用——设置好时间段，上课期间只能看时间、打紧急电话。什么游戏、什么短视频，根本进不去。放学铃一响自动恢复。';
+        p3 = '第三，' + highlight + '。' + (price||'') + '，电信儿童副卡共享主卡流量，月租低到10块。' + city + '的家长来店里，我帮你设置好，回去直接用。';
+      }
+    } else if (isSeniorPhone) {
+      hook = '最近好多叔叔阿姨问我：' + model + '老人用方不方便？我今天不说参数，就说三点。';
+      p1 = '第一，字体大、声音大——' + model + '把字体调到最大，老花眼不用眯着眼看。来电铃声也大，厨房做饭都能听见。';
+      p2 = '第二，操作简单——没有乱七八糟的App，桌面就几个大图标：电话、短信、相机。不会误触，不会点到广告下载一堆东西。';
+      p3 = '第三，' + highlight + '。' + (price||'') + '，电信老人套餐月租低，家里宽带一起打包更省。' + city + '的叔叔阿姨来店里，我教你怎么用，包教包会。';
+    } else {
+      // 普通手机话术（原有逻辑）
+      hook = '最近好多人问我：' + model + '到底值不值得买？我今天不念参数，就说三点。';
+      if (userHook && /缺点|先说|不足/i.test(userHook)) {
+        p1 = '先说缺点——' + chip + '虽然日常完全够用，但重度游戏党可能会觉得不如旗舰机。不过说实话，这个价格段你找不出更好的了。';
+        p2 = '但优点太强了。第一是续航——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
+        p3 = '第二是' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+      } else {
+        p1 = '第一，处理器' + chip + '——性能这块你完全不用担心。刷抖音、打游戏、开好几个App来回切，它不卡。我这么说吧，日常使用两年内你不会觉得慢。';
+        p2 = '第二，续航和充电——' + battery + '，你不用天天操心电量。正常上下班一天妥妥的，周末出去逛一天不用带充电宝。再加上' + camera + '拍照，日常拍拍足够了。';
+        p3 = '第三，最打动人的——' + highlight + '。如果你正好要办宽带或者续套餐，合约买比裸机便宜。' + price + '起，' + city + '的直接来店里我给你算清楚。来了不买也没事，至少你知道怎么买最省钱。';
+      }
     }
   }
   return '<div class="stage">🎬 口播脚本 · 直接念就行</div>' +
@@ -3156,13 +3973,21 @@ function buildDeviceTalkScript(item, c, city, bgm, title, tags) {
   const p2raw = c('p2') || '';
   const p3raw = c('p3') || '';
   function cleanP(raw) {
-    const idx = raw.indexOf('：');
+    var idx = raw.indexOf('：');
     return idx > 0 ? raw.substring(idx+1).trim() : raw.trim();
   }
-  const feat1 = cleanP(p1raw);
-  const feat2 = cleanP(p2raw);
-  const feat3 = cleanP(p3raw);
-  const objZh = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带')?'设备':'手机';
+  var feat1 = cleanP(p1raw);
+  var feat2 = cleanP(p2raw);
+  var feat3 = cleanP(p3raw);
+  // 兜底：空卖点时用设备类型生成通用话术
+  var isDevice = item.includes('光猫')||item.includes('路由')||item.includes('机顶盒')||item.includes('宽带');
+  var objZh = isDevice ? '设备' : '手机';
+  var fallbacks = isDevice ?
+    ['安装简单，自己也能搞定', '信号稳定，不掉线', '性价比高，比外面单买划算'] :
+    ['屏幕清晰，看视频舒服', '电池耐用，一天不用充电', '价格实惠，这个价位性价比很高'];
+  if (!feat1) feat1 = fallbacks[0];
+  if (!feat2) feat2 = fallbacks[1];
+  if (!feat3) feat3 = fallbacks[2];
   return '<div class="stage">🎬 一镜到底 · 拍摄指南</div>' +
     '<div class="info-tag">📱 全程一个镜头，手持' + objZh + '边走边聊 | ⏱ 约40秒 | 不剪辑</div>' +
     '<div class="info-tag">🎵 BGM: ' + bgm + '（音量调25-30%，铺底不压人声）</div>' +
@@ -3351,27 +4176,39 @@ function switchT4Mode(mode) {
 }
 
 function previewT4Walk() {
-  const c = id => document.getElementById('t4_'+id).value;
-  if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
-  var topic = c('preset') || c('benefit');
-  var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-walk');
-  const html = (variantHtml || '') + `
-<div class="stage">🚶 探店口播 · 一镜到底</div>
-<div class="info-tag">📱 手持从地标拍到店门口 | ⏱ 约30秒 | 🎵 BGM: ${c('bgm')}</div>
-<div class="stage">【0-5秒】从地标开始</div>
-<div class="action-note">→ 镜头对准${c('landmark') || c('city')}最有辨识度的建筑/路牌，停留2秒</div>
-<div class="dialogue">"${c('city')}的朋友看过来——${c('landmark') ? c('landmark')+'旁边' : ''}这家${c('shop')}，有个隐藏福利你可能不知道！"</div>
-<div class="stage">【5-20秒】推进店门，展示福利</div>
-<div class="action-note">→ 边走边拍，从地标走到店门口，进门拍服务台/店内环境</div>
-<div class="dialogue">"就是——${c('benefit')}！${c('desc')}"</div>
-<div class="stage">【20-28秒】实用信息</div>
-<div class="dialogue">"地址就在${c('addr')}，营业时间${c('hours')}。路过的时候进来看看，不用预约，直接来就行。"</div>
-<div class="stage">【28-30秒】行动引导</div>
-<div class="dialogue">"评论区告诉我你最近还发现了什么隐藏福利？记得加个位置标签，好找。"</div>
-<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${c('city')}${c('landmark')}这家${c('shop')}居然可以${c('benefit')}！</div>
-<div class="info-tag">🏷 标签: ${c('tags')}</div>
-<div class="info-tag">📍 POI: 发布时一定要添加「${c('shop')}」位置标签</div>`;
-  showT4Preview('preview4-walk', html);
+  const city = (document.getElementById('t4_city')||{}).value;
+  const preset = (document.getElementById('t4_preset')||{}).value;
+  if (!city || !preset) { alert('请选择活动和填写地名！'); return; }
+  const bgm = (document.getElementById('t4_bgm')||{}).value || '';
+  const shop = (document.getElementById('t4_shop')||{}).value || '电信营业厅';
+  const landmark = (document.getElementById('t4_landmark')||{}).value || '';
+  const addr = (document.getElementById('t4_addr')||{}).value || '';
+  const tags = (document.getElementById('t4_tags')||{}).value || '';
+  var variantHtml = tryVariantInjection(preset, bgm, 'preview4-walk');
+  
+  var fullScript = (window.___t4ScriptFullByPersona && ___t4ScriptFullByPersona[preset] && ___t4ScriptFullByPersona[preset][getPersona()])
+    || (window.___t4ScriptFull && ___t4ScriptFull[preset])
+    || findScriptFuzzy(window.___t4ScriptFull, preset);
+  if (fullScript) {
+    var scriptText = fullScript
+      .replace(/XX路/g, addr || 'XX路')
+      .replace(/XX营业厅/g, (shop.indexOf('电信')>=0 ? shop : ('电信' + shop)));
+    var dedupShop = shop;
+    if (dedupShop && city && dedupShop.indexOf(city) === 0) dedupShop = dedupShop.slice(city.length).trim();
+    var displayShop = dedupShop || shop || '电信营业厅';
+    var html = (variantHtml || '') + `
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>具体福利介绍、到店引导、同城引流话术。</div>
+<div class="stage">🎬 探店口播</div>
+<div class="info-tag">⏱ 约25秒 | 🎤 手持口播 | 🎵 BGM: ${bgm}</div>
+
+<div class="dialogue" style="white-space:pre-line;line-height:1.6;">"${scriptText}"</div>
+
+<div class="info-tag" style="margin-top:12px;">📝 发布标题: ${city}${landmark ? ' · '+landmark : ''}${displayShop ? ' · '+displayShop : ''}</div>
+<div class="info-tag">🏷 标签: ${tags}</div>`;
+    showT4Preview('preview4-walk', html);
+  } else {
+    alert('该活动暂无精选脚本，请选择其他活动。');
+  }
 }
 
 function previewT4Mix() {
@@ -3490,7 +4327,7 @@ function fillT4Presets() {
   else if (/体验|测速/i.test(key)) subCat = '福利快闪';
   else if (/送礼|特惠|换新/i.test(key)) subCat = '福利快闪';
   else if (/社区/i.test(key)) subCat = '温馨服务';
-  autoFillBGM('template4', 't4_bgm', '本地事件', subCat);
+  autoFillBGM('template4', 't4_bgm', '本地福利', subCat);
   // v2.0: Auto-select best hook type based on activity
   var t4Hooks = {'免费贴膜':'value','免费测速':'value','办业务送礼':'conflict','以旧换新':'value','手机清洁':'empathy','宽带体验':'conflict','暑期特惠':'conflict','社区服务':'empathy'};
   autoSelectHook('t4', key);
@@ -3533,12 +4370,18 @@ function clearTemplate3() {
   ['t3_item','t3_func','t3_p1','t3_p2','t3_p3','t3_title','t3_tags'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  document.getElementById('preview3-talk').style.display = 'none';
+  var talkEl = document.getElementById('preview3-talk');
+  if (talkEl) talkEl.style.display = 'none';
   document.getElementById('preview3-silent').style.display = 'none';
   var sdBtns = document.getElementById('silentDownloadBtns');
   if (sdBtns) sdBtns.style.display = 'none';
   var infoPanel = document.getElementById('infographicPanel');
   if (infoPanel) infoPanel.style.display = 'none';
+  // v2.7: 隐藏新区域
+  var sloganArea = document.getElementById('t3_slogan_area');
+  if (sloganArea) sloganArea.style.display = 'none';
+  var autoSection = document.getElementById('t3_auto_section');
+  if (autoSection) autoSection.style.display = 'none';
 }
 
 // ═══════ ai.js ═══════
@@ -3576,77 +4419,97 @@ function triggerVariantOptimize(cardId, topicKey) {
 async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
   var previewEl = document.getElementById(window['__preview_' + cardId] || '');
   if (!previewEl) { if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">请先生成预览再点优化</span>'; if (btn) { btn.disabled = false; } return; }
-  // Extract all quoted dialogue lines from the preview HTML
-  var fullHtml = previewEl.innerHTML;
-  var dialogueRegex = /"([^"]{6,})"/g;
-  var dialogueLines = [];
-  var match;
-  while ((match = dialogueRegex.exec(fullHtml)) !== null) {
-    dialogueLines.push(match[1]);
-  }
-  if (dialogueLines.length === 0) {
+  // Extract text from preview
+  var src = previewEl.textContent.replace(/\s{3,}/g,'\n').trim().slice(0, 3000);
+  if (!src) {
     if (bodyEl) bodyEl.innerHTML = '<span style="color:#999;">未找到台词，请先生成预览</span>';
     if (btn) { btn.disabled = false; btn.textContent = '🚀 AI 优化台词（全站剩余' + quotaRemaining() + '次）'; }
     return;
   }
-  // Build context for AI: structured text from preview
-  var src = previewEl.textContent.replace(/\s{3,}/g,'\n').trim().slice(0, 3000);
   try {
+    // 获取 AI key（首次缓存，后续复用）
+    var key = await ensureAIKey();
+    if (!key) throw new Error('no-ai-key');
+
     var tpl = detectTemplateType();
-    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},90000);
-    var res = await fetch(PERSONALIZE_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store:profile.name,persona:profile.persona,topic:topicKey,city:profile.city,templateType:tpl,script:src}),signal:ctrl.signal});
+    var persona = getPersona();
+    var p = personaDB[persona] || personaDB['sister'];
+
+    // 构造 prompt：使用人设风格改写台词
+    var systemPrompt = '你是山西电信营业厅的' + (p.label || '营业员') + '。' +
+      (p.hook ? '说话特点：' + p.hook : '') +
+      '请用自然的口语改写以下台词，让它更像你现场录制时说的话。' +
+      '保持原意、故事骨架、数字、价格不变。' +
+      '不要加分镜标记，不要加JSON标记，直接输出纯文本口播台词。' +
+      '【抖音2026新算法强制要素】改写时务必覆盖以下五项，缺失则补、已有则保留，不要重复堆砌：' +
+      '1)开头用冲突/利益/悬念钩子拉住前3秒（如"别再XX了""XX其实亏了"）；' +
+      '2)植入可收藏价值锚点（如"截图保存这个对照表/到厅直接对照"）拉升收藏率（新算法第一权重）；' +
+      '3)结尾引导用户评论（如"评论说说你的情况，我帮你参谋"）；' +
+      '4)加复访钩子（如"关注我看下期/这是个系列，下条讲XX"）；' +
+      '5)保留到店/核销等转化指令。';
+    var userPrompt = '帮我把这段台词改得更自然、更像口语化的现场表达：\n```\n' + src + '\n```';
+
+    var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
+    var res = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        messages: [
+          {role: 'system', content: systemPrompt},
+          {role: 'user', content: userPrompt}
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      }),
+      signal: ctrl.signal
+    });
     clearTimeout(tid);
-    if (!res.ok) throw new Error('API '+res.status);
+    if (!res.ok) {
+      var errTxt = '';
+      try { errTxt = (await res.json()).message || ''; } catch(e) {}
+      throw new Error('SiliconFlow ' + res.status + ': ' + errTxt.slice(0,100));
+    }
     var data = await res.json();
-    // Check for backend error
-    if (data.error) throw new Error(data.error);
-    // New SCF returns {lines: [{orig,new},...]}, old returns {script} or {dialogue}
-    var rewrites = (data.lines && data.lines.length > 0) ? data.lines : null;
-    var fallbackScript = data.dialogue || data.script || '';
-    // Declare polishedText at function scope level
-    var polishedText = '';
-    var warns = data.warnings || [];
-    var aiComments = data.comments || null; // AI co-generated comments
-    if (rewrites) {
-      polishedText = (data.dialogue && data.dialogue.length > 10) ? data.dialogue : rewrites.map(function(r){ return r['new'] || (r.rewritten || ''); }).filter(Boolean).join('\n\n');
-    } else if (fallbackScript && fallbackScript.length > 10) {
-      polishedText = fallbackScript;
-      warns = data.warnings || [];
-    } else {
-      throw new Error('empty');
-    }
-    // Consume global quota (failure also counts)
+    var polished = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!polished) throw new Error('empty');
+
+    // 消费配额
     var rem = useDailyQuota();
-    renderVariantResult(cardId, polishedText, warns, rem, btn, bodyEl, quotaEl, '', rewrites);
-    // Cache AI comments for publish kit
-    if (aiComments && aiComments.length >= 3) {
-      try { AppState.set('ai_comments_' + tpl, aiComments); } catch(e) {}
-    }
+    // 检测违禁词
+    var warns = detectAdWords(polished);
+    renderVariantResult(cardId, polished, warns, rem, btn, bodyEl, quotaEl, '', null, topicKey);
   } catch(e) {
-    // Distinguish error types; don't consume quota for network errors
     var errType = 'unknown';
     var errMsg = e.message || '';
     if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
       errType = 'timeout';
-    } else if (errMsg.indexOf('API ' ) === 0) {
+    } else if (errMsg.indexOf('SiliconFlow') === 0) {
       errType = 'api';
-    } else if (errMsg === 'empty') {
+    } else if (errMsg === 'empty' || errMsg === 'no-ai-key') {
       errType = 'empty';
     }
-    // Only consume quota for real failures (not network issues)
-    var rem;
-    if (errType === 'timeout' || errType === 'api') {
-      // Network/system error — free retry, don't consume quota
-      rem = quotaRemaining();
-    } else {
-      rem = useDailyQuota();
-    }
-    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType);
+    var rem = (errType === 'timeout' || errType === 'api') ? quotaRemaining() : useDailyQuota();
+    renderVariantResult(cardId, '', [], rem, btn, bodyEl, quotaEl, errType, null, topicKey);
   }
 }
 
-function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines) {
+function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errType, origLines, topicKey) {
   errType = errType || '';
+  // 2026-07-21: AI 失败时自动用本地人设脚本兜底（避免用户每次看到超时）
+  var fallbackScript = null;
+  if (!dlg && topicKey && (errType === 'timeout' || errType === 'api' || errType === 'unknown')) {
+    try {
+      var persona = (window['__persona_' + cardId]) || getPersona();
+      var db = window.___t1ScriptFullByPersona;
+      if (db && db[topicKey] && db[topicKey][persona]) {
+        fallbackScript = db[topicKey][persona];
+      }
+    } catch(e) {}
+  }
   if (dlg) {
     var usageCount = getDailyQuota().used;
     bodyEl.innerHTML = '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(dlg)+'</div>'+
@@ -3670,12 +4533,26 @@ function renderVariantResult(cardId, dlg, warns, rem, btn, bodyEl, quotaEl, errT
       bodyEl.innerHTML += '<div style="margin-top:6px;font-size:11px;color:#C62828;background:#FFF3F0;padding:6px 8px;border-radius:6px;">⚠️ 广告法违禁词：'+esc(warns.join(', '))+'</div>';
     }
   } else {
+    if (fallbackScript) {
+      // AI 失败，渲染本地兜底
+      bodyEl.innerHTML = '<div style="padding:6px 10px;background:#FFF3E0;border:1px dashed #F59E0B;border-radius:6px;font-size:11px;color:#92400E;margin-bottom:6px;">⚠️ AI 服务暂不可用，已自动加载本地人设脚本</div>' +
+        '<div style="font-size:15px;line-height:1.9;color:#222;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+esc(fallbackScript)+'</div>'+
+        '<div style="margin-top:6px;font-size:10px;color:#999;">📋 本地脚本 · 不消耗AI配额</div>';
+      // 恢复按钮文案，不消耗次数
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔄 重新尝试 AI';
+      }
+      return;
+    }
     var errText = '优化失败';
     if (errType === 'timeout') errText = '⏱ 生成超时（模型繁忙），建议稍后重试';
     else if (errType === 'api') errText = '🔧 服务端异常，正在恢复中，稍后重试';
     else if (errType === 'empty') errText = '📭 模型返回为空，可能是输入太短或内容冲突，修改后重试';
     else errText = '⚠️ 优化失败，可重试（无需重新生成预览）';
     bodyEl.innerHTML = '<span style="color:#999;">'+errText+'</span>';
+    // 2026-07-20: 失败时也弹 toast，让用户看清
+    if (typeof toast === 'function') toast(errText, 'error');
   }
   quotaEl.textContent = '全站剩余' + rem + '次';
   if (rem > 0) { btn.disabled = false; btn.textContent = rem===2 ? '🔄 AI 优化（全站剩余2次）' : '🔄 最后一次（全站剩余1次）'; btn.style.display = ''; }
@@ -3691,29 +4568,29 @@ var liveMode = 'store';
 
 var liveProducts = {
   'store': [
-    {name:'宽带体验券（1元）', price:'1', desc:'到店体验千兆宽带，1元起'},
-    {name:'宽带提速礼包（30元）', price:'30', desc:'30元享专业宽带提速'},
-    {name:'宽带福利礼包（99元）', price:'99', desc:'领560元购机补贴'},
-    {name:'FTTR全光礼包（老用户）', price:'40', desc:'全屋光纤+千兆+智屏'},
-    {name:'免费贴膜/网检', price:'到店礼', desc:'到店即享免费服务'}
+    {name:'🔥 办千兆宽带送手机', price:'129', desc:'盛夏狂欢·vivo/荣耀/小米/OPPO任选'},
+    {name:'宽带新装预约（50元）', price:'50', desc:'300M/500M/1000M新装福利价'},
+    {name:'宽带提速升级千兆', price:'50', desc:'宽带提速到千兆'},
+    {name:'FTTR全光礼包（老用户）', price:'59', desc:'FTTR设备+智屏'},
+    {name:'到店领代金券', price:'50', desc:'50元得200元代金券到店领纸品'}
   ],
   'community': [
-    {name:'宽带体验券（1元）', price:'1', desc:'1元现场预约宽带体验'},
-    {name:'宽带提速礼包（30元）', price:'30', desc:'30元享宽带提速'},
-    {name:'宽带福利礼包（99元）', price:'99', desc:'领560元购机补贴'},
+    {name:'🔥 办千兆宽带送手机', price:'129', desc:'千兆+手机，盛夏狂欢价'},
+    {name:'宽带新装预约（50元）', price:'50', desc:'50元预约新装，划算'},
+    {name:'宽带提速升级', price:'50', desc:'提速到千兆'},
     {name:'免费WiFi测速', price:'0', desc:'现场免费测宽带速率'},
-    {name:'小礼品（数据线/支架）', price:'到店礼', desc:'扫码即送'}
+    {name:'到店送小礼品', price:'免费', desc:'扫码即送'}
   ],
   'outdoor': [
-    {name:'宽带体验券（1元）', price:'1', desc:'逛街路过顺便1元预约宽带'},
-    {name:'宽带福利礼包（99元）', price:'99', desc:'领560元购机补贴'},
+    {name:'🔥 宽带新装预约（50元）', price:'50', desc:'50元预约宽带'},
+    {name:'到店领代金券', price:'50', desc:'50元得200元代金券'},
     {name:'免费贴膜', price:'0', desc:'到店享免费贴膜'},
     {name:'到店路线指引', price:'免费', desc:'导航直达'}
   ],
   'home': [
-    {name:'宽带网络优化服务', price:'1', desc:'1元享宽带网络优化+福利品'},
-    {name:'宽带提速礼包（30元）', price:'30', desc:'30元享宽带提速'},
-    {name:'FTTR全光礼包（老用户）', price:'40', desc:'全屋光纤+千兆+智屏'},
+    {name:'宽带提速升级', price:'50', desc:'50元升至千兆'},
+    {name:'🔥 办千兆宽带送手机', price:'129', desc:'盛夏狂欢·vivo/荣耀任选'},
+    {name:'FTTR全光礼包（老用户）', price:'59', desc:'FTTR+智屏'},
     {name:'路由器以旧换新', price:'到店询', desc:'旧换新享补贴'},
     {name:'企业微信扫码', price:'免费', desc:'加企微，随时咨询'}
   ]
@@ -3770,10 +4647,12 @@ function updateLiveProductDesc() {
   }
   // Update price field based on product selection
   var priceMap = {
-    '1元宽带提速礼包':'1', '30元宽带提速礼包':'30', '618福利宽带礼包':'99',
-    '千兆宽带礼包预约':'50', 'FTTR全光礼包(老用户专享)':'40',
-    '宽带网络优化服务':'1', '免费贴膜':'0', '免费WiFi测速':'0',
-    '小度智能屏':'30'
+    '🔥 办千兆宽带送手机':'129', '宽带新装预约（50元）':'50',
+    '宽带提速升级千兆':'50', '宽带提速升级':'50',
+    'FTTR全光礼包（老用户）':'59', '到店领代金券':'50',
+    '免费贴膜':'0', '免费WiFi测速':'0',
+    '路由器以旧换新':'到店询', '企业微信扫码':'免费',
+    '到店送小礼品':'免费', '到店路线指引':'免费'
   };
   var priceEl = document.getElementById('lv_price');
   if (priceEl && priceMap[val]) {
@@ -4137,7 +5016,7 @@ function renderStats() {
   cardHtml += '<div class="card" style="text-align:center;"><div style="font-size:32px;font-weight:700;color:#7B1FA2;">'+uniqueTopics+'</div><div style="font-size:12px;color:var(--body);">选题覆盖数</div></div>';
   document.getElementById('statsCards').innerHTML = cardHtml;
   // Module chart (horizontal bars)
-  var pageNames = { 'schedule':'📋 每周排期','template1':'💬 口播脚本','template2':'📖 故事脚本','template3':'🔬 产品测评','template4':'🏠 同城活动','bank':'📚 选题库','hotspot':'🔥 热点跟拍','history':'📜 历史','stats':'📊 统计' };
+  var pageNames = { 'schedule':'📋 每周排期','template1':'💬 口播脚本','template2':'📖 故事脚本','template3':'🔬 产品测评','template4':'🏠 同城活动','bank':'📚 选题库','hotspot':'🔥 热点跟拍','history':'📜 历史','stats':'📊 统计','favorites':'💾 我的收藏','benchmark':'⭐ 标杆库' };
   var pageActionNames = { 'page_schedule':'访问排期','page_template1':'口播脚本','page_template2':'故事脚本','page_template3':'产品测评','page_template4':'同城活动','preview_generated':'生成预览','export_image':'导出图片','export_copy':'复制脚本','checklist_pass':'✅检查通过','checklist_fail':'❌检查失败','fw_detected':'违禁词告警' };
   var sorted = Object.entries(pages).sort(function(a,b) { return b[1]-a[1]; });
   var maxVal = sorted.length > 0 ? sorted[0][1] : 1;
@@ -4284,235 +5163,87 @@ function clearStats() {
 }
 
 function generateInfographic() {
-  const item = document.getElementById('t3_item').value;
-  const func = document.getElementById('t3_func').value;
-  const title = document.getElementById('t3_title').value;
-  const p1 = document.getElementById('t3_p1').value;
-  const p2 = document.getElementById('t3_p2').value;
-  const p3 = document.getElementById('t3_p3').value;
-  const city = document.getElementById('t3_city').value || '本地';
+  // v2.7: 已废弃，提示词在 t3_auto_section 中自动展示
+  var area = document.getElementById('t3_auto_section');
+  if (area) area.scrollIntoView({ behavior: 'smooth' });
+}
+
+function generateSellingPointCard() {
+  generateInfographic();
+}
+
+function generateDouyinPrompt() {
+  var item = document.getElementById('t3_item').value;
+  var title = document.getElementById('t3_title').value;
+  var p1 = document.getElementById('t3_p1').value;
+  var p2 = document.getElementById('t3_p2').value;
+  var p3 = document.getElementById('t3_p3').value;
+  var city = document.getElementById('t3_city').value || '本地';
   if (!p1 || !p2 || !p3) {
     alert('请先在顶部选好设备和选题（自动填充后生成）');
     return;
   }
-  // Parse each line: "部位名：说明"
-  function parseLine(l) {
-    const parts = l.split('：');
-    return { label: parts[0] || '', desc: parts.slice(1).join('：') || l };
-  }
-  const d1 = parseLine(p1);
-  const d2 = parseLine(p2);
-  const d3 = parseLine(p3);
-  const panel = document.getElementById('infographicPanel');
-  const cardW = Math.min(420, window.innerWidth - 40);
-  const cardH = 720;
-  const html = `
-  <div style="max-width:${cardW}px;margin:0 auto;">
-    <div id="infographicCard" style="width:${cardW}px;min-height:${cardH}px;background:linear-gradient(180deg,#0D1B36 0%,#1a2a4a 30%,#fff 30%,#fff 100%);border-radius:16px;overflow:hidden;position:relative;font-family:'Microsoft YaHei',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
-      <!-- Header -->
-      <div style="padding:32px 28px 20px;text-align:center;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:2px;margin-bottom:8px;">${city} · 中国电信</div>
-        <div style="font-size:18px;color:#fff;font-weight:700;line-height:1.4;">${title}</div>
-      </div>
-      <!-- Body -->
-      <div style="padding:16px 24px 20px;">
-        ${renderCard(0, '#0052CC', d1.label, d1.desc)}
-        ${renderCard(1, '#FF5722', d2.label, d2.desc)}
-        ${renderCard(2, '#008A5C', d3.label, d3.desc)}
-      </div>
-      <!-- Footer -->
-      <div style="padding:16px 28px 24px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 24px;">
-        <div style="font-size:12px;color:#999;margin-bottom:4px;">长按保存到手机，以后照着查</div>
-        <div style="font-size:10px;color:#ccc;">${city}电信营业厅 · 抖本内容工坊</div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:12px;">
-      <button class="btn btn-green btn-sm" onclick="downloadInfographic()" style="font-size:14px;padding:10px 24px;">📥 下载一图流（PNG）</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('infographicPanel').style.display='none'" style="font-size:14px;padding:10px 24px;">✕ 收起</button>
-      <button class="btn btn-orange btn-sm" onclick="shareInfographic()" style="font-size:14px;padding:10px 24px;">📤 复制图发给用户</button>
-    </div>
-  </div>`;
-  panel.innerHTML = html;
+  var phone = findPhoneByName(item);
+  var displayName = phone ? (phone.brand + ' ' + phone.model) : (title || item);
+  var priceStr = phone ? ('¥' + (phone.guidePrice || phone.price || '到店询')) : '';
+
+  // 卖点文案（已过翻译层，无脏数据）
+  var cleanPrompts = [
+    p1.replace(/^.*?[：:]/, '').trim(),
+    p2.replace(/^.*?[：:]/, '').trim(),
+    p3.replace(/^.*?[：:]/, '').trim()
+  ];
+
+  // 收集禁止词（原始 phonePool 数据，防止 AI 渲染）
+  var bannedWords = [phone && phone.camera, phone && phone.chip, phone && phone.battery, phone && phone.highlight].filter(Boolean);
+  var bannedList = bannedWords.map(function(w) { return '禁止出现："' + w + '"'; }).join('\n');
+
+  // 引导收藏标签
+  var tagStr = document.getElementById('t3_tags').value || ('#' + item.replace(/ /g,'') + ' #手机评测 #' + city + '电信');
+
+  var prompt = [
+    '一张抖音竖版手机卖点海报，9:16比例。',
+    '',
+    '设计风格：苹果发布会式的简洁高级感。深蓝色底（#0A1628），底部向上做少量暖橙渐变过渡。留白充足，不拥挤。',
+    '',
+    '画面排版从上到下：',
+    '',
+    '1. 顶部：大字标题 "' + esc(displayName) + '"，下面用一行小字写副标题 "实力派"，颜色白色，字体细且干净。',
+    '',
+    '2. 中部：三个卖点横向排列，每个卖点是一个磨砂白底圆角卡片，卡片左上角放一个小图标（分别对应芯片/相机/电池），卡片中央写卖点文案：',
+    '   - "' + esc(cleanPrompts[0]) + '"',
+    '   - "' + esc(cleanPrompts[1]) + '"',
+    '   - "' + esc(cleanPrompts[2]) + '"',
+    '',
+    '3. 卡片下方放一行小字 "' + esc(priceStr) + ' 电信合约价"，橙色文字。',
+    '',
+    '4. 底部：浅色区域写 "到店体验真机"，右下角标注 "参数来源：品牌公开资料"。',
+    '',
+    '画面整体感受：高级、可信、不浮夸。像手机厂商官方海报的质感，而不是促销传单。',
+    '',
+    '不要出现：手机外观实拍图、疑问句感叹句、文字重叠拥挤、过度促销感。',
+    bannedList ? '\n绝对禁止：以下原文不得出现在画面中：\n' + bannedList : ''
+  ].filter(Boolean).join('\n');
+
+  var panel = document.getElementById('infographicPanel');
+  panel.innerHTML =
+    '<div style="max-width:440px;margin:0 auto;padding:20px;background:#FAFBFC;border-radius:12px;">' +
+      '<div style="font-weight:700;font-size:14px;color:#172B4D;margin-bottom:4px;">🤖 豆包生图提示词</div>' +
+      '<div style="font-size:12px;color:#666;margin-bottom:10px;">复制 → 打开 <b>豆包/即梦</b> → 9:16竖版 → 粘贴 → 生成</div>' +
+      '<div style="font-size:11px;color:#E65100;margin-bottom:8px;background:#FFF3E0;padding:6px 10px;border-radius:6px;">' +
+        '📌 提示：生图后可以发抖音，配文 <b>"收藏这条，买手机不踩坑"</b> ' + esc(tagStr) +
+      '</div>' +
+      '<textarea readonly id="aiPromptText" style="width:100%;height:250px;font-size:12px;line-height:1.7;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;background:#fff;">' + esc(prompt) + '</textarea>' +
+      '<div style="margin-top:10px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'aiPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制！\';b.style.background=\'#008A5C\';setTimeout(function(){b.textContent=\'📋 复制提示词\';b.style.background=\'#0052CC\'},1500)})" style="flex:1;padding:8px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">📋 复制提示词</button>' +
+        '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
+      '</div>' +
+    '</div>';
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior: 'smooth' });
 }
 
-function renderCard(idx, color, label, desc) {
-  const icons = ['🔵', '🟠', '🟢'];
-  return `
-  <div style="display:flex;align-items:flex-start;padding:14px 16px;margin-bottom:10px;background:#FAFBFC;border-radius:10px;border-left:4px solid ${color};">
-    <div style="width:32px;height:32px;border-radius:50%;background:${color};color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;margin-top:2px;">${idx+1}</div>
-    <div>
-      <div style="font-size:14px;font-weight:700;color:#172B4D;margin-bottom:4px;">${icons[idx]} ${label}</div>
-      <div style="font-size:12px;color:#42526E;line-height:1.6;">${desc}</div>
-    </div>
-  </div>`;
-}
-
-function downloadInfographic() {
-  const card = document.getElementById('infographicCard');
-  if (!card) return;
-  if (typeof html2canvas !== 'undefined') {
-    html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = '一图流_' + sanitizeFilename((document.getElementById('t3_title').value || '图解')) + '.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  } else {
-    // Fallback: open printable window
-    const w = window.open('', '_blank', 'width=440,height=800');
-    w.document.write('<html><head><title>一图流图解</title><style>body{margin:0;padding:16px;background:#f0f0f0;display:flex;justify-content:center;}</style></head><body>' + card.outerHTML + '</body></html>');
-    w.document.close();
-    setTimeout(() => w.print(), 500);
-  }
-}
-
-function shareInfographic() {
-  const card = document.getElementById('infographicCard');
-  if (!card) return;
-  // Try clipboard API first (text fallback), then Range+execCommand
-  var text = card.innerText || card.textContent;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      toast('图解文字已复制到剪贴板', 'success');
-    }).catch(function() {
-      tryLegacyCopy();
-    });
-  } else {
-    tryLegacyCopy();
-  }
-  function tryLegacyCopy() {
-    try {
-      const range = document.createRange();
-      range.selectNode(card);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      document.execCommand('copy');
-      selection.removeAllRanges();
-      toast('图解已复制到剪贴板', 'success');
-    } catch(e) {
-      toast('复制失败，请截图右下角的图解卡片手动发送', 'error');
-    }
-  }
-}
-
-function generateSellingPointCard() {
-  const device = document.getElementById('t3_device').value;
-  const topic = document.getElementById('t3_topic').value;
-  // Get phone data (兼容新旧格式)
-  const phone = findPhoneByName(device);
-  if (!phone) {
-    alert('请在产品测评中的「📱 手机评测」分组选择一个具体手机型号！');
-    return;
-  }
-  const panel = document.getElementById('infographicPanel');
-  const cardW = Math.min(420, window.innerWidth - 40);
-  // 兼容新旧格式
-  var displayName = phone.brand ? (phone.brand + ' ' + phone.model +
-    (phone.storage ? ' (' + phone.storage + ')' : '')) : (phone.model || device);
-  var displayPrice = phone.guidePrice ? ('¥' + phone.guidePrice) : (phone.price || '');
-  var isNewFormat = !!phone.brand;
-  var html = `
-  <div style="max-width:${cardW}px;margin:0 auto;">
-    <div id="infographicCardSP" style="width:${cardW}px;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 50%,#fff 50%,#fff 100%);border-radius:16px;overflow:hidden;position:relative;font-family:'Microsoft YaHei',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
-      <!-- Hero -->
-      <div style="padding:28px 24px 16px;text-align:center;">
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:4px;">山西电信·合约机推荐${phone.isCore ? ' ★本周主推' : ''}</div>
-        <div style="font-size:20px;color:#fff;font-weight:700;line-height:1.3;">${displayName}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;">${isNewFormat ? (phone.color || '') : (phone.highlight || '')}</div>
-        <div style="display:inline-block;background:var(--orange);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;margin-top:8px;">${displayPrice}${isNewFormat && phone.stock !== undefined ? (' · 库存' + phone.stock + '台') : ''}</div>
-      </div>
-      <!-- Specs Grid -->
-      <div style="padding:16px 20px 8px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          ${isNewFormat ? `
-          <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">💾</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">内存</div>
-            <div style="font-size:11px;color:#42526E;">${phone.storage || '-'}</div>
-          </div>
-          <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">📦</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">库存</div>
-            <div style="font-size:11px;color:#42526E;">${phone.stock !== undefined ? (phone.stock + '台') : '-'}</div>
-          </div>
-          <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🏷️</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">指导价</div>
-            <div style="font-size:11px;color:#42526E;">¥${phone.guidePrice || '-'}</div>
-          </div>
-          <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🎨</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">颜色</div>
-            <div style="font-size:11px;color:#42526E;">${phone.color || '-'}</div>
-          </div>` : `
-          <div style="background:#F0F7FF;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🧠</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">芯片</div>
-            <div style="font-size:11px;color:#42526E;">${phone.chip || '-'}</div>
-          </div>
-          <div style="background:#FFF8F0;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">🔋</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">电池</div>
-            <div style="font-size:11px;color:#42526E;">${phone.battery || '-'}</div>
-          </div>
-          <div style="background:#F0FFF4;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">📱</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">屏幕</div>
-            <div style="font-size:11px;color:#42526E;">${phone.screen || '-'}</div>
-          </div>
-          <div style="background:#FFF0F5;border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;">📸</div>
-            <div style="font-size:12px;font-weight:700;color:#172B4D;margin-top:4px;">相机</div>
-            <div style="font-size:11px;color:#42526E;">${phone.camera || '-'}</div>
-          </div>`}
-        </div>
-      </div>
-      <!-- Highlight -->
-      <div style="margin:8px 20px 16px;padding:14px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:10px;text-align:center;">
-        <div style="font-size:11px;color:#E65100;font-weight:600;">✨ ${isNewFormat ? '机型信息' : '核心亮点'}</div>
-        <div style="font-size:13px;color:#172B4D;font-weight:700;margin-top:2px;line-height:1.4;">${isNewFormat ?
-          ((phone.isCore ? '★ 本周核心主推机型 · ' : '') +
-           (phone.stock > 0 ? ('当前库存 ' + phone.stock + ' 台可发货') : '') +
-           (phone.code ? ('\n编码: ' + phone.code) : '')).trim() :
-          (phone.highlight || '-')}</div>
-      </div>
-      <!-- Footer -->
-      <div style="padding:12px 20px 20px;text-align:center;border-top:1px dashed #DFE1E6;margin:0 16px;">
-        <div style="font-size:11px;color:#999;">到电信营业厅办理合约机，享专属优惠</div>
-        <div style="font-size:10px;color:#ccc;margin-top:2px;">山西电信 · 抖本内容工坊</div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:12px;">
-      <button class="btn btn-green btn-sm" onclick="downloadSellingPointCard()" style="font-size:14px;padding:10px 24px;">📥 下载卖点卡（PNG）</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('infographicPanel').style.display='none'" style="font-size:14px;padding:10px 24px;">✕ 收起</button>
-    </div>
-  </div>`;
-  panel.innerHTML = html;
-  panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth' });
-}
-
-function downloadSellingPointCard() {
-  const card = document.getElementById('infographicCardSP');
-  if (!card) return;
-  if (typeof html2canvas !== 'undefined') {
-    html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
-      const link = document.createElement('a');
-      const phone = phonePool[currentWeekNum % phonePool.length];
-      link.download = '卖点卡_' + sanitizeFilename(phone.model) + '.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  } else {
-    const w = window.open('', '_blank', 'width=440,height=800');
-    w.document.write('<html><head><title>卖点展示卡</title><style>body{margin:0;padding:16px;background:#f0f0f0;display:flex;justify-content:center;}</style></head><body>' + card.outerHTML + '</body></html>');
-    w.document.close();
-    setTimeout(() => w.print(), 500);
-  }
-}
+function buildAiPrompt(mode) { generateDouyinPrompt(); }
 
 const hotspotData = (function() {
   try { if (window.___hotspotData) return padHotspotData(window.___hotspotData); } catch(e) {}
@@ -4544,6 +5275,49 @@ function filterHotspot(mode, el) {
   document.querySelectorAll('#page-hotspot .bank-filter').forEach(b => b.classList.remove('active'));
   if (el) el.classList.add('active');
   renderHotspots();
+}
+
+// P2: 手动刷新热点跟拍（浏览器直调 SiliconFlow）
+async function manualRefreshHotspot() {
+  var btn = document.getElementById('hotspotRefreshBtn');
+  var status = document.getElementById('hotspotRefreshStatus');
+  if (!btn || !status) return;
+  btn.disabled = true; btn.textContent = '⏳ 生成中...';
+  status.textContent = '正在抓取热点 + AI 生成脚本...';
+  try {
+    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-lshlazfvzcohfpxyimzpdqiaamrswskintayloiwdqzcxzod' },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        messages: [{
+          role: 'system',
+          content: '你是抖音热点跟拍脚本专家。输出7条适合电信营业厅跟拍的热点脚本，每条含id/tier(1-3)/title/heat/why/source/steps(数组含shot+sub)/bgm/tags/difficulty/needFace/time字段。JSON数组格式。'
+        }, {
+          role: 'user',
+          content: '生成适合今天(2026年7月)发布的热点跟拍脚本。覆盖：1.暑假避暑/旅游 2.以旧换新 3.5G体验 4.智能家居 5.宽带比价 6.学生/毕业季 7.电动车/出行。每条60秒以内，风格活泼有钩子。直接输出JSON数组。'
+        }],
+        max_tokens: 3000, temperature: 0.9
+      })
+    });
+    var data = await resp.json();
+    var content = data.choices[0].message.content;
+    var jsonStr = content.replace(/```json|```/g, '').trim();
+    var scripts = JSON.parse(jsonStr);
+    // 更新内存数据
+    window.___hotspotData = scripts;
+    window.___hotspotData._lastUpdate = new Date().toISOString();
+    // 更新更新时间显示
+    var ut = document.getElementById('hotspotUpdateTime');
+    if (ut) ut.textContent = '（刚刚刷新）';
+    // 重新渲染
+    renderHotspots();
+    status.textContent = '✅ 已生成 ' + scripts.length + ' 条，来源：AI 直连';
+  } catch(e) {
+    status.textContent = '⚠️ 刷新失败，请重试';
+    console.error('Hotspot refresh error:', e);
+  }
+  btn.disabled = false; btn.textContent = '🤖 AI 刷新热点';
 }
 
 function toggleHotspot(id) {
@@ -4629,14 +5403,15 @@ function renderBgmRecommend() {
     return;
   }
   var types = [
-    { key: '决策指南', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
-    { key: '一线场景', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
-    { key: '深度测评', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
-    { key: '本地事件', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
+    { key: '决策指南', aliases: ['对比推荐'], icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
+    { key: '一线场景', aliases: ['服务故事'], icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
+    { key: '深度测评', aliases: ['开箱实测'], icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
+    { key: '本地事件', aliases: ['本地福利'], icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
   ];
   var html = '';
   types.forEach(function(t) {
     var cat = bgmData[t.key];
+    if (!cat && t.aliases) { for (var a = 0; a < t.aliases.length; a++) { if (bgmData[t.aliases[a]]) { cat = bgmData[t.aliases[a]]; break; } } }
     var songs = cat && cat[t.sub] ? cat[t.sub] : [];
     if (!songs || songs.length === 0) {
       // Try other sub-categories
@@ -4661,6 +5436,7 @@ function renderBgmRecommend() {
 function tryRenderBgm() {
   if (window.___bgmList) {
     renderBgmRecommend();
+    syncBgmDropdowns();
   } else {
     // Retry after a short delay if data not loaded yet
     var count = 0;
@@ -4669,6 +5445,7 @@ function tryRenderBgm() {
       if (window.___bgmList) {
         clearInterval(timer);
         renderBgmRecommend();
+        syncBgmDropdowns();
       } else if (count > 20) {
         clearInterval(timer);
         var grid = document.getElementById('bgmRecommendGrid');
@@ -4678,19 +5455,65 @@ function tryRenderBgm() {
   }
 }
 
+// v2.8: 手动刷新BGM（浏览器直调 SiliconFlow）
+async function manualRefreshBGM() {
+  var btn = event.target;
+  var oldText = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ 生成中...';
+  try {
+    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-lshlazfvzcohfpxyimzpdqiaamrswskintayloiwdqzcxzod' },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        messages: [{
+          role: 'system',
+          content: '你是抖音音乐趋势专家。输出营业厅短视频BGM推荐JSON。结构：{"对比推荐":{"轻快对比":["歌名-歌手",...],"算账节奏":[...]},"服务故事":{"温情叙事":[...],"快节奏爽片":[...]},"开箱实测":{"科技感":[...]},"本地福利":{"探店活力":[...],"福利快闪":[...]},"直播":{"暖场":[...],"逼单":[...]}}。歌曲必须是抖音能搜到的真实热门BGM（最近30天抖音热歌/挑战榜/平台推荐）。每sub至少5首。纯JSON无markdown。'
+        }, {
+          role: 'user',
+          content: '生成2026年7月抖音营业厅短视频可蹭的热门BGM推荐。聚焦：7月抖音热歌/营业厅口播/探店/服务/测评适配。25-50岁电信营业厅员工能直接用。直接输出JSON对象。'
+        }],
+        max_tokens: 3500, temperature: 0.9
+      })
+    });
+    var data = await resp.json();
+    var content = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+    var jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('AI返回格式错误');
+    window.___bgmList = JSON.parse(jsonMatch[0]);
+    if (typeof renderBgmRecommend === 'function') renderBgmRecommend();
+    if (typeof syncBgmDropdowns === 'function') syncBgmDropdowns();
+    btn.textContent = '✅ 已刷新';
+    setTimeout(function(){ btn.textContent = oldText; btn.disabled = false; }, 2000);
+  } catch(e) {
+    btn.textContent = '⚠️ 刷新失败';
+    setTimeout(function(){ btn.textContent = oldText; btn.disabled = false; }, 2000);
+    console.error('BGM refresh error:', e);
+  }
+}
+
 function syncBgmDropdowns() {
   if (!window.___bgmList) return;
   var bgmData = window.___bgmList;
+  // v2.8: 数据实际用的类目名（与页面名一致），同时兼容旧版别名
   var mappings = [
-    { selectId: 't1_bgm', category: '决策指南', subs: ['轻快对比','算账节奏','温馨推荐'] },
-    { selectId: 't2_bgm', category: '一线场景', subs: ['温情叙事','轻纪录片','快节奏爽片','原声不加BGM'] },
-    { selectId: 't3_bgm', category: '深度测评', subs: ['科技感','冷静专业','干货教学'] },
-    { selectId: 't4_bgm', category: '本地事件', subs: ['探店活力','福利快闪','温馨服务'] },
-    { selectId: 'lv_bgm', category: '直播', subs: ['暖场','逼单','福利'] }
+    { selectId: 't1_bgm', category: '决策指南',  aliases: ['对比推荐'], subs: ['轻快对比','算账节奏','温馨推荐'] },
+    { selectId: 't2_bgm', category: '一线场景',  aliases: ['服务故事'], subs: ['温情叙事','轻纪录片','快节奏爽片','原声不加BGM'] },
+    { selectId: 't3_bgm', category: '深度测评',  aliases: ['开箱实测'], subs: ['科技感','冷静专业','干货教学'] },
+    { selectId: 't4_bgm', category: '本地事件',  aliases: ['本地福利'], subs: ['探店活力','福利快闪','温馨服务'] },
+    { selectId: 'lv_bgm', category: '直播',      aliases: [], subs: ['暖场','逼单','福利'] }
   ];
   mappings.forEach(function(m) {
     var sel = document.getElementById(m.selectId);
     if (!sel) return;
+    // 找到实际存在的类目（容错：别名/新名都试）
+    var cat = bgmData[m.category];
+    if (!cat) {
+      for (var i = 0; i < m.aliases.length; i++) {
+        if (bgmData[m.aliases[i]]) { cat = bgmData[m.aliases[i]]; break; }
+      }
+    }
+    if (!cat) return;
     // Collect all songs from all sub-categories
     var seen = {};
     var html = '';
@@ -4710,15 +5533,101 @@ function syncBgmDropdowns() {
   });
 }
 
+function copyBenchmarkScript(idx) {
+  var e = window.___benchmarkEntries && window.___benchmarkEntries[idx];
+  if (!e) return;
+  var text = e.fullText;
+  if (typeof copyText === 'function') {
+    copyText(text);
+  } else if (navigator && navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){ alert('✅ 已复制标杆脚本'); });
+  } else {
+    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('✅ 已复制标杆脚本');
+  }
+}
+
+function renderBenchmark() {
+  var el = document.getElementById('benchmarkContent');
+  if (!el) return;
+  var entries = [];
+
+  function addEntry(scriptText, type, label, persona) {
+    if (!scriptText || scriptText.length < 30) return;
+    if (typeof isBenchmark !== 'function') return;
+    var b = isBenchmark(scriptText);
+    if (!b.benchmark) return;
+    entries.push({
+      type: type, label: label, persona: persona || '',
+      text: esc(scriptText.slice(0, 220)).replace(/\n/g, '<br>'),
+      fullText: scriptText, score: b.score
+    });
+  }
+
+  try {
+    var t1 = window.___t1ScriptFullByPersona;
+    if (t1) for (var topic in t1) for (var persona in t1[topic]) addEntry(t1[topic][persona], '📊 对比推荐', topic, persona);
+    var t2 = window.___t2ScriptFullByPersona;
+    if (t2) for (var p in t2) for (var persona in t2[p]) addEntry(t2[p][persona], '🎬 服务故事', p, persona);
+    var t4 = window.___t4ScriptFullByPersona;
+    if (t4) for (var a in t4) for (var persona in t4[a]) addEntry(t4[a][persona], '📍 本地活动', a, persona);
+    var hs = window.___hotspotData;
+    if (hs) for (var i=0; i<hs.length; i++) addEntry(hs[i].steps.map(function(s){return s.shot;}).join('\n'), '🔥 热点跟拍', hs[i].title, '');
+    var dl = window.___dailyScripts;
+    if (dl && dl.scripts) for (var i=0; i<dl.scripts.length; i++) {
+      var sc = dl.scripts[i]; for (var p in sc.variants) addEntry(sc.variants[p].script, '📅 每日脚本', sc.typeName + ' · ' + (sc.variants[p].title||''), p);
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="card" style="color:#EF4444;">⚠️ 数据加载失败：' + esc(e.message) + '</div>';
+    return;
+  }
+
+  entries.sort(function(a,b){ return b.score.total - a.score.total; });
+  window.___benchmarkEntries = entries;
+
+  var html = '';
+  if (entries.length === 0) {
+    html = '<div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无标杆脚本入围。脚本总评分 ≥ 80 且五维全线达标时，会自动进入标杆库。</div>';
+  } else {
+    html = '<div style="display:grid;gap:12px;">';
+    var dims = [{k:'collect',icon:'📌',n:'收藏'},{k:'revisit',icon:'🔁',n:'复访'},{k:'interact',icon:'💬',n:'互动'},{k:'retention',icon:'⏱',n:'留存'},{k:'convert',icon:'🛒',n:'转化'}];
+    for (var i=0; i<entries.length; i++) {
+      var e = entries[i], s = e.score;
+      html += '<div class="card" style="border-left:4px solid #7C3AED;">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">' +
+        '<span style="font-size:11px;background:#7C3AED;color:#fff;padding:2px 8px;border-radius:8px;">' + e.type + '</span>' +
+        (e.persona ? '<span style="font-size:11px;background:#E0E7FF;color:#4338CA;padding:2px 8px;border-radius:8px;">' + e.persona + '</span>' : '') +
+        '<b style="font-size:14px;color:#1E293B;">' + e.label + '</b>' +
+        '<span style="margin-left:auto;font-size:18px;font-weight:700;color:#7C3AED;">⭐ ' + s.total + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;color:#64748B;line-height:1.7;max-height:90px;overflow:hidden;margin-bottom:10px;background:#F8FAFC;padding:8px 10px;border-radius:8px;">' + e.text + '…</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+        (function(){
+          var rows = '';
+          for (var j=0; j<dims.length; j++){
+            var v = s[dims[j].k], col = v>=80?'#10B981':v>=60?'#F59E0B':'#EF4444';
+            rows += '<span style="font-size:10px;background:#F1F5F9;padding:3px 8px;border-radius:8px;font-weight:600;">'+dims[j].icon+'<span style="color:'+col+';"> '+v+'</span></span>';
+          }
+          return rows;
+        })() +
+        '<button style="margin-left:auto;font-size:11px;padding:5px 14px;background:#F0F7FF;border:1px solid #BFDBFE;border-radius:8px;color:#0052CC;cursor:pointer;" onclick="copyBenchmarkScript(' + i + ')">📋 复制完整脚本</button>' +
+        '</div></div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
 // ═══════ init.js ═══════
 (function initAll() {
-  checkDataFiles();
+  // 2026-07-20: 延迟 100ms 再检查数据（让 bundle.js 完全加载）
+  setTimeout(function() {
+    checkDataFiles();
+  }, 100);
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
-  try { loadHotContentPool(); } catch(e) { console.error('loadHotContentPool:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
-  try { buildHistory(); } catch(e) { console.error('buildHistory:', e); }
   try { renderHotspots(); } catch(e) { console.error('renderHotspots:', e); }
+  try { renderBenchmark(); } catch(e) { console.error('renderBenchmark:', e); }
   try { addHotspotSummary(); } catch(e) { console.error('addHotspotSummary:', e); }
   try { labelDropdownOptions(); } catch(e) { console.error('labelDropdownOptions:', e); }
   try { injectBGMButtons(); } catch(e) { console.error('injectBGMButtons:', e); }
