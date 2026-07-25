@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 04:27:47
+// 构建时间: 2026-07-25 04:38:31
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2094,30 +2094,26 @@ function buildScriptPrompt(phone, topic, city, bgm) {
   var guide = personaGuide[persona] || personaGuide['tech'];
 
   var lines = [];
-  // 精简系统指令
-  lines.push('你是' + pd.icon + ' ' + pd.label + '人设的抖音博主。');
-  lines.push('风格：' + guide.voice);
+  // 极简人设指令
+  lines.push('你是' + pd.icon + ' ' + pd.label + '人设的抖音博主，风格：' + guide.voice);
   lines.push('');
-  lines.push('【产品信息】');
-  lines.push('型号：' + model);
-  lines.push('芯片：' + p.chip + ' | 拍照：' + p.camera + ' | 电池：' + p.battery);
+  lines.push('【产品】' + model);
+  lines.push('芯片 ' + p.chip + ' | 拍照 ' + p.camera + ' | 电池 ' + p.battery);
   lines.push('亮点：' + p.highlight);
-  lines.push('到店价 ¥' + price + ' | ' + city + '电信营业厅');
   lines.push('');
-  lines.push('选题方向：' + topicDesc + ' | 场景：' + sceneLabel);
+  lines.push('【选题】' + topicDesc + ' | 场景：' + sceneLabel + ' | 营业厅：' + city);
   lines.push('');
 
   // 核心创作指令
-  lines.push('写一段40-50秒口播脚本（约130-160字），讲人话不讲参数说明书。');
+  lines.push('写一段40-50秒口播脚本（约130-160字）。');
+  lines.push('1. 第一句抓注意——' + guide.hook);
+  lines.push('2. 把芯片/拍照/电池用「用起来啥感觉」讲，可以自然提芯片型号/像素，别堆参数');
+  lines.push('3. 结尾给地址（' + city + '电信营业厅）+收藏引导');
   lines.push('');
-  lines.push('要求：');
-  lines.push('1. 第一句直接抓注意——' + guide.hook);
-  lines.push('2. 把芯片/拍照/电池用「用起来啥感觉」的方式讲，可以自然地提参数（比如芯片型号、像素数字正常说法没问题），但别堆参数');
-  lines.push('3. 最后两句给行动指令：到店价格 + 具体地址 + 收藏/截图');
-  lines.push('4. 禁止出现「合约」「号卡」等违禁词，价格只说数字不要说合同价');
-  lines.push('5. 直接用口语写，不要分段标题，不要「大家」「众所周知」');
-  lines.push('');
-  lines.push('BGM：' + bgm + '（铺底音量25%）');
+  lines.push('【铁律】');
+  lines.push('· 不要「合约」「号卡」「合约价」「月租」「合约机」等违禁词');
+  lines.push('· 不在价格前加「电信」「合约」等修饰词，只说数字');
+  lines.push('· 不要「大家」「众所周知」「搭载」等套话');
 
   return lines.join('\n');
 }
@@ -2140,54 +2136,23 @@ function renderT3AutoSection(deviceName) {
     return;
   }
 
-  // 脚本生成提示词
+  // 脚本生成提示词（精简版）
   var scriptPrompt = buildScriptPrompt(phone, topic, city, bgm);
 
-  // 图片生成提示词（复用已有逻辑但直接生成文本）
-  var imgPromptLines = [
-    '一张抖音竖版手机卖点海报，9:16比例。',
-    '设计风格：苹果发布会式的简洁高级感。深蓝色底（#0A1628），底部暖橙渐变过渡。',
-    '画面排版：',
-    '顶部：大字标题 "' + esc(phone.brand + ' ' + phone.model) + '"，副标题 "实力派"',
-    '中部：三个磨砂白低圆角卡片，配小图标：',
-    '  - ' + esc(translateSpecToSlogan(phone.camera, 'camera')),
-    '  - ' + esc(translateSpecToSlogan(phone.chip, 'chip')),
-    '  - ' + esc(translateSpecToSlogan(phone.battery, 'battery')),
-    '卡片下方："¥' + (phone.guidePrice || phone.price || '到店询') + ' 到店价"',
-    '底部："到店体验真机"',
-    '禁止出现手机实物照片。不要疑问句。文字不重叠。'
-  ].join('\n');
-
-  var imgPrompt = imgPromptLines;
-
   area.innerHTML =
-    // 脚本提示词区
     '<div style="margin-top:16px;background:#FFFDF7;border:2px solid #D4C9A8;border-radius:8px;padding:16px;">' +
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
         '<span style="font-size:14px;">🤖</span>' +
         '<span style="font-weight:700;font-size:13px;color:#2C1810;">生成口播脚本</span>' +
-        '<span style="font-size:10px;color:#8C7A5E;">复制 → 打开 DeepSeek/豆包 → 粘贴 → 自动生成完整脚本</span>' +
+        '<span style="font-size:10px;color:#8C7A5E;">复制 → 打开 DeepSeek/豆包 → 粘贴 → 自动生成完整脚本（含封面图描述）</span>' +
       '</div>' +
-      '<textarea readonly id="t3ScriptPromptText" style="width:100%;height:160px;font-size:12px;line-height:1.6;border:1px solid #E4DCC8;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;color:#3C3024;">' + esc(scriptPrompt) + '</textarea>' +
+      '<textarea readonly id="t3ScriptPromptText" style="width:100%;height:180px;font-size:12px;line-height:1.6;border:1px solid #E4DCC8;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;color:#3C3024;">' + esc(scriptPrompt) + '</textarea>' +
       '<div style="margin-top:8px;display:flex;gap:8px;">' +
         '<button onclick="var t=document.getElementById(\'t3ScriptPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#2C1810;color:#FFFDF7;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
       '</div>' +
     '</div>' +
-    // 图片生成提示词区
-    '<div style="margin-top:12px;background:#F0F4FF;border:1.5px solid #B5D4F4;border-radius:8px;padding:16px;">' +
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
-        '<span style="font-size:14px;">🖼</span>' +
-        '<span style="font-weight:700;font-size:13px;color:#185FA5;">生成卖点海报</span>' +
-        '<span style="font-size:10px;color:#5F5E5A;">复制 → 打开豆包/即梦 → 粘贴 → 生成9:16海报</span>' +
-      '</div>' +
-      '<textarea readonly id="t3ImgPromptText" style="width:100%;height:100px;font-size:12px;line-height:1.6;border:1px solid #B5D4F4;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;">' + esc(imgPrompt) + '</textarea>' +
-      '<div style="margin-top:8px;display:flex;gap:8px;">' +
-        '<button onclick="var t=document.getElementById(\'t3ImgPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
-      '</div>' +
-    '</div>' +
-    // 收藏引导 + 完整信息
     '<div style="margin-top:8px;padding:8px 12px;background:#F8F6F0;border:1px solid #E4DCC8;border-radius:6px;font-size:11px;color:#5C5040;">' +
-      '📌 全部内容已就绪。复制脚本提示词→DeepSeek生成口播文案，复制海报提示词→豆包生成封面图。' +
+      '📌 复制提示词 → DeepSeek/豆包 → 一段输出：完整口播脚本 + 9:16封面图描述。' +
       (tags ? '<br><b>标签：</b>' + esc(tags) : '') +
     '</div>';
 
