@@ -5,12 +5,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.7.0">
+  <link rel="stylesheet" href="styles.css?v=2.8.0">
 
   <!-- External data files — merged bundle (updated weekly by SCF → GitHub Pages) -->
-  <script src="data/bundle.js?v=2.7.0"></script>
+  <script src="data/bundle.js?v=2.8.0"></script>
   <!-- Publish kit v2.6.5: form-first BGM/tags, Douyin traffic tags -->
-  <script src="data/publish-kit.js?v=2.7.0"></script>
+  <script src="data/publish-kit.js?v=2.8.0"></script>
 
 </head>
 <body>
@@ -24,7 +24,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.7.0</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.8.0</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
       <a href="hot/today-hotspot.html" class="entry-btn entry-hot">🔥 今日热点跟拍 →</a>
@@ -92,6 +92,7 @@
       <div class="nav-group-items">
         <button class="nav-tab" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
         <button class="nav-tab" onclick="switchPage('history', this)">📜 历史<small>复用过往成功内容</small></button>
+        <button class="nav-tab" onclick="switchPage('benchmark', this)">⭐ 标杆库<small>高分脚本，即抄即用</small></button>
         <button class="nav-tab" id="nav-stats" style="display:none;" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
       </div>
     </div>
@@ -957,7 +958,16 @@
     <div id="historyContent"></div>
   </div>
 
-  <!-- ==================== PAGE 8: Admin Stats ==================== -->
+  <!-- ==================== PAGE 9: 标杆案例库 ==================== -->
+  <div class="page" id="page-benchmark">
+    <h2 style="margin-bottom:4px;">⭐ 标杆脚本库</h2>
+    <p style="color:var(--blue);font-size:12px;margin-bottom:12px;">
+      抖音2026新算法标准（收藏30% › 复访22% › 互动20% › 留存18% › 转化10%）。以下脚本综合评分 ≥ 80 且五维达标，可直接抄作业。
+    </p>
+    <div id="benchmarkContent"></div>
+  </div>
+
+  <!-- ==================== PAGE 10: Admin Stats ==================== -->
   <div class="page" id="page-stats">
     <h2 style="margin-bottom:4px;">📊 使用统计（管理员可见）</h2>
     <p style="color:var(--body);font-size:12px;margin-bottom:16px;">数据存储在本机浏览器 · <span id="statsLastUpdate" style="color:#999;">加载中...</span></p>
@@ -1020,6 +1030,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.7.0"></script>
+  <script src="app.js?v=2.8.0"></script>
 </body>
 </html>
