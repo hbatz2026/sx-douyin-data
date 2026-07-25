@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 04:38:31
+// 构建时间: 2026-07-25 04:47:34
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2119,8 +2119,8 @@ function buildScriptPrompt(phone, topic, city, bgm) {
 }
 
 function renderT3AutoSection(deviceName) {
-  // 先渲染卖点区（已有函数）
-  renderT3SellPointSection(deviceName);
+  // 不再渲染卖点区海报预览（去除中间的视觉冗余）
+  // 用户复制提示词到豆包即梦即可生图
 
   var area = document.getElementById('t3_auto_section');
   if (!area) return;
@@ -2139,20 +2139,50 @@ function renderT3AutoSection(deviceName) {
   // 脚本生成提示词（精简版）
   var scriptPrompt = buildScriptPrompt(phone, topic, city, bgm);
 
+  // 图片生成提示词（封面图直接复制可用）
+  var imgPrompt = [
+    '一张抖音9:16竖版卖点海报（约1080×1920）。',
+    '设计风格：简洁高级、深蓝色底（#0A1628），暖橙渐变过渡。',
+    '画面排版：',
+    '  顶部：大字标题 "' + phone.brand + ' ' + phone.model + '"，副标题 "实力派"',
+    '  中部：3个磨砂白圆角卡片，从上到下依次为：',
+    '    影像：' + (phone.camera || ''),
+    '    芯片：' + (phone.chip || ''),
+    '    电池：' + (phone.battery || ''),
+    '  卡片下方：到店询价',
+    '  底部："到店体验真机 · ' + city + '电信营业厅"',
+    '',
+    '【要求】',
+    '  - 禁止出现手机实物照片。用大字号+磨砂卡代替',
+    '  - 不要疑问句。文字不重叠',
+    '  - 不带「合约」「号卡」等字样'
+  ].join('\n');
+
   area.innerHTML =
     '<div style="margin-top:16px;background:#FFFDF7;border:2px solid #D4C9A8;border-radius:8px;padding:16px;">' +
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
         '<span style="font-size:14px;">🤖</span>' +
         '<span style="font-weight:700;font-size:13px;color:#2C1810;">生成口播脚本</span>' +
-        '<span style="font-size:10px;color:#8C7A5E;">复制 → 打开 DeepSeek/豆包 → 粘贴 → 自动生成完整脚本（含封面图描述）</span>' +
+        '<span style="font-size:10px;color:#8C7A5E;">复制 → DeepSeek/豆包 → 一段输出完整脚本</span>' +
       '</div>' +
       '<textarea readonly id="t3ScriptPromptText" style="width:100%;height:180px;font-size:12px;line-height:1.6;border:1px solid #E4DCC8;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;color:#3C3024;">' + esc(scriptPrompt) + '</textarea>' +
       '<div style="margin-top:8px;display:flex;gap:8px;">' +
         '<button onclick="var t=document.getElementById(\'t3ScriptPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#2C1810;color:#FFFDF7;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
       '</div>' +
     '</div>' +
+    '<div style="margin-top:12px;background:#F0F4FF;border:1.5px solid #B5D4F4;border-radius:8px;padding:16px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+        '<span style="font-size:14px;">🖼</span>' +
+        '<span style="font-weight:700;font-size:13px;color:#185FA5;">生成卖点海报</span>' +
+        '<span style="font-size:10px;color:#5F5E5A;">复制 → 豆包/即梦 → 9:16封面图</span>' +
+      '</div>' +
+      '<textarea readonly id="t3ImgPromptText" style="width:100%;height:140px;font-size:12px;line-height:1.6;border:1px solid #B5D4F4;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;">' + esc(imgPrompt) + '</textarea>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+        '<button onclick="var t=document.getElementById(\'t3ImgPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+      '</div>' +
+    '</div>' +
     '<div style="margin-top:8px;padding:8px 12px;background:#F8F6F0;border:1px solid #E4DCC8;border-radius:6px;font-size:11px;color:#5C5040;">' +
-      '📌 复制提示词 → DeepSeek/豆包 → 一段输出：完整口播脚本 + 9:16封面图描述。' +
+      '📌 两条提示词分别复制。脚本 → DeepSeek/豆包。海报 → 豆包/即梦。' +
       (tags ? '<br><b>标签：</b>' + esc(tags) : '') +
     '</div>';
 
