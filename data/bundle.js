@@ -1,5 +1,5 @@
 // 抖本工坊 · 核心数据包（首页加载）
-// 生成时间: 2026-07-25 11:56:32
+// 生成时间: 2026-07-25 12:02:27
 // 合并文件: bgmList.js, bundle-extended.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptFullByPersona.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t4Presets.js, techDB.js, topicPool.js
 // ===== bgmList.js =====
 // Auto-generated BGM
@@ -97,7 +97,7 @@ window.___bgmList = {
 
 // ===== bundle-extended.js =====
 // 抖本工坊 · 扩展数据包（T2/T4 按需加载）
-// 生成时间: 2026-07-25 09:48:48
+// 生成时间: 2026-07-25 11:56:32
 // 合并文件: t2ScriptFull.js, t2ScriptFullByPersona.js, t4ScriptFull.js, t4ScriptFullByPersona.js
 // ===== t2ScriptFull.js =====
 // 抖本内容工坊 · T2 完整故事脚本（v3 评分优化版）
