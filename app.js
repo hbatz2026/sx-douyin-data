@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 03:39:21
+// 构建时间: 2026-07-25 03:59:53
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2098,22 +2098,24 @@ function buildScriptPrompt(phone, topic, city, bgm) {
   lines.push('你是' + pd.icon + ' ' + pd.label + '人设的抖音博主。');
   lines.push('风格：' + guide.voice);
   lines.push('');
-  lines.push('【产品】');
-  lines.push(model);
-  lines.push('芯片' + p.chip + ' | 影像' + p.camera + ' | 电池' + p.battery);
-  lines.push('卖点：' + p.highlight);
-  lines.push('电信合约价¥' + price + ' | ' + city + '电信营业厅');
+  lines.push('【产品信息】');
+  lines.push('型号：' + model);
+  lines.push('芯片：' + p.chip + ' | 拍照：' + p.camera + ' | 电池：' + p.battery);
+  lines.push('亮点：' + p.highlight);
+  lines.push('到店价 ¥' + price + ' | ' + city + '电信营业厅');
   lines.push('');
-  lines.push('【选题】' + topicDesc);
-  lines.push('【场景】' + sceneLabel);
+  lines.push('选题方向：' + topicDesc + ' | 场景：' + sceneLabel);
   lines.push('');
+
   // 核心创作指令
-  lines.push('写一段45秒口播脚本（约120-150字），要求：');
-  lines.push('1. 第一句就是钩子——' + guide.hook);
-  lines.push('2. 把芯片/影像/电池这三个参数翻译成三个"用起来什么感觉"');
-  lines.push('3. 最后三句是行动指令：价格+到店+收藏');
-  lines.push('4. 用口语写，避免"大家""众所周知""搭载"');
-  lines.push('5. 直接给可念的对话文本，不要分段小标题');
+  lines.push('写一段40-50秒口播脚本（约130-160字），讲人话不讲参数说明书。');
+  lines.push('');
+  lines.push('要求：');
+  lines.push('1. 第一句直接抓注意——' + guide.hook);
+  lines.push('2. 把芯片/拍照/电池用「用起来啥感觉」的方式讲，可以自然地提参数（比如芯片型号、像素数字正常说法没问题），但别堆参数');
+  lines.push('3. 最后两句给行动指令：到店价格 + 具体地址 + 收藏/截图');
+  lines.push('4. 禁止出现「合约」「号卡」等违禁词，价格只说数字不要说合同价');
+  lines.push('5. 直接用口语写，不要分段标题，不要「大家」「众所周知」');
   lines.push('');
   lines.push('BGM：' + bgm + '（铺底音量25%）');
 
@@ -2151,7 +2153,7 @@ function renderT3AutoSection(deviceName) {
     '  - ' + esc(translateSpecToSlogan(phone.camera, 'camera')),
     '  - ' + esc(translateSpecToSlogan(phone.chip, 'chip')),
     '  - ' + esc(translateSpecToSlogan(phone.battery, 'battery')),
-    '卡片下方："¥' + (phone.guidePrice || phone.price || '到店询') + ' 电信合约价"',
+    '卡片下方："¥' + (phone.guidePrice || phone.price || '到店询') + ' 到店价"',
     '底部："到店体验真机"',
     '禁止出现手机实物照片。不要疑问句。文字不重叠。'
   ].join('\n');
