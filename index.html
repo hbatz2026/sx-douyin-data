@@ -11,27 +11,7 @@
 
   <!-- External data files — core bundle (首页必需) -->
   <script src="data/bundle.js?v=2.8.1"></script>
-  <script>
-  // v2.8: T2/T4 脚本按需加载（省 ~150KB 首屏体积）
-  var __extLoaded = false;
-  function __loadExtended(cb) {
-    if (__extLoaded) { if (cb) cb(); return; }
-    var s = document.createElement('script');
-    s.src = 'data/bundle-extended.js?v=2.8.0';
-    s.onload = function() { __extLoaded = true; if (cb) cb(); };
-    document.head.appendChild(s);
-  }
-  window.___bundleExtendedLoaded = function() { __extLoaded = true; };
-  // 用户切到 T2 或 T4 时触发加载
-  var __origSwitchPage = switchPage;
-  switchPage = function(id, el) {
-    if ((id === 'template2' || id === 'template4') && !__extLoaded) {
-      __loadExtended(function() { __origSwitchPage(id, el); });
-    } else {
-      __origSwitchPage(id, el);
-    }
-  };
-  </script>
+  <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
   <!-- Publish kit v2.6.5: form-first BGM/tags, Douyin traffic tags -->
   <script src="data/publish-kit.js?v=2.8.0"></script>
 
