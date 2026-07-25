@@ -123,7 +123,9 @@
     </div>
     <div class="btn-group" style="margin-top:12px;" id="scheduleActions"></div>
     <div class="card" style="margin-top:16px;">
-      <h3>🎵 本周BGM推荐（来源：酷狗热歌榜，每周一自动更新）<span style="font-size:11px;color:#999;font-weight:400;"> — 点击歌名直达抖音搜索</span></h3>
+      <h3>🎵 本周抖音热门BGM（手动更新 · 蹭抖音热点用）<span style="font-size:11px;color:#999;font-weight:400;"> — 点击歌名直达抖音搜索</span>
+      <button style="float:right;font-size:12px;background:#0052CC;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;" onclick="manualRefreshBGM()">🤖 AI 刷新BGM</button>
+      </h3>
       <div style="font-size:12px;color:var(--orange);margin-bottom:8px;" id="weekDevice">📱 本周评测设备：加载中...</div>
       <div id="bgmRecommendGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; font-size:13px;">加载中...</div>
     </div>
