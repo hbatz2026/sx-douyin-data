@@ -6,171 +6,212 @@
 <title>跟拍脚本 | 2026年7月25日</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Microsoft YaHei','Helvetica Neue',sans-serif;background:#F8FAFC;color:#1E293B;line-height:1.6}
-.header{background:linear-gradient(135deg,#1E40AF,#7C3AED);color:#fff;padding:30px 20px;text-align:center}
-.header h1{font-size:24px;margin-bottom:8px}
-.header .subtitle{font-size:14px;opacity:.9;margin-bottom:12px}
-.header .tags{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
-.header .tags span{background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:13px}
-.container{max-width:900px;margin:0 auto;padding:20px}
-.insight{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.insight-title{font-size:16px;font-weight:bold;color:#1E40AF;margin-bottom:15px;border-bottom:2px solid #E0E7FF;padding-bottom:8px}
-.insight-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.insight-item{text-align:center}
-.insight-item .num{font-size:22px;font-weight:bold;color:#2563EB}
-.insight-item .label{font-size:12px;color:#64748B;margin-top:4px}
-.section-header{font-size:20px;font-weight:bold;margin:25px 0 15px;padding-left:12px;border-left:4px solid #2563EB}
+body{font-family:'Microsoft YaHei','Helvetica Neue',sans-serif;background:#F8FAFC;color:#1E293B;line-height:1.7}
+.header{background:linear-gradient(135deg,#1E40AF,#7C3AED);color:#fff;padding:36px 20px;text-align:center}
+.header h1{font-size:28px;margin-bottom:8px}
+.header .subtitle{font-size:15px;opacity:.92;margin-bottom:14px}
+.header .tags{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.header .tags span{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:14px}
+.container{max-width:960px;margin:0 auto;padding:24px 20px}
+.section-header{font-size:22px;font-weight:bold;margin:28px 0 16px;padding-left:14px;border-left:5px solid #2563EB}
 .section-header.hot{border-color:#7C3AED;color:#7C3AED}
-.script-card{background:#fff;border-radius:12px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
-.card-header{padding:16px 20px;border-bottom:1px solid #F1F5F9}
-.card-title{font-size:17px;font-weight:bold;color:#1E293B}
-.source{font-size:13px;color:#64748B;margin-top:4px}
-.relevance{font-size:12px;color:#7C3AED;margin-top:2px}
-.tag-row{padding:10px 20px;display:flex;gap:6px;flex-wrap:wrap}
-.tag{padding:3px 10px;border-radius:12px;font-size:12px;color:#fff}
-.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E2E8F0;margin:0 20px;border-radius:8px;overflow:hidden}
-.meta-item{background:#F8FAFC;padding:10px;text-align:center}
-.meta-label{display:block;font-size:11px;color:#94A3B8}
-.meta-value{display:block;font-size:13px;font-weight:bold;color:#334155;margin-top:2px}
-.section-title{font-size:14px;font-weight:bold;margin-bottom:6px}
-.why-box{background:#ECFDF5;margin:12px 20px;padding:12px;border-radius:8px;border-left:3px solid #10B981}
-.why-box .section-title{color:#047857}
-.why-box p{font-size:13px;color:#065F46}
-.steps-box{margin:12px 20px}
-.steps-table{width:100%;border-collapse:collapse;font-size:13px}
-.steps-table th{background:#F1F5F9;padding:8px;text-align:left;font-size:12px;color:#475569;border:1px solid #E2E8F0}
-.steps-table td{padding:8px;border:1px solid #E2E8F0;vertical-align:top}
-.step-no{text-align:center;font-weight:bold;color:#2563EB;width:40px}
-.step-time{text-align:center;color:#64748B;white-space:nowrap;width:60px}
-.step-visual{width:22%;color:#334155}
-.step-voice{width:35%}
-.step-sub{color:#64748B;font-size:12px}
+.script-card{background:#fff;border-radius:14px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.card-top{padding:18px 24px;border-bottom:1px solid #F1F5F9;position:relative}
+.card-no{font-size:14px;color:#fff;background:#2563EB;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;vertical-align:middle;margin-right:12px}
+.card-no.hot{background:#7C3AED}
+.card-title{font-size:20px;font-weight:bold;color:#1E293B;vertical-align:middle}
+.copy-btn{float:right;background:#2563EB;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:14px;cursor:pointer;transition:all .2s;font-family:inherit}
+.copy-btn:hover{background:#1E40AF}
+.source{font-size:14px;color:#64748B;margin-top:10px;padding-left:42px}
+.relevance{font-size:13px;color:#7C3AED;margin-top:3px;padding-left:42px}
+.meta-row{padding:12px 24px;display:flex;gap:22px;flex-wrap:wrap;font-size:14px;color:#475569;border-bottom:1px solid #F8FAFC}
+.meta-row b{color:#1E293B}
+.steps-box{padding:10px 24px 16px}
+.steps-box .section-title{font-size:15px;font-weight:bold;margin:10px 0 8px;color:#1E293B}
+.steps-table{width:100%;border-collapse:collapse;font-size:14px}
+.steps-table th{background:#F1F5F9;padding:10px;text-align:left;font-size:13px;color:#475569;border:1px solid #E2E8F0}
+.steps-table td{padding:10px;border:1px solid #E2E8F0;vertical-align:top;line-height:1.65}
+.step-no{text-align:center;font-weight:bold;color:#2563EB;width:38px}
+.step-time{text-align:center;color:#64748B;white-space:nowrap;width:62px}
+.step-visual{width:24%;color:#334155}
+.step-voice{width:38%}
+.step-sub{color:#64748B;font-size:13px;width:17%}
 .steps-table b{color:#1E40AF;font-weight:bold}
-.cta-box{background:#FFFBEB;margin:12px 20px;padding:12px;border-radius:8px;border-left:3px solid #F59E0B}
-.cta-box .section-title{color:#B45309}
-.cta-box p{font-size:13px;color:#92400E}
-.cta-box b{color:#B45309}
-.tip-box{background:#EFF6FF;margin:12px 20px;padding:12px;border-radius:8px;border-left:3px solid #2563EB}
-.tip-box .section-title{color:#1E40AF}
-.tip-box p{font-size:13px;color:#1E40AF}
-.tip-box b{color:#1E3A8A}
-.card-bottom{padding:10px 20px;border-top:1px solid #F1F5F9;display:flex;gap:12px;flex-wrap:wrap}
-.bgm-tag{font-size:12px;color:#64748B;background:#F1F5F9;padding:4px 8px;border-radius:6px}
-.tags-tag{font-size:12px;color:#6366F1}
-.schedule-box{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.schedule-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
-.schedule-table th{background:#F1F5F9;padding:8px;text-align:left;border:1px solid #E2E8F0;color:#475569}
-.schedule-table td{padding:8px;border:1px solid #E2E8F0}
-.cat-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
-.cat-table th{background:#F1F5F9;padding:6px;text-align:left;border:1px solid #E2E8F0;color:#475569;font-size:12px}
-.cat-table td{padding:6px;border:1px solid #E2E8F0;text-align:center}
-.bottom-tip{background:#FFFBEB;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #FCD34D}
-.bottom-tip h3{color:#B45309;margin-bottom:10px}
+.cta-box{background:#FFFBEB;margin:8px 24px;padding:12px 16px;border-radius:8px;border-left:4px solid #F59E0B}
+.cta-box .section-title{font-size:14px;font-weight:bold;color:#B45309;margin-bottom:4px}
+.cta-box p{font-size:14px;color:#92400E}
+.tip-box{background:#EFF6FF;margin:8px 24px 16px;padding:12px 16px;border-radius:8px;border-left:4px solid #2563EB}
+.tip-box .section-title{font-size:14px;font-weight:bold;color:#1E40AF;margin-bottom:4px}
+.tip-box p{font-size:14px;color:#1E40AF}
+.card-bottom{padding:12px 24px;border-top:1px solid #F1F5F9;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.bgm-tag{font-size:13px;color:#64748B;background:#F1F5F9;padding:5px 10px;border-radius:6px}
+.tags-tag{font-size:13px;color:#6366F1}
+.schedule-box{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:24px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.schedule-box .insight-title{font-size:17px;font-weight:bold;color:#1E40AF;margin-bottom:12px}
+.schedule-table{width:100%;border-collapse:collapse;font-size:14px}
+.schedule-table th{background:#F1F5F9;padding:10px;text-align:left;border:1px solid #E2E8F0;color:#475569}
+.schedule-table td{padding:10px;border:1px solid #E2E8F0}
+.bottom-tip{background:#FFFBEB;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #FCD34D}
+.bottom-tip h3{color:#B45309;margin-bottom:12px;font-size:16px}
 .bottom-tip ul{list-style:none;padding-left:0}
-.bottom-tip li{padding:4px 0;color:#92400E;font-size:13px}
-.footer{text-align:center;padding:20px;color:#94A3B8;font-size:12px}
-@media print{.script-card{break-inside:avoid}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#fff}}
+.bottom-tip li{padding:5px 0;color:#92400E;font-size:14px}
+.footer{text-align:center;padding:24px;color:#94A3B8;font-size:13px}
+.copy-textarea{position:absolute;left:-9999px;top:0;width:1px;height:1px}
+@media print{.script-card{break-inside:avoid}.copy-btn{display:none}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#fff}}
 </style>
 </head>
 <body>
 <div class="header">
     <h1>今日跟拍脚本</h1>
-    <div class="subtitle">照脚本念 · 按要点拍 · 今天就能发 | 2026年7月25日</div>
-    <div class="tags"><span>7条 搜索截流</span><span>3条 热点引流</span><span>7:3 策略</span></div>
+    <div class="subtitle">精选 5 条 · 照念就能拍 · 当天就能发 | 2026年7月25日</div>
+    <div class="tags"><span>2 条 搜索截流</span><span>3 条 热点引流</span><span>一键复制</span></div>
 </div>
 <div class="container">
-    <div class="insight">
-        <div class="insight-title">数据洞察 - 选题依据</div>
-        <div class="insight-grid">
-            <div class="insight-item"><div class="num">7883</div><div class="label">视频总数</div></div>
-            <div class="insight-item"><div class="num">294</div><div class="label">业务类均播</div></div>
-            <div class="insight-item"><div class="num">576</div><div class="label">其他类均播</div></div>
-            <div class="insight-item"><div class="num">61</div><div class="label">总成交(单)</div></div>
-            <div class="insight-item"><div class="num">100%</div><div class="label">种草词空白率</div></div>
-        </div>
-        <div style="margin-top:15px"><table class="cat-table"><tr><th>大类</th><th>视频数</th><th>均播</th><th>成交</th><th>完播率</th><th>种草词</th></tr><tr><td>宽带/网络</td><td>1348</td><td>226</td><td>15</td><td>11.47%</td><td>空白</td></tr><tr><td>手机/终端</td><td>730</td><td>439</td><td>14</td><td>9.44%</td><td>空白</td></tr><tr><td>流量/套餐</td><td>254</td><td>240</td><td>4</td><td>14.13%</td><td>空白</td></tr><tr><td>电视/IPTV</td><td>8</td><td>74</td><td>0</td><td>11.03%</td><td>空白</td></tr><tr><td>亲子/手表</td><td>20</td><td>138</td><td>0</td><td>11.55%</td><td>空白</td></tr><tr><td>营业厅/服务</td><td>295</td><td>315</td><td>3</td><td>13.62%</td><td>空白</td></tr><tr><td>其他</td><td>5228</td><td>576</td><td>25</td><td>5.78%</td><td>空白</td></tr></table></div>
-    </div>
-    <div class="section-header">搜索截流脚本（7条）- 精准获客</div>
-    <div class="script-card"><div class="card-header"><div class="card-title">话费突然变多？3步查清是不是流量超标</div><div class="source">搜索词：流量超标</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">帮排查型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">35秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+手机账单演示</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店咨询套餐+解除超标</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>流量套餐类254条视频成交4单、完播率14.13%为各业务类最高，用户最关心话费问题。0条视频教用户自查流量超标，缺口明确。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起手机，屏幕显示扣费账单，红笔标出'套餐外'一项</td><td class="step-voice"><b>话费突然变多？多数是被扣了流量外的钱</b></td><td class="step-sub">话费变多？查流量超标</td></tr><tr><td class="step-no">2</td><td class="step-time">3-22s</td><td class="step-visual">手机操作进入'我的账单-套餐外扣费'，逐项展示流量超用部分</td><td class="step-voice">打开手机营业厅，我的账单里看套餐外扣费，<b>只要出现流量超出，就是套餐不够用了</b>，超额部分单独算钱，越用越贵</td><td class="step-sub">查套餐外→找流量超标项</td></tr><tr><td class="step-no">3</td><td class="step-time">22-35s</td><td class="step-visual">店员指镜头，旁边放套餐对比宣传页</td><td class="step-voice">不确定自己超了多少？评论区扣'查账单'，<b>我把自查步骤发你，超得多就到店里调个更适合的套餐</b></td><td class="step-sub">扣&#x27;查账单&#x27;领步骤</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'查账单'→自动回复自查步骤+附近门店→引导到店调套餐</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜手机账单上'套餐外扣费'那一行红圈标出是钩子，让观众一眼看到自己也在被扣</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 实用信息轻BGM</span><span class="tags-tag">#流量超标 #话费变多 #套餐外扣费 #电信营业厅 #查账单</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">月租交到心疼？先算清你到底为多花钱</div><div class="source">搜索词：月租太贵</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">算账对比型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">40秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员口播+白板算账</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店换更划算套餐</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>流量套餐类完播率14.13%最高说明用户普遍关心话费支出。'月租太贵'是搜索高频词但4条视频0条讲怎么算账，内容空白。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员在白板前，写下'你的月租花在哪了？'</td><td class="step-voice"><b>月租交到心疼？先别急着改，算清钱花哪了</b></td><td class="step-sub">月租贵先算账</td></tr><tr><td class="step-no">2</td><td class="step-time">3-25s</td><td class="step-visual">白板分栏写：基础月费/流量费/绑定的视频会员/全家副卡，逐一标问号</td><td class="step-voice">把月账拆开看：基础月费、流量费、绑定的视频会员、全家副卡。<b>绑了用不上的会员，副卡加多了，月租就悄悄涨上去了</b>，很多时候不是套餐本身贵</td><td class="step-sub">月账4项→找冤枉钱</td></tr><tr><td class="step-no">3</td><td class="step-time">25-40s</td><td class="step-visual">店员拿算账模板指向镜头</td><td class="step-voice">想知道你的月租能不能降？评论区扣'算账'，<b>我发你月账测算表，照着填就能看出哪项该砍</b>，满意了再到店办</td><td class="step-sub">扣&#x27;算账&#x27;领测算表</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'算账'→自动回复月账测算表+到店方案→引导到店换套餐</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜白板上把'用不上的成员视频'圈起来打问号是信息高潮，让观众秒懂自己也在花冤枉钱</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻快算账BGM</span><span class="tags-tag">#月租太贵 #话费太高 #套餐对比 #电信营业厅 #算账</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">办靓号别瞎选，这3种尾号最容易挑错</div><div class="source">搜索词：靓号办理</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">选号挑号型</span><span class="tag" style="background:#6B7280">长尾</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">30秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+靓号展示牌</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅选号机前</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店办靓号</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>营业厅服务类295条视频均播315次为各业务类播放最高，到店需求强。靓号办理是高频搜索词但内容几乎空白，转化场景明确。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员在选号机前，屏幕滚动出一串连号尾号</td><td class="step-voice"><b>办靓号别瞎选，这3种尾号最容易挑错</b></td><td class="step-sub">办靓号避开3个坑</td></tr><tr><td class="step-no">2</td><td class="step-time">3-20s</td><td class="step-visual">店员指着屏幕上不同尾号段解释：连号/对子/带4</td><td class="step-voice">连号的贵但好记，顺子好读要看个人偏好，<b>带4的便宜但发短信报号码时容易让别人误解</b>，挑之前先想清楚图便宜还是图纪念意义</td><td class="step-sub">连号贵好记/带4便宜有顾虑</td></tr><tr><td class="step-no">3</td><td class="step-time">20-30s</td><td class="step-visual">店员举一张靓号清单指向镜头</td><td class="step-voice">想看本地在售的靓号？评论区扣'靓号'，<b>我发你当月在售清单，到店当面试，挑中直接办</b></td><td class="step-sub">扣&#x27;靓号&#x27;看在售号</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'靓号'→自动回复在售靓号清单+到店选号入口→引导到店挑号</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜选号机屏幕上滚动出一串尾号连号的画面是钩子，8/6等数字连着滚的视觉很吸睛</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻快节奏BGM</span><span class="tags-tag">#靓号办理 #选号 #手机靓号 #电信营业厅 #挑号码</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">在售机型别只看宣传价，这3个隐藏点要问清</div><div class="source">搜索词：手机优惠</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">限时直降型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">25秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+手机专柜演示</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">手机专柜</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店购优惠机型</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>手机终端类730条视频成交14单为成交第二大类，购机是强转化场景。暑假正是新机优惠季，'手机优惠'内容缺口明显。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员在手机专柜前，拿起贴着'本月优惠'红标的机型</td><td class="step-voice"><b>买手机别只看宣传价，这3个隐藏点不问亏了</b></td><td class="step-sub">购机三个隐藏点</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">店员指着机型旁边说明卡，逐一讲3点：合约/裸机/以旧换新</td><td class="step-voice">先分清是合约机还是裸机，价格差很多；再看能不能叠以旧换新抵一笔；<b>还要确认配件是不是原配，有些优惠机不送耳机充电头</b>。问清这3点再下单</td><td class="step-sub">合约/以旧换新/配件三问</td></tr><tr><td class="step-no">3</td><td class="step-time">18-25s</td><td class="step-visual">店员指镜头+专柜全景</td><td class="step-voice">想看本月哪些机型有优惠？评论区扣'机型'，<b>我把在售优惠机型表发你，到店当场试</b></td><td class="step-sub">扣&#x27;机型&#x27;领在售表</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'机型'→自动回复本月优惠机型表+门店导航→引导到店试机</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜专柜上贴着'限时优惠'红标的机型怼镜头是钩子，红色直降标签天然吸睛</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 节奏促销BGM</span><span class="tags-tag">#手机优惠 #购机优惠 #手机直降 #电信营业厅 #买手机</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">几款热门机横着比，到底哪台更值</div><div class="source">搜索词：买手机便宜</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">对比清单型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">45秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+多机型横排演示</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">手机专柜</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店比价购机</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>手机终端类成交14单说明购机决策力强，但730条视频里0条做'多机型横向清单对比'，用户选机最缺一目了然的对比内容。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">桌面上横排3款热门手机，店员手势划过去</td><td class="step-voice"><b>买手机比来比去比不明白？一张清单搞定</b></td><td class="step-sub">3款机横着比</td></tr><tr><td class="step-no">2</td><td class="step-time">3-30s</td><td class="step-visual">店员拿清单逐一指：电池/拍照/屏幕/旧机抵扣后实付</td><td class="step-voice">同一价位段，电池看毫安、拍照看主摄传感器、屏幕看刷新率。<b>最关键一项是旧机能不能抵扣，抵完实付才叫真便宜</b>。光看裸机价容易买错</td><td class="step-sub">4项对比+旧机抵扣看实付</td></tr><tr><td class="step-no">3</td><td class="step-time">30-45s</td><td class="step-visual">店员举一张A4打印的对比清单</td><td class="step-voice">想要这份机型对比清单？评论区扣'比价'，<b>我发你当月对比表，到店照着聊不被绕晕</b></td><td class="step-sub">扣&#x27;比价&#x27;领对比表</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'比价'→自动回复机型对比清单+到店试机→引导到店比价下单</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜清单上一行一行抹过去逐项打钩的画面是信息高潮，看到一项项对比观众停留时间最长</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 清晰讲解BGM</span><span class="tags-tag">#买手机便宜 #手机对比 #购机指南 #电信营业厅 #机型比价</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">办业务白跑一趟？这份清单按业务分好类</div><div class="source">搜索词：办业务带什么</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">物品清单型</span><span class="tag" style="background:#6B7280">长尾</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">30秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+桌面证件演示</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店办业务带齐材料</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>营业厅服务类成交3单说明到店强需求，但0条视频按业务类别教用户带什么材料，'办业务带什么'是高频痛点内容空白。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">桌面上整齐排开身份证、银行卡、旧手机、户口本</td><td class="step-voice"><b>办业务白跑一趟？多半是证件没带齐</b></td><td class="step-sub">办业务别白跑</td></tr><tr><td class="step-no">2</td><td class="step-time">3-20s</td><td class="step-visual">店员边讲边指：补卡带身份证/宽带办身份证+房产证明/过户需双方身份证</td><td class="step-voice">按业务分：补卡带身份证就行；办宽带要身份证加房产证明；过户必须双方身份证到场。<b>过户千万别让家人代办，非本人到办不了</b></td><td class="step-sub">补卡/宽带/过户分别带啥</td></tr><tr><td class="step-no">3</td><td class="step-time">20-30s</td><td class="step-visual">店员举起一张A4分类清单</td><td class="step-voice">怕记不住？评论区扣'清单'，<b>我发你按业务分好类的材料清单，照着准备一次办成</b></td><td class="step-sub">扣&#x27;清单&#x27;按业务分类</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'清单'→自动回复按业务分类的材料清单+到店→引导到店一次办成</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜桌面上证件一字排开怼镜头的画面是钩子，让用户一眼数清自己带齐没带齐</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 实用清单BGM</span><span class="tags-tag">#办业务带什么 #营业厅办业务 #带什么证件 #电信营业厅 #补卡</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">搬家宽带别拆了重装，移机4步搞定</div><div class="source">搜索词：宽带移机</div></div><div class="tag-row"><span class="tag" style="background:#2563EB">搜索截流</span><span class="tag" style="background:#6366F1">流程指导型</span><span class="tag" style="background:#F59E0B">应季</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">45秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员+流程图演示</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台或门口</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">到店办宽带移机</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>宽带网络类1348条视频成交15单为最大成交来源，移机需求暑期搬家旺季高发，但仅3条视频讲移机流程，操作类内容缺口大。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员在白板前，写下'搬家了宽带怎么办？'</td><td class="step-voice"><b>搬家宽带你别拆了重装，移机4步搞定</b></td><td class="step-sub">别拆别装→移机4步</td></tr><tr><td class="step-no">2</td><td class="step-time">3-30s</td><td class="step-visual">白板画4步流程图：①查新址覆盖②带身份证到店③约师傅上门④调试联网</td><td class="step-voice">先查新家有没有电信宽带覆盖；再带身份证到店办移机；然后约师傅上门重装；最后现场调试联网。<b>比拆了重装省一笔安装费，原号码原套餐都保留</b></td><td class="step-sub">查覆盖→办→约→调</td></tr><tr><td class="step-no">3</td><td class="step-time">30-45s</td><td class="step-visual">店员指镜头+流程图</td><td class="step-voice">想先查新家覆盖？评论区扣'移机'，<b>我发你4步流程图加师傅预约入口，到店一趟全办了</b></td><td class="step-sub">扣&#x27;移机&#x27;领流程图</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'移机'→自动回复移机4步流程图+预约师傅入口→引导到店办移机</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜白板上箭头串起来的4步流程图是信息锚点，箭头方向让用户一眼看懂顺序</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 清晰流程BGM</span><span class="tags-tag">#宽带移机 #搬家宽带 #宽带办理 #电信营业厅 #移机流程</span></div></div>
-    <div class="section-header hot">热点引流脚本（3条）- 维持曝光</div>
-    <div class="script-card"><div class="card-header"><div class="card-title">夏天营业厅日常就该配这首BGM</div><div class="source">热点：夏天从玩水的那一刻开始 | 抖音热榜第7位 热度1007.6万</div><div class="relevance">相关度：玩法类型:BGM推荐 | 适合营业厅拍工作日常/纳凉/服务瞬间配此BGM,纯蹭夏日话题流量</div></div><div class="tag-row"><span class="tag" style="background:#7C3AED">热点引流</span><span class="tag" style="background:#6366F1">BGM推荐型</span><span class="tag" style="background:#EF4444">时效强</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">15-20秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员对镜拍或工作场景</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅任意场景</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">用同款BGM发一条工作日常,蹭夏日话题流量维持账号活跃</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>'夏天从玩水的那一刻开始'是抖音当前热门的夏日BGM(热度1007万排第7),带夏天话题播放量巨大。营业厅员工拍15秒工作日常配这首BGM,无需口播无需产品,纯蹭热度,适合所有厅店员工跟拍。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-5s</td><td class="step-visual">店员在柜台前对镜微笑/整理工牌,镜头缓慢推近</td><td class="step-voice">(配BGM)字幕:<b>夏天,从营业厅的这一刻开始</b></td><td class="step-sub">夏天从这一刻开始</td></tr><tr><td class="step-no">2</td><td class="step-time">5-12s</td><td class="step-visual">切换到店员迎宾/递单/敲键盘等2-3个工作瞬间卡点</td><td class="step-voice">(BGM卡点)字幕:<b>工作日常也可以很夏天</b></td><td class="step-sub">工作日常也很夏天</td></tr><tr><td class="step-no">3</td><td class="step-time">12-20s</td><td class="step-visual">店员对镜比心或挥手,镜头拉远显示门店全景</td><td class="step-voice">(BGM收尾)字幕:<b>评论区领同款BGM</b></td><td class="step-sub">扣&#x27;夏天BGM&#x27;领同款</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'夏天BGM'→自动回复BGM名+搜索入口+卡点剪辑小教程</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>拍柜台办业务、门口迎宾、整理货架等任意工作片段,卡着BGM节奏切镜头是关键,不用对口播</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 夏天从玩水的那一刻开始(抖音热门BGM)</span><span class="tags-tag">#夏天从玩水的那一刻开始 #营业厅日常 #工作vlog #夏日BGM #电信营业厅</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">柜台前跟拍这个手势魔法,15秒出片</div><div class="source">热点：Vibe Coding手势魔法大赏 | 抖音热榜第29位 热度766.4万</div><div class="relevance">相关度：玩法类型:手势舞跟拍 | 手势魔法卡点特效,柜台前即可跟拍,形式简单易上手</div></div><div class="tag-row"><span class="tag" style="background:#7C3AED">热点引流</span><span class="tag" style="background:#6366F1">手势舞跟拍型</span><span class="tag" style="background:#EF4444">时效强</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">15秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员柜台前跟拍手势舞</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅柜台</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">跟拍手势魔法视频,展示营业厅员工活力+蹭话题流量</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>'Vibe Coding手势魔法大赏'是抖音当前热门跟拍话题(766万),手势简单+魔法特效触发,门槛低效果好。营业厅员工在柜台前跟拍15秒,露柜台背景展示工作场景,无需产品无需口播。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员站在柜台后,对镜挥手入场,柜台背景清晰可见</td><td class="step-voice">(配BGM)字幕:<b>营业厅也来一波手势魔法</b></td><td class="step-sub">营业厅手势魔法</td></tr><tr><td class="step-no">2</td><td class="step-time">3-12s</td><td class="step-visual">店员做3个手势动作,每个动作触发一个魔法特效(粒子/光效)</td><td class="step-voice">(BGM卡点配合手势)字幕:<b>Vibe Coding跟拍</b></td><td class="step-sub">3个手势+魔法特效</td></tr><tr><td class="step-no">3</td><td class="step-time">12-15s</td><td class="step-visual">特效收尾,店员对镜比OK手势</td><td class="step-voice">(BGM收尾)字幕:<b>评论区领原视频教程</b></td><td class="step-sub">扣&#x27;手势&#x27;领教程</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'手势'→自动回复原视频链接+手势分解教程+特效使用入口</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>柜台前跟拍要露出柜台背景(让观众看出是营业厅),手势动作要干脆利落配合特效触发点</p></div><div class="card-bottom"><span class="bgm-tag">BGM: Vibe Coding同款BGM(抖音热门)</span><span class="tags-tag">#VibeCoding #手势魔法大赏 #手势舞 #营业厅日常 #电信营业厅</span></div></div>
-<div class="script-card"><div class="card-header"><div class="card-title">营业厅工服也能拍出颜色搭配大片</div><div class="source">热点：当我学会用颜色搭配时 | 抖音热榜第9位 热度790.6万</div><div class="relevance">相关度：玩法类型:对镜拍穿搭 | 工服颜色搭配+胸牌配饰,展示营业厅员工形象</div></div><div class="tag-row"><span class="tag" style="background:#7C3AED">热点引流</span><span class="tag" style="background:#6366F1">对镜穿搭型</span><span class="tag" style="background:#EF4444">时效强</span><span class="tag" style="background:#10B981">合规通过</span></div><div class="meta-grid">
-        <div class="meta-item"><span class="meta-label">时长</span><span class="meta-value">15-20秒</span></div>
-        <div class="meta-item"><span class="meta-label">出镜</span><span class="meta-value">店员对镜拍穿搭</span></div>
-        <div class="meta-item"><span class="meta-label">场景</span><span class="meta-value">营业厅更衣区或柜台对镜</span></div>
-        <div class="meta-item"><span class="meta-label">转化目标</span><span class="meta-value">用工服拍一条颜色搭配对镜拍,展示员工形象+蹭穿搭话题</span></div>
-    </div><div class="why-box"><div class="section-title">为什么有效</div><p>'当我学会用颜色搭配时'是抖音热门穿搭对镜拍话题(790万排第9)。营业厅工服(蓝/白/红等)本身就是配色,员工对镜拍工服搭配+胸牌+配饰,既蹭话题又展示企业形象,无需产品无需口播。</p></div><div class="steps-box"><div class="section-title">分镜话术</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-5s</td><td class="step-visual">店员对镜全身入镜,转身展示工服正面配色</td><td class="step-voice">(配BGM)字幕:<b>营业厅工服的颜色搭配</b></td><td class="step-sub">工服颜色搭配</td></tr><tr><td class="step-no">2</td><td class="step-time">5-15s</td><td class="step-visual">给胸牌、袖口、手表/发饰等3个细节特写,卡BGM节奏</td><td class="step-voice">(BGM卡点)字幕:<b>细节也有搭配感</b></td><td class="step-sub">3个搭配细节特写</td></tr><tr><td class="step-no">3</td><td class="step-time">15-20s</td><td class="step-visual">店员对镜摆pose收尾,微笑</td><td class="step-voice">(BGM收尾)字幕:<b>评论区领对镜拍pose</b></td><td class="step-sub">扣&#x27;穿搭&#x27;领pose</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'穿搭'→自动回复对镜拍pose参考+营业厅工服搭配灵感图</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>对镜拍要全身入镜,工服配色+胸牌+手表/发饰等细节要给特写,体现搭配感</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 颜色搭配同款BGM(抖音热门)</span><span class="tags-tag">#当我学会用颜色搭配时 #对镜拍 #工服穿搭 #营业厅日常 #颜色搭配</span></div></div>
+    <div class="section-header">搜索截流脚本（2条）- 精准获客</div>
+    <div class="script-card"><textarea class="copy-textarea" id="copy-s1">话费突然变多？3步查清是不是流量超标
+时长: 35秒  |  出镜: 店员+手机账单演示  |  场景: 营业厅柜台
+搜索词: 流量超标
+
+【分镜1 0-3s】
+画面: 店员举起手机，屏幕显示扣费账单，红笔标出&#x27;套餐外&#x27;一项
+口播: 话费突然变多？多数是被扣了流量外的钱
+字幕: 话费变多？查流量超标
+
+【分镜2 3-22s】
+画面: 手机操作进入&#x27;我的账单-套餐外扣费&#x27;，逐项展示流量超用部分
+口播: 打开手机营业厅，我的账单里看套餐外扣费，只要出现流量超出，就是套餐不够用了，超额部分单独算钱，越用越贵
+字幕: 查套餐外→找流量超标项
+
+【分镜3 22-35s】
+画面: 店员指镜头，旁边放套餐对比宣传页
+口播: 不确定自己超了多少？评论区扣&#x27;查账单&#x27;，我把自查步骤发你，超得多就到店里调个更适合的套餐
+字幕: 扣&#x27;查账单&#x27;领步骤
+
+引导闭环: 评论区扣&#x27;查账单&#x27;→自动回复自查步骤+附近门店→引导到店调套餐
+拍摄提示: 第1镜手机账单上&#x27;套餐外扣费&#x27;那一行红圈标出是钩子，让观众一眼看到自己也在被扣
+BGM: 实用信息轻BGM
+标签: #流量超标 #话费变多 #套餐外扣费 #电信营业厅 #查账单</textarea><div class="card-top"><span class="card-no">1</span><span class="card-title">话费突然变多？3步查清是不是流量超标</span><button class="copy-btn" id="btn-s1" onclick="copyScript('s1')">复制本条脚本</button></div><div class="source">搜索词: 流量超标</div><div class="meta-row"><span>时长 <b>35秒</b></span><span>出镜 <b>店员+手机账单演示</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>到店咨询套餐+解除超标</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起手机，屏幕显示扣费账单，红笔标出'套餐外'一项</td><td class="step-voice"><b>话费突然变多？多数是被扣了流量外的钱</b></td><td class="step-sub">话费变多？查流量超标</td></tr><tr><td class="step-no">2</td><td class="step-time">3-22s</td><td class="step-visual">手机操作进入'我的账单-套餐外扣费'，逐项展示流量超用部分</td><td class="step-voice">打开手机营业厅，我的账单里看套餐外扣费，<b>只要出现流量超出，就是套餐不够用了</b>，超额部分单独算钱，越用越贵</td><td class="step-sub">查套餐外→找流量超标项</td></tr><tr><td class="step-no">3</td><td class="step-time">22-35s</td><td class="step-visual">店员指镜头，旁边放套餐对比宣传页</td><td class="step-voice">不确定自己超了多少？评论区扣'查账单'，<b>我把自查步骤发你，超得多就到店里调个更适合的套餐</b></td><td class="step-sub">扣&#x27;查账单&#x27;领步骤</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'查账单'→自动回复自查步骤+附近门店→引导到店调套餐</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜手机账单上'套餐外扣费'那一行红圈标出是钩子，让观众一眼看到自己也在被扣</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 实用信息轻BGM</span><span class="tags-tag">#流量超标 #话费变多 #套餐外扣费 #电信营业厅 #查账单</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s2">月租交到心疼？先算清你到底为多花钱
+时长: 40秒  |  出镜: 店员口播+白板算账  |  场景: 营业厅柜台
+搜索词: 月租太贵
+
+【分镜1 0-3s】
+画面: 店员在白板前，写下&#x27;你的月租花在哪了？&#x27;
+口播: 月租交到心疼？先别急着改，算清钱花哪了
+字幕: 月租贵先算账
+
+【分镜2 3-25s】
+画面: 白板分栏写：基础月费/流量费/绑定的视频会员/全家副卡，逐一标问号
+口播: 把月账拆开看：基础月费、流量费、绑定的视频会员、全家副卡。绑了用不上的会员，副卡加多了，月租就悄悄涨上去了，很多时候不是套餐本身贵
+字幕: 月账4项→找冤枉钱
+
+【分镜3 25-40s】
+画面: 店员拿算账模板指向镜头
+口播: 想知道你的月租能不能降？评论区扣&#x27;算账&#x27;，我发你月账测算表，照着填就能看出哪项该砍，满意了再到店办
+字幕: 扣&#x27;算账&#x27;领测算表
+
+引导闭环: 评论区扣&#x27;算账&#x27;→自动回复月账测算表+到店方案→引导到店换套餐
+拍摄提示: 第2镜白板上把&#x27;用不上的成员视频&#x27;圈起来打问号是信息高潮，让观众秒懂自己也在花冤枉钱
+BGM: 轻快算账BGM
+标签: #月租太贵 #话费太高 #套餐对比 #电信营业厅 #算账</textarea><div class="card-top"><span class="card-no">2</span><span class="card-title">月租交到心疼？先算清你到底为多花钱</span><button class="copy-btn" id="btn-s2" onclick="copyScript('s2')">复制本条脚本</button></div><div class="source">搜索词: 月租太贵</div><div class="meta-row"><span>时长 <b>40秒</b></span><span>出镜 <b>店员口播+白板算账</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>到店换更划算套餐</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员在白板前，写下'你的月租花在哪了？'</td><td class="step-voice"><b>月租交到心疼？先别急着改，算清钱花哪了</b></td><td class="step-sub">月租贵先算账</td></tr><tr><td class="step-no">2</td><td class="step-time">3-25s</td><td class="step-visual">白板分栏写：基础月费/流量费/绑定的视频会员/全家副卡，逐一标问号</td><td class="step-voice">把月账拆开看：基础月费、流量费、绑定的视频会员、全家副卡。<b>绑了用不上的会员，副卡加多了，月租就悄悄涨上去了</b>，很多时候不是套餐本身贵</td><td class="step-sub">月账4项→找冤枉钱</td></tr><tr><td class="step-no">3</td><td class="step-time">25-40s</td><td class="step-visual">店员拿算账模板指向镜头</td><td class="step-voice">想知道你的月租能不能降？评论区扣'算账'，<b>我发你月账测算表，照着填就能看出哪项该砍</b>，满意了再到店办</td><td class="step-sub">扣&#x27;算账&#x27;领测算表</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'算账'→自动回复月账测算表+到店方案→引导到店换套餐</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜白板上把'用不上的成员视频'圈起来打问号是信息高潮，让观众秒懂自己也在花冤枉钱</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻快算账BGM</span><span class="tags-tag">#月租太贵 #话费太高 #套餐对比 #电信营业厅 #算账</span></div></div>
+    <div class="section-header hot">热点引流脚本（3条）- 玩法推荐</div>
+    <div class="script-card"><textarea class="copy-textarea" id="copy-h1">夏天营业厅日常就该配这首BGM
+时长: 15-20秒  |  出镜: 店员对镜拍或工作场景  |  场景: 营业厅任意场景
+热点: 夏天从玩水的那一刻开始  |  抖音热榜第7位 热度1007.6万
+
+【分镜1 0-5s】
+画面: 店员在柜台前对镜微笑/整理工牌,镜头缓慢推近
+口播: (配BGM)字幕:夏天,从营业厅的这一刻开始
+字幕: 夏天从这一刻开始
+
+【分镜2 5-12s】
+画面: 切换到店员迎宾/递单/敲键盘等2-3个工作瞬间卡点
+口播: (BGM卡点)字幕:工作日常也可以很夏天
+字幕: 工作日常也很夏天
+
+【分镜3 12-20s】
+画面: 店员对镜比心或挥手,镜头拉远显示门店全景
+口播: (BGM收尾)字幕:评论区领同款BGM
+字幕: 扣&#x27;夏天BGM&#x27;领同款
+
+引导闭环: 评论区扣&#x27;夏天BGM&#x27;→自动回复BGM名+搜索入口+卡点剪辑小教程
+拍摄提示: 拍柜台办业务、门口迎宾、整理货架等任意工作片段,卡着BGM节奏切镜头是关键,不用对口播
+BGM: 夏天从玩水的那一刻开始(抖音热门BGM)
+标签: #夏天从玩水的那一刻开始 #营业厅日常 #工作vlog #夏日BGM #电信营业厅</textarea><div class="card-top"><span class="card-no hot">1</span><span class="card-title">夏天营业厅日常就该配这首BGM</span><button class="copy-btn" id="btn-h1" onclick="copyScript('h1')">复制本条脚本</button></div><div class="source">热点: 夏天从玩水的那一刻开始 | 抖音热榜第7位 热度1007.6万</div><div class="relevance">玩法类型:BGM推荐 | 适合营业厅拍工作日常/纳凉/服务瞬间配此BGM,纯蹭夏日话题流量</div><div class="meta-row"><span>时长 <b>15-20秒</b></span><span>出镜 <b>店员对镜拍或工作场景</b></span><span>场景 <b>营业厅任意场景</b></span><span>目标 <b>用同款BGM发一条工作日常,蹭夏日话题流量维持账号活跃</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-5s</td><td class="step-visual">店员在柜台前对镜微笑/整理工牌,镜头缓慢推近</td><td class="step-voice">(配BGM)字幕:<b>夏天,从营业厅的这一刻开始</b></td><td class="step-sub">夏天从这一刻开始</td></tr><tr><td class="step-no">2</td><td class="step-time">5-12s</td><td class="step-visual">切换到店员迎宾/递单/敲键盘等2-3个工作瞬间卡点</td><td class="step-voice">(BGM卡点)字幕:<b>工作日常也可以很夏天</b></td><td class="step-sub">工作日常也很夏天</td></tr><tr><td class="step-no">3</td><td class="step-time">12-20s</td><td class="step-visual">店员对镜比心或挥手,镜头拉远显示门店全景</td><td class="step-voice">(BGM收尾)字幕:<b>评论区领同款BGM</b></td><td class="step-sub">扣&#x27;夏天BGM&#x27;领同款</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'夏天BGM'→自动回复BGM名+搜索入口+卡点剪辑小教程</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>拍柜台办业务、门口迎宾、整理货架等任意工作片段,卡着BGM节奏切镜头是关键,不用对口播</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 夏天从玩水的那一刻开始(抖音热门BGM)</span><span class="tags-tag">#夏天从玩水的那一刻开始 #营业厅日常 #工作vlog #夏日BGM #电信营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-h2">柜台前跟拍这个手势魔法,15秒出片
+时长: 15秒  |  出镜: 店员柜台前跟拍手势舞  |  场景: 营业厅柜台
+热点: Vibe Coding手势魔法大赏  |  抖音热榜第29位 热度766.4万
+
+【分镜1 0-3s】
+画面: 店员站在柜台后,对镜挥手入场,柜台背景清晰可见
+口播: (配BGM)字幕:营业厅也来一波手势魔法
+字幕: 营业厅手势魔法
+
+【分镜2 3-12s】
+画面: 店员做3个手势动作,每个动作触发一个魔法特效(粒子/光效)
+口播: (BGM卡点配合手势)字幕:Vibe Coding跟拍
+字幕: 3个手势+魔法特效
+
+【分镜3 12-15s】
+画面: 特效收尾,店员对镜比OK手势
+口播: (BGM收尾)字幕:评论区领原视频教程
+字幕: 扣&#x27;手势&#x27;领教程
+
+引导闭环: 评论区扣&#x27;手势&#x27;→自动回复原视频链接+手势分解教程+特效使用入口
+拍摄提示: 柜台前跟拍要露出柜台背景(让观众看出是营业厅),手势动作要干脆利落配合特效触发点
+BGM: Vibe Coding同款BGM(抖音热门)
+标签: #VibeCoding #手势魔法大赏 #手势舞 #营业厅日常 #电信营业厅</textarea><div class="card-top"><span class="card-no hot">2</span><span class="card-title">柜台前跟拍这个手势魔法,15秒出片</span><button class="copy-btn" id="btn-h2" onclick="copyScript('h2')">复制本条脚本</button></div><div class="source">热点: Vibe Coding手势魔法大赏 | 抖音热榜第29位 热度766.4万</div><div class="relevance">玩法类型:手势舞跟拍 | 手势魔法卡点特效,柜台前即可跟拍,形式简单易上手</div><div class="meta-row"><span>时长 <b>15秒</b></span><span>出镜 <b>店员柜台前跟拍手势舞</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>跟拍手势魔法视频,展示营业厅员工活力+蹭话题流量</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员站在柜台后,对镜挥手入场,柜台背景清晰可见</td><td class="step-voice">(配BGM)字幕:<b>营业厅也来一波手势魔法</b></td><td class="step-sub">营业厅手势魔法</td></tr><tr><td class="step-no">2</td><td class="step-time">3-12s</td><td class="step-visual">店员做3个手势动作,每个动作触发一个魔法特效(粒子/光效)</td><td class="step-voice">(BGM卡点配合手势)字幕:<b>Vibe Coding跟拍</b></td><td class="step-sub">3个手势+魔法特效</td></tr><tr><td class="step-no">3</td><td class="step-time">12-15s</td><td class="step-visual">特效收尾,店员对镜比OK手势</td><td class="step-voice">(BGM收尾)字幕:<b>评论区领原视频教程</b></td><td class="step-sub">扣&#x27;手势&#x27;领教程</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'手势'→自动回复原视频链接+手势分解教程+特效使用入口</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>柜台前跟拍要露出柜台背景(让观众看出是营业厅),手势动作要干脆利落配合特效触发点</p></div><div class="card-bottom"><span class="bgm-tag">BGM: Vibe Coding同款BGM(抖音热门)</span><span class="tags-tag">#VibeCoding #手势魔法大赏 #手势舞 #营业厅日常 #电信营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-h3">营业厅工服也能拍出颜色搭配大片
+时长: 15-20秒  |  出镜: 店员对镜拍穿搭  |  场景: 营业厅更衣区或柜台对镜
+热点: 当我学会用颜色搭配时  |  抖音热榜第9位 热度790.6万
+
+【分镜1 0-5s】
+画面: 店员对镜全身入镜,转身展示工服正面配色
+口播: (配BGM)字幕:营业厅工服的颜色搭配
+字幕: 工服颜色搭配
+
+【分镜2 5-15s】
+画面: 给胸牌、袖口、手表/发饰等3个细节特写,卡BGM节奏
+口播: (BGM卡点)字幕:细节也有搭配感
+字幕: 3个搭配细节特写
+
+【分镜3 15-20s】
+画面: 店员对镜摆pose收尾,微笑
+口播: (BGM收尾)字幕:评论区领对镜拍pose
+字幕: 扣&#x27;穿搭&#x27;领pose
+
+引导闭环: 评论区扣&#x27;穿搭&#x27;→自动回复对镜拍pose参考+营业厅工服搭配灵感图
+拍摄提示: 对镜拍要全身入镜,工服配色+胸牌+手表/发饰等细节要给特写,体现搭配感
+BGM: 颜色搭配同款BGM(抖音热门)
+标签: #当我学会用颜色搭配时 #对镜拍 #工服穿搭 #营业厅日常 #颜色搭配</textarea><div class="card-top"><span class="card-no hot">3</span><span class="card-title">营业厅工服也能拍出颜色搭配大片</span><button class="copy-btn" id="btn-h3" onclick="copyScript('h3')">复制本条脚本</button></div><div class="source">热点: 当我学会用颜色搭配时 | 抖音热榜第9位 热度790.6万</div><div class="relevance">玩法类型:对镜拍穿搭 | 工服颜色搭配+胸牌配饰,展示营业厅员工形象</div><div class="meta-row"><span>时长 <b>15-20秒</b></span><span>出镜 <b>店员对镜拍穿搭</b></span><span>场景 <b>营业厅更衣区或柜台对镜</b></span><span>目标 <b>用工服拍一条颜色搭配对镜拍,展示员工形象+蹭穿搭话题</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-5s</td><td class="step-visual">店员对镜全身入镜,转身展示工服正面配色</td><td class="step-voice">(配BGM)字幕:<b>营业厅工服的颜色搭配</b></td><td class="step-sub">工服颜色搭配</td></tr><tr><td class="step-no">2</td><td class="step-time">5-15s</td><td class="step-visual">给胸牌、袖口、手表/发饰等3个细节特写,卡BGM节奏</td><td class="step-voice">(BGM卡点)字幕:<b>细节也有搭配感</b></td><td class="step-sub">3个搭配细节特写</td></tr><tr><td class="step-no">3</td><td class="step-time">15-20s</td><td class="step-visual">店员对镜摆pose收尾,微笑</td><td class="step-voice">(BGM收尾)字幕:<b>评论区领对镜拍pose</b></td><td class="step-sub">扣&#x27;穿搭&#x27;领pose</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>评论区扣'穿搭'→自动回复对镜拍pose参考+营业厅工服搭配灵感图</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>对镜拍要全身入镜,工服配色+胸牌+手表/发饰等细节要给特写,体现搭配感</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 颜色搭配同款BGM(抖音热门)</span><span class="tags-tag">#当我学会用颜色搭配时 #对镜拍 #工服穿搭 #营业厅日常 #颜色搭配</span></div></div>
     <div class="schedule-box">
-        <div class="insight-title">7天发布排期建议</div>
-        <table class="schedule-table"><tr><th>日期</th><th>脚本</th><th>搜索词/热点</th><th>类型</th><th>时效</th></tr><tr><td>今天7.25</td><td>h1</td><td>夏天玩水BGM推荐</td><td><span style="color:#7C3AED;font-weight:bold">热点(玩法)</span></td><td>应季</td></tr><tr><td>今天7.25</td><td>h2</td><td>Vibe Coding手势舞跟拍</td><td><span style="color:#7C3AED;font-weight:bold">热点(玩法)</span></td><td>跟拍</td></tr><tr><td>今天7.25</td><td>h3</td><td>对镜穿搭颜色搭配</td><td><span style="color:#7C3AED;font-weight:bold">热点(玩法)</span></td><td>跟拍</td></tr><tr><td>明天7.26</td><td>s1</td><td>流量超标→查账单</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>后天7.27</td><td>s2</td><td>月租太贵→算月账</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第3天7.28</td><td>s5</td><td>买手机便宜→机型对比</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第4天7.29</td><td>s7</td><td>宽带移机→4步流程</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第5天7.30</td><td>s4</td><td>手机优惠→隐藏机型</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>第6天7.31</td><td>s3</td><td>靓号办理→选号挑号</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>长尾</td></tr><tr><td>第7天8.01</td><td>s6</td><td>办业务带什么→材料清单</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>长尾</td></tr></table>
+        <div class="insight-title">发布排期建议</div>
+        <table class="schedule-table"><tr><th>日期</th><th>脚本</th><th>内容</th><th>类型</th><th>时效</th></tr><tr><td>今天 7.25</td><td>h1</td><td>夏天玩水BGM推荐</td><td><span style="color:#7C3AED;font-weight:bold">热点</span></td><td>时效强</td></tr><tr><td>今天 7.25</td><td>h2</td><td>Vibe Coding手势舞跟拍</td><td><span style="color:#7C3AED;font-weight:bold">热点</span></td><td>时效强</td></tr><tr><td>今天 7.25</td><td>h3</td><td>对镜穿搭颜色搭配</td><td><span style="color:#7C3AED;font-weight:bold">热点</span></td><td>时效强</td></tr><tr><td>明天 7.26</td><td>s1</td><td>流量超标→查账单</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr><tr><td>后天 7.27</td><td>s2</td><td>月租太贵→算月账</td><td><span style="color:#2563EB;font-weight:bold">搜索</span></td><td>应季</td></tr></table>
     </div>
     <div class="bottom-tip">
         <h3>拍摄要点</h3>
         <ul>
-            <li>- 照着口播念就行，加粗的句子重读，是关键信息点</li>
-            <li>- 每条视频20-40秒，拍完直接发，不用剪辑</li>
-            <li>- CTA要照着念：评论区扣关键词是核心动作</li>
-            <li>- 热点脚本时效强，优先当天拍发</li>
-            <li>- 搜索截流脚本可一周内循环使用</li>
-            <li>- 发布时挂门店POI，到店才能成交</li>
+            <li>- 照着口播念就行，加粗的句子是关键信息点，要重读</li>
+            <li>- 每条视频 15-30 秒，拍完直接发，不用剪辑</li>
+            <li>- 点击右上角「复制本条脚本」可一键复制全部口播和字幕，粘贴到剪映/备忘录即可使用</li>
+            <li>- 3 条热点时效强，今天优先拍发；2 条搜索截流可明后天发</li>
+            <li>- 发布时挂门店 POI，到店才能成交</li>
         </ul>
     </div>
     <div class="footer">
-        <p>7:3 策略 | 70% 搜索截流 + 30% 热点引流 | 2026年7月25日 自动生成</p>
-        <p>山西电信 抖本内容工坊 | 数据驱动选题 · 合规五级审核</p>
+        <p>精选 5 条 | 2 搜索截流 + 3 热点引流 | 2026年7月25日 自动生成</p>
+        <p>山西电信 抖本内容工坊 · 玩法推荐 + 搜索截流 · 合规五级审核</p>
     </div>
 </div>
+<script>
+function copyScript(id){
+  var ta=document.getElementById('copy-'+id);
+  ta.select();ta.setSelectionRange(0,99999);
+  try{document.execCommand('copy');}catch(e){}
+  var btn=document.getElementById('btn-'+id);
+  var o=btn.innerText;btn.innerText='已复制';btn.style.background='#10B981';
+  setTimeout(function(){btn.innerText=o;btn.style.background='#2563EB';},1500);
+}
+</script>
 </body>
 </html>
