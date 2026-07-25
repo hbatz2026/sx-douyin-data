@@ -66,6 +66,14 @@
   <!-- Navigation -->
   <button class="hamburger" id="hamburgerBtn" onclick="toggleHamburger()">✕ 收起菜单</button>
   <div id="navCollapseHint" style="display:none;font-size:11px;color:#999;margin-bottom:8px;text-align:center;">👆 点击「展开全部菜单」查看更多模板</div>
+  
+  <!-- v2.8: 快捷搜索 + 收藏入口 -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;" id="quickBar">
+    <input id="scriptSearch" placeholder="🔍 搜索脚本（关键词/厅店/选题）" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;" oninput="searchScripts(this.value)">
+    <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="document.getElementById('scriptSearch').value=''; searchScripts('')">✕ 清除</button>
+    <span style="font-size:11px;color:var(--muted)" id="freshnessBadge"></span>
+  </div>
+  
   <nav class="nav-tabs" role="navigation" aria-label="主导航">
     <button class="nav-tab active" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
     
@@ -92,6 +100,7 @@
       <div class="nav-group-items">
         <button class="nav-tab" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
         <button class="nav-tab" onclick="switchPage('benchmark', this)">⭐ 标杆库<small>高分脚本，即抄即用</small></button>
+        <button class="nav-tab" onclick="switchPage('favorites', this)">💾 我的收藏<span id="favCount" style="color:var(--red)"></span></button>
         <button class="nav-tab" id="nav-stats" style="display:none;" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
       </div>
     </div>
@@ -1024,7 +1033,23 @@
       <button class="btn btn-outline btn-sm" style="color:#C62828;border-color:#C62828;" onclick="clearStats()">🗑 清除数据</button>
     </div>
   </div>
+  <!-- ==================== PAGE: 我的收藏 ==================== -->
+  <div class="page" id="page-favorites">
+    <h2 style="margin-bottom:4px;">💾 我的收藏</h2>
+    <p style="color:var(--body);font-size:12px;margin-bottom:12px;">点击模板预览区的 ⭐ 按钮收藏脚本，收藏的内容会出现在这里。</p>
+    <div id="favoritesContent"><div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无收藏。去模板页点击 ⭐ 收藏喜欢的脚本吧。</div></div>
+  </div>
+
   </main>
+</div>
+
+<!-- v2.8: 移动端底部导航 -->
+<div class="mobile-nav" id="mobileNav">
+  <button onclick="switchPage('schedule')" class="mn-item active">📋<span>排期</span></button>
+  <button onclick="switchPage('template1')" class="mn-item">📊<span>推荐</span></button>
+  <button onclick="switchPage('template2')" class="mn-item">🎬<span>故事</span></button>
+  <button onclick="switchPage('template4')" class="mn-item">📍<span>同城</span></button>
+  <button onclick="switchPage('favorites')" class="mn-item">💾<span>收藏</span></button>
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
