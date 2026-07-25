@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 12:41:19
+// 构建时间: 2026-07-25 14:24:39
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -88,9 +88,9 @@ var personaDB = {
              cta: '截图留着，到店里直接找我。' },
   sister:  { label: '暖心姐姐', icon: '💝', tone: '温暖共情',   tags: '成熟女性 故事切入 生活场景 亲切自然',
              desc: '用生活场景和真实故事打动客户，温暖有温度',
-             prompt: '你是电信营业厅的暖心姐姐。用客户故事和生活场景切入，温暖亲切。喜欢说"昨天来了个阿姨""门口的王姐"这种开头。让观众感觉你不是在推销，是在真心帮忙。',
-             hook: '昨天来了个客户，也是问{topic}，我帮他算了笔账👇',
-             cta: '截图转发给需要的朋友～' }
+             prompt: '你是电信营业厅的暖心姐姐。用真实场景和共情切入，温暖亲切。开头要多样——场景描述、反问、数据对比、邻居闲聊都行，不要千篇一律。让观众感觉你不是在推销，是在真心帮忙。',
+             hook: '{topic}，帮你算笔明白账，不花冤枉钱👇',
+             cta: '拿不准随时来问我～' }
 };
 
 var personaOrder = ['sweet','tech','biz','young','master','sister'];
@@ -2855,8 +2855,9 @@ function previewT1Talk() {
       scoreHtml += '</div>';
     }
 
+    var coverText = getCoverageHint(topic);
     var html = (variantHtml || '') + `
-<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。</div>
+<div class="cover-hint"><strong>💡 本脚本覆盖：</strong>${coverText}</div>
 <div class="stage">🎬 口播脚本 <span style="font-size:11px;font-weight:400;color:#64748B;">· 人设：${pData.icon} ${pData.label}</span></div>
 <div class="info-tag">⏱ 约25秒 | 🎤 全程口播面对镜头 | 🎵 BGM: ${bgm}（音量25%）</div>
 
@@ -3044,11 +3045,20 @@ function clearT1() {
   });
 }
 
+function clearT1Preview() {
+  ['preview1-talk','preview1-card','preview1-calc'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  });
+}
+
 function fillT1Presets() {
   const topic = document.getElementById('t1_topic').value;
-  if (!topic) return;
+  if (!topic) { clearT1Preview(); return; }
   // Auto-select hook type based on topic
   autoSelectHook('t1', topic);
+  // v2.8: 选题变更时清空旧预览（避免上一轮 AI 优化结果残留）
+  clearT1Preview();
   // 先填入预设或自动生成（瞬时反馈）
   // 1. Try exact match
   if (t1Presets[topic]) {
@@ -3263,6 +3273,25 @@ function generateT1Scenarios(topic) {
     '场景B：进阶体验款，适合多设备家庭，性价比最优',
     '场景C：旗舰全能款，适合重度使用，一步到位长期划算'
   ];
+}
+
+function getCoverageHint(topic) {
+  var t = topic || '';
+  if (/宽带.*选|选多少兆|多少M|带宽/i.test(t)) return '带宽对比 · 适用场景 · 价格区间 · 省钱建议';
+  if (/FTTR|光纤|全屋|WiFi.*布局|覆盖|Mesh|组网/i.test(t)) return '全屋WiFi方案对比 · 设备成本 vs 月租 · 适用户型建议';
+  if (/套餐|月费|月租|流量|通话/i.test(t)) return '套餐对比 · 流量/通话用量分析 · 省钱换套餐策略';
+  if (/购机|裸机|以旧换新|合约机|买手机/i.test(t)) return '购机 vs 裸机成本对比 · 以旧换新补贴 · 三年总支出';
+  if (/直播|带货|主播/i.test(t)) return '直播网络要求 · 上行速率对比 · 避坑建议';
+  if (/游戏|延迟|卡顿|掉线|排位/i.test(t)) return '不同宽带延迟实测 · 游戏体验对比 · 推荐带宽';
+  if (/老人|爸妈|老年|孝心/i.test(t)) return '适老套餐对比 · 流量/通话用量 · 省钱建议';
+  if (/学生|校园|大学/i.test(t)) return '学生套餐横向对比 · 流量额度 · 合约条件';
+  if (/老房子|没预埋|网线|布线|明线|电力猫/i.test(t)) return '老房子无网线方案 · 明线/电力猫/Mesh对比 · 成本与体验';
+  if (/租房|合租|搬家|短期/i.test(t)) return '租房宽带选择 · 短期vs长期 · 搬家违约金规避';
+  if (/携号转网|换运营商|不换号/i.test(t)) return '携转全流程 · 条件检查 · 到店办理指引';
+  if (/监控|摄像头|智能|门锁/i.test(t)) return '设备网络需求 · 带宽选择 · 4G/宽带对比';
+  if (/续费|到期|换套餐.*决策/i.test(t)) return '续费 vs 换套餐决策 · 到期福利 · 省钱计算';
+  if (/电视.*盒子|看.*电视|卡顿/i.test(t)) return '电视盒子卡顿排查 · 宽带问题 vs 设备问题';
+  return '电信业务对比 · 场景分析 · 省钱建议 · 到店指引';
 }
 
 function switchT2Mode(mode) {
