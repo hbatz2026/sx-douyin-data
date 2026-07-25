@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 05:02:47
+// 构建时间: 2026-07-25 05:43:34
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1021,6 +1021,7 @@ function copyPanelText(panelId, mode) {
   navigator.clipboard.writeText(text).then(function() {
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
     if (typeof track === 'function') track('copy_script_' + panelId);
+    markScriptUsed(panelId);
   }).catch(function() {
     var ta = document.createElement('textarea');
     ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
@@ -1028,7 +1029,44 @@ function copyPanelText(panelId, mode) {
     try { document.execCommand('copy'); } catch(e) {}
     document.body.removeChild(ta);
     if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+    markScriptUsed(panelId);
   });
+}
+
+// v2.8: 带元信息的复制（追加标签和地址）
+function copyPanelTextWithMeta(panelId, mode) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
+  var text = '';
+  if (mode === 'clean') {
+    var parts = [];
+    var children = panel.querySelectorAll('.stage, .dialogue, [data-role="hook"], [data-role="script-body"], [data-role="cta"]');
+    for (var i = 0; i < children.length; i++) {
+      var el = children[i];
+      if (el.className === 'stage' && /口播脚本|拍摄指南|一镜到底/.test(el.textContent)) continue;
+      var t = (el.textContent || '').trim();
+      if (t) { t = t.replace(/^[^\u4e00-\u9fff"]*[：:]/, '').replace(/^[📖🎯💫]+\s*[^：:]*[：:]/, '').trim(); parts.push(t); }
+    }
+    text = parts.join('\n');
+  } else {
+    text = panel.textContent || panel.innerText || '';
+  }
+  // 追加地址和标签
+  var city=(document.getElementById('t3_city')||document.getElementById('t1_city')||document.getElementById('t4_city')||document.getElementById('t2_city')||{}).value||'';
+  var tags=(document.getElementById('t3_tags')||document.getElementById('t1_tags')||document.getElementById('t4_tags')||document.getElementById('t2_tags')||{}).value||'#电信 #同城推荐';
+  text += '\n\n📍 '+ (city||'山西电信营业厅') +'\n'+ tags +'\n📌 收藏这条，下次直接翻开拍';
+  // 违禁词检查
+  checkBannedWrapped(text);
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
+    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+    markScriptUsed(panelId);
+  });
+}
+
+function checkBannedWrapped(text) {
+  var found = BANNED.filter(function(w) { return text.indexOf(w) >= 0; });
+  if (found.length) { toast('⚠️ 含违禁词: ' + found.join(', '), 'warn'); }
 }
 
 function findPhoneByName(name) {
@@ -1081,13 +1119,23 @@ function addCopyButton(panelId) {
   if (existing) existing.remove();
   var wrap = document.createElement('div');
   wrap.className = 'copy-script-wrap';
-  wrap.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;';
+  wrap.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;align-items:center;';
+  
+  // v2.8: 收藏星星
+  var starSpan = document.createElement('span');
+  starSpan.className = 'fav-star';
+  starSpan.textContent = '☆';
+  starSpan.style.cssText = 'margin-right:8px;';
+  starSpan.onclick = function() { toggleFav(panelId, starSpan); };
+  if (isFav(panelId)) { starSpan.classList.add('saved'); starSpan.textContent = '⭐'; }
+  wrap.appendChild(starSpan);
+  
   // 仅台词按钮（默认主推）
   var cleanBtn = document.createElement('button');
   cleanBtn.className = 'copy-clean-btn';
   cleanBtn.style.cssText = 'padding:6px 14px;background:#008A5C;color:#fff;border:none;border-radius:6px 0 0 6px;cursor:pointer;font-size:13px;font-weight:600;';
   cleanBtn.innerHTML = '📋 复制台词';
-  cleanBtn.onclick = function() { copyPanelText(panelId, 'clean'); };
+  cleanBtn.onclick = function() { copyPanelTextWithMeta(panelId, 'clean'); };
   // 全文按钮
   var fullBtn = document.createElement('button');
   fullBtn.className = 'copy-script-btn';
@@ -2340,6 +2388,68 @@ function detectAdWords(text) {
   for (var i = 0; i < words.length; i++) { if (text.indexOf(words[i]) >= 0) found.push(words[i]); }
   return found;
 }
+
+// ═══════════ v2.8 优化: 搜索+收藏+复制追加+违禁词+已选+新鲜度 ═══════════
+function searchScripts(q) {
+  if (!q || q.length < 2) { document.querySelectorAll('.search-highlight').forEach(function(e){e.outerHTML=e.textContent}); return; }
+  q = q.toLowerCase();
+  document.querySelectorAll('.preview-panel,.talk-script,.silent-preview,.dialogue,.card').forEach(function(p){
+    if (p.innerText.toLowerCase().indexOf(q)>=0) {
+      p.scrollIntoView({behavior:'smooth',block:'center'});
+      var re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+      if (!p._oh) p._oh = p.innerHTML;
+      p.innerHTML = p._oh.replace(re,'<span class="search-highlight">$1</span>');
+    }
+  });
+}
+
+function copyScriptWithMeta(btn,textareaId) {
+  var t=document.getElementById(textareaId); if(!t) return;
+  var city=(document.getElementById('t3_city')||document.getElementById('t1_city')||document.getElementById('t4_city')||{}).value||'';
+  var tags=(document.getElementById('t3_tags')||document.getElementById('t1_tags')||document.getElementById('t4_tags')||{}).value||'#电信 #同城推荐';
+  var full = t.value+'\n\n\u{1f4cd} '+ (city||'山西电信营业厅')+'\n'+tags+'\n\u{1f4cc} 收藏这条，下次直接翻开拍';
+  navigator.clipboard.writeText(full).then(function(){if(btn){btn.textContent='\u2705 已复制';setTimeout(function(){btn.textContent='\u{1f4cb} 复制'},1500)}});
+  markScriptUsed(textareaId);
+}
+
+var _favs=[]; try{_favs=JSON.parse(localStorage.getItem('douyin_favs')||'[]')}catch(e){}
+var _used={}; try{_used=JSON.parse(localStorage.getItem('douyin_used')||'{}')}catch(e){}
+function isFav(n){return _favs.some(function(f){return f.name===n})}
+function isUsed(n){return _used[n]}
+function markScriptUsed(n){if(!n)return;_used[n]=new Date().toISOString();localStorage.setItem('douyin_used',JSON.stringify(_used))}
+
+function addFavStar(pid,name) {
+  var p=document.getElementById(pid); if(!p||p.querySelector('.fav-star')) return;
+  var s=document.createElement('span'); s.className='fav-star'+(isFav(name)?' saved':''); s.textContent=isFav(name)?'\u2b50':'\u2606';
+  s.onclick=function(e){e.stopPropagation();toggleFav(name,s)};
+  var w=document.createElement('div'); w.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px';
+  w.appendChild(s);
+  if(isUsed(name)){var b=document.createElement('span');b.className='script-used-badge';b.textContent='\u2713 已选过';w.appendChild(b)}
+  p.insertBefore(w,p.firstChild);
+}
+
+function toggleFav(name,star) {
+  var i=_favs.findIndex(function(f){return f.name===name});
+  if(i>=0){_favs.splice(i,1);if(star){star.classList.remove('saved');star.textContent='\u2606'}}
+  else{_favs.push({name:name,date:new Date().toISOString()});if(star){star.classList.add('saved');star.textContent='\u2b50'}}
+  localStorage.setItem('douyin_favs',JSON.stringify(_favs));updateFavCount();
+}
+
+function updateFavCount(){var e=document.getElementById('favCount');if(e){var n=_favs.length;e.textContent=n>0?'('+n+')':''}}
+
+var BANNED=['合约','号卡','合约价','合约机','月租','最好','第一','唯一','全网最低','100%','免费送'];
+function checkBanned(elId){var e=document.getElementById(elId);if(!e)return;var t=e.innerText,f=[];BANNED.forEach(function(w){if(t.indexOf(w)>=0)f.push(w)});if(f.length){toast('\u26a0\ufe0f 含违禁词: '+f.join(', '),'warn')}}
+
+function renderFavs(){
+  var a=document.getElementById('favoritesContent');if(!a)return;
+  if(_favs.length===0){a.innerHTML='<div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无收藏。去模板页点 ⭐ 收藏喜欢的脚本吧。</div>';return}
+  a.innerHTML=_favs.map(function(f,i){return '<div class="card" style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;align-items:center"><b>'+esc(f.name)+'</b><span class="fav-star saved" onclick="event.stopPropagation();_favs.splice('+i+',1);localStorage.setItem(\'douyin_favs\',JSON.stringify(_favs));renderFavs();updateFavCount()">⭐</span></div><div style="font-size:11px;color:#999;">'+new Date(f.date).toLocaleDateString()+'</div></div>'}).join('')
+}
+
+function updateFreshness(){var b=document.getElementById('freshnessBadge');if(!b)return;var dl=window.___dailyScripts;b.innerHTML=dl&&dl.date?'<span class="freshness-dot"></span>'+dl.date+' 更新':'内容已加载'}
+setTimeout(function(){updateFreshness();updateFavCount();renderFavs()},800);
+
+function updateMobileNav(){var ap=document.querySelector('.page.active');if(!ap)return;var id=ap.id.replace('page-','');var items=document.querySelectorAll('.mobile-nav .mn-item');var map={schedule:0,template1:1,template2:2,template4:3,favorites:4};items.forEach(function(it){it.classList.remove('active')});if(map[id]!==undefined)items[map[id]].classList.add('active')}
 
 // ═══════ schedule.js ═══════
 function getBestTime(idx, city) {
