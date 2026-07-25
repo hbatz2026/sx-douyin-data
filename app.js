@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 04:25:13
+// 构建时间: 2026-07-25 04:27:47
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5136,6 +5136,49 @@ function filterHotspot(mode, el) {
   document.querySelectorAll('#page-hotspot .bank-filter').forEach(b => b.classList.remove('active'));
   if (el) el.classList.add('active');
   renderHotspots();
+}
+
+// P2: 手动刷新热点跟拍（浏览器直调 SiliconFlow）
+async function manualRefreshHotspot() {
+  var btn = document.getElementById('hotspotRefreshBtn');
+  var status = document.getElementById('hotspotRefreshStatus');
+  if (!btn || !status) return;
+  btn.disabled = true; btn.textContent = '⏳ 生成中...';
+  status.textContent = '正在抓取热点 + AI 生成脚本...';
+  try {
+    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-lshlazfvzcohfpxyimzpdqiaamrswskintayloiwdqzcxzod' },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        messages: [{
+          role: 'system',
+          content: '你是抖音热点跟拍脚本专家。输出7条适合电信营业厅跟拍的热点脚本，每条含id/tier(1-3)/title/heat/why/source/steps(数组含shot+sub)/bgm/tags/difficulty/needFace/time字段。JSON数组格式。'
+        }, {
+          role: 'user',
+          content: '生成适合今天(2026年7月)发布的热点跟拍脚本。覆盖：1.暑假避暑/旅游 2.以旧换新 3.5G体验 4.智能家居 5.宽带比价 6.学生/毕业季 7.电动车/出行。每条60秒以内，风格活泼有钩子。直接输出JSON数组。'
+        }],
+        max_tokens: 3000, temperature: 0.9
+      })
+    });
+    var data = await resp.json();
+    var content = data.choices[0].message.content;
+    var jsonStr = content.replace(/```json|```/g, '').trim();
+    var scripts = JSON.parse(jsonStr);
+    // 更新内存数据
+    window.___hotspotData = scripts;
+    window.___hotspotData._lastUpdate = new Date().toISOString();
+    // 更新更新时间显示
+    var ut = document.getElementById('hotspotUpdateTime');
+    if (ut) ut.textContent = '（刚刚刷新）';
+    // 重新渲染
+    renderHotspots();
+    status.textContent = '✅ 已生成 ' + scripts.length + ' 条，来源：AI 直连';
+  } catch(e) {
+    status.textContent = '⚠️ 刷新失败，请重试';
+    console.error('Hotspot refresh error:', e);
+  }
+  btn.disabled = false; btn.textContent = '🤖 AI 刷新热点';
 }
 
 function toggleHotspot(id) {
