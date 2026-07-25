@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 16:45:04
+// 构建时间: 2026-07-25 17:01:13
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -513,29 +513,40 @@ const ALGO_WEIGHTS = {
   convert: 0.10    // 转化力（到店核销，业务KPI，算法不直接加权但营业厅必需）
 };
 
-function scoreScriptV2(scriptText) {
-  if (!scriptText) return { retention: 0, collect: 0, interact: 0, convert: 0, revisit: 0, total: 0 };
+function scoreScriptV2(scriptText, ctx) {
+  if (!scriptText) return { retention: 0, collect: 0, interact: 0, convert: 0, revisit: 0, total: 0, openerRepeat: false, ctaStuffed: false };
   var t = (scriptText || '').trim();
+  var opener = t.slice(0, 4);
 
-  // —— 留存力：5秒钩子 + 完播结构 ——
-  var hookStarters = /^(你|大家|兄弟们|宝子|家人们|姐妹|哥|说真的|说实话|上个月|昨天|今天|前两天|还在|不会|想|知道吗|一|这|别|谁|为什么|怎么)/;
+  // —— 留存力：钩子分级（强者/通用者/模板者），避免千篇一律 ——
+  // 强钩子：冲突/反问/反常识/数字反差开场；通用钩子：人设常用口吻；模板钩子：最泛滥的"家人们"开场
+  var HOOK_STRONG = /^(为什么|怎么|谁|别|还在|不会|知道吗|这|一|你|大家|兄弟们|哥|姐妹|上个月|昨天|今天|前两天|想|说真的|说实话)/;
+  var HOOK_WEAK = /^(我|咱们|咱|那个|最近|其实|很多人|有些|每次|记得|宝子|姐妹们|兄弟们|哥)/;
+  var HOOK_TEMPLATE = /^(家人们)/; // 仅惩罚最泛滥的通用开场，保留人设声音(宝子/兄弟/姐)
   var hookPunct = /[？?！!]/;
   var hasStruct = /(\d+|\u5bf9\u7167|对比|第一|第二|第三|方案|步|种|vs|：)/; // 信息密度
-  var hookScore = (hookStarters.test(t) ? 55 : 30) + (hookPunct.test(t.slice(0, 30)) ? 25 : 8);
-  var structScore = hasStruct.test(t) ? 40 : 15;
-  var retention = Math.min(100, hookScore + structScore);
 
-  // —— 收藏力：可留存价值锚点 ——
-  var collectKw = /(截图|保存|收藏|对照表|速查|清单|流程|指南|数据卡|留存|存好|留档|到厅对照|翻出来|拿出来看|记下来)/g;
+  var hookBase;
+  if (HOOK_TEMPLATE.test(t)) hookBase = 35;                    // 模板开场压低
+  else if (HOOK_STRONG.test(t) || /^\d/.test(t)) hookBase = 55; // 强钩子 / 数字开场
+  else if (HOOK_WEAK.test(t)) hookBase = 38;                  // 人设通用开场
+  else hookBase = 30;                                         // 无钩子
+  var punctBonus = (hookPunct.test(t.slice(0, 30)) && !HOOK_TEMPLATE.test(t)) ? 25 : 8;
+  var structScore = hasStruct.test(t) ? 40 : 15;
+  var retention = Math.min(100, hookBase + punctBonus + structScore);
+
+  // —— 收藏力：可留存价值锚点（关键词放宽，允许自然说法）——
+  var collectKw = /(截图|保存|收藏|对照表|速查|清单|流程|指南|数据卡|留存|存好|留档|到厅对照|翻出来|拿出来看|记下来|存着|记牢|划重点|留着|备着|这份|这个表|收好)/g;
   var collect = Math.min(100, (t.match(collectKw) || []).length * 35 + 25);
 
-  // —— 互动力：评论 + 铁粉共鸣 + 转发 ——
+  // —— 互动力：评论 + 铁粉共鸣（"你+具体人称"才算强共鸣，避免刷"你"） + 转发 ——
   var commentKw = /(评论|说说|聊聊|告诉我|评论区|你怎么看|你的情况|你用什么|聊聊你|你住|你家|你月租|你体验)/g;
   var shareKw = /(转发|发给|分享给|发给你|转给)/g;
-  var empathyKw = /(你|咱们|咱|兄弟|姐妹|宝子|家人们|阿姨|大姐|小伙|老人|孩子)/g;
+  var empathyKw = /(你|咱们|咱|兄弟|姐妹|宝子|家人们|阿姨|大姐|小伙|老人|孩子|王姐|大哥|姐)/g;
+  var specificPerson = /(阿姨|大姐|小伙|老人|孩子|王姐|大哥|姐|兄弟|姐妹|宝子|家人们)/;
   var commentScore = Math.min(60, (t.match(commentKw) || []).length * 30 + 15);
   var shareScore = Math.min(20, (t.match(shareKw) || []).length * 20);
-  var empathyScore = Math.min(30, (t.match(empathyKw) || []).length > 2 ? 30 : 12);
+  var empathyScore = Math.min(30, (t.match(empathyKw) || []).length > 2 ? (specificPerson.test(t) ? 30 : 18) : 12);
   var interact = Math.min(100, commentScore + shareScore + empathyScore);
 
   // —— 转化力：到店 / 核销 / 私信 ——
@@ -546,6 +557,17 @@ function scoreScriptV2(scriptText) {
   var revisitKw = /(关注|下期|系列|主页|持续|记得看|点关注|关注我|下回|下次|后续|追更|每周)/g;
   var revisit = Math.min(100, (t.match(revisitKw) || []).length * 40 + 15);
 
+  // —— 开头多样性惩罚（跨脚本上下文，治千篇一律；无 ctx 时不触发，向后兼容）——
+  var openerRepeat = false;
+  if (ctx && Array.isArray(ctx.usedOpeners) && ctx.usedOpeners.indexOf(opener) >= 0) {
+    openerRepeat = true;
+    retention = Math.max(0, retention - 15);
+  }
+
+  // —— CTA 堆砌惩罚（收藏+评论+到店+关注+转发 全中 = 像带货机器）——
+  var ctaStuffed = !!(t.match(collectKw) && t.match(commentKw) && t.match(convertKw) && t.match(revisitKw) && t.match(shareKw));
+  if (ctaStuffed) retention = Math.max(0, retention - 10);
+
   var total = Math.round(
     collect * ALGO_WEIGHTS.collect +
     revisit * ALGO_WEIGHTS.revisit +
@@ -553,27 +575,29 @@ function scoreScriptV2(scriptText) {
     retention * ALGO_WEIGHTS.retention +
     convert * ALGO_WEIGHTS.convert
   );
-  return { retention: retention, collect: collect, interact: interact, convert: convert, revisit: revisit, total: total };
+  return { retention: retention, collect: collect, interact: interact, convert: convert, revisit: revisit, total: total, openerRepeat: openerRepeat, ctaStuffed: ctaStuffed };
 }
 
-function auditScript(scriptText) {
-  var s = scoreScriptV2(scriptText);
+function auditScript(scriptText, ctx) {
+  var s = scoreScriptV2(scriptText, ctx);
   var checks = [
     { name: '5秒钩子', ok: s.retention >= 50, detail: '开头需冲突/利益/悬念，拉住前3秒' },
-    { name: '收藏锚点', ok: s.collect >= 40, detail: '需含截图/对照表/流程等可留存价值' },
+    { name: '收藏锚点', ok: s.collect >= 40, detail: '需含截图/对照表/清单等可留存价值' },
     { name: '评论指令', ok: s.interact >= 45, detail: '需引导用户评论（说说/聊聊/告诉我）' },
     { name: '复访钩子', ok: s.revisit >= 30, detail: '需含关注/下期/系列化引导' },
     { name: '转化CTA', ok: s.convert >= 40, detail: '需含到店/核销/私信等行动指令' }
   ];
+  if (s.ctaStuffed) checks.push({ name: 'CTA堆砌', ok: false, detail: '收藏+评论+到店+关注+转发全中，像带货机器，建议保留1-2个最自然的' });
+  if (ctx && Array.isArray(ctx.usedOpeners) && s.openerRepeat) checks.push({ name: '开头雷同', ok: false, detail: '该人设已用过相同开场，换一个更有记忆点的钩子' });
   var adWords = (typeof detectAdWords === 'function') ? detectAdWords(scriptText || '') : [];
   checks.push({ name: '违禁词', ok: adWords.length === 0, detail: adWords.length ? ('含：' + adWords.join('、')) : '无绝对化/违规表述' });
   var pass = checks.every(function (c) { return c.ok; });
   return { pass: pass, checks: checks, score: s };
 }
 
-function isBenchmark(scriptText) {
-  var s = scoreScriptV2(scriptText);
-  var ok = s.total >= 80 && s.collect >= 50 && s.revisit >= 40 && s.interact >= 50 && s.retention >= 60 && s.convert >= 40;
+function isBenchmark(scriptText, ctx) {
+  var s = scoreScriptV2(scriptText, ctx);
+  var ok = s.total >= 80 && s.collect >= 50 && s.revisit >= 40 && s.interact >= 50 && s.retention >= 60 && s.convert >= 40 && !s.ctaStuffed && !s.openerRepeat;
   return { benchmark: ok, score: s };
 }
 
@@ -4441,12 +4465,13 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
       '请用自然的口语改写以下台词，让它更像你现场录制时说的话。' +
       '保持原意、故事骨架、数字、价格不变。' +
       '不要加分镜标记，不要加JSON标记，直接输出纯文本口播台词。' +
-      '【抖音2026新算法强制要素】改写时务必覆盖以下五项，缺失则补、已有则保留，不要重复堆砌：' +
-      '1)开头用冲突/利益/悬念钩子拉住前3秒（如"别再XX了""XX其实亏了"）；' +
-      '2)植入可收藏价值锚点（如"截图保存这个对照表/到厅直接对照"）拉升收藏率（新算法第一权重）；' +
-      '3)结尾引导用户评论（如"评论说说你的情况，我帮你参谋"）；' +
-      '4)加复访钩子（如"关注我看下期/这是个系列，下条讲XX"）；' +
-      '5)保留到店/核销等转化指令。';
+      '【抖音2026新算法要点 · 自然覆盖，不要堆砌】' +
+      '1)开头钩子要多样：用冲突/反问/反常识/真实场景切入（如"XX其实亏了""你有没有算过这笔账"）。严禁千篇一律用"家人们！"开场，每条开头都要有记忆点。' +
+      '2)收藏率权重最高：自然植入可留存价值（如"这张对照表你截个图存着""记牢这组数"），别硬凑"截图保存这张对照表"套话。' +
+      '3)评论引导要顺：顺着剧情问一句（如"你家电竞少年是不是天天抢网速？评论区告诉我"）。' +
+      '4)复访钩子：自然带一句关注/下期即可。' +
+      '5)转化指令：按选题挑最自然的1个到店/核销动作，不必每条都硬塞。' +
+      '重点：五项是"及格线"不是"清单"——挑最适合这条内容的1-2个自然织进叙事，拒绝结尾排队报数式堆砌。';
     var userPrompt = '帮我把这段台词改得更自然、更像口语化的现场表达：\n```\n' + src + '\n```';
 
     var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
