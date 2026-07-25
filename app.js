@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 11:56:32
+// 构建时间: 2026-07-25 12:02:26
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5369,14 +5369,15 @@ function renderBgmRecommend() {
     return;
   }
   var types = [
-    { key: '对比推荐', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
-    { key: '服务故事', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
-    { key: '开箱实测', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
-    { key: '本地福利', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
+    { key: '决策指南', aliases: ['对比推荐'], icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
+    { key: '一线场景', aliases: ['服务故事'], icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
+    { key: '深度测评', aliases: ['开箱实测'], icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
+    { key: '本地事件', aliases: ['本地福利'], icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
   ];
   var html = '';
   types.forEach(function(t) {
     var cat = bgmData[t.key];
+    if (!cat && t.aliases) { for (var a = 0; a < t.aliases.length; a++) { if (bgmData[t.aliases[a]]) { cat = bgmData[t.aliases[a]]; break; } } }
     var songs = cat && cat[t.sub] ? cat[t.sub] : [];
     if (!songs || songs.length === 0) {
       // Try other sub-categories
@@ -5460,16 +5461,25 @@ async function manualRefreshBGM() {
 function syncBgmDropdowns() {
   if (!window.___bgmList) return;
   var bgmData = window.___bgmList;
+  // v2.8: 数据实际用的类目名（与页面名一致），同时兼容旧版别名
   var mappings = [
-    { selectId: 't1_bgm', category: '对比推荐', subs: ['轻快对比','算账节奏','温馨推荐'] },
-    { selectId: 't2_bgm', category: '服务故事', subs: ['温情叙事','轻纪录片','快节奏爽片','原声不加BGM'] },
-    { selectId: 't3_bgm', category: '开箱实测', subs: ['科技感','冷静专业','干货教学'] },
-    { selectId: 't4_bgm', category: '本地福利', subs: ['探店活力','福利快闪','温馨服务'] },
-    { selectId: 'lv_bgm', category: '直播', subs: ['暖场','逼单','福利'] }
+    { selectId: 't1_bgm', category: '决策指南',  aliases: ['对比推荐'], subs: ['轻快对比','算账节奏','温馨推荐'] },
+    { selectId: 't2_bgm', category: '一线场景',  aliases: ['服务故事'], subs: ['温情叙事','轻纪录片','快节奏爽片','原声不加BGM'] },
+    { selectId: 't3_bgm', category: '深度测评',  aliases: ['开箱实测'], subs: ['科技感','冷静专业','干货教学'] },
+    { selectId: 't4_bgm', category: '本地事件',  aliases: ['本地福利'], subs: ['探店活力','福利快闪','温馨服务'] },
+    { selectId: 'lv_bgm', category: '直播',      aliases: [], subs: ['暖场','逼单','福利'] }
   ];
   mappings.forEach(function(m) {
     var sel = document.getElementById(m.selectId);
     if (!sel) return;
+    // 找到实际存在的类目（容错：别名/新名都试）
+    var cat = bgmData[m.category];
+    if (!cat) {
+      for (var i = 0; i < m.aliases.length; i++) {
+        if (bgmData[m.aliases[i]]) { cat = bgmData[m.aliases[i]]; break; }
+      }
+    }
+    if (!cat) return;
     // Collect all songs from all sub-categories
     var seen = {};
     var html = '';
