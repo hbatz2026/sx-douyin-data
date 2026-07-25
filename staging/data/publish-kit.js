@@ -58,9 +58,21 @@ function buildPublishKit(tpl, city, topic) {
 
   var poolIdx = { t1:0,t2:1,t3:2,t4:3 }[t] || 0;
   bestTime = getBestTime(poolIdx, city);
+  // 2026-07-20: 用别名映射把 dropdown value 转成真实脚本键
+  var topicKey = (window.___t1TopicAliases && t === 't1' && ___t1TopicAliases[topic]) || topic;
   var comments = null;
   try { comments = AppState.get('ai_comments_' + t, null); } catch(e) {}
-  if (!comments || comments.length < 3) { comments = getTemplateComments(t, city, topic, scriptText); }
+  if (!comments || comments.length < 3) {
+    var curatedComments = null;
+    if (t === 't1' && window.___t1Comments) curatedComments = window.___t1Comments[topicKey] || ___t1Comments[topic];
+    if (t === 't2' && window.___t2Comments) curatedComments = window.___t2Comments[topicKey] || ___t2Comments[topic];
+    if (t === 't4' && window.___t4Comments) curatedComments = window.___t4Comments[topicKey] || ___t4Comments[topic];
+    if (curatedComments && curatedComments.length >= 3) {
+      comments = curatedComments;
+    } else {
+      comments = getTemplateComments(t, city, topicKey, scriptText);
+    }
+  }
   var seoTitle = buildSeoTitle(t, loc, topic, scriptText);
   var storeName = loc; // 只取地市名，不带营业厅名称
   // 如果 loc 仍是占位符，尝试从表单读取
@@ -70,33 +82,196 @@ function buildPublishKit(tpl, city, topic) {
   }
   var hasAI = (function(){try{var cc=AppState.get('ai_comments_'+t,null);return cc&&cc.length>=3}catch(e){return false}})();
 
-  var html = '<div class="publish-kit" style="margin-top:16px;padding:0;background:#fff;border-radius:14px;border:1px solid #D3D1C7;overflow:hidden;">';
-  html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:#888780;">';
-  html += '<span style="font-weight:500;color:#5F5E5A;">发布准备</span>';
-  html += '<span style="margin-left:auto;">' + (scriptText ? Math.ceil(scriptText.length/4) + '秒' : '约15分钟') + '</span>';
-  if (bgmText) html += '<span>' + esc(bgmText.slice(0,20)) + '</span>';
-  html += '<span>' + bestTime + '</span>';
+  var html = '<div class="publish-kit" style="margin-top:16px;background:#fff;border-radius:16px;border:1px solid #E2E8F0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);">';
+
+  // ── 头部信息条 ──
+  html += '<div style="padding:14px 18px;background:linear-gradient(135deg,#F0F7FF,#FFF);border-bottom:1px solid #E8F0FE;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:#64748B;">';
+  html += '<span style="font-weight:700;color:#0052CC;font-size:13px;">📋 发布准备</span>';
+  html += '<span style="background:#fff;border:1px solid #BFDBFE;border-radius:12px;padding:2px 8px;font-size:11px;color:#1E40AF;">⏱ ' + (scriptText ? Math.ceil(scriptText.length/4) + '秒' : '约25秒') + '</span>';
+  if (bgmText) html += '<span style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:2px 8px;font-size:11px;color:#475569;">🎵 ' + esc(bgmText.slice(0,16)) + '</span>';
+  html += '<span style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:2px 8px;font-size:11px;color:#475569;">⏰ ' + bestTime + '</span>';
   html += '</div>';
-  // 标签行：有复制按钮
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">标签 </span><span style="flex:1;">' + esc(tags) + '</span><span onclick="copyText(\'' + esc(tags).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;display:flex;align-items:center;gap:8px;"><span style="font-weight:500;color:#5F5E5A;">标题 </span><span style="flex:1;">' + esc(seoTitle) + '</span><span onclick="copyText(\'' + esc(seoTitle).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;">复制</span></div>';
-  // 位置行：不需要复制按钮
-  html += '<div style="padding:10px 16px;border-bottom:1px solid #E8E6DC;font-size:11px;color:#888780;"><span style="font-weight:500;color:#5F5E5A;">位置 </span><span>' + esc(storeName) + '</span></div>';
-  html += '<div style="padding:14px 16px;border-bottom:1px solid #E8E6DC;">';
-  html += '<div style="font-weight:500;font-size:13px;color:#5F5E5A;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><span>' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</span><button onclick="triggerCommentOptimize(\'' + t + '\',\'' + loc.replace(/'/g,'&#39;') + '\',\'' + (topic||'').replace(/'/g,'&#39;') + '\')" style="font-size:11px;background:none;border:1px dashed #1D9E75;color:#1D9E75;border-radius:4px;padding:1px 8px;cursor:pointer;white-space:nowrap;">🔄 AI 优化</button></div>';
-  html += '<div class="comment-list">';
+
+  // ── 一键复制按钮（最显眼位置）──
+  html += '<div style="padding:16px 18px 8px;">';
+  html += '<button onclick="copyPublishBundle()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1D9E75,#0EA968);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(29,158,117,0.25);">📋 一键复制发布包（脚本+标题+标签+评论）</button>';
+  html += '</div>';
+
+  // ── 标签行 ──
+  html += '<div style="padding:10px 18px;border-top:1px dashed #E8F0FE;font-size:12px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">🏷 标签</span>';
+  html += '<span style="flex:1;color:#1E293B;line-height:1.5;">' + esc(tags) + '</span>';
+  html += '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
+  html += '</div>';
+
+  // ── 标题行 ──
+  html += '<div style="padding:10px 18px;font-size:12px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">📌 标题</span>';
+  html += '<span style="flex:1;color:#1E293B;line-height:1.5;">' + esc(seoTitle) + '</span>';
+  html += '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#E0F2FE;color:#0EA5E9;border:0;padding:3px 10px;font-size:11px;border-radius:6px;">复制</span>';
+  html += '</div>';
+
+  // ── 位置行 ──
+  html += '<div style="padding:10px 18px;border-top:1px dashed #E8F0FE;font-size:12px;display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-weight:600;color:#0052CC;min-width:60px;">📍 位置</span>';
+  html += '<span style="flex:1;color:#1E293B;">' + esc(storeName) + '</span>';
+  html += '</div>';
+
+  // ── 评论区 ──
+  html += '<div style="padding:14px 18px 8px;border-top:1px dashed #E8F0FE;">';
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+  html += '<span style="font-weight:700;color:#0052CC;font-size:13px;">💬 ' + (hasAI ? 'AI 智能评论' : '评论区准备') + '</span>';
+  html += '<button onclick="triggerCommentOptimize(\'' + t + '\',this)" style="font-size:11px;background:linear-gradient(135deg,#E0F2FE,#DBEAFE);border:1px solid #93C5FD;color:#0052CC;border-radius:14px;padding:2px 10px;cursor:pointer;font-weight:500;">🔄 换一批</button>';
+  html += '<button onclick="triggerCommentAI(\'' + t + '\',this)" style="font-size:11px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid #F59E0B;color:#92400E;border-radius:14px;padding:2px 10px;cursor:pointer;font-weight:500;">🤖 AI 生成</button>';
+  html += '</div>';
+  html += '<div class="comment-list" style="display:flex;flex-direction:column;gap:6px;">';
   for (var c = 0; c < comments.length; c++) {
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="font-size:12px;min-width:18px;color:#888780;">' + (c+1) + '</span><span style="flex:1;line-height:1.5;color:#2C2C2A;">' + esc(comments[c]) + '</span><span onclick="copyText(\'' + esc(comments[c]).replace(/'/g,'&#39;') + '\');toast(\'已复制\',\'success\')" style="cursor:pointer;color:#1D9E75;font-size:11px;white-space:nowrap;padding:2px 8px;border:0.5px solid #5DCAA5;border-radius:6px;">复制</span></div>';
+    html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">';
+    html += '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>';
+    html += '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(comments[c]) + '</span>';
+    html += '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>';
+    html += '</div>';
   }
-  html += '</div>';
-  
-  // Build full bundle for one-click copy (uses dynamic read for AI-updated comments)
-  html += '<div style="padding:14px 16px;">';
-  html += '<button onclick="copyPublishBundle()" style="width:100%;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;">一键复制发布包（脚本+标题+标签+评论）</button>';
-  html += '<div style="text-align:center;font-size:11px;color:#B4B2A9;margin-top:6px;">粘贴到抖音，配视频，发布</div>';
-  html += '</div>';
-  html += '</div>';
+  html += '</div></div>';
+
+  // ── T1 AI 配图提示词（仅 T1 显示）──
+  if (t === 't1' && window.___t1ImagePrompts) {
+    var imgKey = topicKey || topic;
+    var imgPrompt = ___t1ImagePrompts[imgKey] || findScriptFuzzy(window.___t1ImagePrompts, imgKey) || ___t1ImagePrompts[topic];
+    if (imgPrompt) {
+      html += '<div style="padding:14px 18px 18px;border-top:1px dashed #E8F0FE;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+      html += '<span style="font-weight:700;color:#7C3AED;font-size:13px;">🎨 AI 配图提示词</span>';
+      html += '<span style="font-size:10px;color:#94A3B8;">豆包/即梦 → 生成抖音封面</span>';
+      html += '<span onclick="copyImgPrompt(this)" style="cursor:pointer;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;border:0;padding:4px 14px;font-size:11px;border-radius:6px;font-weight:600;margin-left:auto;">📋 复制</span>';
+      html += '</div>';
+      html += '<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;color:#4C1D95;white-space:pre-wrap;cursor:text;">' + esc(imgPrompt) + '</div>';
+      html += '</div>';
+    }
+  }
+
+  html += '</div>';  // 关闭 publish-kit
   return html;
+}
+
+// 2026-07-20: 评论区"换一批"按钮 — 本地精选评论
+function triggerCommentOptimize(t, btn) {
+  if (!btn) return;
+  btn.disabled = true;
+  var orig = btn.innerHTML;
+  btn.innerHTML = '⏳ 换一批中...';
+  setTimeout(function() {
+    try {
+      var profile = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}');
+      var loc = profile.city || '同城';
+      var topic = (document.getElementById(t + '_topic') || {}).value || '';
+      var topicKey = (window.___t1TopicAliases && t === 't1' && ___t1TopicAliases[topic]) || topic;
+      // 收集可用评论池
+      var pool = [];
+      if (t === 't1' && window.___t1Comments) pool = pool.concat(___t1Comments[topicKey] || ___t1Comments[topic] || []);
+      if (t === 't2' && window.___t2Comments) pool = pool.concat(___t2Comments[topicKey] || ___t2Comments[topic] || []);
+      if (t === 't4' && window.___t4Comments) pool = pool.concat(___t4Comments[topicKey] || ___t4Comments[topic] || []);
+      // 优先精选评论，否则用 getTemplateComments，再否则给兜底
+      var fresh;
+      if (pool.length >= 3) {
+        fresh = pool.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 3);
+      } else {
+        fresh = getTemplateComments(t, loc, topic, '');
+      }
+      // 直接 DOM 更新：找 .comment-list 替换其内部 HTML
+      var commentList = document.querySelector('.publish-kit .comment-list');
+      if (commentList && fresh && fresh.length) {
+        commentList.innerHTML = renderCommentItems(fresh);
+      }
+      // 缓存最新评论
+      try { AppState.set('ai_comments_' + t, fresh); } catch(e) {}
+      toast('已换一批评论', 'success');
+    } catch(e) {
+      console.error('换一批评论失败:', e);
+      toast('换一批失败：' + (e.message || '未知错误'), 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  }, 400);
+}
+
+// 渲染 3 条评论项 HTML
+function renderCommentItems(comments) {
+  var html = '';
+  for (var c = 0; c < comments.length; c++) {
+    html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#F8FAFC;border-radius:8px;border-left:3px solid #93C5FD;">' +
+      '<span style="background:#0052CC;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + (c+1) + '</span>' +
+      '<span style="flex:1;line-height:1.5;color:#1E293B;font-size:12px;">' + esc(comments[c]) + '</span>' +
+      '<span onclick="copySiblingText(this)" style="cursor:pointer;background:#fff;border:1px solid #93C5FD;color:#0052CC;padding:1px 8px;font-size:10px;border-radius:4px;flex-shrink:0;">复制</span>' +
+      '</div>';
+  }
+  return html;
+}
+
+// 2026-07-20: AI 真实生成评论（调 SCF Web 函数）
+async function triggerCommentAI(t, btn) {
+  if (!btn) return;
+  // 1) 配额检查
+  if (typeof quotaRemaining === 'function' && quotaRemaining() <= 0) {
+    toast('今日 AI 配额已用完，明天再来', 'error');
+    return;
+  }
+  // 2) 取脚本 + 标题 + 标签
+  var scriptEl = document.querySelector('[data-role="script-body"]');
+  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim() : '';
+  var title = (document.querySelector('.info-tag') || {}).textContent || '';
+  if (!scriptText || scriptText.length < 20) {
+    toast('请先预览脚本，再点 AI 生成评论', 'error');
+    return;
+  }
+  // 3) UI 状态
+  btn.disabled = true;
+  var orig = btn.innerHTML;
+  btn.innerHTML = '⏳ AI 生成中…';
+  var commentList = document.querySelector('.publish-kit .comment-list');
+  if (commentList) commentList.innerHTML = '<div style="padding:20px;text-align:center;color:#92400E;font-size:12px;">🤖 AI 正在生成匹配本条脚本的评论区引导（5-15秒）…</div>';
+  try {
+    var profile = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}');
+    var topic = (document.getElementById(t + '_topic') || {}).value || '';
+    var persona = profile.persona || 'sister';
+    // 调 SCF 评论生成
+    var resp = await fetch((window.PERSONALIZE_API || '') + '/generate-comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: topic,
+        script: scriptText.slice(0, 1500),
+        title: title.slice(0, 100),
+        persona: persona,
+        store: profile.name || '',
+        city: profile.city || ''
+      })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    var data = await resp.json();
+    var aiComments = (data && data.comments) || [];
+    if (aiComments.length < 3) throw new Error('AI 返回评论不足 3 条');
+    if (commentList) commentList.innerHTML = renderCommentItems(aiComments);
+    // 扣配额
+    if (typeof useDailyQuota === 'function') useDailyQuota();
+    // 缓存标记 AI 模式
+    try { AppState.set('ai_comments_' + t, aiComments); AppState.set('ai_comment_source_' + t, 'scf'); } catch(e) {}
+    // 标题改成 AI 智能评论
+    var headEl = commentList && commentList.previousElementSibling;
+    if (headEl && headEl.querySelector('span')) {
+      headEl.querySelector('span').innerHTML = '💬 AI 智能评论 <span style="font-size:10px;background:#F59E0B;color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px;">SCF 真实生成</span>';
+    }
+    toast('AI 已生成 ' + aiComments.length + ' 条评论', 'success');
+  } catch(e) {
+    console.error('AI 评论生成失败:', e);
+    toast('AI 失败：' + (e.message || '网络/服务异常'), 'error');
+    // 回退到本地精选评论
+    triggerCommentOptimize(t, btn);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
 }
 
 // ════════════════════════════════════════
@@ -164,7 +339,7 @@ function extractTagKeywords(text) {
     { kw: '装机维修', re: /装机|修网|修光纤|上门修|网络不通|信号覆盖/i },
     { kw: '节日关怀', re: /节日|端午|中秋|春节|父亲节|母亲节|重阳|慰问/i },
     // T1 宽带/手机
-    { kw: '宽带', re: /宽带|网速|光纤|FTTR|套餐|月租/i },
+    { kw: '宽带', re: /宽带|网速|光纤|FTTR|套餐|月费/i },
     { kw: '手机', re: /iPhone|荣耀|华为|OPPO|vivo|小米|nova|Mate|购机|换机/i },
     // T3 设备测评
     { kw: '测速', re: /测速|网速测试|跑分|带宽/i },
@@ -190,6 +365,13 @@ function extractTagKeywords(text) {
 // ════════════════════════════════════════
 
 function buildSeoTitle(tpl, loc, topic, scriptText) {
+  // 2026-07-20: 优先读取预设标题
+  var curatedTitle = null;
+  if (tpl === 't1' && window.___t1Titles) curatedTitle = window.___t1Titles[topic];
+  if (tpl === 't2' && window.___t2Titles) curatedTitle = window.___t2Titles[topic];
+  if (tpl === 't4' && window.___t4Titles) curatedTitle = window.___t4Titles[topic];
+  if (curatedTitle) return loc + '：' + curatedTitle;
+
   var ctx = (topic || '') + ' ' + (scriptText || '');
   var shortTopic = (topic || '').slice(0, 12);
   var kw = extractTagKeywords(ctx)[0] || '';
@@ -346,7 +528,7 @@ function getTemplateComments(tpl, city, topic, scriptText) {
 
   // ═══ T1 决策指南（口播对比）═══
   if (t === 't1') {
-    if (/宽带|网速|WiFi|光纤|FTTR|套餐|月租|兆/i.test(ctx)) {
+    if (/宽带|网速|WiFi|光纤|FTTR|套餐|月费|兆/i.test(ctx)) {
       return [
         loc + '的朋友，你家用的是哪家宽带？投个票，我帮你分析',
         '你家宽带一个月多少钱？评论区说说，我帮你看划不划算',
@@ -435,4 +617,64 @@ function extractKeyword(text, keywords) {
     if (text.indexOf(keywords[i]) !== -1) return keywords[i];
   }
   return '';
+}
+
+// 2026-07-22: 复制配图提示词（无需 inline 多行 onclick）
+function copyImgPrompt(btn) {
+  var textDiv = btn.parentElement && btn.parentElement.nextElementSibling;
+  if (textDiv) {
+    var txt = textDiv.textContent || textDiv.innerText || '';
+    if (txt) copyText(txt);
+  }
+}
+
+// 2026-07-23: 通用复制按钮——复制相邻 DOM 节点的文本
+// 按钮和文本在同一行：<span>文本内容</span><span onclick="copySiblingText(this)">复制</span>
+function copySiblingText(btn) {
+  var textSpan = btn && btn.previousElementSibling;
+  if (textSpan) {
+    var txt = textSpan.textContent || textSpan.innerText || '';
+    if (txt) copyText(txt);
+  }
+}
+
+// 2026-07-23: 一键复制发布包——收集所有发布包内容合并复制
+function copyPublishBundle() {
+  var kit = document.querySelector('.publish-kit');
+  if (!kit) { toast('找不到发布包内容', 'error'); return; }
+  var parts = [];
+  // 脚本部分（预览区域）
+  var previewEl = document.querySelector('[id^="preview"]:not([id*="calc"]):not([id*="walk"])');
+  if (previewEl && previewEl.textContent.trim().length > 20) {
+    parts.push('【脚本】\n' + previewEl.textContent.trim());
+  }
+  // 遍历所有行，按标签文字提取内容
+  var allDivs = kit.querySelectorAll('div');
+  for (var i = 0; i < allDivs.length; i++) {
+    var row = allDivs[i];
+    var txt = row.textContent || '';
+    if (txt.indexOf('🏷 标签') >= 0 && txt.indexOf('复制') >= 0) {
+      parts.push('【标签】\n' + txt.replace('🏷 标签', '').replace('复制', '').trim());
+    }
+    if (txt.indexOf('📌 标题') >= 0 && txt.indexOf('复制') >= 0) {
+      parts.push('【标题】\n' + txt.replace('📌 标题', '').replace('复制', '').trim());
+    }
+  }
+  // 评论列表
+  var commentList = kit.querySelector('.comment-list');
+  if (commentList) {
+    var commentTexts = [];
+    var commentSpans = commentList.querySelectorAll('span:not([onclick])');
+    for (var c = 0; c < commentSpans.length; c++) {
+      var t = (commentSpans[c].textContent || '').trim();
+      if (t && t.length > 2) commentTexts.push(t);
+    }
+    if (commentTexts.length) parts.push('【评论区】\n' + commentTexts.join('\n'));
+  }
+  var finalText = parts.join('\n\n');
+  if (finalText) {
+    copyText(finalText);
+  } else {
+    toast('发布包内容为空', 'error');
+  }
 }
