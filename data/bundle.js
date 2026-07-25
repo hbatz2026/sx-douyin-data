@@ -1,127 +1,102 @@
 // 抖本工坊 · 数据包（自动合并 21 文件）
-// 生成时间: 2026-07-25 06:09:39
+// 生成时间: 2026-07-25 07:06:27
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptFullByPersona.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t2ScriptFull.js, t2ScriptFullByPersona.js, t4Presets.js, t4ScriptFull.js, t4ScriptFullByPersona.js, techDB.js, topicPool.js
-// 大小: 343245 bytes ( 21 source files)
+// 大小: 342311 bytes ( 21 source files)
 
 // ===== bgmList.js =====
-// 抖本工坊 · BGM推荐（手动更新 2026-07-25）
-// 原则：能在抖音搜索到的热门背景音乐 → 营业员可以蹭流量
-// 格式：每个分类下提供 2-3 个 sub-category，每个 sub 含 5-10 首热门歌曲
+// Auto-generated BGM
+// Updated: 2026-07-13 · Mode: AI-driven
 window.___bgmList = {
-  "对比推荐": {
+  "决策指南": {
     "轻快对比": [
-      "小苹果 - 筷子兄弟",
-      "小城夏天 - LBI利比",
-      "New Boy - 房东的猫",
       "阳光开朗大男孩 - 卦者灵风",
-      "我会等 - 承桓",
-      "卡路里 - 火箭少女101"
+      "小城夏天 - LBI利比",
+      "New Boy - 房东的猫"
     ],
     "算账节奏": [
       "Counting Stars - OneRepublic",
-      "Shape of You - Ed Sheeran",
-      "万有引力 - 汪苏泷",
-      "Colorful World - 抖音版",
-      "Cups - Anna Kendrick"
+      "Money - Lisa",
+      "我在人民广场吃炸鸡 - 阿肆"
     ],
     "温馨推荐": [
-      "小幸运 - 田馥甄",
-      "给我一首歌的时间 - 周杰伦",
-      "青花瓷 - 周杰伦",
-      "告白气球 - 周杰伦"
+      "萱草花 - 张小斐",
+      "落在生命里的光 - 尹昔眠",
+      "平凡的一天 - 毛不易"
     ]
   },
-  "服务故事": {
+  "一线场景": {
     "温情叙事": [
-      "我记得 - 赵雷",
-      "萱草花 - 张小斐",
-      "起风了 - 买辣椒也用券",
-      "追光者 - 岑宁儿",
-      "世间美好与你环环相扣 - 柏松",
-      "飞鸟和蝉 - 任然"
+      "如愿 - 王菲",
+      "人世间 - 雷佳",
+      "起风了 - 买辣椒也用券"
     ],
     "轻纪录片": [
-      "孤勇者 - 陈奕迅",
-      "你的答案 - 阿冗",
-      "少年 - 梦然",
-      "追梦赤子心 - GALA",
-      "光的方向 - 张碧晨"
+      "China-X - 徐梦圆",
+      "鸿雁 - 呼斯楞",
+      "星辰大海 - 黄霄雲"
     ],
     "快节奏爽片": [
-      "踏山河 - 是七叔呢",
-      "星辰大海 - 黄霄雲",
-      "Mojito - 周杰伦",
-      "群青 - YOASOBI"
+      "Star Unkind (Lanfranchi & Farina Remix) - 2Someone",
+      "骁 - 井胧/井迪",
+      "Wake - Hillsong Young & Free"
     ],
     "原声不加BGM": [
-      "纯人声 - 不需要BGM",
-      "环境音 - 营业厅自然音",
-      "对话场景 - 纯人声更真实"
+      "🔇 现场原声（推荐）"
     ]
   },
-  "开箱实测": {
+  "深度测评": {
     "科技感": [
-      "星际穿越 - Hans Zimmer",
-      "Time Back - 抖音版",
-      "One Spot - 沈佳润Nina",
-      "Digital Love - Daft Punk",
-      "Closer - The Chainsmokers"
+      "Digital World - Amarante",
+      "Technology - K391",
+      "Cyberpunk - Max Brhon"
     ],
     "冷静专业": [
+      "The Truth That You Leave - Pianoboy高至豪",
       "River Flows In You - Yiruma",
-      "Windy Hill - 羽肿",
-      "A Thousand Miles - Piano",
-      "Comptine d'un autre été"
+      "A Thousand Miles - Josh Vietti"
     ],
     "干货教学": [
-      "觅光 - 张韶涵",
-      "告白之夜 - AYASA",
-      "Summer - Joe Hisaishi",
-      "千与千寻 - 久石让"
+      "Sunny Day - Ted Fresco",
+      "Happy Up Here - Röyksopp",
+      "Paper Planes - M.I.A."
     ]
   },
-  "本地福利": {
+  "本地事件": {
     "探店活力": [
-      "快乐的一天 - 抖音",
-      "稻香 - 周杰伦",
-      "有点甜 - 汪苏泷",
-      "七里香 - 周杰伦",
-      "芒种 - 音阙诗听",
-      "沙漠骆驼 - 展展与罗罗"
+      "热爱105°C的你 - 阿肆",
+      "Mojito - 周杰伦",
+      "快乐崇拜 - 潘玮柏/张韶涵"
     ],
     "福利快闪": [
-      "Sold Out - Hawk Nelson",
-      "Hall of Fame - The Script",
-      "Counting Stars - OneRepublic",
-      "Faded - Alan Walker",
-      "Believer - Imagine Dragons"
+      "好运来 - 祖海",
+      "卡路里 - 火箭少女101",
+      "野狼disco - 宝石Gem"
     ],
     "温馨服务": [
-      "普通人生 - 毛不易",
-      "你笑起来真好看 - 李昕融",
-      "我和我的祖国 - 王菲",
-      "美丽的神话 - 孙楠韩红"
+      "世间美好与你环环相扣 - 柏松",
+      "微微 - 傅如乔",
+      "暖暖 - 梁静茹"
     ]
   },
   "直播": {
     "暖场": [
-      "New Boy - 房东的猫",
-      "小城夏天 - LBI利比",
-      "好运来 - 祖海",
-      "你笑起来真好看 - 李昕融"
+      "Summer - 久石让",
+      "菊次郎的夏天 - 钢琴曲",
+      "青空 - Candy_Wind"
     ],
     "逼单": [
-      "追梦赤子心 - GALA",
-      "起风了 - 买辣椒也用券",
-      "少年 - 梦然"
+      "Sold Out - Hawk Nelson",
+      "HandClap - Fitz and The Tantrums",
+      "Dance Monkey - Tones and I"
     ],
     "福利": [
-      "七里香 - 周杰伦",
-      "给我一首歌的时间 - 周杰伦",
-      "稻香 - 周杰伦"
+      "你笑起来真好看 - 李昕融/樊桐舟/李凯稠",
+      "小美满 - 周深",
+      "听我说谢谢你 - 李昕融"
     ]
   }
 };
+
 // ===== dailyScripts.js =====
 // 抖本工坊 · 每日脚本精选（v2.8 人设库联动版）
 // 每周一排期确定后自动生成，每条脚本选取对应人设库中的完整版本
