@@ -72,10 +72,10 @@
     <div class="nav-group" data-group="video">
       <span class="nav-group-label" onclick="toggleNavGroup('video')"><span class="nav-group-arrow">▶</span> 📱 短视频 <span class="nav-group-hint">点击展开</span></span>
       <div class="nav-group-items">
-        <button class="nav-tab" onclick="switchPage('template1', this)">📊 决策指南<small>帮用户做选择题，拉收藏率</small></button>
-        <button class="nav-tab" onclick="switchPage('template2', this)">🎬 一线场景<small>真实服务故事替代广告</small></button>
-        <button class="nav-tab" onclick="switchPage('template3', this)">🔍 深度测评<small>产品知识截搜索流量</small></button>
-        <button class="nav-tab" onclick="switchPage('template4', this)">📍 本地事件<small>绑定地点打同城推荐</small></button>
+        <button class="nav-tab" onclick="switchPage('template1', this)">📊 对比推荐<small>帮用户做选择题，拉收藏率</small></button>
+        <button class="nav-tab" onclick="switchPage('template2', this)">🎬 服务故事<small>真实服务故事替代广告</small></button>
+        <button class="nav-tab" onclick="switchPage('template3', this)">🔍 开箱实测<small>产品知识截搜索流量</small></button>
+        <button class="nav-tab" onclick="switchPage('template4', this)">📍 本地福利<small>绑定地点打同城推荐</small></button>
         <button class="nav-tab" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>跟拍抖音热门，蹭流量</small></button>
       </div>
     </div>
@@ -91,7 +91,6 @@
       <span class="nav-group-label" onclick="toggleNavGroup('resource')"><span class="nav-group-arrow">▶</span> 创作资源 <span class="nav-group-hint">点击展开</span></span>
       <div class="nav-group-items">
         <button class="nav-tab" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
-        <button class="nav-tab" onclick="switchPage('history', this)">📜 历史<small>复用过往成功内容</small></button>
         <button class="nav-tab" onclick="switchPage('benchmark', this)">⭐ 标杆库<small>高分脚本，即抄即用</small></button>
         <button class="nav-tab" id="nav-stats" style="display:none;" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
       </div>
@@ -121,10 +120,10 @@
     </div>
   </div>
 
-  <!-- ==================== PAGE 1: 决策指南型（双模式） ==================== -->
+  <!-- ==================== PAGE 1: 对比推荐型（双模式） ==================== -->
   <div class="page" id="page-template1">
     <div class="card">
-      <h3><span class="icon">📊</span> 决策指南型 — 双模式（拉收藏率）</h3>
+      <h3><span class="icon">📊</span> 对比推荐型 — 双模式（拉收藏率）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">帮用户做选择 | 三种拍摄方式，厅店按自身情况选</p>
       <p style="color:var(--orange);font-size:12px;margin-bottom:8px;">💡 对比数据是天然收藏内容 — 别人念给你听的你划走，一张对比图你肯定截图保存</p>
 
@@ -278,10 +277,10 @@
     <div class="fw-clean" id="template1-fw-clean">✅ 未检测到违禁词</div>
   </div>
 
-  <!-- ==================== PAGE 2: 一线场景型（双模式） ==================== -->
+  <!-- ==================== PAGE 2: 服务故事型（双模式） ==================== -->
   <div class="page" id="page-template2">
     <div class="card">
-      <h3><span class="icon">🎬</span> 一线场景型 — 双模式（拉完播+信任）</h3>
+      <h3><span class="icon">🎬</span> 服务故事型 — 双模式（拉完播+信任）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">真实故事最能留住人 | 三种拍法，越自然越好</p>
       <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 场景型的核心是真实感——脚本越详细拍出来越假。选个拍法，讲真事就行。</p>
 
@@ -405,10 +404,10 @@
     <div class="fw-clean" id="template2-fw-clean">✅ 未检测到违禁词</div>
   </div>
 
-  <!-- ==================== PAGE 3: 深度测评型（双模式） ==================== -->
+  <!-- ==================== PAGE 3: 开箱实测型（双模式） ==================== -->
   <div class="page" id="page-template3">
     <div class="card">
-      <h3><span class="icon">🔍</span> 深度测评型 — 双模式智能生成器（截搜索流量）</h3>
+      <h3><span class="icon">🔍</span> 开箱实测型 — 双模式智能生成器（截搜索流量）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">两种拍摄方式，厅店按自身情况选择 — 都能出片</p>
       <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 选设备+选题 → 自动填入技术内容 → 选模式 → 获取脚本/拍摄指令</p>
 
@@ -552,12 +551,12 @@
     <div class="fw-clean" id="template3-fw-clean">✅ 未检测到违禁词</div>
   </div>
 
-  <!-- ==================== PAGE 4: 本地化事件型（双模式） ==================== -->
+  <!-- ==================== PAGE 4: 本地化福利型（双模式） ==================== -->
   <div class="page" id="page-template4">
     <div class="card">
-      <h3><span class="icon">📍</span> 本地化事件型 — 双模式（打同城流量）</h3>
+      <h3><span class="icon">📍</span> 本地化福利型 — 双模式（打同城流量）</h3>
       <p style="color:var(--body);font-size:13px;margin-bottom:4px;">把同城的人拉到店里 | 三种拍法，搜本地的人都能看到</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 地标+POI定位是本地事件型的核心武器——一定要拍到地标、一定要加位置。</p>
+      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 地标+POI定位是本地福利型的核心武器——一定要拍到地标、一定要加位置。</p>
 
       <!-- Mode Selector -->
       <div class="mode-selector">
@@ -910,25 +909,30 @@
 
     <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
       <div class="card">
-        <h3>📊 决策指南型 ×24</h3>
+        <h3>📊 对比推荐型 ×24</h3>
         <div class="topic-list" id="bank1"></div>
       </div>
       <div class="card">
-        <h3>🎬 一线场景型 ×24</h3>
+        <h3>🎬 服务故事型 ×24</h3>
         <div class="topic-list" id="bank2"></div>
       </div>
       <div class="card">
-        <h3>🔍 深度测评型 ×24</h3>
+        <h3>🔍 开箱实测型 ×24</h3>
         <div class="topic-list" id="bank3"></div>
       </div>
       <div class="card">
-        <h3>📍 本地化事件型 ×24</h3>
+        <h3>📍 本地化福利型 ×24</h3>
         <div class="topic-list" id="bank4"></div>
       </div>
     </div>
+    <!-- 历史周卡（折叠区） -->
+    <details style="margin-top:24px;">
+      <summary style="cursor:pointer;font-size:15px;font-weight:700;color:#1E293B;padding:8px 0;">📜 历史排期（近8周选题追溯）</summary>
+      <div id="historyInline" style="margin-top:12px;"></div>
+    </details>
   </div>
 
-  <!-- ==================== PAGE 6: Hotspot Follow-Templates ==================== -->
+  <!-- ==================== PAGE 5.5: Hotspot Follow-Templates ==================== -->
   <div class="page" id="page-hotspot">
     <h2 style="margin-bottom:4px;">🔥 本周热点跟拍</h2>
     <p style="color:var(--body);font-size:12px;margin-bottom:12px;">
@@ -948,17 +952,7 @@
     <div class="hotspot-grid" id="hotspotGrid"></div>
   </div>
 
-  <!-- ==================== PAGE 7: History Archive ==================== -->
-  <div class="page" id="page-history">
-    <h2 style="margin-bottom:8px;">📜 选题历史追溯</h2>
-    <p style="color:var(--body);font-size:13px;margin-bottom:16px;">
-      过去8周 + 本周已用选题自动归档。专题库共96个选题（24×4形态），按周号自动轮转，24周（约6个月）不重复。
-      <span style="color:var(--orange);">⭐ 标记为本周选题</span>
-    </p>
-    <div id="historyContent"></div>
-  </div>
-
-  <!-- ==================== PAGE 9: 标杆案例库 ==================== -->
+  <!-- ==================== PAGE 8: 标杆案例库 ==================== -->
   <div class="page" id="page-benchmark">
     <h2 style="margin-bottom:4px;">⭐ 标杆脚本库</h2>
     <p style="color:var(--blue);font-size:12px;margin-bottom:12px;">
