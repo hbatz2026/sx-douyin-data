@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 02:51:47
+// 构建时间: 2026-07-25 03:16:28
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1175,8 +1175,8 @@ function syncTopicDropdown() {
 
 function checkDataFiles() {
   var map = {
-    '___topicPool': '选题库', '___t1Presets': '决策指南预设', '___t2Presets': '一线场景预设',
-    '___t4Presets': '本地事件预设', '___phonePool': '手机评测池', '___techDB': '技术知识库',
+    '___topicPool': '选题库', '___t1Presets': '对比推荐预设', '___t2Presets': '服务故事预设',
+    '___t4Presets': '本地福利预设', '___phonePool': '手机评测池', '___techDB': '技术知识库',
     '___hotspotData': '热点跟拍', '___bgmList': 'BGM推荐'
   };
   var missing = [];
@@ -2542,14 +2542,16 @@ function buildTopicBank() {
     el.innerHTML = html + (bankFilter !== 'all' && bankFilter !== 'thisweek' && bankFilter !== 'context' ? 
       `<div style="font-size:11px;color:#999;text-align:center;padding:4px;">筛选结果：${visibleCount} 个</div>` : '');
   });
+  // 渲染历史周卡（仅在全部选题视图下刷新，避免筛选时闪烁）
+  if (!bankFilter || bankFilter === 'all') { try { buildHistory(); } catch(e) {} }
 }
 
 function buildHistory() {
-  const el = document.getElementById('historyContent');
+  const el = document.getElementById('historyInline');
   if (!el) return;
   let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">';
   const pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
-  const typeNames = ['决策指南型', '一线场景型', '深度测评型', '本地化事件型'];
+  const typeNames = ['对比推荐型', '服务故事型', '开箱实测型', '本地化福利型'];
   for (let w = Math.max(1, currentWeekNum - 8); w <= currentWeekNum; w++) {
     const isThisWeek = w === currentWeekNum;
     html += `<div class="card" style="${isThisWeek ? 'border:2px solid var(--orange);' : ''}padding:12px;">
@@ -3366,7 +3368,7 @@ function fillT2Presets() {
   var subCat = '温情叙事';
   if (p.tags && (p.tags.indexOf('装维') > -1 || p.tags.indexOf('装机') > -1)) subCat = '快节奏爽片';
   else if (p.tags && (p.tags.indexOf('突发') > -1 || p.tags.indexOf('投诉') > -1)) subCat = '轻纪录片';
-  autoFillBGM('template2', 't2_bgm', '一线场景', subCat);
+  autoFillBGM('template2', 't2_bgm', '服务故事', subCat);
   // v2.0: Auto-select best hook type for this story template
   autoSelectHook('t2', key);
   // Dynamic label: change "上门发现的具体问题" → scene-appropriate wording
@@ -4205,7 +4207,7 @@ function fillT4Presets() {
   else if (/体验|测速/i.test(key)) subCat = '福利快闪';
   else if (/送礼|特惠|换新/i.test(key)) subCat = '福利快闪';
   else if (/社区/i.test(key)) subCat = '温馨服务';
-  autoFillBGM('template4', 't4_bgm', '本地事件', subCat);
+  autoFillBGM('template4', 't4_bgm', '本地福利', subCat);
   // v2.0: Auto-select best hook type based on activity
   var t4Hooks = {'免费贴膜':'value','免费测速':'value','办业务送礼':'conflict','以旧换新':'value','手机清洁':'empathy','宽带体验':'conflict','暑期特惠':'conflict','社区服务':'empathy'};
   autoSelectHook('t4', key);
@@ -5238,10 +5240,10 @@ function renderBgmRecommend() {
     return;
   }
   var types = [
-    { key: '决策指南', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
-    { key: '一线场景', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
-    { key: '深度测评', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
-    { key: '本地事件', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
+    { key: '对比推荐', icon: '💬', color: '#2E7D32', bg: '#E8F5E9', sub: '轻快对比' },
+    { key: '服务故事', icon: '📖', color: '#1565C0', bg: '#E3F2FD', sub: '温情叙事' },
+    { key: '开箱实测', icon: '🔬', color: '#E65100', bg: '#FFF3E0', sub: '科技感' },
+    { key: '本地福利', icon: '🏠', color: '#7B1FA2', bg: '#F3E5F5', sub: '探店活力' }
   ];
   var html = '';
   types.forEach(function(t) {
@@ -5291,10 +5293,10 @@ function syncBgmDropdowns() {
   if (!window.___bgmList) return;
   var bgmData = window.___bgmList;
   var mappings = [
-    { selectId: 't1_bgm', category: '决策指南', subs: ['轻快对比','算账节奏','温馨推荐'] },
-    { selectId: 't2_bgm', category: '一线场景', subs: ['温情叙事','轻纪录片','快节奏爽片','原声不加BGM'] },
-    { selectId: 't3_bgm', category: '深度测评', subs: ['科技感','冷静专业','干货教学'] },
-    { selectId: 't4_bgm', category: '本地事件', subs: ['探店活力','福利快闪','温馨服务'] },
+    { selectId: 't1_bgm', category: '对比推荐', subs: ['轻快对比','算账节奏','温馨推荐'] },
+    { selectId: 't2_bgm', category: '服务故事', subs: ['温情叙事','轻纪录片','快节奏爽片','原声不加BGM'] },
+    { selectId: 't3_bgm', category: '开箱实测', subs: ['科技感','冷静专业','干货教学'] },
+    { selectId: 't4_bgm', category: '本地福利', subs: ['探店活力','福利快闪','温馨服务'] },
     { selectId: 'lv_bgm', category: '直播', subs: ['暖场','逼单','福利'] }
   ];
   mappings.forEach(function(m) {
@@ -5351,9 +5353,9 @@ function renderBenchmark() {
 
   try {
     var t1 = window.___t1ScriptFullByPersona;
-    if (t1) for (var topic in t1) for (var persona in t1[topic]) addEntry(t1[topic][persona], '📊 决策指南', topic, persona);
+    if (t1) for (var topic in t1) for (var persona in t1[topic]) addEntry(t1[topic][persona], '📊 对比推荐', topic, persona);
     var t2 = window.___t2ScriptFullByPersona;
-    if (t2) for (var p in t2) for (var persona in t2[p]) addEntry(t2[p][persona], '🎬 一线场景', p, persona);
+    if (t2) for (var p in t2) for (var persona in t2[p]) addEntry(t2[p][persona], '🎬 服务故事', p, persona);
     var t4 = window.___t4ScriptFullByPersona;
     if (t4) for (var a in t4) for (var persona in t4[a]) addEntry(t4[a][persona], '📍 本地活动', a, persona);
     var hs = window.___hotspotData;
@@ -5413,7 +5415,6 @@ function renderBenchmark() {
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
   try { loadHotContentPool(); } catch(e) { console.error('loadHotContentPool:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
-  try { buildHistory(); } catch(e) { console.error('buildHistory:', e); }
   try { renderHotspots(); } catch(e) { console.error('renderHotspots:', e); }
   try { renderBenchmark(); } catch(e) { console.error('renderBenchmark:', e); }
   try { addHotspotSummary(); } catch(e) { console.error('addHotspotSummary:', e); }
