@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 07:29:48
+// 构建时间: 2026-07-25 08:04:36
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5401,6 +5401,7 @@ function renderBgmRecommend() {
 function tryRenderBgm() {
   if (window.___bgmList) {
     renderBgmRecommend();
+    syncBgmDropdowns();
   } else {
     // Retry after a short delay if data not loaded yet
     var count = 0;
