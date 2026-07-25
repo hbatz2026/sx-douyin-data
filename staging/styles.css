@@ -94,13 +94,13 @@
     .scene-preset-btn { padding: 7px 10px; font-size: 12px; }
   }
 
-  /* Preview Panel */
-  .preview-panel { background: #1a1a2e; color: #e0e0e0; border-radius: var(--radius); padding: 20px; font-size: 13px; line-height: 1.8; margin-top: 16px; }
-  .preview-panel .time-tag { color: var(--orange); font-weight: 700; }
-  .preview-panel .scene { color: #66BBFF; }
-  .preview-panel .line { color: #FFD54F; }
-  .preview-panel .action { color: #81C784; }
-  .preview-panel .hr { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0; }
+  /* Preview Panel — v2.8 浅底风格 */
+  .preview-panel { background: #fafafa; color: #222; border-radius: var(--radius); padding: 20px; font-size: 13px; line-height: 1.8; margin-top: 16px; border: 1px solid #e0e0e0; }
+  .preview-panel .time-tag { color: #C62828; font-weight: 700; }
+  .preview-panel .scene { color: #1565C0; font-weight: 600; }
+  .preview-panel .line { color: #333; }
+  .preview-panel .action { color: #2E7D32; }
+  .preview-panel .hr { border: none; border-top: 1px solid #e0e0e0; margin: 10px 0; }
 
   /* Weekly Schedule */
   .schedule-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
@@ -245,21 +245,21 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
   /* Talk Script Preview */
-  .talk-script { background: #1a1a2e; color: #e0e0e0; border-radius: var(--radius); padding: 24px; font-size: 14px; line-height: 2; margin-top: 12px; }
-  .talk-script .stage { color: var(--orange); font-weight: 700; font-size: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .talk-script { background: #fafafa; color: #222; border-radius: var(--radius); padding: 24px; font-size: 14px; line-height: 2; margin-top: 12px; border: 1px solid #e0e0e0; }
+  .talk-script .stage { color: #C62828; font-weight: 700; font-size: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; }
   .talk-script .stage:first-child { margin-top: 0; padding-top: 0; border-top: none; }
-  .talk-script .dialogue { color: #FFD54F; font-size: 14px; margin: 4px 0 4px 8px; }
-  .talk-script .action-note { color: #81C784; font-size: 12px; margin: 2px 0 2px 16px; }
-  .talk-script .info-tag { color: #66BBFF; font-size: 11px; }
+  .talk-script .dialogue { color: #333; font-size: 14px; margin: 4px 0 4px 8px; padding: 8px 12px; background: #f0f4ff; border-radius: 6px; border-left: 3px solid #1565C0; }
+  .talk-script .action-note { color: #555; font-size: 12px; margin: 2px 0 2px 16px; font-style: italic; }
+  .talk-script .info-tag { color: #1565C0; font-size: 11px; }
 
   /* Silent Preview Directing Cards */
-  .silent-preview { background: #1a1a2e; color: #e0e0e0; border-radius: var(--radius); padding: 20px; font-size: 13px; line-height: 1.8; margin-top: 12px; }
-  .silent-preview .shot-step { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .silent-preview { background: #fafafa; color: #222; border-radius: var(--radius); padding: 20px; font-size: 13px; line-height: 1.8; margin-top: 12px; border: 1px solid #e0e0e0; }
+  .silent-preview .shot-step { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #eee; }
   .silent-preview .shot-step:last-child { border-bottom: none; margin-bottom: 0; }
-  .silent-preview .shot-time { color: var(--orange); font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px; }
-  .silent-preview .shot-action { color: #FFD54F; }
-  .silent-preview .shot-subtitle { color: #66BBFF; display: block; margin: 2px 0 2px 12px; padding: 2px 8px; background: rgba(102,187,255,0.1); border-radius: 4px; border-left: 2px solid #66BBFF; }
-  .silent-preview .shot-note { color: #81C784; font-size: 11px; }
+  .silent-preview .shot-time { color: #C62828; font-weight: 700; font-size: 11px; display: block; margin-bottom: 2px; }
+  .silent-preview .shot-action { color: #333; }
+  .silent-preview .shot-subtitle { color: #1565C0; display: block; margin: 2px 0 2px 12px; padding: 2px 8px; background: #e8f0fe; border-radius: 4px; border-left: 2px solid #1565C0; }
+  .silent-preview .shot-note { color: #558B2F; font-size: 11px; }
 
   /* Print-friendly */
   @media print {
@@ -520,6 +520,50 @@
     }
   }
 
+  /* v2.7.0: 左侧入口按钮组（尝鲜版/热点跟拍/经营分指南） */
+  #leftEntryBar {
+    position: fixed;
+    left: 12px;
+    top: 140px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .entry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .entry-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+  .entry-btn:active { transform: translateY(0); }
+  .entry-trial { background: linear-gradient(135deg, #FF6B00, #FF9A3D); box-shadow: 0 2px 8px rgba(255,107,0,.25); }
+  .entry-hot   { background: linear-gradient(135deg, #7873f5, #0ff);    box-shadow: 0 2px 8px rgba(120,115,245,.25); }
+  .entry-biz   { background: linear-gradient(135deg, #F59E0B, #F97316); box-shadow: 0 2px 8px rgba(245,158,11,.25); }
+  /* 桌面正常尺寸 */
+  @media (max-width: 1024px) {
+    .entry-btn { font-size: 12px; padding: 8px 12px; }
+    #leftEntryBar { left: 8px; top: 130px; gap: 8px; }
+  }
+  /* 手机端：紧凑、稍小、不抢主内容 */
+  @media (max-width: 640px) {
+    .entry-btn { font-size: 11px; padding: 6px 10px; gap: 4px; }
+    #leftEntryBar { left: 6px; top: 110px; gap: 6px; }
+  }
+  @media (max-width: 380px) {
+    .entry-btn { font-size: 10px; padding: 5px 8px; }
+    #leftEntryBar { left: 4px; top: 100px; gap: 5px; }
+  }
+
   /* v3.0: Schedule Header Bar（合并 tab + 折叠按钮） */
   .schedule-header-bar {
     display: flex;
@@ -716,3 +760,22 @@
     .back-to-top { background: #333; }
     .back-to-top:hover { background: var(--blue); }
   }
+
+  /* 2026-07-20: 字段精简 — 不再需要用户填空，预览直接从ScriptFull读取 */
+  .field-hidden { display: none !important; }
+  .cover-hint { background: #F0F7FF; border: 1px solid #B3D4FC; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: #1A3C6E; }
+  .cover-hint strong { color: #0052CC; }
+  /* === v2.8: 移动端底部导航 === */
+  .mobile-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #e0e0e0; z-index:900; padding:4px 0; box-shadow:0 -2px 8px rgba(0,0,0,.06); }
+  .mobile-nav .mn-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; background:none; border:none; padding:6px 0; cursor:pointer; font-size:11px; color:#888; transition:color.2s; }
+  .mobile-nav .mn-item span { font-size:10px; }
+  .mobile-nav .mn-item.active { color:#C62828; font-weight:700; }
+  @media(max-width:768px) { .mobile-nav { display:flex; } body { padding-bottom:65px; } }
+
+  /* === v2.8: 搜索 + 收藏 + 违禁词 === */
+  .search-highlight { background:#FFF176; padding:1px 2px; border-radius:2px; }
+  .fav-star { cursor:pointer; font-size:20px; color:#ccc; transition:color.2s; user-select:none; margin-left:8px; vertical-align:middle; }
+  .fav-star.saved { color:#F59E0B; }
+  .fav-star:hover { color:#F59E0B; }
+  .script-used-badge { font-size:10px; background:#E8F5E9; color:#2E7D32; padding:2px 6px; border-radius:4px; margin-left:6px; display:inline-block; }
+  .banned-word { background:#FFCDD2; color:#C62828; padding:1px 2px; border-radius:2px; text-decoration:underline wavy #C62828; }
