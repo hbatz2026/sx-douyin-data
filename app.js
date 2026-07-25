@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-25 05:43:34
+// 构建时间: 2026-07-25 05:46:57
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -4982,7 +4982,7 @@ function renderStats() {
   cardHtml += '<div class="card" style="text-align:center;"><div style="font-size:32px;font-weight:700;color:#7B1FA2;">'+uniqueTopics+'</div><div style="font-size:12px;color:var(--body);">选题覆盖数</div></div>';
   document.getElementById('statsCards').innerHTML = cardHtml;
   // Module chart (horizontal bars)
-  var pageNames = { 'schedule':'📋 每周排期','template1':'💬 口播脚本','template2':'📖 故事脚本','template3':'🔬 产品测评','template4':'🏠 同城活动','bank':'📚 选题库','hotspot':'🔥 热点跟拍','history':'📜 历史','stats':'📊 统计' };
+  var pageNames = { 'schedule':'📋 每周排期','template1':'💬 口播脚本','template2':'📖 故事脚本','template3':'🔬 产品测评','template4':'🏠 同城活动','bank':'📚 选题库','hotspot':'🔥 热点跟拍','history':'📜 历史','stats':'📊 统计','favorites':'💾 我的收藏','benchmark':'⭐ 标杆库' };
   var pageActionNames = { 'page_schedule':'访问排期','page_template1':'口播脚本','page_template2':'故事脚本','page_template3':'产品测评','page_template4':'同城活动','preview_generated':'生成预览','export_image':'导出图片','export_copy':'复制脚本','checklist_pass':'✅检查通过','checklist_fail':'❌检查失败','fw_detected':'违禁词告警' };
   var sorted = Object.entries(pages).sort(function(a,b) { return b[1]-a[1]; });
   var maxVal = sorted.length > 0 ? sorted[0][1] : 1;
