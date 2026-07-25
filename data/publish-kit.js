@@ -339,7 +339,7 @@ function extractTagKeywords(text) {
     { kw: '装机维修', re: /装机|修网|修光纤|上门修|网络不通|信号覆盖/i },
     { kw: '节日关怀', re: /节日|端午|中秋|春节|父亲节|母亲节|重阳|慰问/i },
     // T1 宽带/手机
-    { kw: '宽带', re: /宽带|网速|光纤|FTTR|套餐|月租/i },
+    { kw: '宽带', re: /宽带|网速|光纤|FTTR|套餐|月费/i },
     { kw: '手机', re: /iPhone|荣耀|华为|OPPO|vivo|小米|nova|Mate|购机|换机/i },
     // T3 设备测评
     { kw: '测速', re: /测速|网速测试|跑分|带宽/i },
@@ -528,7 +528,7 @@ function getTemplateComments(tpl, city, topic, scriptText) {
 
   // ═══ T1 决策指南（口播对比）═══
   if (t === 't1') {
-    if (/宽带|网速|WiFi|光纤|FTTR|套餐|月租|兆/i.test(ctx)) {
+    if (/宽带|网速|WiFi|光纤|FTTR|套餐|月费|兆/i.test(ctx)) {
       return [
         loc + '的朋友，你家用的是哪家宽带？投个票，我帮你分析',
         '你家宽带一个月多少钱？评论区说说，我帮你看划不划算',
