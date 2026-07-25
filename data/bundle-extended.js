@@ -1,5 +1,5 @@
 // 抖本工坊 · 扩展数据包（T2/T4 按需加载）
-// 生成时间: 2026-07-25 09:48:48
+// 生成时间: 2026-07-25 11:56:32
 // 合并文件: t2ScriptFull.js, t2ScriptFullByPersona.js, t4ScriptFull.js, t4ScriptFullByPersona.js
 // ===== t2ScriptFull.js =====
 // 抖本内容工坊 · T2 完整故事脚本（v3 评分优化版）
