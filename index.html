@@ -9,8 +9,29 @@
 <title>山西电信抖本内容工坊 · 精选脚本</title>
   <link rel="stylesheet" href="styles.css?v=2.8.0">
 
-  <!-- External data files — merged bundle (updated weekly by SCF → GitHub Pages) -->
+  <!-- External data files — core bundle (首页必需) -->
   <script src="data/bundle.js?v=2.8.0"></script>
+  <script>
+  // v2.8: T2/T4 脚本按需加载（省 ~150KB 首屏体积）
+  var __extLoaded = false;
+  function __loadExtended(cb) {
+    if (__extLoaded) { if (cb) cb(); return; }
+    var s = document.createElement('script');
+    s.src = 'data/bundle-extended.js?v=2.8.0';
+    s.onload = function() { __extLoaded = true; if (cb) cb(); };
+    document.head.appendChild(s);
+  }
+  window.___bundleExtendedLoaded = function() { __extLoaded = true; };
+  // 用户切到 T2 或 T4 时触发加载
+  var __origSwitchPage = switchPage;
+  switchPage = function(id, el) {
+    if ((id === 'template2' || id === 'template4') && !__extLoaded) {
+      __loadExtended(function() { __origSwitchPage(id, el); });
+    } else {
+      __origSwitchPage(id, el);
+    }
+  };
+  </script>
   <!-- Publish kit v2.6.5: form-first BGM/tags, Douyin traffic tags -->
   <script src="data/publish-kit.js?v=2.8.0"></script>
 
@@ -222,20 +243,7 @@
 
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（已推荐近期热门，抖音App内可直接搜到）</span></label>
-        <select id="t1_bgm">
-          <optgroup label="🏆 本周主推（数据对比类首选）">
-            <option value="Memory Reboot - VØJ & Narvent" selected>⚡ Memory Reboot (科技感电子·数据对比首选)</option>
-            <option value="Metamorphosis - Interworld">⚡ Metamorphosis (节奏递进·对比切换)</option>
-            <option value="Time Back - 抖音版">⚡ Time Back (轻电子卡点·数据切换)</option>
-          </optgroup>
-          <optgroup label="💡 备选（轻快数据风）">
-            <option value="Nevada - Vicetone">Nevada (经典科技风)</option>
-            <option value="The Spectre - Alan Walker">The Spectre (节奏鼓点强)</option>
-            <option value="On My Way - Alan Walker">On My Way (轻快递进)</option>
-            <option value="奔腾 - 周深">奔腾 (力量感·大气数据)</option>
-            <option value="非凡 - 刘德华">非凡 (品质感·品牌数据)</option>
-          </optgroup>
-        </select>
+        <select id="t1_bgm"></select>
       </div>
 
       <div class="form-group">
@@ -306,17 +314,7 @@
 
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（强烈建议不加，用现场原声；如需可选用温情感）</span></label>
-        <select id="t2_bgm">
-          <option value="" selected>🔇 不加BGM，用现场原声（推荐）</option>
-          <optgroup label="如需温情感BGM">
-            <option value="我记得 - 赵雷">我记得 - 赵雷 (叙事温暖)</option>
-            <option value="可能 - 程响">可能 - 程响 (生活感)</option>
-            <option value="小美满 - 周深">小美满 - 周深 (温暖治愈)</option>
-            <option value="雨过后的风景 - 蔡诗芸">雨过后的风景 (治愈叙事)</option>
-            <option value="一半一半 - Top Barry">一半一半 (生活共鸣感)</option>
-            <option value="人间共鸣 - 李健">人间共鸣 (温暖叙事)</option>
-          </optgroup>
-        </select>
+        <select id="t2_bgm"></select>
       </div>
 
       <div class="form-group">
@@ -433,19 +431,7 @@
       <!-- === Shared Fields (both modes) === -->
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（轻声纯音乐·口播不压人声；无声模式当背景）</span></label>
-        <select id="t3_bgm">
-          <optgroup label="🏆 本周主推（测评教学类首选）">
-            <option value="Windy Hill - 羽肿" selected>🎹 Windy Hill (钢琴轻音乐·教学首选)</option>
-            <option value="River Flows In You - Yiruma">🎹 River Flows In You (经典钢琴)</option>
-            <option value="觅光 - 张韶涵">🎹 觅光 (轻电子治愈·测评氛围)</option>
-          </optgroup>
-          <optgroup label="💡 备选（科技测评风）">
-            <option value="A Thousand Miles - Piano">A Thousand Miles (钢琴版)</option>
-            <option value="Time Back - 抖音版">Time Back (轻电子·抖音版)</option>
-            <option value="告白之夜 - AYASA">告白之夜 (小提琴·BGM音量调30%)</option>
-            <option value="One Spot - 沈佳润Nina">One Spot (轻快电子·科技感)</option>
-          </optgroup>
-        </select>
+        <select id="t3_bgm"></select>
       </div>
 
       <div class="form-group">
@@ -580,20 +566,7 @@
 
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（本地生活/探店类热门，轻松愉快）</span></label>
-        <select id="t4_bgm">
-          <optgroup label="🏆 本周主推（本地生活类首选）">
-            <option value="我会一直顺 - 黄子弘凡" selected>🎉 我会一直顺 (积极向上·探店首选)</option>
-            <option value="记忆点 - 陈卓璇">🎯 记忆点 (强节奏感·探店打卡)</option>
-            <option value="小美满 - 周深">☀️ 小美满 (温暖轻快·本地生活)</option>
-          </optgroup>
-          <optgroup label="💡 备选（轻松探店风）">
-            <option value="街角的晚风 - 陈小春">街角的晚风 (都市感)</option>
-            <option value="一半一半 - Top Barry">一半一半 (轻松节奏)</option>
-            <option value="奔腾 - 周深">奔腾 (有力量感)</option>
-            <option value="龙耀华夏 - 龙友林">龙耀华夏 (国风大气·文旅探店)</option>
-            <option value="爱人啊 - 言承旭/五月天阿信">爱人啊 (甜蜜氛围·情侣探店)</option>
-          </optgroup>
-        </select>
+        <select id="t4_bgm"></select>
       </div>
 
       <div class="form-group">
