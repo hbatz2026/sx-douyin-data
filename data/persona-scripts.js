@@ -1,5 +1,5 @@
 // 抖本工坊 · 人设脚本包（懒加载，首页不加载）
-// 生成时间: 2026-07-26 08:57:27
+// 生成时间: 2026-07-26 09:39:06
 // 合并文件: t1ScriptFullByPersona.js, t2ScriptFullByPersona.js, t4ScriptFullByPersona.js
 // ===== t1ScriptFullByPersona.js =====
 window.___t1ScriptFullByPersona = {
