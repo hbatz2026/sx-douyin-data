@@ -649,8 +649,8 @@
     opacity: 0.7;
     white-space: nowrap;
   }
-  #hook_selector { transition: all 0.3s; }
-  #hook_selector select:focus { outline: none; border-color: #E65100; box-shadow: 0 0 0 3px rgba(255,152,0,0.15); }
+  [id^="hook_selector_"] { transition: all 0.3s; }
+  [id^="hook_selector_"] select:focus { outline: none; border-color: #E65100; box-shadow: 0 0 0 3px rgba(255,152,0,0.15); }
   .shoot-checklist label:hover { background: #E3F2FD; border-radius: 4px; }
   .shoot-checklist input[type="checkbox"]:checked + span { text-decoration: line-through; color: #90A4AE; }
 
@@ -691,7 +691,7 @@
     .shoot-checklist input[type="checkbox"] { width: 22px; height: 22px; }
     
     /* Hook selector: full width */
-    #hook_selector select, #hook_selector input { font-size: 15px !important; padding: 12px !important; }
+    [id^="hook_selector_"] select, [id^="hook_selector_"] input { font-size: 15px !important; padding: 12px !important; }
   }
 
   /* Bottom fixed action bar for mobile */
