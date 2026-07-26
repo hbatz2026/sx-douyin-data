@@ -364,19 +364,23 @@ function getTemplateTopic(tpl) {
 }
 
 function copyText(text, btn) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function() {
-      toast('已复制到剪贴板', 'success');
-      if (btn) { btn.classList.add('copied'); btn.textContent='已复制 ✓'; setTimeout(function(){ btn.classList.remove('copied'); btn.textContent='复制'; }, 2000); }
-    }).catch(function() { toast('复制失败，请手动复制', 'error'); });
+  function done() {
+    toast('已复制到剪贴板', 'success');
+    if (btn) { var orig = btn.textContent; btn.classList.add('copied'); btn.textContent='已复制 ✓'; setTimeout(function(){ btn.classList.remove('copied'); btn.textContent=orig; }, 2000); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(function() { fallbackCopy(text); done(); });
   } else {
-    var ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); toast('已复制到剪贴板', 'success'); } catch(e) { toast('复制失败，请手动复制', 'error'); }
-    document.body.removeChild(ta);
-    if (btn) { btn.classList.add('copied'); btn.textContent='已复制 ✓'; setTimeout(function(){ btn.classList.remove('copied'); btn.textContent='复制'; }, 2000); }
+    fallbackCopy(text); done();
   }
   track('export_copy');
+}
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch(e) { toast('复制失败，请手动复制', 'error'); }
+  document.body.removeChild(ta);
 }
 
 const FORBIDDEN_WORDS = [
@@ -937,6 +941,8 @@ function switchPage(name, el, noPush) {
   }
   // Restore form data for the new template page
   setTimeout(function() { restoreTemplateForm(name); }, 50);
+  // Keep mobile bottom nav highlight in sync
+  updateMobileNav();
 }
 
 window.addEventListener('popstate', function(e) {
@@ -1075,19 +1081,9 @@ function copyPanelText(panelId, mode) {
     text = panel.textContent || panel.innerText || '';
   }
   var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
-  navigator.clipboard.writeText(text).then(function() {
-    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
-    if (typeof track === 'function') track('copy_script_' + panelId);
-    markScriptUsed(panelId);
-  }).catch(function() {
-    var ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
-    document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); } catch(e) {}
-    document.body.removeChild(ta);
-    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
-    markScriptUsed(panelId);
-  });
+  copyText(text, btn);
+  if (typeof track === 'function') track('copy_script_' + panelId);
+  markScriptUsed(panelId);
 }
 
 // v2.8: 带元信息的复制（追加标签和地址）
@@ -1114,11 +1110,9 @@ function copyPanelTextWithMeta(panelId, mode) {
   text += '\n\n📍 '+ (city||'山西电信营业厅') +'\n'+ tags +'\n📌 收藏这条，下次直接翻开拍';
   // 违禁词检查
   checkBannedWrapped(text);
-  navigator.clipboard.writeText(text).then(function() {
-    var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
-    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ 已复制！'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
-    markScriptUsed(panelId);
-  });
+  var btn = mode === 'clean' ? panel.querySelector('.copy-clean-btn') : panel.querySelector('.copy-script-btn');
+  copyText(text, btn);
+  markScriptUsed(panelId);
 }
 
 function checkBannedWrapped(text) {
@@ -1240,6 +1234,10 @@ function downloadAsImage(previewId) {
       link.href = canvas.toDataURL('image/png');
       link.click();
       document.body.removeChild(card);
+    }).catch(function(err) {
+      console.error('downloadAsImage html2canvas failed:', err);
+      if (document.body.contains(card)) document.body.removeChild(card);
+      toast('生成图片失败，请重试或截图保存', 'error');
     });
   } else {
     // Fallback: open print window
@@ -2323,7 +2321,7 @@ function renderT3AutoSection(deviceName) {
       '</div>' +
       '<textarea readonly id="t3ScriptPromptText" style="width:100%;height:180px;font-size:12px;line-height:1.6;border:1px solid #E4DCC8;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;color:#3C3024;">' + esc(scriptPrompt) + '</textarea>' +
       '<div style="margin-top:8px;display:flex;gap:8px;">' +
-        '<button onclick="var t=document.getElementById(\'t3ScriptPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#2C1810;color:#FFFDF7;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+        '<button onclick="var t=document.getElementById(\'t3ScriptPromptText\');copyText(t.value,this)" style="padding:6px 16px;background:#2C1810;color:#FFFDF7;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
       '</div>' +
     '</div>' +
     '<div style="margin-top:12px;background:#F0F4FF;border:1.5px solid #B5D4F4;border-radius:8px;padding:16px;">' +
@@ -2334,7 +2332,7 @@ function renderT3AutoSection(deviceName) {
       '</div>' +
       '<textarea readonly id="t3ImgPromptText" style="width:100%;height:140px;font-size:12px;line-height:1.6;border:1px solid #B5D4F4;border-radius:6px;padding:10px;resize:vertical;font-family:inherit;background:#fff;">' + esc(imgPrompt) + '</textarea>' +
       '<div style="margin-top:8px;display:flex;gap:8px;">' +
-        '<button onclick="var t=document.getElementById(\'t3ImgPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制\';setTimeout(function(){b.textContent=\'📋 复制提示词\'},1500)})" style="padding:6px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
+        '<button onclick="var t=document.getElementById(\'t3ImgPromptText\');copyText(t.value,this)" style="padding:6px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📋 复制提示词</button>' +
       '</div>' +
     '</div>' +
     '<div style="margin-top:8px;padding:8px 12px;background:#F8F6F0;border:1px solid #E4DCC8;border-radius:6px;font-size:11px;color:#5C5040;">' +
@@ -2516,7 +2514,7 @@ function copyScriptWithMeta(btn,textareaId) {
   var city=(document.getElementById('t3_city')||document.getElementById('t1_city')||document.getElementById('t4_city')||{}).value||'';
   var tags=(document.getElementById('t3_tags')||document.getElementById('t1_tags')||document.getElementById('t4_tags')||{}).value||'#电信 #同城推荐';
   var full = t.value+'\n\n\u{1f4cd} '+ (city||'山西电信营业厅')+'\n'+tags+'\n\u{1f4cc} 收藏这条，下次直接翻开拍';
-  navigator.clipboard.writeText(full).then(function(){if(btn){btn.textContent='\u2705 已复制';setTimeout(function(){btn.textContent='\u{1f4cb} 复制'},1500)}});
+  copyText(full, btn);
   markScriptUsed(textareaId);
 }
 
@@ -2546,7 +2544,7 @@ function toggleFav(name,star) {
 function updateFavCount(){var e=document.getElementById('favCount');if(e){var n=_favs.length;e.textContent=n>0?'('+n+')':''}}
 
 var BANNED=['合约','号卡','合约价','合约机','月租','最好','第一','唯一','全网最低','100%','免费送'];
-function checkBanned(elId){var e=document.getElementById(elId);if(!e)return;var t=e.innerText,f=[];BANNED.forEach(function(w){if(t.indexOf(w)>=0)f.push(w)});if(f.length){toast('\u26a0\ufe0f 含违禁词: '+f.join(', '),'warn')}}
+function checkBanned(elId){var e=document.getElementById(elId);if(!e)return;var t=e.innerText,f=[];BANNED.concat(FORBIDDEN_WORDS).forEach(function(w){if(t.indexOf(w)>=0)f.push(w)});if(f.length){toast('\u26a0\ufe0f 含违禁词: '+f.join(', '),'warn')}}
 
 function renderFavs(){
   var a=document.getElementById('favoritesContent');if(!a)return;
@@ -2575,18 +2573,19 @@ function buildTodayHero() {
   var today = new Date().getDay();
   var rawIdx = today === 0 ? 4 : Math.min(today - 1, 4);
   if (today === 0 || today === 6) { hero.innerHTML = ''; return; }
-  var poolIdx = rawIdx % 4;
-  var types = ['口播脚本', '故事脚本', '产品测评', '同城活动'];
-  var pageIds = ['template1', 'template2', 'template3', 'template4'];
+  var poolIdx = rawIdx;
+  var types = ['口播脚本', '故事脚本', '产品测评', '同城活动', '选题库'];
+  var pageIds = ['template1', 'template2', 'template3', 'template4', 'bank'];
   var pools = [topicPool.decision, topicPool.scene, topicPool.review, topicPool.local];
   var configs = [
     { css: 'type-guide' },
     { css: 'type-scene' },
     { css: 'type-review' },
-    { css: 'type-local' }
+    { css: 'type-local' },
+    { css: 'type-bank' }
   ];
-  var topic = pickFromPool(pools[poolIdx], 0);
-  var type = rawIdx === 4 ? '选题库' : types[poolIdx];
+  var topic = poolIdx === 4 ? '从选题库自选一个' : pickFromPool(pools[poolIdx], 0);
+  var type = types[poolIdx];
   var pageId = pageIds[poolIdx];
   var html = '<div tabindex="0" role="button" aria-label="今日速推：' + esc(type) + ' · ' + esc(topic) + '" onclick="switchPage(\'' + pageId + '\',document.querySelector(\'.nav-tab[onclick*=' + pageId + ']\'));jumpToTemplate(\'' + topic.replace(/'/g, "\\'") + '\',' + rawIdx + ')" class="today-hero-compact">';
   html += '<span class="thc-label">🎯 今日速推</span>';
@@ -2613,7 +2612,7 @@ function buildSchedule() {
   for (let i = 0; i < 5; i++) {
     const d = new Date(week.monday);
     d.setDate(week.monday.getDate() + i);
-    var bestTime = getBestTime(i % 4);
+    var bestTime = getBestTime(i);
     html += `<div class="schedule-day clickable" tabindex="0" role="button" aria-label="点击跳转到${types[i]}模板：${weekTopics[i]}" onclick="switchPage('${pageIds[i]}', document.querySelector('.nav-tab[onclick*=${pageIds[i]}]'));jumpToTemplate('${weekTopics[i].replace(/'/g, "\\'")}',${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}" title="点击跳转到${types[i]}模板">
       <div class="day-name">${dayNames[i]}</div>
       <div class="day-date">${d.getMonth()+1}/${d.getDate()}</div>
@@ -2866,16 +2865,16 @@ function switchT1Mode(mode) {
 }
 
 function previewT1Talk() {
-  const city = (document.getElementById('t1_city')||{}).value;
-  const topic = (document.getElementById('t1_topic')||{}).value;
+  const city = esc((document.getElementById('t1_city')||{}).value || '');
+  const topic = esc((document.getElementById('t1_topic')||{}).value || '');
   var _pa = arguments;
-  if (!window.___t1ScriptFullByPersona && window.ensurePersonaScripts) {
-    window.ensurePersonaScripts().then(function(){ if (window.___t1ScriptFullByPersona) previewT1Talk.apply(null, _pa); });
+  if (!window.___t1ScriptFullByPersona && window.ensurePersonaScripts && !window.___personaScriptsFailed) {
+    window.ensurePersonaScripts().then(function(){ previewT1Talk.apply(null, _pa); });
     return;
   }
   if (!city || !topic) { alert('请选一个选题！'); return; }
-  const bgm = (document.getElementById('t1_bgm')||{}).value || '';
-  const tags = (document.getElementById('t1_tags')||{}).value || '';
+  const bgm = esc((document.getElementById('t1_bgm')||{}).value || '');
+  const tags = esc((document.getElementById('t1_tags')||{}).value || '');
   var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
   // alias mapping → exact match → fuzzy
   var topicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
@@ -2987,7 +2986,7 @@ ${scoreHtml}
 }
 
 function previewT1Card() {
-  const c = id => document.getElementById('t1_'+id).value;
+  const c = id => esc(document.getElementById('t1_'+id).value || '');
   if (!c('city') || !c('a')) { alert('请至少填写地名和场景A！'); return; }
   const city = c('city');
   const topic = c('topic');
@@ -3089,7 +3088,7 @@ function downloadCardImage() {
 }
 
 function previewT1Calc() {
-  const c = id => document.getElementById('t1_'+id).value;
+  const c = id => esc(document.getElementById('t1_'+id).value || '');
   if (!c('city') || !c('a')) { alert('请至少填写地名和场景A！'); return; }
   const city = c('city');
   const topic = c('topic');
@@ -3423,17 +3422,17 @@ function switchT2Mode(mode) {
 
 function previewT2Tell() {
   var _pa = arguments;
-  if (!window.___t2ScriptFullByPersona && window.ensurePersonaScripts) {
-    window.ensurePersonaScripts().then(function(){ if (window.___t2ScriptFullByPersona) previewT2Tell.apply(null, _pa); });
+  if (!window.___t2ScriptFullByPersona && window.ensurePersonaScripts && !window.___personaScriptsFailed) {
+    window.ensurePersonaScripts().then(function(){ previewT2Tell.apply(null, _pa); });
     return;
   }
   var preset = '';
-  try { preset = document.getElementById('t2_preset').value; } catch(e) {}
+  try { preset = esc(document.getElementById('t2_preset').value || ''); } catch(e) {}
   if (!preset) { alert('请选一个故事场景！'); return; }
   var bgm = '';
-  try { bgm = document.getElementById('t2_bgm').value; } catch(e) {}
+  try { bgm = esc(document.getElementById('t2_bgm').value || ''); } catch(e) {}
   var tags = '';
-  try { tags = document.getElementById('t2_tags').value; } catch(e) {}
+  try { tags = esc(document.getElementById('t2_tags').value || ''); } catch(e) {}
   var variantHtml = tryVariantInjection(preset, bgm, 'preview2-tell');
   
   var fullScript = (window.___t2ScriptFullByPersona && ___t2ScriptFullByPersona[preset] && ___t2ScriptFullByPersona[preset][getPersona()])
@@ -3455,7 +3454,7 @@ function previewT2Tell() {
 }
 
 function previewT2Doc() {
-  const c = id => document.getElementById('t2_'+id).value;
+  const c = id => esc(document.getElementById('t2_'+id).value || '');
   if (!c('time') || !c('customer')) { alert('请至少填写时间和客户类型！'); return; }
   var hookSubtitle = '';
   var hookEl = document.getElementById('t2_hook_text');
@@ -3464,7 +3463,7 @@ function previewT2Doc() {
   }
   // User content drives everything; only differentiate broad setting
   var preset = '';
-  try { preset = document.getElementById('t2_preset').value; } catch(e) {}
+  try { preset = esc(document.getElementById('t2_preset').value || ''); } catch(e) {}
   var isOutreach = /社区|校园|政企/i.test(preset);
   var isOnsite = /上门|装机|维修/i.test(preset);
   var openShot = isOutreach ? '布置活动现场，摆摊/拉横幅' : isOnsite ? '拍楼栋外观/门牌号（不拍具体号码）' : '拍门牌号/营业厅外观';
@@ -3517,7 +3516,7 @@ ${hookSubtitle ? `
 }
 
 function previewT2Short() {
-  const c = id => document.getElementById('t2_'+id).value;
+  const c = id => esc(document.getElementById('t2_'+id).value || '');
   if (!c('customer') || !c('reaction')) { alert('请至少填写客户类型和客户反应！'); return; }
   var hookTitle = '';
   var hookEl = document.getElementById('t2_hook_text');
@@ -3533,8 +3532,8 @@ function previewT2Short() {
 <div class="stage">📱 画面选择</div>
 <div class="action-note">→ 选${c('customer')}最打动人的那个瞬间：</div>
 <div class="dialogue">${c('reaction')} —— 就定格在这个画面上，2-3秒</div>
-${c('finding') ? '<div class="shot-note">💡 关键信息（字幕展示）：' + esc(c('finding')) + '</div>' : ''}
-${c('steps') ? '<div class="shot-note">🔧 操作要点：' + esc(c('steps').split('\n')[0]) + '</div>' : ''}
+${c('finding') ? '<div class="shot-note">💡 关键信息（字幕展示）：' + c('finding') + '</div>' : ''}
+${c('steps') ? '<div class="shot-note">🔧 操作要点：' + c('steps').split('\n')[0] + '</div>' : ''}
 <div class="stage">📝 字幕内容（画面底部大字）</div>
 <div class="shot-step"${hookTitle?' style="border-left:4px solid var(--orange);"':''}>
   ${hookTitle ? '<span class="shot-subtitle">"' + hookTitle + '"</span><span class="shot-note">⚡ 钩子先抓眼球，下面跟着故事</span>' : ''}
@@ -3929,14 +3928,14 @@ function switchT3Mode(mode) {
 }
 
 function previewT3Talk() {
-  const c = id => document.getElementById('t3_'+id).value;
+  const c = id => esc(document.getElementById('t3_'+id).value || '');
   if (!c('item') || !c('title')) { alert('请先在顶部选好设备和选题！'); return; }
   const item = c('item');
   const city = c('city') || '本地';
   const bgm = c('bgm');
   const title = c('title');
   const tags = c('tags');
-  const topic = document.getElementById('t3_topic').value;
+  const topic = esc(document.getElementById('t3_topic').value || '');
   // Check if phone review → use phone-specific talking scripts (兼容新旧格式)
   const phone = findPhoneByName(item);
   var html = '';
@@ -4127,7 +4126,7 @@ function buildDeviceTalkScript(item, c, city, bgm, title, tags) {
 let silentCurrentOption = '';
 
 function previewT3Silent(option) {
-  const c = id => document.getElementById('t3_'+id).value;
+  const c = id => esc(document.getElementById('t3_'+id).value || '');
   if (!c('item') || !c('title')) { alert('请先在顶部选好设备和选题！'); return; }
   silentCurrentOption = option;
   const item = c('item');
@@ -4135,7 +4134,7 @@ function previewT3Silent(option) {
   const bgm = c('bgm');
   const title = c('title');
   const tags = c('tags');
-  const topic = document.getElementById('t3_topic').value;
+  const topic = esc(document.getElementById('t3_topic').value || '');
   const p1raw = c('p1') || '';
   const p2raw = c('p2') || '';
   const p3raw = c('p3') || '';
@@ -4260,8 +4259,8 @@ function previewT3Silent(option) {
   }
   const el = document.getElementById('preview3-silent');
   el.style.display = 'block';
-  var t3city = (document.getElementById('t3_city')||{}).value || '';
-  var t3topic = (document.getElementById('t3_topic')||{}).value || '';
+  var t3city = city;
+  var t3topic = topic;
   var t3hook = '';
   var t3hookEl = document.getElementById('t3_hook_text');
   if (t3hookEl && t3hookEl.value.trim()) {
@@ -4291,18 +4290,18 @@ function switchT4Mode(mode) {
 
 function previewT4Walk() {
   var _pa = arguments;
-  if (!window.___t4ScriptFullByPersona && window.ensurePersonaScripts) {
-    window.ensurePersonaScripts().then(function(){ if (window.___t4ScriptFullByPersona) previewT4Walk.apply(null, _pa); });
+  if (!window.___t4ScriptFullByPersona && window.ensurePersonaScripts && !window.___personaScriptsFailed) {
+    window.ensurePersonaScripts().then(function(){ previewT4Walk.apply(null, _pa); });
     return;
   }
-  const city = (document.getElementById('t4_city')||{}).value;
-  const preset = (document.getElementById('t4_preset')||{}).value;
+  const city = esc((document.getElementById('t4_city')||{}).value || '');
+  const preset = esc((document.getElementById('t4_preset')||{}).value || '');
   if (!city || !preset) { alert('请选择活动和填写地名！'); return; }
-  const bgm = (document.getElementById('t4_bgm')||{}).value || '';
-  const shop = (document.getElementById('t4_shop')||{}).value || '电信营业厅';
-  const landmark = (document.getElementById('t4_landmark')||{}).value || '';
-  const addr = (document.getElementById('t4_addr')||{}).value || '';
-  const tags = (document.getElementById('t4_tags')||{}).value || '';
+  const bgm = esc((document.getElementById('t4_bgm')||{}).value || '');
+  const shop = esc((document.getElementById('t4_shop')||{}).value || '电信营业厅');
+  const landmark = esc((document.getElementById('t4_landmark')||{}).value || '');
+  const addr = esc((document.getElementById('t4_addr')||{}).value || '');
+  const tags = esc((document.getElementById('t4_tags')||{}).value || '');
   var variantHtml = tryVariantInjection(preset, bgm, 'preview4-walk');
   
   var fullScript = (window.___t4ScriptFullByPersona && ___t4ScriptFullByPersona[preset] && ___t4ScriptFullByPersona[preset][getPersona()])
@@ -4331,7 +4330,7 @@ function previewT4Walk() {
 }
 
 function previewT4Mix() {
-  const c = id => document.getElementById('t4_'+id).value;
+  const c = id => esc(document.getElementById('t4_'+id).value || '');
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
   var topic = c('preset') || c('benefit');
   var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-mix');
@@ -4368,7 +4367,7 @@ function previewT4Mix() {
 }
 
 function previewT4Countdown() {
-  const c = id => document.getElementById('t4_'+id).value;
+  const c = id => esc(document.getElementById('t4_'+id).value || '');
   if (!c('city') || !c('benefit')) { alert('请至少填写地名和福利！'); return; }
   var topic = c('preset') || c('benefit');
   var variantHtml = tryVariantInjection(topic, c('bgm'), 'preview4-countdown');
@@ -5355,7 +5354,7 @@ function generateDouyinPrompt() {
       '</div>' +
       '<textarea readonly id="aiPromptText" style="width:100%;height:250px;font-size:12px;line-height:1.7;border:1px solid #DFE1E6;border-radius:8px;padding:12px;resize:vertical;font-family:inherit;background:#fff;">' + esc(prompt) + '</textarea>' +
       '<div style="margin-top:10px;display:flex;gap:8px;">' +
-        '<button onclick="var t=document.getElementById(\'aiPromptText\');navigator.clipboard.writeText(t.value).then(function(){var b=event.target;b.textContent=\'✅ 已复制！\';b.style.background=\'#008A5C\';setTimeout(function(){b.textContent=\'📋 复制提示词\';b.style.background=\'#0052CC\'},1500)})" style="flex:1;padding:8px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">📋 复制提示词</button>' +
+        '<button onclick="copyText(document.getElementById(\'aiPromptText\').value)" style="flex:1;padding:8px;background:#0052CC;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">📋 复制提示词</button>' +
         '<button onclick="document.getElementById(\'infographicPanel\').style.display=\'none\'" style="padding:8px 16px;background:#fff;color:#666;border:1px solid #DFE1E6;border-radius:6px;cursor:pointer;font-size:13px;">✕ 收起</button>' +
       '</div>' +
     '</div>';
@@ -5657,13 +5656,7 @@ function copyBenchmarkScript(idx) {
   var e = window.___benchmarkEntries && window.___benchmarkEntries[idx];
   if (!e) return;
   var text = e.fullText;
-  if (typeof copyText === 'function') {
-    copyText(text);
-  } else if (navigator && navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function(){ alert('✅ 已复制标杆脚本'); });
-  } else {
-    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('✅ 已复制标杆脚本');
-  }
+  copyText(text);
 }
 
 function renderBenchmark() {
@@ -5767,6 +5760,7 @@ function renderBenchmark() {
   try { initPersonaPicker(); } catch(e) { console.error('initPersonaPicker:', e); }
   try { initT3DeviceOptions(); } catch(e) { console.error('initT3DeviceOptions:', e); }
   try { showOnboarding(); } catch(e) { console.error('showOnboarding:', e); }
+  try { updateMobileNav(); } catch(e) { console.error('updateMobileNav:', e); }
 })();
 
 // 2026-07-26 P0-2: 人设脚本懒加载（首页不加载，访问 T1/T2/T4 或标杆库时按需注入）
@@ -5781,7 +5775,7 @@ function ensurePersonaScripts() {
     var s = document.createElement('script');
     s.src = src;
     s.onload = function(){ res(true); };
-    s.onerror = function(){ _personaLoading = null; console.error('persona-scripts.js 加载失败'); res(false); };
+    s.onerror = function(){ _personaLoading = null; window.___personaScriptsFailed = true; console.error('persona-scripts.js 加载失败'); res(false); };
     document.head.appendChild(s);
   });
   return _personaLoading;
