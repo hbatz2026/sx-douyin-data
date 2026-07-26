@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 06:34:47
+// 构建时间: 2026-07-26 06:56:58
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -1395,6 +1395,57 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+/* ===== v2.9: 快捷键说明面板 ===== */
+var SHORTCUT_GROUPS = [
+  { title: '页面切换', rows: [
+    { keys: ['Ctrl', '1'], desc: '本周排期' },
+    { keys: ['Ctrl', '2'], desc: '决策指南（T1 口播对比）' },
+    { keys: ['Ctrl', '3'], desc: '一线场景（T2）' },
+    { keys: ['Ctrl', '4'], desc: '深度测评（T3）' },
+    { keys: ['Ctrl', '5'], desc: '本地事件（T4）' },
+    { keys: ['Ctrl', '6'], desc: '选题库' },
+    { keys: ['Ctrl', '7'], desc: '热点跟拍' },
+    { keys: ['Ctrl', '8'], desc: '直播脚本' },
+    { keys: ['Ctrl', '9'], desc: '历史收藏' },
+    { keys: ['Ctrl', '0'], desc: '数据统计' }
+  ]},
+  { title: '操作', rows: [
+    { keys: ['Ctrl', 'Enter'], desc: '生成当前模板预览脚本' },
+    { keys: ['Enter'], desc: '激活聚焦的元素（无障碍）' },
+    { keys: ['Space'], desc: '同上，激活聚焦元素' }
+  ]},
+  { title: '说明面板', rows: [
+    { keys: ['?'], desc: '打开本快捷键说明' },
+    { keys: ['F1'], desc: '打开本快捷键说明' },
+    { keys: ['Esc'], desc: '关闭弹窗' }
+  ]}
+];
+function renderShortcutHelp() {
+  var body = document.getElementById('scBody'); if (!body) return;
+  var html = '';
+  SHORTCUT_GROUPS.forEach(function(g) {
+    html += '<div class="sc-group-title">' + g.title + '</div>';
+    g.rows.forEach(function(r) {
+      var keys = r.keys.map(function(k) { return '<span class="kbd">' + k + '</span>'; }).join('');
+      html += '<div class="sc-row"><div class="sc-keys">' + keys + '</div><div class="sc-desc">' + r.desc + '</div></div>';
+    });
+  });
+  body.innerHTML = html;
+}
+function openShortcutHelp() { renderShortcutHelp(); var m = document.getElementById('shortcutHelp'); if (m) m.style.display = 'flex'; }
+function closeShortcutHelp() { var m = document.getElementById('shortcutHelp'); if (m) m.style.display = 'none'; }
+function toggleShortcutHelp() {
+  var m = document.getElementById('shortcutHelp'); if (!m) return;
+  if (m.style.display === 'flex') closeShortcutHelp(); else openShortcutHelp();
+}
+document.addEventListener('keydown', function(e) {
+  var ae = document.activeElement;
+  var typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT' || ae.isContentEditable);
+  if (typing) return;
+  if (e.key === '?' || e.key === 'F1') { e.preventDefault(); openShortcutHelp(); }
+  else if (e.key === 'Escape') { closeShortcutHelp(); }
+});
+
 function saveTemplateForm(pageName) {
   var prefixMap = { template1: 't1', template2: 't2', template3: 't3', template4: 't4' };
   var pf = prefixMap[pageName];
@@ -1475,15 +1526,15 @@ function injectHookSelector() {
   // Find the mode-selector as insertion point, or first card
   var target = document.querySelector('#page-' + currentPage + ' .card');
   if (!target) return;
-  var html = '<div id="' + hookId + '" style="margin:12px 0;padding:12px;background:#FFF8E1;border-radius:8px;border:1px solid #FFB74D;">';
-  html += '<div style="font-weight:700;font-size:14px;margin-bottom:8px;">🎯 黄金3秒钩子 <span style="font-size:11px;color:#E65100;font-weight:400;">— 开头第一句决定80%的完播率</span></div>';
-  html += '<select id="' + t + '_hook_type" onchange="applyHook(\'' + t + '\')" style="padding:8px 12px;border:1px solid #FFB74D;border-radius:6px;width:100%;font-size:14px;margin-bottom:8px;">';
+  var html = '<div id="' + hookId + '" class="hook-box">';
+  html += '<div class="hook-box-title">🎯 黄金3秒钩子 <span class="hook-box-sub">— 开头第一句决定80%的完播率</span></div>';
+  html += '<select id="' + t + '_hook_type" onchange="applyHook(\'' + t + '\')" class="hook-select">';
   html += '<option value="">-- 选故事模板后自动匹配，也可手动改 --</option>';
   for (var k in HOOK_TYPES) {
     html += '<option value="' + k + '">' + HOOK_TYPES[k].label + ' — ' + HOOK_TYPES[k].desc + '</option>';
   }
   html += '</select>';
-  html += '<input id="' + t + '_hook_text" placeholder="钩子台词会自动填充，也可以自己改" style="width:100%;padding:8px;border:1px dashed #FFB74D;border-radius:6px;font-size:13px;display:none;" oninput="triggerCheck(\'' + t + '\')">';
+  html += '<input id="' + t + '_hook_text" placeholder="钩子台词会自动填充，也可以自己改" class="hook-input" oninput="triggerCheck(\'' + t + '\')">';
   html += '</div>';
   // For T2: insert after story template; For others: insert after mode-selector
   if (currentPage === 'template2') {
@@ -1893,7 +1944,7 @@ function autoSelectHook(t, presetKey) {
         hs.style.opacity = '1';
         hs.style.background = '#FFF8E1';
         hs.style.borderColor = '#FFB74D';
-        hs.querySelector('div').innerHTML = '🎯 黄金3秒钩子 <span style="font-size:11px;color:#E65100;font-weight:400;">— 根据模板自动匹配，开头第一句决定80%完播率</span>';
+        hs.querySelector('div').innerHTML = '🎯 黄金3秒钩子 <span class="hook-box-sub">— 根据模板自动匹配，开头第一句决定80%完播率</span>';
       }
       return;
     }
