@@ -1,5 +1,5 @@
 // 抖本工坊 · 核心数据包（首页加载，含全部数据）
-// 生成时间: 2026-07-26 05:08:55
+// 生成时间: 2026-07-26 05:40:48
 // 合并文件: bgmList.js, dailyScripts.js, hotspotData.js, phonePool.js, publish-kit.js, t1Comments.js, t1ImagePrompts.js, t1Presets.js, t1ScriptFull.js, t1ScriptFullByPersona.js, t1ScriptStyles.js, t1Titles.js, t1TopicAliases.js, t2Presets.js, t2ScriptFull.js, t2ScriptFullByPersona.js, t4Presets.js, t4ScriptFull.js, t4ScriptFullByPersona.js, techDB.js, topicPool.js
 // ===== bgmList.js =====
 // Auto-generated BGM
