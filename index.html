@@ -7,13 +7,11 @@
 <meta name="theme-color" content="#0052CC">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.8">
+  <link rel="stylesheet" href="styles.css?v=2.9.9">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.8" defer></script>
+  <script src="data/bundle.js?v=2.9.9" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
-  <!-- Publish kit v2.6.5: form-first BGM/tags, Douyin traffic tags -->
-  <script src="data/publish-kit.js?v=2.9.8" defer></script>
 
 </head>
 <body>
@@ -36,7 +34,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.8</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.9</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
       <a href="hot/today-hotspot.html" class="entry-btn entry-hot">🔥 今日热点跟拍 →</a>
@@ -88,33 +86,33 @@
   </div>
   
   <nav class="nav-tabs" role="navigation" aria-label="主导航">
-    <button class="nav-tab active" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
+    <button class="nav-tab active"  data-page="schedule" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
     
     <div class="nav-group" data-group="video">
       <span class="nav-group-label" onclick="toggleNavGroup('video')"><span class="nav-group-arrow">▶</span> 📱 短视频 <span class="nav-group-hint">点击展开</span></span>
       <div class="nav-group-items">
-        <button class="nav-tab" onclick="switchPage('template1', this)">📊 对比推荐<small>帮用户做选择题，拉收藏率</small></button>
-        <button class="nav-tab" onclick="switchPage('template2', this)">🎬 服务故事<small>真实服务故事替代广告</small></button>
-        <button class="nav-tab" onclick="switchPage('template3', this)">🔍 开箱实测<small>产品知识截搜索流量</small></button>
-        <button class="nav-tab" onclick="switchPage('template4', this)">📍 本地福利<small>绑定地点打同城推荐</small></button>
-        <button class="nav-tab" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>跟拍抖音热门，蹭流量</small></button>
+        <button class="nav-tab"  data-page="template1" onclick="switchPage('template1', this)">📊 对比推荐<small>帮用户做选择题，拉收藏率</small></button>
+        <button class="nav-tab"  data-page="template2" onclick="switchPage('template2', this)">🎬 服务故事<small>真实服务故事替代广告</small></button>
+        <button class="nav-tab"  data-page="template3" onclick="switchPage('template3', this)">🔍 开箱实测<small>产品知识截搜索流量</small></button>
+        <button class="nav-tab"  data-page="template4" onclick="switchPage('template4', this)">📍 本地福利<small>绑定地点打同城推荐</small></button>
+        <button class="nav-tab"  data-page="hotspot" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>跟拍抖音热门，蹭流量</small></button>
       </div>
     </div>
 
     <div class="nav-group" data-group="live">
       <span class="nav-group-label" onclick="toggleNavGroup('live')"><span class="nav-group-arrow">▶</span> 📺 直播 <span class="nav-group-hint">点击展开</span></span>
       <div class="nav-group-items">
-        <button class="nav-tab" onclick="switchPage('live', this)">📺 直播脚本<small>10分钟循环话术，防冷场</small></button>
+        <button class="nav-tab"  data-page="live" onclick="switchPage('live', this)">📺 直播脚本<small>10分钟循环话术，防冷场</small></button>
       </div>
     </div>
 
     <div class="nav-group" data-group="resource">
       <span class="nav-group-label" onclick="toggleNavGroup('resource')"><span class="nav-group-arrow">▶</span> 创作资源 <span class="nav-group-hint">点击展开</span></span>
       <div class="nav-group-items">
-        <button class="nav-tab" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
-        <button class="nav-tab" onclick="switchPage('benchmark', this)">⭐ 标杆库<small>高分脚本，即抄即用</small></button>
-        <button class="nav-tab" onclick="switchPage('favorites', this)">💾 我的收藏<span id="favCount" style="color:var(--red)"></span></button>
-        <button class="nav-tab" id="nav-stats" style="display:none;" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
+        <button class="nav-tab"  data-page="bank" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
+        <button class="nav-tab"  data-page="benchmark" onclick="switchPage('benchmark', this)">⭐ 标杆库<small>高分脚本，即抄即用</small></button>
+        <button class="nav-tab"  data-page="favorites" onclick="switchPage('favorites', this)">💾 我的收藏<span id="favCount" style="color:var(--red)"></span></button>
+        <button class="nav-tab" id="nav-stats" style="display:none;"  data-page="stats" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
       </div>
     </div>
   </nav>
@@ -1020,6 +1018,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.8" defer></script>
+  <script src="app.js?v=2.9.9" defer></script>
 </body>
 </html>
