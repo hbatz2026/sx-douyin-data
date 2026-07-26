@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 02:07:06
+// 构建时间: 2026-07-26 03:21:50
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -564,8 +564,19 @@ function scoreScriptV2(scriptText, ctx) {
     retention = Math.max(0, retention - 15);
   }
 
-  // —— CTA 堆砌惩罚（收藏+评论+到店+关注+转发 全中 = 像带货机器）——
-  var ctaStuffed = !!(t.match(collectKw) && t.match(commentKw) && t.match(convertKw) && t.match(revisitKw) && t.match(shareKw));
+  // —— CTA 行为计数（收藏 / 复访 / 评论 / 到店 / 转发）——
+  var hasCollect = !!(t.match(collectKw));
+  var hasRevisit = !!(t.match(revisitKw));
+  var hasComment = !!(t.match(commentKw));
+  var hasConvert = !!(t.match(convertKw));
+  var hasShare   = !!(t.match(shareKw));
+  var ctaCount = (hasCollect?1:0)+(hasRevisit?1:0)+(hasComment?1:0)+(hasConvert?1:0)+(hasShare?1:0);
+
+  // —— CTA 堆砌判定（用户规则：1-2 条足够，绝不堆砌）——
+  // 触发：① 五类中出现 ≥4 类；② 出现 ≥3 类且呈"清单式"（各占一句，句末皆是 CTA 动词）
+  var _ctaSentences = t.split(/[。！？!?\n]/).map(function(s){return s.trim();}).filter(Boolean)
+    .filter(function(s){ return /(截图|保存|收藏|存着|记牢|收好|关注|点关注|评论|说说|聊聊|告诉我|来店|到店|来营业厅|私信|转发|转给|发给|分享)/.test(s); }).length;
+  var ctaStuffed = (ctaCount >= 4) || (ctaCount >= 3 && _ctaSentences >= 3);
   if (ctaStuffed) retention = Math.max(0, retention - 10);
 
   var total = Math.round(
@@ -575,19 +586,16 @@ function scoreScriptV2(scriptText, ctx) {
     retention * ALGO_WEIGHTS.retention +
     convert * ALGO_WEIGHTS.convert
   );
-  return { retention: retention, collect: collect, interact: interact, convert: convert, revisit: revisit, total: total, openerRepeat: openerRepeat, ctaStuffed: ctaStuffed };
+  return { retention: retention, collect: collect, interact: interact, convert: convert, revisit: revisit, total: total, openerRepeat: openerRepeat, ctaStuffed: ctaStuffed, ctaCount: ctaCount };
 }
 
 function auditScript(scriptText, ctx) {
   var s = scoreScriptV2(scriptText, ctx);
   var checks = [
-    { name: '5秒钩子', ok: s.retention >= 50, detail: '开头需冲突/利益/悬念，拉住前3秒' },
-    { name: '收藏锚点', ok: s.collect >= 40, detail: '需含截图/对照表/清单等可留存价值' },
-    { name: '评论指令', ok: s.interact >= 45, detail: '需引导用户评论（说说/聊聊/告诉我）' },
-    { name: '复访钩子', ok: s.revisit >= 30, detail: '需含关注/下期/系列化引导' },
-    { name: '转化CTA', ok: s.convert >= 40, detail: '需含到店/核销/私信等行动指令' }
+    { name: '5秒钩子', ok: s.retention >= 60, detail: '开头需冲突/利益/悬念，拉住前3秒（当前' + s.retention + '）' },
+    { name: 'CTA动作', ok: s.ctaCount >= 1, detail: '需至少含1个动作(收藏/复访/评论/到店/转发)（当前' + s.ctaCount + '个）' },
+    { name: '无CTA堆砌', ok: !s.ctaStuffed, detail: s.ctaStuffed ? 'CTA动作≥4类或呈清单式堆砌，务必收口到1-2个最自然的' : 'CTA未堆砌（当前' + s.ctaCount + '个动作）' }
   ];
-  if (s.ctaStuffed) checks.push({ name: 'CTA堆砌', ok: false, detail: '收藏+评论+到店+关注+转发全中，像带货机器，建议保留1-2个最自然的' });
   if (ctx && Array.isArray(ctx.usedOpeners) && s.openerRepeat) checks.push({ name: '开头雷同', ok: false, detail: '该人设已用过相同开场，换一个更有记忆点的钩子' });
   var adWords = (typeof detectAdWords === 'function') ? detectAdWords(scriptText || '') : [];
   checks.push({ name: '违禁词', ok: adWords.length === 0, detail: adWords.length ? ('含：' + adWords.join('、')) : '无绝对化/违规表述' });
@@ -597,7 +605,8 @@ function auditScript(scriptText, ctx) {
 
 function isBenchmark(scriptText, ctx) {
   var s = scoreScriptV2(scriptText, ctx);
-  var ok = s.total >= 80 && s.collect >= 50 && s.revisit >= 40 && s.interact >= 50 && s.retention >= 60 && s.convert >= 40 && !s.ctaStuffed && !s.openerRepeat;
+  // 新规则：钩子必须拉住；至少1个CTA动作；绝不堆砌(1-2条足够)；达质量总分线
+  var ok = s.retention >= 60 && s.ctaCount >= 1 && !s.ctaStuffed && !s.openerRepeat && s.total >= 48;
   return { benchmark: ok, score: s };
 }
 
