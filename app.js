@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 05:40:47
+// 构建时间: 2026-07-26 06:17:25
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -2801,6 +2801,11 @@ function switchT1Mode(mode) {
 function previewT1Talk() {
   const city = (document.getElementById('t1_city')||{}).value;
   const topic = (document.getElementById('t1_topic')||{}).value;
+  var _pa = arguments;
+  if (!window.___t1ScriptFullByPersona && window.ensurePersonaScripts) {
+    window.ensurePersonaScripts().then(function(){ if (window.___t1ScriptFullByPersona) previewT1Talk.apply(null, _pa); });
+    return;
+  }
   if (!city || !topic) { alert('请选一个选题！'); return; }
   const bgm = (document.getElementById('t1_bgm')||{}).value || '';
   const tags = (document.getElementById('t1_tags')||{}).value || '';
@@ -3349,6 +3354,11 @@ function switchT2Mode(mode) {
 }
 
 function previewT2Tell() {
+  var _pa = arguments;
+  if (!window.___t2ScriptFullByPersona && window.ensurePersonaScripts) {
+    window.ensurePersonaScripts().then(function(){ if (window.___t2ScriptFullByPersona) previewT2Tell.apply(null, _pa); });
+    return;
+  }
   var preset = '';
   try { preset = document.getElementById('t2_preset').value; } catch(e) {}
   if (!preset) { alert('请选一个故事场景！'); return; }
@@ -4212,6 +4222,11 @@ function switchT4Mode(mode) {
 }
 
 function previewT4Walk() {
+  var _pa = arguments;
+  if (!window.___t4ScriptFullByPersona && window.ensurePersonaScripts) {
+    window.ensurePersonaScripts().then(function(){ if (window.___t4ScriptFullByPersona) previewT4Walk.apply(null, _pa); });
+    return;
+  }
   const city = (document.getElementById('t4_city')||{}).value;
   const preset = (document.getElementById('t4_preset')||{}).value;
   if (!city || !preset) { alert('请选择活动和填写地名！'); return; }
@@ -5600,6 +5615,11 @@ function renderBenchmark() {
     });
   }
 
+  if (!window.___t1ScriptFullByPersona && window.ensurePersonaScripts) {
+    window.ensurePersonaScripts().then(function(){ if (window.___t1ScriptFullByPersona) renderBenchmark(); });
+    return;
+  }
+
   try {
     var t1 = window.___t1ScriptFullByPersona;
     if (t1) for (var topic in t1) for (var persona in t1[topic]) addEntry(t1[topic][persona], '📊 对比推荐', topic, persona);
@@ -5674,6 +5694,24 @@ function renderBenchmark() {
   try { initT3DeviceOptions(); } catch(e) { console.error('initT3DeviceOptions:', e); }
   try { showOnboarding(); } catch(e) { console.error('showOnboarding:', e); }
 })();
+
+// 2026-07-26 P0-2: 人设脚本懒加载（首页不加载，访问 T1/T2/T4 或标杆库时按需注入）
+var _personaLoading = null;
+function ensurePersonaScripts() {
+  if (window.___t1ScriptFullByPersona) return Promise.resolve(true);
+  if (_personaLoading) return _personaLoading;
+  var appScript = document.querySelector('script[src*="app.js"]');
+  var ver = appScript ? (appScript.src.match(/[?&]v=([\d.]+)/) || [,''])[1] : '';
+  var src = 'data/persona-scripts.js' + (ver ? ('?v=' + ver) : '');
+  _personaLoading = new Promise(function(res){
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function(){ res(true); };
+    s.onerror = function(){ _personaLoading = null; console.error('persona-scripts.js 加载失败'); res(false); };
+    document.head.appendChild(s);
+  });
+  return _personaLoading;
+}
 
 var ONBOARD_KEY = 'douyin_lab_onboarded';
 
