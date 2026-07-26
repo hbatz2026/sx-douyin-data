@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 07:09:14
+// 构建时间: 2026-07-26 07:19:02
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5776,7 +5776,9 @@ var ONBOARD_KEY = 'douyin_lab_onboarded';
 function showOnboarding() {
   if (localStorage.getItem(STORE_KEY)) return;
 
-  var _obPersona = 'sister';
+  // 2026-07-26 修复：绑定弹窗默认沿用「当前已选人设」，避免绑定营业厅时把人设静默重置回暖心姐姐
+  // （此前默认硬编码 sister，导致先在顶部选了甜美学姐、再点绑定就会被覆盖回 sister）
+  var _obPersona = getPersona();
   var obOverlay = null, obInput = null, obBtn = null, obHint = null;
   var OB_CITIES = ['太原','大同','阳泉','长治','晋城','朔州','晋中','运城','忻州','临汾','吕梁'];
   var OB_ENDS = ['厅','店','点','商'];
@@ -5864,7 +5866,7 @@ function showOnboarding() {
   html += '<div id="obPersonas" style="display:flex;flex-wrap:wrap;gap:8px;">';
   for (var pi = 0; pi < ps.length; pi++) {
     var p = personaDB[ps[pi]] || {};
-    html += '<button class="ob-p-btn" data-p="' + ps[pi] + '" style="padding:8px 12px;border:2px solid ' + (ps[pi] === 'sister' ? 'var(--blue)' : 'var(--border)') + ';border-radius:10px;background:' + (ps[pi] === 'sister' ? '#E8F0FE' : 'var(--card)') + ';font-size:13px;cursor:pointer;transition:all 0.2s;font-weight:' + (ps[pi] === 'sister' ? '600' : '400') + ';white-space:nowrap;">' + (p.icon || '') + ' ' + (p.label || ps[pi]) + '</button>';
+    html += '<button class="ob-p-btn" data-p="' + ps[pi] + '" style="padding:8px 12px;border:2px solid ' + (ps[pi] === _obPersona ? 'var(--blue)' : 'var(--border)') + ';border-radius:10px;background:' + (ps[pi] === _obPersona ? '#E8F0FE' : 'var(--card)') + ';font-size:13px;cursor:pointer;transition:all 0.2s;font-weight:' + (ps[pi] === _obPersona ? '600' : '400') + ';white-space:nowrap;">' + (p.icon || '') + ' ' + (p.label || ps[pi]) + '</button>';
   }
   html += '</div></div>';
   html += '<div style="display:flex;justify-content:flex-end;">';
