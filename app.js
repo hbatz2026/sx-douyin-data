@@ -7,12 +7,6 @@
 // ═══════ core.js ═══════
 'use strict';
 
-'use strict';
-
-'use strict';
-
-'use strict';
-
 function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
 
 function sanitizeFilename(name) {
@@ -250,31 +244,6 @@ function getWeekNumber() {
   d.setDate(d.getDate() + 4 - (d.getDay() || 7));
   var yearStart = new Date(d.getFullYear(), 0, 1);
   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-}
-
-function selectVariant(topicKey) {
-  return null; // variantPool.js deprecated, feature disabled
-}
-
-function composeScript(variant) {
-  var script = typeof variant === 'string' ? variant : (variant.script || variant.text || '');
-  var profile = getStoreProfile();
-  if (profile) {
-    script = script.replace(/\{user_store\}/g, profile.name);
-    script = script.replace(/\{user_city\}/g, profile.city);
-  }
-  // Auto-inject form fields from all templates (T1 scenes, T2 story, etc.)
-  for (var t = 1; t <= 4; t++) {
-    var prefix = 't' + t + '_';
-    var fields = ['a','b','c','problem','finding','steps','reaction','summary','customer','time','benefit','landmark'];
-    for (var fi = 0; fi < fields.length; fi++) {
-      var el = document.getElementById(prefix + fields[fi]);
-      if (el && el.value) {
-        script = script.replace(new RegExp('\\{' + fields[fi] + '\\}', 'g'), esc(el.value));
-      }
-    }
-  }
-  return script;
 }
 
 var T1_SCENE_PRESETS = {
@@ -722,18 +691,6 @@ function switchStatsPeriod(p, el) {
   renderStats();
 }
 
-var origSwitchPage = switchPage;
-
-switchPage = function(name, el, noPush) {
-  // Track page visit (only for content pages, not internal routing)
-  if (name !== currentPage) track('page_' + name);
-  if (name === 'stats') setTimeout(renderStats, 50);
-  var result = origSwitchPage(name, el, noPush);
-  // Auto-fill store after page switch (slight delay for DOM to settle)
-  setTimeout(autoFillStore, 80);
-  return result;
-};
-
 // STORE_KEY 已提升至文件顶部（与 PERSONA_KEY 同区），统一引用常量避免读写分离
 
 function bindStore() {
@@ -898,12 +855,9 @@ let currentPage = 'schedule';
 
 const pageHistory = ['schedule'];
 
-// v2.8: weekly banner 占位（功能待 v3.0 实现；stub 防 ReferenceError 回归）
-function injectWeeklyBanner(name) {
-  // TODO: v3.0 在模板页注入本周推荐横幅
-}
-
 function switchPage(name, el, noPush) {
+  // Track page visit (only when actually changing page)
+  if (name !== currentPage) track('page_' + name);
   // Save current template form before leaving
   saveTemplateForm(currentPage);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -931,8 +885,6 @@ function switchPage(name, el, noPush) {
     nav.classList.add('nav-collapsed');
     ham.innerHTML = '☰ 展开全部菜单';
   }
-  // Inject weekly recommendation banner
-  injectWeeklyBanner(name);
   // Push to browser history (except for initial load)
   if (!noPush && name !== currentPage) {
     pageHistory.push(name);
@@ -941,17 +893,23 @@ function switchPage(name, el, noPush) {
   }
   // Restore form data for the new template page
   setTimeout(function() { restoreTemplateForm(name); }, 50);
-  // Keep mobile bottom nav highlight in sync
   updateMobileNav();
+  // Post-switch hooks (deferred so DOM settles)
+  if (name === 'stats') setTimeout(renderStats, 50);
+  setTimeout(autoFillStore, 80);
+  setTimeout(injectHookSelector, 100);
+  setTimeout(injectMobileBar, 200);
+  if (name === 'template3') setTimeout(reorderDeviceList, 150);
+  if (name === 'template4') setTimeout(autoFillT4FromStore, 150);
 }
 
 window.addEventListener('popstate', function(e) {
   if (e.state && e.state.page) {
     var pageId = e.state.page;
-    switchPage(pageId, document.querySelector('.nav-tab[onclick*=' + pageId + ']'), true);
+    switchPage(pageId, document.querySelector('.nav-tab[data-page="' + pageId + '"]'), true);
     currentPage = pageId;
   } else {
-    var btn = document.querySelector('.nav-tab[onclick*=schedule]');
+    var btn = document.querySelector('.nav-tab[data-page="schedule"]');
     switchPage('schedule', btn, true);
     currentPage = 'schedule';
   }
@@ -1371,7 +1329,7 @@ document.querySelectorAll('input[id$="_city"]').forEach(el => {
 document.addEventListener('keydown', function(e) {
   if (e.ctrlKey || e.metaKey) {
     const map = { '1': 'schedule', '2': 'template1', '3': 'template2', '4': 'template3', '5': 'template4', '6': 'bank', '7': 'hotspot', '8': 'live', '9': 'history', '0': 'stats' };
-    if (map[e.key]) { e.preventDefault(); var pageId = map[e.key]; switchPage(pageId, document.querySelector('.nav-tab[onclick*=' + pageId + ']')); }
+    if (map[e.key]) { e.preventDefault(); var pageId = map[e.key]; switchPage(pageId, document.querySelector('.nav-tab[data-page="' + pageId + '"]')); }
     // Ctrl+Enter: trigger preview on current template page based on active mode
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -1845,17 +1803,6 @@ function buildCommentSEO(t, city, topic) {
 function buildPreviewFooter(t, city, topic) {
   return buildPublishKit(t, city || '本地', topic || '');
 }
-
-var _origSwitchPage2 = switchPage;
-
-switchPage = function(name, el, noPush) {
-  var result = _origSwitchPage2(name, el, noPush);
-  setTimeout(injectHookSelector, 100);
-  setTimeout(injectMobileBar, 200);
-  if (name === "template3") setTimeout(reorderDeviceList, 150);
-  if (name === "template4") setTimeout(autoFillT4FromStore, 150);
-  return result;
-};
 
 function reorderDeviceList() {
   var sel = document.getElementById('t3_device');
@@ -2497,15 +2444,42 @@ function detectAdWords(text) {
 
 // ═══════════ v2.8 优化: 搜索+收藏+复制追加+违禁词+已选+新鲜度 ═══════════
 function searchScripts(q) {
-  if (!q || q.length < 2) { document.querySelectorAll('.search-highlight').forEach(function(e){e.outerHTML=e.textContent}); return; }
+  var panels = document.querySelectorAll('.preview-panel,.talk-script,.silent-preview,.dialogue,.card');
+  if (!q || q.length < 2) {
+    panels.forEach(function(p){ if (p._oh) { p.innerHTML = p._oh; p._oh = null; } });
+    return;
+  }
   q = q.toLowerCase();
-  document.querySelectorAll('.preview-panel,.talk-script,.silent-preview,.dialogue,.card').forEach(function(p){
-    if (p.innerText.toLowerCase().indexOf(q)>=0) {
-      p.scrollIntoView({behavior:'smooth',block:'center'});
-      var re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
-      if (!p._oh) p._oh = p.innerHTML;
-      p.innerHTML = p._oh.replace(re,'<span class="search-highlight">$1</span>');
-    }
+  var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  panels.forEach(function(p){
+    if (p.innerText.toLowerCase().indexOf(q) < 0) return;
+    p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!p._oh) p._oh = p.innerHTML;
+    // 先拆掉已有的高亮（恢复纯文本），再重新高亮
+    p.querySelectorAll('.search-highlight').forEach(function(sp){ sp.outerHTML = sp.textContent; });
+    // 只遍历文本节点做高亮，绝不改写标签结构（#17 修复：旧实现会破坏 <div>/<span> 等标签）
+    var walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node){
+      var txt = node.nodeValue;
+      re.lastIndex = 0;
+      if (!re.test(txt)) return;
+      var frag = document.createDocumentFragment();
+      var last = 0, m;
+      re.lastIndex = 0;
+      while ((m = re.exec(txt)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+        var sp = document.createElement('span');
+        sp.className = 'search-highlight';
+        sp.textContent = m[0];
+        frag.appendChild(sp);
+        last = m.index + m[0].length;
+        if (m[0].length === 0) re.lastIndex++;
+      }
+      if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
   });
 }
 
@@ -2987,7 +2961,7 @@ ${scoreHtml}
 
 function previewT1Card() {
   const c = id => esc(document.getElementById('t1_'+id).value || '');
-  if (!c('city') || !c('a')) { alert('请至少填写地名和场景A！'); return; }
+  if (!c('city')) { alert('请先填写地名！'); return; }
   const city = c('city');
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
@@ -3089,7 +3063,7 @@ function downloadCardImage() {
 
 function previewT1Calc() {
   const c = id => esc(document.getElementById('t1_'+id).value || '');
-  if (!c('city') || !c('a')) { alert('请至少填写地名和场景A！'); return; }
+  if (!c('city')) { alert('请先填写地名！'); return; }
   const city = c('city');
   const topic = c('topic');
   const a = c('a'), b = c('b'), cVal = c('c');
@@ -3191,7 +3165,6 @@ function fillT1Presets() {
   var generated = generateT1Scenarios(topic);
   applyT1Presets(generated);
   // 【2026-07-16】实时搜索已下线（搜索结果质量差，改用离线话术库）
-  // searchT1AndFill(topic);
 }
 
 function applyT1Presets(presets) {
@@ -5287,10 +5260,6 @@ function generateInfographic() {
   if (area) area.scrollIntoView({ behavior: 'smooth' });
 }
 
-function generateSellingPointCard() {
-  generateInfographic();
-}
-
 function generateDouyinPrompt() {
   var item = document.getElementById('t3_item').value;
   var title = document.getElementById('t3_title').value;
@@ -5419,7 +5388,11 @@ async function manualRefreshHotspot() {
         max_tokens: 3000, temperature: 0.9
       })
     });
-    var data = await resp.json();
+    var data;
+    try { data = await resp.json(); } catch(e) { throw new Error('AI 接口返回非 JSON 数据'); }
+    if (!data || !Array.isArray(data.choices) || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+      throw new Error('AI 返回结构异常（缺少 choices[0].message.content）');
+    }
     var content = data.choices[0].message.content;
     var jsonStr = content.replace(/```json|```/g, '').trim();
     var scripts = JSON.parse(jsonStr);
@@ -5595,7 +5568,11 @@ async function manualRefreshBGM() {
         max_tokens: 3500, temperature: 0.9
       })
     });
-    var data = await resp.json();
+    var data;
+    try { data = await resp.json(); } catch(e) { throw new Error('AI 接口返回非 JSON 数据'); }
+    if (!data || !Array.isArray(data.choices) || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+      throw new Error('AI 返回结构异常（缺少 choices[0].message.content）');
+    }
     var content = data.choices[0].message.content.replace(/```json|```/g, '').trim();
     var jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('AI返回格式错误');
