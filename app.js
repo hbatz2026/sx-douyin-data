@@ -1,8 +1,8 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 07:52:06
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
+// 注意：构建产物必须确定性（不嵌入时间戳），否则每次构建字节不同，部署体积校验会误报。
 
 // ═══════ core.js ═══════
 'use strict';
@@ -625,10 +625,18 @@ function matchMemoryBank(scriptText) {
   var PAIN = ['卡顿', '慢', '贵', '坑', '骗', '亏', '不会', '难', '信号', '排队', '掉线', '网速', '差', '换', '升级', '怕', '烦恼'];
   var TRUST = ['官方', '营业厅', '上门', '免费', '老用户', '专业', '透明', '无隐形', '电信', '师傅'];
   var PRICE = ['元', '兆', 'M', '块', '免费', '套餐', '月租', '年付', '返', '补贴'];
-  var CTA = ['扣', '评论', '私信', '到店', '预约', '链接', '扫码', '关注', '截图', '保存', '转发'];
+  // 2026-07-26: CTA 与评分器五维对齐（收藏/复访/评论/到店/转发），原扁平 CTA 词库改为分组，概念与 scoreScriptV2 的 ctaCount 一致
+  var CTA_GROUPS = [
+    { label: '收藏', kw: ['截图', '保存', '收藏', '收好', '留着', '存好', '这份', '这个表', '划重点'] },
+    { label: '复访', kw: ['关注', '下期', '系列', '追更', '后续', '每周', '主页'] },
+    { label: '评论', kw: ['评论', '说说', '聊聊', '提问', '留言', '吐槽', '讨论'] },
+    { label: '到店', kw: ['到店', '来店', '预约', '私信', '扫码', '链接', '办理', '营业厅', '核销'] },
+    { label: '转发', kw: ['转发', '分享'] }
+  ];
   function matchOne(arr, label) { return arr.filter(function(k){ return scriptText.indexOf(k) >= 0; }).map(function(k){ return {tag:k, label:label}; }); }
-  var hits = matchOne(PAIN, '痛点').concat(matchOne(TRUST, '信任')).concat(matchOne(PRICE, '价格')).concat(matchOne(CTA, 'CTA'));
-  var TOTAL = PAIN.length + TRUST.length + PRICE.length + CTA.length;
+  var hits = matchOne(PAIN, '痛点').concat(matchOne(TRUST, '信任')).concat(matchOne(PRICE, '价格'));
+  CTA_GROUPS.forEach(function(g) { hits = hits.concat(matchOne(g.kw, g.label)); });
+  var TOTAL = PAIN.length + TRUST.length + PRICE.length + CTA_GROUPS.reduce(function(a, g) { return a + g.kw.length; }, 0);
   return {
     total: hits.length,
     pct: Math.round(hits.length / TOTAL * 100),
@@ -637,7 +645,7 @@ function matchMemoryBank(scriptText) {
       pain: hits.filter(function(h){ return h.label === '痛点'; }).length,
       trust: hits.filter(function(h){ return h.label === '信任'; }).length,
       price: hits.filter(function(h){ return h.label === '价格'; }).length,
-      cta: hits.filter(function(h){ return h.label === 'CTA'; }).length
+      cta: hits.filter(function(h){ return h.label !== '痛点' && h.label !== '信任' && h.label !== '价格'; }).length
     }
   };
 }
@@ -2926,7 +2934,7 @@ function previewT1Talk() {
         { k:'collect', label:'📌 收藏力', th:40 },
         { k:'revisit', label:'🔁 复访力', th:30 },
         { k:'interact', label:'💬 互动力', th:45 },
-        { k:'retention', label:'⏱ 留存力', th:50 },
+        { k:'retention', label:'⏱ 留存力', th:60 },
         { k:'convert', label:'🛒 转化力', th:40 }
       ];
       var dimHtml = dims.map(function(d){
