@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 03:28:59
+// 构建时间: 2026-07-26 05:06:58
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -606,7 +606,7 @@ function auditScript(scriptText, ctx) {
 function isBenchmark(scriptText, ctx) {
   var s = scoreScriptV2(scriptText, ctx);
   // 新规则：钩子必须拉住；至少1个CTA动作；绝不堆砌(1-2条足够)；达质量总分线
-  var ok = s.retention >= 60 && s.ctaCount >= 1 && !s.ctaStuffed && !s.openerRepeat && s.total >= 48;
+  var ok = s.retention >= 60 && s.ctaCount >= 1 && !s.ctaStuffed && !s.openerRepeat && s.total >= 35;
   return { benchmark: ok, score: s };
 }
 
