@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 07:30:16
+// 构建时间: 2026-07-26 07:52:06
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -5659,6 +5659,9 @@ function copyBenchmarkScript(idx) {
 function renderBenchmark() {
   var el = document.getElementById('benchmarkContent');
   if (!el) return;
+  // 标杆库「展示门槛」：仅综合评分 ≥ 80 的优质脚本进库（isBenchmark 的 35 为候选池/徽章门槛）
+  // 与 core.js:611 注释一致：35 是候选池入口，前端展示应聚焦高分样板
+  var BENCH_DISPLAY_MIN = 80;
   var entries = [];
 
   function addEntry(scriptText, type, label, persona) {
@@ -5666,6 +5669,7 @@ function renderBenchmark() {
     if (typeof isBenchmark !== 'function') return;
     var b = isBenchmark(scriptText);
     if (!b.benchmark) return;
+    if (b.score.total < BENCH_DISPLAY_MIN) return;
     entries.push({
       type: type, label: label, persona: persona || '',
       text: esc(scriptText.slice(0, 220)).replace(/\n/g, '<br>'),
@@ -5697,11 +5701,13 @@ function renderBenchmark() {
   }
 
   entries.sort(function(a,b){ return b.score.total - a.score.total; });
+  // 展示上限：取综合分最高的前 60 条，避免几百条脚本刷屏
+  if (entries.length > 60) entries = entries.slice(0, 60);
   window.___benchmarkEntries = entries;
 
   var html = '';
   if (entries.length === 0) {
-    html = '<div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无标杆脚本入围。脚本总评分 ≥ 80 且五维全线达标时，会自动进入标杆库。</div>';
+    html = '<div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无标杆脚本入围。综合评分 ≥ 80 且通过新算法审核（强钩子 + 含自然 CTA 动作 + 无堆砌/无开头雷同）时，会自动进入标杆库。</div>';
   } else {
     html = '<div style="display:grid;gap:12px;">';
     var dims = [{k:'collect',icon:'📌',n:'收藏'},{k:'revisit',icon:'🔁',n:'复访'},{k:'interact',icon:'💬',n:'互动'},{k:'retention',icon:'⏱',n:'留存'},{k:'convert',icon:'🛒',n:'转化'}];
