@@ -48,6 +48,7 @@ function safeCall(fn) {
 }
 
 var PERSONA_KEY = 'douyin_lab_persona';
+var STORE_KEY = 'douyin_lab_bound_store';
 
 (function cleanOldCaches() {
   try {
@@ -672,7 +673,7 @@ function track(action, detail) {
   var s = loadStats();
   var entry = { ts: Date.now(), action: action, detail: detail || '' };
   // Auto-attach bound store if available
-  var store = localStorage.getItem('douyin_lab_bound_store');
+  var store = localStorage.getItem(STORE_KEY);
   if (store) entry.store = store;
   s.events.push(entry);
   // Keep max 5000 events to avoid localStorage overflow
@@ -729,7 +730,7 @@ switchPage = function(name, el, noPush) {
   return result;
 };
 
-var STORE_KEY = 'douyin_lab_bound_store';
+// STORE_KEY 已提升至文件顶部（与 PERSONA_KEY 同区），统一引用常量避免读写分离
 
 function bindStore() {
   var input = document.getElementById('storeInput');
@@ -2921,11 +2922,12 @@ function previewT1Talk() {
     var mem = (typeof matchMemoryBank === 'function') ? matchMemoryBank(fullText) : null;
     var scoreHtml = '';
     if (score) {
-      function bar5(s, th) {
+      function bar5(s) {
         var filled = Math.round(s / 10);
         var empty = 10 - filled;
+        // 颜色与及格标记统一用 60 阈值（与 auditScript「5秒钩子」门槛一致），消除"✅及格却红色条"的矛盾
         var color = s >= 80 ? '#10B981' : s >= 60 ? '#F59E0B' : '#EF4444';
-        var mark = s >= th ? '✅' : '⚠️';
+        var mark = s >= 60 ? '✅' : '⚠️';
         return '<span style="display:inline-block;width:' + (filled * 9) + 'px;height:8px;background:' + color + ';border-radius:4px;"></span>' +
                '<span style="display:inline-block;width:' + (empty * 9) + 'px;height:8px;background:#E2E8F0;border-radius:4px;"></span>' +
                ' <span style="font-size:9px;color:#94A3B8;">' + mark + '</span>';
@@ -2938,7 +2940,7 @@ function previewT1Talk() {
         { k:'convert', label:'🛒 转化力', th:40 }
       ];
       var dimHtml = dims.map(function(d){
-        return '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">' + d.label + ' <b style="color:#1E293B;">' + score[d.k] + '</b></div>' + bar5(score[d.k], d.th) + '</div>';
+        return '<div><div style="font-size:11px;color:#64748B;margin-bottom:4px;">' + d.label + ' <b style="color:#1E293B;">' + score[d.k] + '</b></div>' + bar5(score[d.k]) + '</div>';
       }).join('');
       var auditBadge = (audit && audit.pass) ? '<span style="font-size:11px;color:#fff;background:#10B981;padding:2px 8px;border-radius:8px;">✅ 新算法审核通过</span>' : '<span style="font-size:11px;color:#fff;background:#F59E0B;padding:2px 8px;border-radius:8px;">⚠️ 待优化</span>';
       var benchBadge = (bench && bench.benchmark) ? '<span style="font-size:11px;color:#fff;background:#7C3AED;padding:2px 8px;border-radius:8px;">⭐ 标杆脚本</span>' : '';
