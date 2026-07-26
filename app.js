@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 05:08:54
+// 构建时间: 2026-07-26 05:40:47
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -520,7 +520,8 @@ function scoreScriptV2(scriptText, ctx) {
 
   // —— 留存力：钩子分级（强者/通用者/模板者），避免千篇一律 ——
   // 强钩子：冲突/反问/反常识/数字反差开场；通用钩子：人设常用口吻；模板钩子：最泛滥的"家人们"开场
-  var HOOK_STRONG = /^(为什么|怎么|谁|别|还在|不会|知道吗|这|一|你|大家|兄弟们|哥|姐妹|上个月|昨天|今天|前两天|想|说真的|说实话)/;
+  // 2026-07-26: 收紧强钩子——移除「这|一|今天|大家」等极普通字（开头几乎必命中，区分度崩塌）；保留「你」(常作反问/共情开场)
+  var HOOK_STRONG = /^(为什么|怎么|谁|别|还在|不会|知道吗|你|兄弟们|哥|姐妹|上个月|昨天|前两天|想|说真的|说实话)/;
   var HOOK_WEAK = /^(我|咱们|咱|那个|最近|其实|很多人|有些|每次|记得|宝子|姐妹们|兄弟们|哥)/;
   var HOOK_TEMPLATE = /^(家人们)/; // 仅惩罚最泛滥的通用开场，保留人设声音(宝子/兄弟/姐)
   var hookPunct = /[？?！!]/;
@@ -550,7 +551,8 @@ function scoreScriptV2(scriptText, ctx) {
   var interact = Math.min(100, commentScore + shareScore + empathyScore);
 
   // —— 转化力：到店 / 核销 / 私信 ——
-  var convertKw = /(到店|来店|来营业厅|营业厅|预约|私信|扫码|链接|核销|门店|厅里|店里|办理|当场)/g;
+  // 2026-07-26: 「营业厅」是场景词不是转化动作，从转化词库移除，避免转化分虚高
+  var convertKw = /(到店|来店|来营业厅|预约|私信|扫码|链接|核销|门店|厅里|店里|办理|当场)/g;
   var convert = Math.min(100, (t.match(convertKw) || []).length * 22 + 22);
 
   // —— 复访力：系列化 / 关注 ——
@@ -606,6 +608,7 @@ function auditScript(scriptText, ctx) {
 function isBenchmark(scriptText, ctx) {
   var s = scoreScriptV2(scriptText, ctx);
   // 新规则：钩子必须拉住；至少1个CTA动作；绝不堆砌(1-2条足够)；达质量总分线
+  // 2026-07-26: 标杆线保持 35（回归实测：收紧至40/45会误伤温情/服务故事类优质人设内容，占掉标多数；前端标杆库展示门槛为 total>=80，35 仅为候选池入口，故不收紧）。质量改进已落在上方钩子分级收紧 + 转化词库收敛。
   var ok = s.retention >= 60 && s.ctaCount >= 1 && !s.ctaStuffed && !s.openerRepeat && s.total >= 35;
   return { benchmark: ok, score: s };
 }
@@ -5653,10 +5656,8 @@ function renderBenchmark() {
 
 // ═══════ init.js ═══════
 (function initAll() {
-  // 2026-07-20: 延迟 100ms 再检查数据（让 bundle.js 完全加载）
-  setTimeout(function() {
-    checkDataFiles();
-  }, 100);
+  // 2026-07-26: 改用 defer 加载后，bundle.js 保证在 app.js 前执行完毕，无需 setTimeout 赌加载
+  checkDataFiles();
   try { buildSchedule(); } catch(e) { console.error('buildSchedule:', e); }
   try { buildTodayHero(); } catch(e) { console.error('buildTodayHero:', e); }
   try { buildTopicBank(); } catch(e) { console.error('buildTopicBank:', e); }
