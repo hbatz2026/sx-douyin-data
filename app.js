@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 构建时间: 2026-07-26 06:56:58
+// 构建时间: 2026-07-26 07:09:14
 // 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 
@@ -183,7 +183,14 @@ function hashStore(str) {
 }
 
 function getPersona() {
-  return localStorage.getItem(PERSONA_KEY) || 'sister';
+  // 实时人设选择优先；若从未用选择器、但已绑定过营业厅（绑定时会记住人设），回退到绑定人设；最终兜底暖心姐姐
+  var p = localStorage.getItem(PERSONA_KEY);
+  if (p) return p;
+  try {
+    var s = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    if (s && s.persona) return s.persona;
+  } catch (e) {}
+  return 'sister';
 }
 
 function setPersona(key) {
@@ -2863,9 +2870,9 @@ function previewT1Talk() {
   var variantHtml = tryVariantInjection(topic, bgm, 'preview1-talk');
   // alias mapping → exact match → fuzzy
   var topicKey = (window.___t1TopicAliases && ___t1TopicAliases[topic]) || topic;
-  // 2026-07-20: 人设差异化脚本（完整版，非拼接）
-  var personaKey = 'sister';
-  try { var _p = JSON.parse(localStorage.getItem('douyin_lab_store') || '{}'); if (_p.persona) personaKey = _p.persona; } catch(e) {}
+  // 2026-07-26 修复：预览人设统一用 getPersona()（实时人设选择），不再只从营业厅绑定读，
+  // 否则在「选了甜美学姐但没重新绑店」时仍回退展示暖心姐姐（T2/T4 已用 getPersona()，此处对齐）
+  var personaKey = getPersona();
   var personaScript = window.___t1ScriptFullByPersona && ___t1ScriptFullByPersona[topicKey] && ___t1ScriptFullByPersona[topicKey][personaKey];
   var fullScript = personaScript
     || (window.___t1ScriptFull && ___t1ScriptFull[topicKey])
