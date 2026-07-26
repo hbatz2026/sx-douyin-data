@@ -7,19 +7,28 @@
 <meta name="theme-color" content="#0052CC">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.8.2">
+  <link rel="stylesheet" href="styles.css?v=2.9.0">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.8.2" defer></script>
+  <script src="data/bundle.js?v=2.9.0" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
   <!-- Publish kit v2.6.5: form-first BGM/tags, Douyin traffic tags -->
-  <script src="data/publish-kit.js?v=2.8.2" defer></script>
+  <script src="data/publish-kit.js?v=2.9.0" defer></script>
 
 </head>
 <body>
 
 <!-- Toast notification container -->
 <div id="toast" class="toast"></div>
+  <!-- 快捷键说明弹窗 -->
+  <div id="shortcutHelp" class="sc-modal" role="dialog" aria-modal="true" aria-labelledby="scTitle" style="display:none;">
+    <div class="sc-backdrop" onclick="closeShortcutHelp()"></div>
+    <div class="sc-panel">
+      <div class="sc-head"><h3 id="scTitle">⌨️ 快捷键说明</h3><button class="sc-close" onclick="closeShortcutHelp()" aria-label="关闭">✕</button></div>
+      <div class="sc-body" id="scBody"></div>
+      <div class="sc-foot">按 <span class="kbd">?</span> 或 <span class="kbd">F1</span> 随时打开 · <span class="kbd">Esc</span> 关闭</div>
+    </div>
+  </div>
 <!-- Back to top button -->
 <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
 
@@ -27,7 +36,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.8.0</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.0</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
       <a href="hot/today-hotspot.html" class="entry-btn entry-hot">🔥 今日热点跟拍 →</a>
@@ -63,6 +72,7 @@
       </span>
     </div>
     <div class="week" id="weekLabel">📅 加载中...</div>
+    <span id="helpBtn" class="help-btn" title="快捷键说明（按 ? 或 F1）" onclick="toggleShortcutHelp()">⌨️ 快捷键</span>
     <span id="adminLock" style="position:absolute;top:8px;right:16px;cursor:pointer;font-size:16px;opacity:0.4;transition:opacity 0.2s;" title="管理员入口" onclick="unlockAdmin()">🔒</span>
   </header>
 
@@ -1010,6 +1020,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.8.2" defer></script>
+  <script src="app.js?v=2.9.0" defer></script>
 </body>
 </html>
