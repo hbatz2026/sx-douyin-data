@@ -189,7 +189,7 @@ function getPersona() {
   if (p) return p;
   try {
     var s = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-    if (s && s.persona) return s.persona;
+    if (s && s.persona && personaDB[s.persona]) return s.persona;
   } catch (e) {}
   return 'sister';
 }
