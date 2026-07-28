@@ -1,6 +1,6 @@
 {
   "pipeline": "genNewTopicScripts",
-  "startedAt": "2026-07-28T08:20:26.011Z",
+  "startedAt": "2026-07-28T08:27:10.794Z",
   "status": "ok",
   "types": {
     "t1": {
@@ -19,5 +19,5 @@
     }
   },
   "error": null,
-  "finishedAt": "2026-07-28T08:20:42.555Z"
+  "finishedAt": "2026-07-28T08:40:20.479Z"
 }
