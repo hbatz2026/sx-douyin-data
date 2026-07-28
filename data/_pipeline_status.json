@@ -1,6 +1,6 @@
 {
   "pipeline": "genNewTopicScripts",
-  "startedAt": "2026-07-28T07:42:39.362Z",
+  "startedAt": "2026-07-28T07:50:33.445Z",
   "status": "ok",
   "types": {
     "t1": {
@@ -9,13 +9,14 @@
     },
     "t2": {
       "topics": 7,
-      "new": 1
+      "new": 0,
+      "note": "no new topics"
     },
     "t4": {
-      "topics": 7,
-      "new": 5
+      "topics": 8,
+      "new": 4
     }
   },
   "error": null,
-  "finishedAt": "2026-07-28T07:47:22.832Z"
+  "finishedAt": "2026-07-28T07:55:23.257Z"
 }
