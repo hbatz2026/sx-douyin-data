@@ -1,21 +1,23 @@
 {
   "pipeline": "genNewTopicScripts",
-  "startedAt": "2026-07-28T02:09:23.207Z",
+  "startedAt": "2026-07-28T02:34:31.432Z",
   "status": "ok",
   "types": {
     "t1": {
       "topics": 7,
-      "new": 7
+      "new": 0,
+      "note": "no new topics"
     },
     "t2": {
       "topics": 7,
-      "new": 2
+      "new": 0,
+      "note": "no new topics"
     },
     "t4": {
-      "skipped": true,
-      "note": "timeout budget reached — deferred to next run"
+      "topics": 7,
+      "new": 7
     }
   },
   "error": null,
-  "finishedAt": "2026-07-28T02:23:51.854Z"
+  "finishedAt": "2026-07-28T02:46:14.682Z"
 }
