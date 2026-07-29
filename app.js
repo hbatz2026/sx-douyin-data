@@ -1,6 +1,6 @@
 'use strict';
 // 抖本内容工坊 v2.8.0 — 模块化构建
-// 模块: core.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
+// 模块: core.js, dataLoader.js, schedule.js, templates.js, ai.js, live.js, pages.js, init.js
 // 此文件由 build-app.mjs 自动生成，请编辑 src/ 下的源文件
 // 注意：构建产物必须确定性（不嵌入时间戳），否则每次构建字节不同，部署体积校验会误报。
 
@@ -946,17 +946,17 @@ const WEEK_ZERO = new Date(2026, 0, 5);
 
 const currentWeekNum = Math.floor((new Date() - WEEK_ZERO) / (7*24*60*60*1000)) + 1;
 
-const topicPool = (function() {
+let topicPool = (function() {
   try { if (window.___topicPool) return window.___topicPool; } catch(e) {}
   return { decision: [], scene: [], review: [], local: [] };
 })();
 
-const t1Presets = (function() {
+let t1Presets = (function() {
   try { if (window.___t1Presets) return window.___t1Presets; } catch(e) {}
   return window.___t1Presets || {};
 })();
 
-const phonePool = (function() {
+let phonePool = (function() {
   try { if (window.___phonePool) return window.___phonePool; } catch(e) {}
   return window.___phonePool || [];
 })();
@@ -1156,20 +1156,31 @@ function addCopyButton(panelId) {
   panel.insertBefore(wrap, panel.firstChild);
 }
 
-const t2Presets = (function() {
+let t2Presets = (function() {
   try { if (window.___t2Presets) return window.___t2Presets; } catch(e) {}
   return window.___t2Presets || {};
 })();
 
-const techDB = (function() {
+let techDB = (function() {
   try { if (window.___techDB) return window.___techDB; } catch(e) {}
   return window.___techDB || {};
 })();
 
-const t4Presets = (function() {
+let t4Presets = (function() {
   try { if (window.___t4Presets) return window.___t4Presets; } catch(e) {}
   return window.___t4Presets || {};
 })();
+
+// 2026-07-29 Plan B：运行时从 Gitee 拉取数据合并后，刷新被 const/let 捕获的数据别名
+// 这样 SCF 生成的选题无需重新打包即可反映到预览与下拉
+window.__refreshDataAliases = function() {
+  try { topicPool = window.___topicPool || { decision: [], scene: [], review: [], local: [] }; } catch (e) {}
+  try { t1Presets = window.___t1Presets || {}; } catch (e) {}
+  try { phonePool = window.___phonePool || []; } catch (e) {}
+  try { t2Presets = window.___t2Presets || {}; } catch (e) {}
+  try { techDB = window.___techDB || {}; } catch (e) {}
+  try { t4Presets = window.___t4Presets || {}; } catch (e) {}
+};
 
 function downloadAsImage(previewId) {
   const el = document.getElementById(previewId);
@@ -1224,7 +1235,7 @@ function syncTopicDropdown() {
   }
   var pool = window.___topicPool;
   // 2026-07-20: 过滤抖音禁止销售的单号卡类选题
-  var banned = /学生套餐|老人手机套餐|手机卡套餐|套餐横向|5G套餐|4G套餐|流量不够用|流量包|加包|号卡|合约机|月租/;
+  var banned = /学生套餐|老人手机套餐|手机卡套餐|套餐横向|5G套餐|4G套餐|流量包|加包|号卡|合约机|月租/;
   var topics = (pool.decision || []).filter(function(t) { return !banned.test(t); });
   topics = topics.slice(0, 24);
   var html = '';
@@ -2454,6 +2465,122 @@ function updateFreshness(){var b=document.getElementById('freshnessBadge');if(!b
 setTimeout(function(){updateFreshness();updateFavCount();renderFavs()},800);
 
 function updateMobileNav(){var ap=document.querySelector('.page.active');if(!ap)return;var id=ap.id.replace('page-','');var items=document.querySelectorAll('.mobile-nav .mn-item');var map={schedule:0,template1:1,template2:2,template4:3,favorites:4};items.forEach(function(it){it.classList.remove('active')});if(map[id]!==undefined)items[map[id]].classList.add('active')}
+
+// ═══════ dataLoader.js ═══════
+// dataLoader.js — 2026-07-29 Plan B
+// 彻底解决「SCF 生成的新选题前端看不到」：运行时直拉 Gitee 最新数据，
+// 合并进前端全局(window.___X)，刷新被捕获的别名，并动态生成 t1/t2/t4 下拉。
+// CORS：Gitee API 对公开仓库返回 Access-Control-Allow-Origin:*，浏览器可直接 fetch，无需 token。
+
+const GITEE_API = 'https://gitee.com/api/v5/repos/hbatz/sx-douyin-data/contents/data/';
+// 仅拉「选题/脚本/模板」类数据；phonePool/techDB 等为前端专用，不在此同步
+const REMOTE_DATA_FILES = [
+  't1ScriptFullByPersona.js',
+  't2ScriptFullByPersona.js',
+  't4ScriptFullByPersona.js',
+  't1Presets.js',
+  't2Presets.js',
+  't4Presets.js',
+  'topicPool.js'
+];
+
+function __b64decodeUtf8(b64) {
+  const clean = (b64 || '').replace(/[\s-]/g, '');
+  const bin = atob(clean);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+async function __fetchGiteeDataFile(fname) {
+  const url = GITEE_API + encodeURIComponent(fname) + '?t=' + Date.now();
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if (!json.content) throw new Error('empty content');
+  const code = __b64decodeUtf8(json.content);
+  const win = {};
+  // 数据文件形如 window.___X = {...}；在沙箱里执行以捕获赋值
+  new Function('window', code)(win);
+  const out = {};
+  for (const k in win) if (k.indexOf('___') === 0) out[k] = win[k];
+  return out;
+}
+
+let __remoteLoadPromise = null;
+function __loadRemoteData() {
+  if (__remoteLoadPromise) return __remoteLoadPromise;
+  __remoteLoadPromise = (async () => {
+    let ok = 0;
+    for (const f of REMOTE_DATA_FILES) {
+      try {
+        const objs = await __fetchGiteeDataFile(f);
+        for (const name in objs) {
+          const remote = objs[name];
+          const local = window[name] || {};
+          // 并集：本地打包数据(兜底) + 远端 Gitee(新增/更新)；同名以 Gitee 为准
+          window[name] = Object.assign({}, local, remote);
+        }
+        ok++;
+      } catch (e) {
+        console.warn('[dataLoader] 拉取 ' + f + ' 失败，沿用本地打包数据：', e.message);
+      }
+    }
+    // 刷新被 let 捕获的别名（topicPool / t2Presets 等）
+    if (typeof window.__refreshDataAliases === 'function') {
+      try { window.__refreshDataAliases(); } catch (e) {}
+    }
+    // 重新填充下拉
+    if (typeof window.__repopulateSelects === 'function') {
+      try { window.__repopulateSelects(); } catch (e) {}
+    }
+    const el = document.getElementById('data-sync-status');
+    if (el) {
+      el.textContent = ok === REMOTE_DATA_FILES.length
+        ? '✅ 已同步云端最新选题'
+        : '⚠ 云端同步部分失败，已用本地数据(' + ok + '/' + REMOTE_DATA_FILES.length + ')';
+      el.style.color = ok === REMOTE_DATA_FILES.length ? '#3ec46d' : '#e6a23c';
+    }
+    console.log('[dataLoader] Gitee 数据合并完成：' + ok + '/' + REMOTE_DATA_FILES.length + ' 文件成功');
+    return ok;
+  })();
+  return __remoteLoadPromise;
+}
+
+// 动态生成 t1_topic / t2_preset / t4_preset 下拉（替代 index.html 硬编码 option）
+function __populateSelect(selId, keys, placeholder) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const prev = sel.value;
+  const sorted = (keys || []).slice().sort((a, b) => a.localeCompare(b, 'zh'));
+  let html = '';
+  if (placeholder) html += '<option value="" disabled' + (prev ? '' : ' selected') + '>' + placeholder + '</option>';
+  for (const k of sorted) {
+    html += '<option value="' + k.replace(/"/g, '&quot;') + '">' + k.replace(/</g, '&lt;') + '</option>';
+  }
+  sel.innerHTML = html;
+  // 尽量保留原选中项
+  if (prev && sorted.indexOf(prev) >= 0) sel.value = prev;
+}
+
+window.__repopulateSelects = function () {
+  // t1 沿用既有 syncTopicDropdown（从 topicPool.decision 取数，含标签/过滤逻辑）
+  try { if (typeof syncTopicDropdown === 'function') syncTopicDropdown(); } catch (e) {}
+  __populateSelect('t2_preset', Object.keys(window.___t2Presets || {}), '— 请选择故事模板 —');
+  __populateSelect('t4_preset', Object.keys(window.___t4Presets || {}), '— 请选择本地活动 —');
+};
+
+// 初始化：先用本地打包数据填充下拉，再异步拉取云端合并
+function __initDataSync() {
+  try { window.__repopulateSelects(); } catch (e) {}
+  window.__loadRemoteData();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __initDataSync);
+} else {
+  __initDataSync();
+}
 
 // ═══════ schedule.js ═══════
 function getBestTime(idx, city) {
