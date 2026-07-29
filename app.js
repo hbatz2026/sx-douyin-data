@@ -2628,10 +2628,19 @@ window.__repopulateSelects = function () {
   ], '— 请选择本地活动 —');
 };
 
-// 初始化：先用本地打包数据填充下拉，再异步拉取云端合并
+// 初始化：先确保本地人设脚本(persona-scripts.js，含 t2/t4 脚本选题)已加载，
+// 再填充下拉（含本地完整脚本选题），最后异步拉取云端合并
 function __initDataSync() {
-  try { window.__repopulateSelects(); } catch (e) {}
-  window.__loadRemoteData();
+  const ready = (typeof ensurePersonaScripts === 'function')
+    ? ensurePersonaScripts()
+    : Promise.resolve(false);
+  Promise.resolve(ready).then(function() {
+    try { window.__repopulateSelects(); } catch (e) {}
+    window.__loadRemoteData();
+  }).catch(function() {
+    try { window.__repopulateSelects(); } catch (e) {}
+    window.__loadRemoteData();
+  });
 }
 
 if (document.readyState === 'loading') {
