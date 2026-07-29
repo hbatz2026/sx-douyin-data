@@ -2344,45 +2344,19 @@ function setCachedAIKey(k) {
   try { if (k && k.length > 20) localStorage.setItem('_dy_ai_key', k); } catch(e) {}
 }
 
+// ── AI 配置（浏览器直调，纯前端架构下密钥公开是固有性质）──
+var AI_ENDPOINT = 'https://tbnx.plus7.plus/v1/chat/completions';
+var AI_MODEL = 'deepseek-v4-pro';
+var AI_KEY = 'sk-YVIhIW12wWaXjxtq6qpU3z34UhZOhlekn7EKZ13Y7bf7o629';
+
 async function ensureAIKey() {
   if (__aiKey) return __aiKey;
-  // 先检查 localStorage 缓存
   var cached = getCachedAIKey();
   if (cached) { __aiKey = cached; return __aiKey; }
-  if (__aiKeyPromise) return __aiKeyPromise;
-  __aiKeyPromise = (async function() {
-    try {
-      var ctrl = new AbortController();
-      var tid = setTimeout(function(){ctrl.abort();}, 10000);
-      var res = await fetch(PERSONALIZE_API, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({mode:'get-ai-key'}),
-        signal: ctrl.signal
-      });
-      clearTimeout(tid);
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      var data = await res.json();
-      if (!data.key) throw new Error('no key');
-      __aiKey = data.key;
-      setCachedAIKey(data.key);
-      return __aiKey;
-    } catch(e) {
-      console.warn('[AI key] SCF获取失败:', e.message);
-      // 兜底：弹出对话框让用户粘贴 key（SiliconFlow 控制台可查）
-      var manualKey = prompt('输入你的 SiliconFlow API Key\n去 https://cloud.siliconflow.cn → API密钥 → 复制粘贴过来\n（只需输入一次，后续自动缓存）');
-      if (manualKey && manualKey.length > 20) {
-        __aiKey = manualKey.trim();
-        setCachedAIKey(__aiKey);
-        return __aiKey;
-      }
-      __aiKey = null;
-      return null;
-    } finally {
-      __aiKeyPromise = null;
-    }
-  })();
-  return __aiKeyPromise;
+  // 内置 key，与 SCF 统一走 tbnx 网关；如需临时覆盖可清 localStorage 的 _dy_ai_key 后由运营粘贴
+  __aiKey = AI_KEY;
+  setCachedAIKey(AI_KEY);
+  return __aiKey;
 }
 
 function detectAdWords(text) {
@@ -3842,9 +3816,11 @@ function switchT3Mode(mode) {
   document.querySelectorAll('#t3-mtab-talk, #t3-mtab-silent').forEach(el => el.classList.remove('active'));
   document.getElementById('t3-mode-' + mode).classList.add('active');
   document.getElementById('t3-mtab-' + mode).classList.add('active');
-  // Hide all previews on switch
-  document.getElementById('preview3-talk').style.display = 'none';
-  document.getElementById('preview3-silent').style.display = 'none';
+  // Hide all previews on switch（容器可能尚未创建，先判空）
+  var _pt = document.getElementById('preview3-talk');
+  var _ps = document.getElementById('preview3-silent');
+  if (_pt) _pt.style.display = 'none';
+  if (_ps) _ps.style.display = 'none';
   var sdBtns = document.getElementById('silentDownloadBtns');
   if (sdBtns) sdBtns.style.display = 'none';
   updateMobileBarAction();
@@ -4492,14 +4468,14 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     var userPrompt = '帮我把这段台词改得更自然、更像口语化的现场表达：\n```\n' + src + '\n```';
 
     var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
-    var res = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+    var res = await fetch(AI_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + key
       },
       body: JSON.stringify({
-        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        model: AI_MODEL,
         messages: [
           {role: 'system', content: systemPrompt},
           {role: 'user', content: userPrompt}
@@ -4513,7 +4489,7 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     if (!res.ok) {
       var errTxt = '';
       try { errTxt = (await res.json()).message || ''; } catch(e) {}
-      throw new Error('SiliconFlow ' + res.status + ': ' + errTxt.slice(0,100));
+      throw new Error('AI ' + res.status + ': ' + errTxt.slice(0,100));
     }
     var data = await res.json();
     var polished = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
@@ -4529,7 +4505,7 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     var errMsg = e.message || '';
     if (e.name === 'AbortError' || errMsg.indexOf('AbortError') >= 0) {
       errType = 'timeout';
-    } else if (errMsg.indexOf('SiliconFlow') === 0) {
+    } else if (errMsg.indexOf('AI') === 0) {
       errType = 'api';
     } else if (errMsg === 'empty' || errMsg === 'no-ai-key') {
       errType = 'empty';
@@ -5315,7 +5291,7 @@ function filterHotspot(mode, el) {
   renderHotspots();
 }
 
-// P2: 手动刷新热点跟拍（浏览器直调 SiliconFlow）
+// P2: 手动刷新热点跟拍（浏览器直调 AI · tbnx 网关）
 async function manualRefreshHotspot() {
   var btn = document.getElementById('hotspotRefreshBtn');
   var status = document.getElementById('hotspotRefreshStatus');
@@ -5323,11 +5299,11 @@ async function manualRefreshHotspot() {
   btn.disabled = true; btn.textContent = '⏳ 生成中...';
   status.textContent = '正在抓取热点 + AI 生成脚本...';
   try {
-    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+    var resp = await fetch(AI_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-lshlazfvzcohfpxyimzpdqiaamrswskintayloiwdqzcxzod' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI_KEY },
       body: JSON.stringify({
-        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        model: AI_MODEL,
         messages: [{
           role: 'system',
           content: '你是抖音热点跟拍脚本专家。输出7条适合电信营业厅跟拍的热点脚本，每条含id/tier(1-3)/title/heat/why/source/steps(数组含shot+sub)/bgm/tags/difficulty/needFace/time字段。JSON数组格式。'
@@ -5497,17 +5473,17 @@ function tryRenderBgm() {
   }
 }
 
-// v2.8: 手动刷新BGM（浏览器直调 SiliconFlow）
+// v2.8: 手动刷新BGM（浏览器直调 AI · tbnx 网关）
 async function manualRefreshBGM() {
   var btn = event.target;
   var oldText = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ 生成中...';
   try {
-    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+    var resp = await fetch(AI_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-lshlazfvzcohfpxyimzpdqiaamrswskintayloiwdqzcxzod' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI_KEY },
       body: JSON.stringify({
-        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        model: AI_MODEL,
         messages: [{
           role: 'system',
           content: '你是抖音音乐趋势专家。输出营业厅短视频BGM推荐JSON。结构：{"对比推荐":{"轻快对比":["歌名-歌手",...],"算账节奏":[...]},"服务故事":{"温情叙事":[...],"快节奏爽片":[...]},"开箱实测":{"科技感":[...]},"本地福利":{"探店活力":[...],"福利快闪":[...]},"直播":{"暖场":[...],"逼单":[...]}}。歌曲必须是抖音能搜到的真实热门BGM（最近30天抖音热歌/挑战榜/平台推荐）。每sub至少5首。纯JSON无markdown。'
