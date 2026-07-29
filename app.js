@@ -2507,6 +2507,36 @@ async function __fetchGiteeDataFile(fname) {
   return out;
 }
 
+// 数组感知深合并：
+// - 数组(如 topicPool.decision/scene/local)：按内容拼接去重，本地与云端共存、永不丢失
+// - 对象(如 tXPresets / tXScriptFullByPersona 的 key→persona 结构)：递归合并，同名 key 以云端为准
+// - 基本类型：云端优先
+function __mergeData(local, remote) {
+  if (Array.isArray(remote)) {
+    if (Array.isArray(local)) {
+      const seen = new Set();
+      const out = [];
+      for (const v of local.concat(remote)) {
+        const k = (typeof v === 'string') ? v : JSON.stringify(v);
+        if (!seen.has(k)) { seen.add(k); out.push(v); }
+      }
+      return out;
+    }
+    return remote.slice();
+  }
+  if (remote && typeof remote === 'object' && !Array.isArray(remote)) {
+    const base = (local && typeof local === 'object' && !Array.isArray(local)) ? local : {};
+    const out = {};
+    const keys = new Set([].concat(Object.keys(base), Object.keys(remote)));
+    for (const k of keys) {
+      if (k in remote) out[k] = __mergeData(base[k], remote[k]);
+      else out[k] = base[k];
+    }
+    return out;
+  }
+  return (remote === undefined) ? local : remote;
+}
+
 let __remoteLoadPromise = null;
 function __loadRemoteData() {
   if (__remoteLoadPromise) return __remoteLoadPromise;
@@ -2519,7 +2549,7 @@ function __loadRemoteData() {
           const remote = objs[name];
           const local = window[name] || {};
           // 并集：本地打包数据(兜底) + 远端 Gitee(新增/更新)；同名以 Gitee 为准
-          window[name] = Object.assign({}, local, remote);
+          window[name] = __mergeData(local, remote);
         }
         ok++;
       } catch (e) {
@@ -2548,26 +2578,53 @@ function __loadRemoteData() {
 }
 
 // 动态生成 t1_topic / t2_preset / t4_preset 下拉（替代 index.html 硬编码 option）
-function __populateSelect(selId, keys, placeholder) {
+// 支持 optgroup 分组：模板(自动填充) + 脚本选题(SCF 生成，可直接预览)
+function __populateSelectGroups(selId, groups, placeholder) {
   const sel = document.getElementById(selId);
   if (!sel) return;
   const prev = sel.value;
-  const sorted = (keys || []).slice().sort((a, b) => a.localeCompare(b, 'zh'));
   let html = '';
   if (placeholder) html += '<option value="" disabled' + (prev ? '' : ' selected') + '>' + placeholder + '</option>';
-  for (const k of sorted) {
-    html += '<option value="' + k.replace(/"/g, '&quot;') + '">' + k.replace(/</g, '&lt;') + '</option>';
+  for (const g of groups) {
+    if (!g.keys || !g.keys.length) continue;
+    const label = (g.label || '').replace(/"/g, '&quot;');
+    html += '<optgroup label="' + label + '">';
+    const sorted = g.keys.slice().sort((a, b) => a.localeCompare(b, 'zh'));
+    for (const k of sorted) {
+      html += '<option value="' + k.replace(/"/g, '&quot;') + '">' + k.replace(/</g, '&lt;') + '</option>';
+    }
+    html += '</optgroup>';
   }
   sel.innerHTML = html;
   // 尽量保留原选中项
-  if (prev && sorted.indexOf(prev) >= 0) sel.value = prev;
+  if (prev) {
+    let found = false;
+    for (const g of groups) if (g.keys && g.keys.indexOf(prev) >= 0) { found = true; break; }
+    if (found) sel.value = prev;
+  }
 }
 
 window.__repopulateSelects = function () {
   // t1 沿用既有 syncTopicDropdown（从 topicPool.decision 取数，含标签/过滤逻辑）
   try { if (typeof syncTopicDropdown === 'function') syncTopicDropdown(); } catch (e) {}
-  __populateSelect('t2_preset', Object.keys(window.___t2Presets || {}), '— 请选择故事模板 —');
-  __populateSelect('t4_preset', Object.keys(window.___t4Presets || {}), '— 请选择本地活动 —');
+
+  // t2：模板(presets，自动填充) + 脚本选题(ScriptFullByPersona，SCF 生成可直接预览)，去重
+  const t2PresetKeys = Object.keys(window.___t2Presets || {});
+  const t2ScriptKeys = Object.keys(window.___t2ScriptFullByPersona || {});
+  const t2ScriptOnly = t2ScriptKeys.filter(k => t2PresetKeys.indexOf(k) < 0);
+  __populateSelectGroups('t2_preset', [
+    { label: '故事模板（自动填充）', keys: t2PresetKeys },
+    { label: '脚本选题（SCF生成）', keys: t2ScriptOnly }
+  ], '— 请选择故事场景 —');
+
+  // t4：活动(presets，自动填充) + 脚本选题(ScriptFullByPersona，SCF 生成可直接预览)，去重
+  const t4PresetKeys = Object.keys(window.___t4Presets || {});
+  const t4ScriptKeys = Object.keys(window.___t4ScriptFullByPersona || {});
+  const t4ScriptOnly = t4ScriptKeys.filter(k => t4PresetKeys.indexOf(k) < 0);
+  __populateSelectGroups('t4_preset', [
+    { label: '本地活动（自动填充）', keys: t4PresetKeys },
+    { label: '脚本选题（SCF生成）', keys: t4ScriptOnly }
+  ], '— 请选择本地活动 —');
 };
 
 // 初始化：先用本地打包数据填充下拉，再异步拉取云端合并
