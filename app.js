@@ -1237,7 +1237,8 @@ function syncTopicDropdown() {
   // 2026-07-20: 过滤抖音禁止销售的单号卡类选题
   var banned = /学生套餐|老人手机套餐|手机卡套餐|套餐横向|5G套餐|4G套餐|流量包|加包|号卡|合约机|月租/;
   var topics = (pool.decision || []).filter(function(t) { return !banned.test(t); });
-  topics = topics.slice(0, 24);
+  // 2026-07-29: 上限从 24 提到 60，避免 SCF 新增决策题被截断（当前约 29 项，预留增长空间）
+  topics = topics.slice(0, 60);
   var html = '';
   topics.forEach(function(t) {
     html += '<option value="' + esc(t) + '">' + esc(t) + '</option>';
