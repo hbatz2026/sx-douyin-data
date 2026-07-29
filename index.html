@@ -7,10 +7,10 @@
 <meta name="theme-color" content="#0052CC">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.13">
+  <link rel="stylesheet" href="styles.css?v=2.9.14">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.13" defer></script>
+  <script src="data/bundle.js?v=2.9.14" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
 
 </head>
@@ -34,7 +34,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.13</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.14</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
       <a href="hot/today-hotspot.html" class="entry-btn entry-hot">🔥 今日热点跟拍 →</a>
@@ -169,29 +169,7 @@
         </div>
         <div class="form-group">
           <label>本周选题 <span class="hint">（从选题库选一个）</span></label>
-          <select id="t1_topic" onchange="fillT1Presets()">
-            <option value="宽带选多少兆最划算">宽带选多少兆最划算</option>
-            <option value="不同人群宽带怎么选">一个人/家庭/合租宽带怎么选</option>
-            <option value="盛夏狂欢办千兆送手机">🔥 盛夏狂欢·办千兆送vivo/荣耀/小米</option>
-            <option value="宽带新装300Mvs500Mvs1000M">宽带新装：300M/500M/1000M怎么选</option>
-            <option value="宽带避坑指南">宽带避坑：3个最容易踩的坑</option>
-            <option value="光猫路由网线哪个最影响网速">光猫/路由/网线——哪个最影响网速</option>
-            <option value="本月宽带优惠活动">🔥 本月宽带优惠活动盘点</option>
-            <option value="宽带提速升千兆">宽带提速升级千兆，50元搞定</option>
-            <option value="100/300/1000兆看视频实测差距">100/300/1000兆看视频实测差距</option>
-            <option value="暑假学生宽带怎么选最省钱">暑假学生宽带怎么选最省钱</option>
-            <option value="租房宽带避坑指南">租房宽带避坑指南</option>
-            <option value="二宽半价到底值不值">二宽半价到底值不值</option>
-            <option value="全家宽带套餐真的划算吗">全家宽带套餐真的划算吗</option>
-            <option value="携号转网实际体验全流程">携号转网实际体验全流程</option>
-            <option value="宽带+手机+电视三合一方案">宽带+手机+电视三合一方案</option>
-            <option value="异地宽带怎么办理最方便">异地宽带怎么办理最方便</option>
-            <option value="新装宽带送路由器活动解析">新装宽带送路由器活动解析</option>
-            <option value="老用户领FTTR设备升级">老用户专享：领FTTR设备+智屏</option>
-            <option value="宽带提速该不该升一档">宽带提速该不该升一档</option>
-            <option value="到店体验领福利">到店体验领福利：50元得200代金券</option>
-            <option value="世界杯看球宽带怎么选不卡顿不掉线">世界杯看球宽带怎么选</option>
-          </select>
+          <select id="t1_topic" onchange="fillT1Presets()"></select>
         </div>
       </div>
 
@@ -307,37 +285,7 @@
 
       <div class="form-group">
         <label>📋 故事模板 <span class="hint">（选模板自动填好全部7个字段，只需改关键信息）</span></label>
-        <select id="t2_preset" onchange="fillT2Presets();applyHook('t2');expandT2Detail()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);">
-          <option value="">-- 从15个场景中选一个，自动填好全部内容 --</option>
-          <optgroup label="▸ 上门服务类">
-            <option value="上门维修">🔧 上门维修 — 路由器位置不对导致网慢 [⭐经典]</option>
-            <option value="装机故事">📦 装机故事 — 老小区布线装宽带 [🆕新题]</option>
-          </optgroup>
-          <optgroup label="▸ 柜台服务类">
-            <option value="柜台服务">💻 柜台服务 — 老套餐该升级了 [⭐经典]</option>
-            <option value="突发状况">⚠️ 突发状况 — 客户流量告急 [⚡快拍]</option>
-            <option value="投诉化解">🔥 投诉化解 — 怒气客户变回头客</option>
-          </optgroup>
-          <optgroup label="▸ 温情故事类">
-            <option value="温暖瞬间">💛 温暖瞬间 — 帮老人连上视频通话 [⭐经典]</option>
-            <option value="老客户情谊">🤝 老客户情谊 — 十年老客户成街坊 [💛走心]</option>
-            <option value="银发服务">👴 银发服务 — 帮老人跨过数字鸿沟</option>
-            <option value="反诈劝阻">🛡 反诈劝阻 — 帮老人识破冒充公检法诈骗 [🆕新题]</option>
-            <option value="突发事件">🌧 突发事件 — 暴雨天帮外卖小哥</option>
-          </optgroup>
-          <optgroup label="▸ 社区&校园类">
-            <option value="社区营销">🏘 社区营销 — 进社区便民服务</option>
-            <option value="校园迎新">🎓 校园迎新 — 帮新生办第一张卡</option>
-            <option value="数字课堂">📱 数字课堂 — 银发族防诈骗教学</option>
-          </optgroup>
-          <optgroup label="▸ 政企&活动类">
-            <option value="政企服务">🏢 政企服务 — 单位网络改造一站式</option>
-            <option value="节日活动">🎊 节日活动 — 中秋送温暖</option>
-            <option value="公益服务">💝 公益服务 — 关爱环卫工人</option>
-            <option value="高考换机">📱 高考换机 — 准大学生第一台手机 [📚节点]</option>
-            <option value="暑期换机">🎒 暑期换机 — 打工攒钱换新机 [📚节点]</option>
-          </optgroup>
-        </select>
+        <select id="t2_preset" onchange="fillT2Presets();applyHook('t2');expandT2Detail()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);"></select>
         <div id="t2-autofill-hint" style="margin-top:4px;font-size:11px;color:#999;">⬆ 选一个场景模板，下面自动填好所有内容。你只需要改时间/地名等关键信息。</div>
       </div>
 
@@ -560,20 +508,7 @@
 
       <div class="form-group">
         <label>🎁 活动类型 <span class="hint">（选活动自动填福利+标签，地名地址自己填）</span></label>
-        <select id="t4_preset" onchange="fillT4Presets()">
-          <option value="">-- 可选：选一个活动类型快速填充 --</option>
-          <option value="免费贴膜">📱 免费贴膜 — 苹果安卓曲面直屏都能贴</option>
-          <option value="免费测速">📡 免费测速 — 上门或到店测你家WiFi到底多快</option>
-          <option value="办业务送礼">🎁 办业务送礼 — 新装/续约/升级都有好礼</option>
-          <option value="以旧换新">🔄 以旧换新 — 旧手机旧光猫抵钱换新机</option>
-          <option value="手机清洁">🧹 手机清洁 — 免费清洁+贴膜+系统优化</option>
-          <option value="宽带体验">🌐 宽带体验 — 千兆宽带免费体验3天</option>
-          <option value="暑期特惠">☀️ 暑期特惠 — 学生/教师专属优惠</option>
-          <option value="社区服务">🏘 社区服务 — 进社区便民+上门服务</option>
-          <option value="暑期纳凉">🧊 暑期纳凉 — 进店纳凉送冰水 [🆕7月新]</option>
-          <option value="学生购机">🎒 学生购机 — 凭学生证享专属价+大礼包 [🆕7月新]</option>
-          <option value="全家桶特惠">🏠 全家桶特惠 — 宽带+手机+IPTV一站搞定 [🆕7月新]</option>
-        </select>
+        <select id="t4_preset" onchange="fillT4Presets()"></select>
       </div>
       
       <div class="form-row form-row-3">
@@ -1019,6 +954,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.13" defer></script>
+  <script src="app.js?v=2.9.14" defer></script>
 </body>
 </html>
