@@ -177,7 +177,7 @@ window.___dailyScripts = {
       "templateId": "template4",
       "topic": "企业宽带义诊",
       "variants": {
-        "biz": { "title": "公司网到下午就卡？免费的诊断", "persona": "商务精英", "script": "中小企业免费上门网络诊断：测延迟/丢包率/带宽利用率。上个月诊断15人公司——100M家用宽带撑不住→换企业专线效率提升120%。免费出书面报告不办业务也出。评论区报公司人数我安排工程师48h到。" }
+        "biz": { "title": "公司网到下午就卡？免费的诊断", "persona": "商务精英", "script": "中小企业免费上门网络诊断：测延迟/丢包率/带宽利用率。上个月诊断15人公司——老家用宽带撑不住→换企业专线效率提升120%。免费出书面报告不办业务也出。评论区报公司人数我安排工程师48h到。" }
       }
     }
   ]
@@ -233,7 +233,7 @@ window.___hotspotData = [
     "steps": [
       {"shot": "用卡顿滤镜拍营业厅，突然恢复清晰", "sub": "字幕：你家WiFi也这样卡？"},
       {"shot": "展示测速过程：卡顿→诊断→修复→满速", "sub": "路由器位置是关键"},
-      {"shot": "对比前后网速数字（100M→300M实测）", "sub": "字幕：免费测速到店"},
+      {"shot": "对比前后网速数字（300M→1000M实测）", "sub": "字幕：免费测速到店"},
       {"shot": "结束CTA：来店免费测", "sub": "字幕：📍山西电信 免费WiFi体检"}
     ],
     "bgm": "卡点电子", "tags": "#WiFi卡顿 #免费测速 #故障画风",
@@ -554,6 +554,31 @@ function renderCommentItems(comments) {
 }
 
 // 2026-07-20: AI 真实生成评论（调 SCF Web 函数）
+function extractPreviewScriptText() {
+  // 1) 优先读取专用标记（T1 talk 兜底版、T3 等已加标记的场景）
+  var scriptEl = document.querySelector('[data-role="script-body"]');
+  if (scriptEl && scriptEl.textContent.trim().length >= 20) {
+    return scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim();
+  }
+  // 2) 找到当前可见的预览面板
+  var visiblePreview = null;
+  var previews = document.querySelectorAll('[id^="preview"]');
+  for (var i = 0; i < previews.length; i++) {
+    if (previews[i].offsetParent !== null) visiblePreview = previews[i];
+  }
+  if (!visiblePreview) return '';
+  // 3) 口播/话术主体通常包在 .dialogue 里，优先拼接这些（T1 talk/T1 calc/T2/T3/T4 口播形态）
+  var dialogues = visiblePreview.querySelectorAll('.dialogue');
+  var parts = [];
+  for (var i = 0; i < dialogues.length; i++) {
+    parts.push(dialogues[i].textContent.trim());
+  }
+  var text = parts.join('\n').replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim();
+  if (text.length >= 20) return text;
+  // 4) 兜底：取可见预览面板全部文本（图卡/无声等形态没有 .dialogue）
+  return visiblePreview.textContent.replace(/\n{3,}/g, '\n').trim();
+}
+
 async function triggerCommentAI(t, btn) {
   if (!btn) return;
   // 1) 配额检查
@@ -562,8 +587,7 @@ async function triggerCommentAI(t, btn) {
     return;
   }
   // 2) 取脚本 + 标题 + 标签
-  var scriptEl = document.querySelector('[data-role="script-body"]');
-  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim() : '';
+  var scriptText = extractPreviewScriptText();
   var title = (document.querySelector('.info-tag') || {}).textContent || '';
   if (!scriptText || scriptText.length < 20) {
     toast('请先预览脚本，再点 AI 生成评论', 'error');
@@ -1030,7 +1054,7 @@ function copyPublishBundle() {
 window.___t1Comments = {
   "宽带选多少兆": [
     "你家几口人几台设备？评论区说说，我帮你算最划算的兆数",
-    "刚办了300兆有点后悔，想升300兆怎么办？直接来营业厅改套餐就行",
+    "刚办了300兆有点后悔，想升500兆怎么办？直接来营业厅改套餐就行",
     "楼下营业厅免费测速，报我名字优先安排"
   ],
   "套餐怎么选": [
@@ -1090,7 +1114,7 @@ window.___t1Comments = {
   ],
   "打游戏用什么宽带？延迟对比实测": [
     "你打游戏延迟多少？评论区报一下，我帮你看看正常不正常",
-    "300兆打排位才稳，300兆起步才不拖后腿",
+    "家里宽带低于300兆，打排位容易460，来店里测一下",
     "装个游戏宽带送加速器，来店里找我"
   ],
   "FTTR到底值不值得装？用数据说话": [
@@ -1746,7 +1770,7 @@ window.___t2Presets = {
     "desc": "暑假孩子在家网速慢，引出升级",    "time": "暑假午后",
     "customer": "在家无事的初中生",
     "problem": "爸妈上班不在家，孩子想用手机看网课，但家里的WiFi太卡老是加载不出来",
-    "finding": "孩子家是老套餐100兆，爸妈不在家时孩子开多个设备同时刷，带宽不够用了",
+    "finding": "孩子家是老套餐300兆，爸妈不在家时孩子开多个设备同时刷，带宽不够用了",
     "steps": "1.远程指导孩子检查路由器位置\n2.发现路由器在弱电箱里信号被屏蔽\n3.帮忙预约上门调试时间",
     "reaction": "调整后网速翻倍，孩子说终于能好好学习了",
     "summary": "暑期孩子一个人在家，别让网速耽误了他",
@@ -2006,7 +2030,7 @@ window.___techDB = {
         item: '宽带网线', func: '网线类型选择',
         title: '网线五类六类七类到底怎么选？装维师傅说真话',
         tags: '#网线 #宽带布线 #网络知识 #装维',
-        p1: '五类线：100兆宽带够用，十年前的老线，换宽带记得换线',
+        p1: '五类线：普通宽带够用，十年前的老线，换宽带记得换线',
         p2: '六类线：千兆宽带标准配线，新装修直接用这个，性价比最高',
         p3: '七类线：万兆级别，家庭用不上，多花钱没必要',
       },
