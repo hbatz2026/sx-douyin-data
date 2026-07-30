@@ -2686,6 +2686,14 @@ window.__repopulateSelects = function () {
     { label: '本地活动（自动填充）', keys: t4PresetKeys },
     { label: '脚本选题（SCF生成）', keys: t4ScriptOnly }
   ], '— 请选择本地活动 —');
+
+  // t3：测评选题（按设备动态填充，带已选徽章）
+  try {
+    if (typeof loadTopicsByDevice === 'function') {
+      const dev = document.getElementById('t3_device');
+      if (dev && dev.value) loadTopicsByDevice();
+    }
+  } catch (e) {}
 };
 
 // 初始化：先确保本地人设脚本(persona-scripts.js，含 t2/t4 脚本选题)已加载，
@@ -3937,7 +3945,9 @@ function loadTopicsByDevice() {
     Object.keys(phoneTopics).forEach(key => {
       const opt = document.createElement('option');
       opt.value = key;
-      opt.textContent = key + ' — ' + phoneTopics[key].title;
+      const used = (typeof isUsedByStore === 'function') && isUsedByStore(key);
+      opt.textContent = key + ' — ' + phoneTopics[key].title + (used ? '　✓ 已选' : '');
+      if (used) opt.className = 'used-opt';
       topicSelect.appendChild(opt);
     });
     return;
@@ -3947,7 +3957,9 @@ function loadTopicsByDevice() {
     Object.keys(techDB[device].topics).forEach(key => {
       const opt = document.createElement('option');
       opt.value = key;
-      opt.textContent = key + ' — ' + techDB[device].topics[key].title;
+      const used = (typeof isUsedByStore === 'function') && isUsedByStore(key);
+      opt.textContent = key + ' — ' + techDB[device].topics[key].title + (used ? '　✓ 已选' : '');
+      if (used) opt.className = 'used-opt';
       topicSelect.appendChild(opt);
     });
     return;
@@ -3958,7 +3970,9 @@ function loadTopicsByDevice() {
     Object.keys(fallbackTopics).forEach(key => {
       const opt = document.createElement('option');
       opt.value = key;
-      opt.textContent = key + ' — ' + fallbackTopics[key].title;
+      const used = (typeof isUsedByStore === 'function') && isUsedByStore(key);
+      opt.textContent = key + ' — ' + fallbackTopics[key].title + (used ? '　✓ 已选' : '');
+      if (used) opt.className = 'used-opt';
       topicSelect.appendChild(opt);
     });
   }
