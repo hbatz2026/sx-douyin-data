@@ -1,350 +1,315 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今日跟拍脚本 · 2026年7月29日</title>
-  <style>
-    :root {
-      --primary: #2563EB;
-      --accent: #7C3AED;
-      --green: #059669;
-      --orange: #EA580C;
-      --bg-page: #F8FAFC;
-      --bg-section: #FFFFFF;
-      --bg-card: #F1F5F9;
-      --border: #CBD5E1;
-      --border-light: #E2E8F0;
-      --text-main: #1E293B;
-      --text-body: #334155;
-      --text-muted: #64748B;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg-page); color: var(--text-main); line-height: 1.7; }
-    .container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
-
-    .header { text-align: center; padding: 36px 24px 28px; background: linear-gradient(135deg, #1E40AF, #7C3AED); border-radius: 14px; margin-bottom: 24px; }
-    .header h1 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 8px; }
-    .header .date { font-size: 15px; color: rgba(255,255,255,0.9); font-weight: 600; }
-    .header .subtitle { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; }
-    .header .stats { display: inline-flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
-    .header .stat { font-size: 12px; color: #fff; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-weight: 600; }
-
-    .section-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; margin-top: 8px; display: flex; align-items: center; }
-    .section-title .badge { font-size: 11px; color: #fff; padding: 2px 10px; border-radius: 10px; margin-left: 8px; font-weight: 600; }
-    .badge-green { background: var(--green); }
-    .badge-orange { background: var(--orange); }
-
-    .card { margin-bottom: 20px; background: var(--bg-section); border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-    .card-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border-light); position: relative; }
-    .card-head .idx { position: absolute; right: 20px; top: 14px; font-size: 48px; font-weight: 900; color: #EFF6FF; line-height: 1; z-index: 0; }
-    .card-head .tag-row { display: flex; flex-wrap: wrap; gap: 6px; position: relative; z-index: 1; }
-    .tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
-    .tag-blue { background: #DBEAFE; color: #1E40AF; }
-    .tag-orange { background: #FED7AA; color: #9A3412; }
-    .tag-green { background: #D1FAE5; color: #065F46; }
-    .tag-gray { background: #F1F5F9; color: #64748B; }
-    .card-head h2 { font-size: 17px; font-weight: 800; margin-top: 10px; position: relative; z-index: 1; color: var(--text-main); }
-    .source-line { font-size: 12.5px; color: var(--text-muted); margin-top: 5px; position: relative; z-index: 1; }
-    .source-line b { color: var(--orange); }
-
-    .copy-btn { position: absolute; right: 20px; bottom: 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; z-index: 2; transition: all 0.2s; }
-    .copy-btn:hover { background: #1D4ED8; transform: scale(1.05); }
-    .copy-btn:active { transform: scale(0.95); }
-
-    .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border-light); border-bottom: 1px solid var(--border-light); }
-    .info-cell { background: #fff; padding: 10px 14px; }
-    .info-cell .k { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; }
-    .info-cell .v { font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-top: 2px; }
-
-    .effect-box { margin: 14px 20px 0; padding: 9px 12px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; }
-    .effect-label { font-size: 12px; color: var(--green); font-weight: 700; }
-    .effect-text { font-size: 13px; color: #334155; line-height: 1.6; }
-
-    .shot-table { width: calc(100% - 40px); border-collapse: collapse; font-size: 13.5px; margin: 14px 20px 0; }
-    .shot-table th { background: var(--bg-card); color: var(--text-muted); font-weight: 700; text-align: left; padding: 8px 10px; font-size: 11.5px; letter-spacing: 0.5px; border-bottom: 2px solid var(--border-light); }
-    .shot-table td { padding: 10px; border-bottom: 1px solid #F1F5F9; vertical-align: top; }
-    .shot-table tr:last-child td { border-bottom: none; }
-    td.shot-no { width: 40px; color: var(--primary); font-weight: 800; text-align: center; }
-    td.shot-visual { width: 38%; color: #475569; font-size: 12.5px; }
-    td.shot-vo { color: var(--text-main); line-height: 1.65; }
-    td.shot-vo b { color: var(--primary); }
-    td.shot-cap { width: 22%; color: var(--primary); font-size: 12px; font-weight: 600; }
-
-    .cta-box { margin: 10px 20px 0; padding: 9px 12px; background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; font-size: 12.5px; color: #92400E; line-height: 1.6; }
-    .cta-label { color: var(--orange); font-weight: 700; }
-
-    .script-footer { display: flex; gap: 16px; padding: 10px 20px 14px; flex-wrap: wrap; border-top: 1px solid var(--border-light); margin-top: 10px; }
-    .script-footer span { font-size: 12px; color: var(--text-muted); }
-    .bgm { color: var(--accent) !important; }
-    .tags { color: var(--primary) !important; }
-
-    .shoot-box { padding: 10px 20px 14px; font-size: 12px; color: #334155; line-height: 1.6; }
-    .shoot-label { color: var(--primary); font-weight: 700; }
-
-    .schedule-box { background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
-    .schedule-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; }
-    .schedule-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-    .schedule-day { text-align: center; padding: 8px 4px; background: var(--bg-card); border-radius: 8px; font-size: 11px; }
-    .schedule-day .day { font-weight: 700; color: var(--primary); margin-bottom: 2px; }
-    .schedule-day .desc { color: var(--text-muted); line-height: 1.4; font-size: 10.5px; }
-
-    .tips { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
-    .tips-title { font-size: 15px; font-weight: 700; color: #92400E; margin-bottom: 6px; text-align: center; }
-    .tips-detail { font-size: 12px; color: #78350F; line-height: 1.9; }
-
-    .footer { text-align: center; padding: 24px 0; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border-light); }
-
-    @media (max-width: 600px) {
-      .header h1 { font-size: 22px; }
-      .info-grid { grid-template-columns: repeat(2, 1fr); }
-      .shot-table { width: calc(100% - 28px); margin: 14px 14px 0; }
-      td.shot-cap { display: none; }
-      .effect-box, .cta-box, .script-footer, .shoot-box { margin-left: 14px; margin-right: 14px; }
-      .card-head { padding: 14px 14px 10px; }
-      .schedule-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media print {
-      body { background: #fff; }
-      .card { box-shadow: none; break-inside: avoid; margin-top: 12px; }
-      .header { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .schedule-box, .tips { break-inside: avoid; }
-      .shot-table { font-size: 11px; }
-      .tag, .info-cell { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-    <script>
-    function copyScript(btn) {
-      var text = btn.getAttribute('data-copy').replace(/&#10;/g, '\n').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); btn.textContent = '已复制!'; }
-      catch(e) { btn.textContent = '复制失败'; }
-      document.body.removeChild(ta);
-      setTimeout(function() { btn.textContent = '复制本条脚本'; }, 2000);
-    }
-    </script>
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跟拍脚本 | 2026年7月30日</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','Helvetica Neue',sans-serif;background:#F8FAFC;color:#1E293B;line-height:1.75}
+.header{background:linear-gradient(135deg,#1E40AF,#7C3AED);color:#fff;padding:36px 20px;text-align:center}
+.header h1{font-size:28px;margin-bottom:8px}
+.header .subtitle{font-size:15px;opacity:.92;margin-bottom:14px}
+.header .tags{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.header .tags span{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:14px}
+.container{max-width:960px;margin:0 auto;padding:24px 20px}
+.section-header{font-size:22px;font-weight:bold;margin:28px 0 16px;padding-left:14px;border-left:5px solid #2563EB}
+.section-header.hot{border-color:#7C3AED;color:#7C3AED}
+.script-card{background:#fff;border-radius:14px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.card-top{padding:18px 24px;border-bottom:1px solid #F1F5F9;position:relative}
+.card-no{font-size:14px;color:#fff;background:#2563EB;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;vertical-align:middle;margin-right:12px}
+.card-no.hot{background:#7C3AED}
+.card-title{font-size:20px;font-weight:bold;color:#1E293B;vertical-align:middle}
+.copy-btn{float:right;background:#2563EB;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:14px;cursor:pointer;transition:all .2s;font-family:inherit}
+.copy-btn:hover{background:#1E40AF}
+.source{font-size:14px;color:#64748B;margin-top:10px;padding-left:42px}
+.relevance{font-size:13px;color:#7C3AED;margin-top:3px;padding-left:42px}
+.meta-row{padding:14px 24px;display:flex;gap:0;flex-wrap:wrap;font-size:14px;color:#475569;border-bottom:1px solid #F8FAFC}
+.meta-row span{padding:0 18px;border-right:1px solid #E2E8F0}
+.meta-row span:first-child{padding-left:0}
+.meta-row span:last-child{border-right:none}
+.meta-row b{color:#1E293B}
+.steps-box{padding:12px 24px 18px}
+.steps-box .section-title{font-size:15px;font-weight:bold;margin:12px 0 10px;color:#1E293B}
+.steps-table{width:100%;border-collapse:collapse;font-size:14px}
+.steps-table th{background:#F1F5F9;padding:10px;text-align:left;font-size:13px;color:#475569;border:1px solid #E2E8F0}
+.steps-table td{padding:12px;border:1px solid #E2E8F0;vertical-align:top;line-height:1.8}
+.step-no{text-align:center;font-weight:bold;color:#2563EB;width:38px}
+.step-time{text-align:center;color:#64748B;white-space:nowrap;width:62px}
+.step-visual{width:22%;color:#334155}
+.step-voice{width:36%}
+.step-sub{color:#64748B;font-size:13px;width:21%}
+.steps-table b{color:#1E40AF;font-weight:bold}
+.cta-box{background:#FFFBEB;margin:10px 24px;padding:14px 16px;border-radius:8px;border-left:4px solid #F59E0B}
+.cta-box .section-title{font-size:14px;font-weight:bold;color:#B45309;margin-bottom:6px}
+.cta-box p{font-size:14px;color:#92400E}
+.tip-box{background:#EFF6FF;margin:10px 24px 16px;padding:14px 16px;border-radius:8px;border-left:4px solid #2563EB}
+.tip-box .section-title{font-size:14px;font-weight:bold;color:#1E40AF;margin-bottom:4px}
+.tip-box p{font-size:14px;color:#1E40AF}
+.card-bottom{padding:12px 24px;border-top:1px solid #F1F5F9;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.bgm-tag{font-size:13px;color:#64748B;background:#F1F5F9;padding:5px 10px;border-radius:6px}
+.tags-tag{font-size:13px;color:#6366F1}
+.schedule-box{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:24px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.schedule-box .insight-title{font-size:17px;font-weight:bold;color:#1E40AF;margin-bottom:12px}
+.schedule-table{width:100%;border-collapse:collapse;font-size:14px}
+.schedule-table th{background:#F1F5F9;padding:10px;text-align:left;border:1px solid #E2E8F0;color:#475569}
+.schedule-table td{padding:10px;border:1px solid #E2E8F0}
+.bottom-tip{background:#FFFBEB;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #FCD34D}
+.bottom-tip h3{color:#B45309;margin-bottom:12px;font-size:16px}
+.bottom-tip ul{list-style:none;padding-left:0}
+.bottom-tip li{padding:5px 0;color:#92400E;font-size:14px}
+.footer{text-align:center;padding:24px;color:#94A3B8;font-size:13px}
+.copy-textarea{position:absolute;left:-9999px;top:0;width:1px;height:1px}
+@media print{.script-card{break-inside:avoid}.copy-btn{display:none}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#fff}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>今日跟拍脚本</h1>
-      <div class="date">2026年7月29日</div>
-      <div class="subtitle">照脚本念 · 按要点拍 · 今天就能发</div>
-      <div class="stats">
-        <span class="stat">3 条搜索截流</span>
-        <span class="stat">2 条热点引流</span>
-      </div>
-    </div>
+<div class="header">
+    <h1>今日跟拍脚本</h1>
+    <div class="subtitle">精选 10 条 · 照念就能拍 · 当天就能发 | 2026年7月30日</div>
+    <div class="tags"><span>7 条 搜索截流</span><span>3 条 热点引流</span><span>一键复制</span></div>
+</div>
+<div class="container">
+    <div class="section-header">搜索截流脚本（7条）- 精准获客</div>
+    <div class="script-card"><textarea class="copy-textarea" id="copy-s1">套餐用了两年还没换？你可能多花了不少
+时长: 30秒  |  出镜: 店员口播  |  场景: 营业厅柜台
+搜索词: 换套餐
 
-    <div class="section-title">搜索截流 <span class="badge badge-green">精准获客</span></div>
-    <div class="card">
-      <div class="card-head">
-        <div class="idx">S1</div>
-        <div class="tag-row">
-          <span class="tag tag-blue">搜索截流</span>
-          <span class="tag tag-green">算账对比型</span>
-          <span class="tag tag-gray">30秒</span>
-        </div>
-        <h2>每个月话费都超标？一招帮你稳住月消费</h2>
-        <div class="source-line">搜索词: <b>流量超标</b> &middot; 大类: 流量套餐 &middot; 时效: 应季</div>
-        <button class="copy-btn" onclick="copyScript(this)" data-copy="【每个月话费都超标？一招帮你稳住月消费】&#10;  分镜1 0-3s | 每个月话费都超标？一招帮你稳住月消费 | 字幕:话费超标一招搞定&#10;  分镜2 3-18s | 超出流量按兆扣费，一个不注意就多好几十，换成大流量套餐，每月消费稳了 | 字幕:换大流量套餐消费稳&#10;  分镜3 18-30s | 扣「套餐」，我帮你算哪个档位合适，到店就能直接换 | 字幕:扣套餐帮你算账&#10;  CTA: 扣「套餐」→自动回复套餐对比表+门店导航→引导到店换套餐&#10;  BGM: 节奏明快BGM | 标签: #流量超标 #话费 #换套餐 #中国电信">复制本条脚本</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-        <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播</div></div>
-        <div class="info-cell"><div class="k">场景</div><div class="v">营业厅柜台</div></div>
-        <div class="info-cell"><div class="k">目标</div><div class="v">到店换套餐</div></div>
-      </div>
-      <table class="shot-table">
-        <tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr>
-        <tr><td class="shot-no">1</td><td>0-3s</td><td class="shot-visual">店员展示手机话费账单截图</td><td class="shot-vo">每个月话费都超标？<b>一招帮你稳住月消费</b></td><td class="shot-cap">话费超标一招搞定</td></tr>
-<tr><td class="shot-no">2</td><td>3-18s</td><td class="shot-visual">白板写算账对比：超标扣费vs大流量套餐</td><td class="shot-vo">超出流量按兆扣费，一个不注意就多好几十，<b>换成大流量套餐，每月消费稳了</b></td><td class="shot-cap">换大流量套餐消费稳</td></tr>
-<tr><td class="shot-no">3</td><td>18-30s</td><td class="shot-visual">店员指向评论区+展示套餐页面</td><td class="shot-vo">扣「套餐」，我帮你算哪个档位合适，<b>到店就能直接换</b></td><td class="shot-cap">扣套餐帮你算账</td></tr>
-      </table>
-      <div class="cta-box"><span class="cta-label">引导闭环</span> 扣「套餐」→自动回复套餐对比表+门店导航→引导到店换套餐</div>
-      <div class="shoot-box"><span class="shoot-label">拍摄提示</span> 第1镜账单截图的数字特写是钩子，超出金额要醒目，激发痛点</div>
-      <div class="effect-box"><span class="effect-label">为什么有效</span> <span class="effect-text">流量套餐类370条视频成交1396单，转化率远超其他类，超标是高转化搜索词</span></div>
-      <div class="script-footer">
-        <span class="bgm">BGM: 节奏明快BGM</span>
-        <span class="tags">#流量超标 #话费 #换套餐 #中国电信</span>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head">
-        <div class="idx">S2</div>
-        <div class="tag-row">
-          <span class="tag tag-blue">搜索截流</span>
-          <span class="tag tag-green">帮省时间型</span>
-          <span class="tag tag-gray">35秒</span>
-        </div>
-        <h2>电视搜不到台？别急着找修电视的</h2>
-        <div class="source-line">搜索词: <b>电视搜不到台</b> &middot; 大类: 电视IPTV &middot; 时效: 长尾</div>
-        <button class="copy-btn" onclick="copyScript(this)" data-copy="【电视搜不到台？别急着找修电视的】&#10;  分镜1 0-3s | 电视搜不到台？别急着找修电视的，可能是信号源的问题 | 字幕:电视搜不到台？别急&#10;  分镜2 3-18s | 办个IPTV，直播回看点播全有，还能7天回看，错过节目随时补 | 字幕:IPTV直播+回看+点播&#10;  分镜3 18-35s | 扣「IPTV」，我发你功能介绍和附近门店地址，到店我给你演示一遍 | 字幕:扣IPTV到店体验&#10;  CTA: 扣「IPTV」→自动回复IPTV功能介绍+门店导航→引导到店体验&#10;  BGM: 轻松家居BGM | 标签: #IPTV #电视搜不到台 #看电视 #中国电信">复制本条脚本</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-cell"><div class="k">时长</div><div class="v">35秒</div></div>
-        <div class="info-cell"><div class="k">出镜</div><div class="v">店员</div></div>
-        <div class="info-cell"><div class="k">场景</div><div class="v">营业厅IPTV展示区</div></div>
-        <div class="info-cell"><div class="k">目标</div><div class="v">到店办IPTV</div></div>
-      </div>
-      <table class="shot-table">
-        <tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr>
-        <tr><td class="shot-no">1</td><td>0-3s</td><td class="shot-visual">电视显示无信号蓝屏</td><td class="shot-vo">电视搜不到台？<b>别急着找修电视的</b>，可能是信号源的问题</td><td class="shot-cap">电视搜不到台？别急</td></tr>
-<tr><td class="shot-no">2</td><td>3-18s</td><td class="shot-visual">切到IPTV界面展示节目列表+回看功能</td><td class="shot-vo">办个IPTV，<b>直播回看点播全有</b>，还能7天回看，错过节目随时补</td><td class="shot-cap">IPTV直播+回看+点播</td></tr>
-<tr><td class="shot-no">3</td><td>18-35s</td><td class="shot-visual">店员指向评论区+遥控器操作</td><td class="shot-vo">扣「IPTV」，我发你功能介绍和<b>附近门店地址</b>，到店我给你演示一遍</td><td class="shot-cap">扣IPTV到店体验</td></tr>
-      </table>
-      <div class="cta-box"><span class="cta-label">引导闭环</span> 扣「IPTV」→自动回复IPTV功能介绍+门店导航→引导到店体验</div>
-      <div class="shoot-box"><span class="shoot-label">拍摄提示</span> 第1镜电视蓝屏无信号画面是钩子，第2镜切到IPTV丰富节目列表反差感强</div>
-      <div class="effect-box"><span class="effect-label">为什么有效</span> <span class="effect-text">电视IPTV类仅12条视频0成交，但IPTV是宽带用户高价值增值服务，内容缺口巨大</span></div>
-      <div class="script-footer">
-        <span class="bgm">BGM: 轻松家居BGM</span>
-        <span class="tags">#IPTV #电视搜不到台 #看电视 #中国电信</span>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head">
-        <div class="idx">S3</div>
-        <div class="tag-row">
-          <span class="tag tag-blue">搜索截流</span>
-          <span class="tag tag-green">方言亲切型</span>
-          <span class="tag tag-gray">30秒</span>
-        </div>
-        <h2>准大学生看过来！开学前这件事先办好</h2>
-        <div class="source-line">搜索词: <b>学生套餐</b> &middot; 大类: 特定人群 &middot; 时效: 时效强</div>
-        <button class="copy-btn" onclick="copyScript(this)" data-copy="【准大学生看过来！开学前这件事先办好】&#10;  分镜1 0-3s | 咱准大学生注意了！开学前这件事一定先办好 | 字幕:准大学生看过来！&#10;  分镜2 3-18s | 学生套餐流量多、月费低，带录取通知书到店就能办，比普通套餐划算多了 | 字幕:学生套餐流量多月费低&#10;  分镜3 18-30s | 扣「学生」，我把学生套餐详情和最近营业厅发你，趁暑假办好开学不慌 | 字幕:扣学生领套餐详情&#10;  CTA: 扣「学生」→自动回复学生套餐资料+门店地址→带录取通知书到店&#10;  BGM: 青春活力BGM | 标签: #学生套餐 #开学季 #准大学生 #中国电信">复制本条脚本</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-cell"><div class="k">时长</div><div class="v">30秒</div></div>
-        <div class="info-cell"><div class="k">出镜</div><div class="v">店员口播带方言味</div></div>
-        <div class="info-cell"><div class="k">场景</div><div class="v">营业厅门口</div></div>
-        <div class="info-cell"><div class="k">目标</div><div class="v">到店办学生套餐</div></div>
-      </div>
-      <table class="shot-table">
-        <tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr>
-        <tr><td class="shot-no">1</td><td>0-3s</td><td class="shot-visual">店员在门口热情招手</td><td class="shot-vo">咱准大学生注意了！<b>开学前这件事一定先办好</b></td><td class="shot-cap">准大学生看过来！</td></tr>
-<tr><td class="shot-no">2</td><td>3-18s</td><td class="shot-visual">展示录取通知书+套餐页面</td><td class="shot-vo">学生套餐流量多、月费低，<b>带录取通知书到店就能办</b>，比普通套餐划算多了</td><td class="shot-cap">学生套餐流量多月费低</td></tr>
-<tr><td class="shot-no">3</td><td>18-30s</td><td class="shot-visual">店员指向评论区+展示门店</td><td class="shot-vo">扣「学生」，我把学生套餐详情和<b>最近营业厅发你</b>，趁暑假办好开学不慌</td><td class="shot-cap">扣学生领套餐详情</td></tr>
-      </table>
-      <div class="cta-box"><span class="cta-label">引导闭环</span> 扣「学生」→自动回复学生套餐资料+门店地址→带录取通知书到店</div>
-      <div class="shoot-box"><span class="shoot-label">拍摄提示</span> 第1镜用山西方言喊话是差异化钩子，第2镜举录取通知书道具</div>
-      <div class="effect-box"><span class="effect-label">为什么有效</span> <span class="effect-text">暑假到开学季是学生套餐高峰期，7月底8月初是办理黄金窗口，时令性强</span></div>
-      <div class="script-footer">
-        <span class="bgm">BGM: 青春活力BGM</span>
-        <span class="tags">#学生套餐 #开学季 #准大学生 #中国电信</span>
-      </div>
-    </div>
+【分镜1 0-3s】
+画面: 店员拿起手机展示话费账单特写
+口播: 你手机套餐多久没换了？两年以上的注意了
+字幕: 套餐多久没换了？
+【分镜2 3-15s】
+画面: 店员在柜台用纸笔对比写数字
+口播: 好多人还在用老套餐，每个月话费不知不觉多出几十块，现在新套餐流量更多、月费反而更低，差的就是查一下
+字幕: 老套餐可能多花几十块
+【分镜3 15-30s】
+画面: 店员指着评论区方向
+口播: 评论区扣「换套餐」，我帮你查你现在用的划不划算，到店十分钟就办好
+字幕: 扣「换套餐」帮你查
 
-    <div class="section-title">热点引流 <span class="badge badge-orange">玩法推荐</span></div>
-    <div class="card">
-      <div class="card-head">
-        <div class="idx">H1</div>
-        <div class="tag-row">
-          <span class="tag tag-orange">热点引流</span>
-          <span class="tag tag-green">玩法类型:对镜穿搭</span>
-          <span class="tag tag-gray">25秒</span>
-        </div>
-        <h2>营业厅工服也能一周不重样？夏日穿搭挑战</h2>
-        <div class="source-line">热点: <b>挑战夏日穿搭一周不重样</b> &middot; 抖音热榜第18位 热度780.6万 &middot; 玩法类型:对镜穿搭 - 用同款挑战BGM拍营业厅工服搭配，展示员工活力</div>
-        <button class="copy-btn" onclick="copyScript(this)" data-copy="【营业厅工服也能一周不重样？夏日穿搭挑战】&#10;  分镜1 0-3s | [配BGM]字幕:营业厅工服穿搭挑战 | 字幕:工服也能一周不重样&#10;  分镜2 3-18s | [配BGM]字幕:蓝衬衫干练/工服外套休闲/连衣裙温柔 | 字幕:3套搭配卡点切换&#10;  分镜3 18-25s | [配BGM]字幕:扣穿搭领BGM和搭配参考 | 字幕:扣穿搭领BGM&#10;  CTA: 扣「穿搭」→自动回复BGM来源+搭配参考图→引导参与话题&#10;  BGM: 抖音挑战夏日穿搭热门BGM | 标签: #夏日穿搭 #一周不重样 #营业厅日常 #OOTD">复制本条脚本</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-cell"><div class="k">时长</div><div class="v">25秒</div></div>
-        <div class="info-cell"><div class="k">出镜</div><div class="v">店员对镜穿搭展示</div></div>
-        <div class="info-cell"><div class="k">场景</div><div class="v">营业厅门口或柜台前</div></div>
-        <div class="info-cell"><div class="k">目标</div><div class="v">参与话题展示形象</div></div>
-      </div>
-      <table class="shot-table">
-        <tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr>
-        <tr><td class="shot-no">1</td><td>0-3s</td><td class="shot-visual">店员站柜台前，BGM响起</td><td class="shot-vo">(配BGM)字幕:营业厅工服穿搭挑战</td><td class="shot-cap">工服也能一周不重样</td></tr>
-<tr><td class="shot-no">2</td><td>3-18s</td><td class="shot-visual">卡点换3套搭配:蓝衬衫+胸牌/白T+工服外套/连衣裙+胸牌</td><td class="shot-vo">(配BGM)字幕:蓝衬衫干练/工服外套休闲/连衣裙温柔</td><td class="shot-cap">3套搭配卡点切换</td></tr>
-<tr><td class="shot-no">3</td><td>18-25s</td><td class="shot-visual">店员指向评论区+话题标签</td><td class="shot-vo">(配BGM)字幕:扣穿搭领BGM和搭配参考</td><td class="shot-cap">扣穿搭领BGM</td></tr>
-      </table>
-      <div class="cta-box"><span class="cta-label">引导闭环</span> 扣「穿搭」→自动回复BGM来源+搭配参考图→引导参与话题</div>
-      <div class="shoot-box"><span class="shoot-label">拍摄提示</span> 卡点换装是核心，3套搭配要在同一个位置拍，用BGM卡点切换，每套停留3-4秒</div>
-      <div class="effect-box"><span class="effect-label">为什么有效</span> <span class="effect-text">夏日穿搭话题抖音热度780.6万，营业厅工服搭配是差异化切入点</span></div>
-      <div class="script-footer">
-        <span class="bgm">BGM: 抖音挑战夏日穿搭热门BGM</span>
-        <span class="tags">#夏日穿搭 #一周不重样 #营业厅日常 #OOTD</span>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head">
-        <div class="idx">H2</div>
-        <div class="tag-row">
-          <span class="tag tag-orange">热点引流</span>
-          <span class="tag tag-green">玩法类型:魔性舞蹈</span>
-          <span class="tag tag-gray">20秒</span>
-        </div>
-        <h2>柜台前15秒魔性舞蹈，下班快乐翻倍</h2>
-        <div class="source-line">热点: <b>蛋仔小鸡九块九魔性舞蹈</b> &middot; 抖音热榜第40位 热度764.6万 &middot; 玩法类型:魔性舞蹈 - 柜台前跟拍蛋仔小鸡魔性舞蹈，展示员工活力</div>
-        <button class="copy-btn" onclick="copyScript(this)" data-copy="【柜台前15秒魔性舞蹈，下班快乐翻倍】&#10;  分镜1 0-3s | [配BGM]字幕:下班前15秒快乐一下 | 字幕:柜台前魔性舞蹈&#10;  分镜2 3-15s | [配BGM]字幕:跟着跳/压力全消/快乐翻倍 | 字幕:魔性舞蹈跳起来&#10;  分镜3 15-20s | [配BGM]字幕:扣舞蹈领BGM来跳吧 | 字幕:扣舞蹈领BGM&#10;  CTA: 扣「舞蹈」→自动回复BGM+舞蹈教学链接→引导参与话题&#10;  BGM: 蛋仔小鸡九块九原版BGM | 标签: #蛋仔小鸡 #魔性舞蹈 #营业厅日常 #快乐上班">复制本条脚本</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-cell"><div class="k">时长</div><div class="v">20秒</div></div>
-        <div class="info-cell"><div class="k">出镜</div><div class="v">店员魔性舞蹈</div></div>
-        <div class="info-cell"><div class="k">场景</div><div class="v">柜台前</div></div>
-        <div class="info-cell"><div class="k">目标</div><div class="v">参与话题展示活力</div></div>
-      </div>
-      <table class="shot-table">
-        <tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr>
-        <tr><td class="shot-no">1</td><td>0-3s</td><td class="shot-visual">柜台前BGM响起，店员准备动作</td><td class="shot-vo">(配BGM)字幕:下班前15秒快乐一下</td><td class="shot-cap">柜台前魔性舞蹈</td></tr>
-<tr><td class="shot-no">2</td><td>3-15s</td><td class="shot-visual">店员跟跳蛋仔小鸡魔性舞蹈，动作夸张有趣</td><td class="shot-vo">(配BGM)字幕:跟着跳/压力全消/快乐翻倍</td><td class="shot-cap">魔性舞蹈跳起来</td></tr>
-<tr><td class="shot-no">3</td><td>15-20s</td><td class="shot-visual">店员做结束pose+话题标签</td><td class="shot-vo">(配BGM)字幕:扣舞蹈领BGM来跳吧</td><td class="shot-cap">扣舞蹈领BGM</td></tr>
-      </table>
-      <div class="cta-box"><span class="cta-label">引导闭环</span> 扣「舞蹈」→自动回复BGM+舞蹈教学链接→引导参与话题</div>
-      <div class="shoot-box"><span class="shoot-label">拍摄提示</span> 柜台前拍摄，保持工服可见，舞蹈动作夸张但不超过15秒，关键是BGM节奏要卡准</div>
-      <div class="effect-box"><span class="effect-label">为什么有效</span> <span class="effect-text">蛋仔小鸡魔性舞蹈抖音热度764.6万，柜台前跟拍门槛低、传播性强</span></div>
-      <div class="script-footer">
-        <span class="bgm">BGM: 蛋仔小鸡九块九原版BGM</span>
-        <span class="tags">#蛋仔小鸡 #魔性舞蹈 #营业厅日常 #快乐上班</span>
-      </div>
-    </div>
+引导闭环: 扣「换套餐」→自动回复套餐对比表+门店导航→引导到店咨询办理
+拍摄提示: 第2镜用白板或手写纸条列出新旧套餐对比，算账视觉冲击力最强
+BGM: 轻快日常BGM
+标签: #换套餐 #话费 #营业厅</textarea><div class="card-top"><span class="card-no">1</span><span class="card-title">套餐用了两年还没换？你可能多花了不少</span><button class="copy-btn" id="btn-s1" onclick="copyScript('s1')">复制本条脚本</button></div><div class="source">搜索词: 换套餐 | 话术模式: 算账对比型</div><div class="meta-row"><span>时长 <b>30秒</b></span><span>出镜 <b>店员口播</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>到店换套餐</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员拿起手机展示话费账单特写</td><td class="step-voice"><b>你手机套餐多久没换了？</b>两年以上的注意了</td><td class="step-sub">套餐多久没换了？</td></tr><tr><td class="step-no">2</td><td class="step-time">3-15s</td><td class="step-visual">店员在柜台用纸笔对比写数字</td><td class="step-voice">好多人还在用老套餐，每个月话费不知不觉多出几十块，现在新套餐流量更多、月费反而更低，<b>差的就是查一下</b></td><td class="step-sub">老套餐可能多花几十块</td></tr><tr><td class="step-no">3</td><td class="step-time">15-30s</td><td class="step-visual">店员指着评论区方向</td><td class="step-voice">评论区扣「换套餐」，我帮你查你现在用的划不划算，<b>到店十分钟就办好</b></td><td class="step-sub">扣「换套餐」帮你查</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「换套餐」→自动回复套餐对比表+门店导航→引导到店咨询办理</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜用白板或手写纸条列出新旧套餐对比，算账视觉冲击力最强</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻快日常BGM</span><span class="tags-tag">#换套餐 #话费 #营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s2">4G用了这么久，5G到底要不要换
+时长: 35秒  |  出镜: 店员+手机演示  |  场景: 手机专柜
+搜索词: 5G套餐
 
+【分镜1 0-3s】
+画面: 店员举起手机对着镜头
+口播: 4G用了好几年，5G到底值不值得换？
+字幕: 5G值不值得换？
+【分镜2 3-20s】
+画面: 手机展示测速对比画面(4G vs 5G)
+口播: 三个变化你得知道：网速快了好几倍、刷视频不卡、打游戏延迟低，而且现在办5G套餐流量比4G还多，月费不一定更高
+字幕: 5G网速快+流量多+月费不一定更高
+【分镜3 20-35s】
+画面: 店员指着评论区
+口播: 不知道你那边有没有5G信号？扣「5G」我帮你查覆盖范围，到店就能办
+字幕: 扣「5G」查覆盖范围
+
+引导闭环: 扣「5G」→自动回复5G覆盖查询链接+到店引导→查覆盖后到店办理
+拍摄提示: 第2镜手机测速对比4G/5G速度是信息核心画面，测速App打开让数据说话
+BGM: 科技感轻快BGM
+标签: #5G套餐 #5G覆盖 #营业厅</textarea><div class="card-top"><span class="card-no">2</span><span class="card-title">4G用了这么久，5G到底要不要换</span><button class="copy-btn" id="btn-s2" onclick="copyScript('s2')">复制本条脚本</button></div><div class="source">搜索词: 5G套餐 | 话术模式: 产品讲解型</div><div class="meta-row"><span>时长 <b>35秒</b></span><span>出镜 <b>店员+手机演示</b></span><span>场景 <b>手机专柜</b></span><span>目标 <b>到店办5G套餐</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起手机对着镜头</td><td class="step-voice"><b>4G用了好几年，5G到底值不值得换？</b></td><td class="step-sub">5G值不值得换？</td></tr><tr><td class="step-no">2</td><td class="step-time">3-20s</td><td class="step-visual">手机展示测速对比画面(4G vs 5G)</td><td class="step-voice">三个变化你得知道：网速快了好几倍、刷视频不卡、打游戏延迟低，而且现在办5G套餐流量比4G还多，<b>月费不一定更高</b></td><td class="step-sub">5G网速快+流量多+月费不一定更高</td></tr><tr><td class="step-no">3</td><td class="step-time">20-35s</td><td class="step-visual">店员指着评论区</td><td class="step-voice">不知道你那边有没有5G信号？扣「5G」我帮你查覆盖范围，<b>到店就能办</b></td><td class="step-sub">扣「5G」查覆盖范围</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「5G」→自动回复5G覆盖查询链接+到店引导→查覆盖后到店办理</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜手机测速对比4G/5G速度是信息核心画面，测速App打开让数据说话</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 科技感轻快BGM</span><span class="tags-tag">#5G套餐 #5G覆盖 #营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s3">手机卡丢了别慌，三步搞定补卡
+时长: 25秒  |  出镜: 店员口播  |  场景: 营业厅柜台
+搜索词: 补卡怎么办
+
+【分镜1 0-3s】
+画面: 店员表情轻松地对着镜头
+口播: 手机卡丢了别慌，记住三步就行
+字幕: 手机卡丢了别慌！
+【分镜2 3-15s】
+画面: 店员拿起身份证举到镜头特写
+口播: 第一步带上身份证，第二步去最近的营业厅，第三步十分钟就办完，千万别拖，丢了不补有风险
+字幕: 带身份证→到店→10分钟办完
+【分镜3 15-25s】
+画面: 店员指引评论区方向
+口播: 扣「补卡」发你附近门店地址，到店直接办不用排队
+字幕: 扣「补卡」领门店地址
+
+引导闭环: 扣「补卡」→自动回复补卡清单+附近门店导航→到店10分钟办完
+拍摄提示: 第2镜拿起身份证举到镜头特写是关键画面，让观众一眼看清需要带的证件
+BGM: 轻松日常BGM
+标签: #补卡 #手机卡 #营业厅</textarea><div class="card-top"><span class="card-no">3</span><span class="card-title">手机卡丢了别慌，三步搞定补卡</span><button class="copy-btn" id="btn-s3" onclick="copyScript('s3')">复制本条脚本</button></div><div class="source">搜索词: 补卡怎么办 | 话术模式: 帮省时间型</div><div class="meta-row"><span>时长 <b>25秒</b></span><span>出镜 <b>店员口播</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>到店补卡</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员表情轻松地对着镜头</td><td class="step-voice"><b>手机卡丢了别慌，记住三步就行</b></td><td class="step-sub">手机卡丢了别慌！</td></tr><tr><td class="step-no">2</td><td class="step-time">3-15s</td><td class="step-visual">店员拿起身份证举到镜头特写</td><td class="step-voice">第一步带上身份证，第二步去最近的营业厅，第三步十分钟就办完，<b>千万别拖，丢了不补有风险</b></td><td class="step-sub">带身份证→到店→10分钟办完</td></tr><tr><td class="step-no">3</td><td class="step-time">15-25s</td><td class="step-visual">店员指引评论区方向</td><td class="step-voice">扣「补卡」发你附近门店地址，<b>到店直接办不用排队</b></td><td class="step-sub">扣「补卡」领门店地址</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「补卡」→自动回复补卡清单+附近门店导航→到店10分钟办完</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜拿起身份证举到镜头特写是关键画面，让观众一眼看清需要带的证件</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 轻松日常BGM</span><span class="tags-tag">#补卡 #手机卡 #营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s4">旧手机别扔，能抵不少钱你真不知道
+时长: 35秒  |  出镜: 店员+手机演示  |  场景: 手机专柜
+搜索词: 手机以旧换新
+
+【分镜1 0-3s】
+画面: 店员手里拿着一部旧手机举到镜头前
+口播: 旧手机别扔，它比你想的值钱多了
+字幕: 旧手机比你想的值钱
+【分镜2 3-20s】
+画面: 旧手机和新手机并排柜台，旁边放折抵纸条
+口播: 到店以旧换新，旧机直接折抵，不管华为苹果小米都能估价，折的钱直接减新机价，比你去二手卖省心还靠谱
+字幕: 旧机折抵→直接减新机价
+【分镜3 20-35s】
+画面: 店员指着评论区
+口播: 想知道你的旧机能抵多少？扣「换新」我帮你在线估价，到店当天就能拿新机
+字幕: 扣「换新」帮你估价
+
+引导闭环: 扣「换新」→自动回复以旧换新估价入口+到店引导→到店现场估价直接抵
+拍摄提示: 第2镜旧手机和新手机并排放在柜台，旧手机旁边放折抵金额纸条最有冲击力
+BGM: 活力促销BGM
+标签: #以旧换新 #换手机 #营业厅</textarea><div class="card-top"><span class="card-no">4</span><span class="card-title">旧手机别扔，能抵不少钱你真不知道</span><button class="copy-btn" id="btn-s4" onclick="copyScript('s4')">复制本条脚本</button></div><div class="source">搜索词: 手机以旧换新 | 话术模式: 算账对比型</div><div class="meta-row"><span>时长 <b>35秒</b></span><span>出镜 <b>店员+手机演示</b></span><span>场景 <b>手机专柜</b></span><span>目标 <b>到店以旧换新</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员手里拿着一部旧手机举到镜头前</td><td class="step-voice"><b>旧手机别扔，它比你想的值钱多了</b></td><td class="step-sub">旧手机比你想的值钱</td></tr><tr><td class="step-no">2</td><td class="step-time">3-20s</td><td class="step-visual">旧手机和新手机并排柜台，旁边放折抵纸条</td><td class="step-voice">到店以旧换新，旧机直接折抵，不管华为苹果小米都能估价，<b>折的钱直接减新机价</b>，比你去二手卖省心还靠谱</td><td class="step-sub">旧机折抵→直接减新机价</td></tr><tr><td class="step-no">3</td><td class="step-time">20-35s</td><td class="step-visual">店员指着评论区</td><td class="step-voice">想知道你的旧机能抵多少？扣「换新」我帮你在线估价，<b>到店当天就能拿新机</b></td><td class="step-sub">扣「换新」帮你估价</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「换新」→自动回复以旧换新估价入口+到店引导→到店现场估价直接抵</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜旧手机和新手机并排放在柜台，旧手机旁边放折抵金额纸条最有冲击力</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 活力促销BGM</span><span class="tags-tag">#以旧换新 #换手机 #营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s5">电视只能看几个台？你可能少装了一个东西
+时长: 30秒  |  出镜: 店员口播  |  场景: 门店门口
+搜索词: 电视搜不到台
+
+【分镜1 0-3s】
+画面: 店员手持遥控器对着镜头
+口播: 你家电视是不是只能看十几个台？
+字幕: 电视只能看十几个台？
+【分镜2 3-18s】
+画面: 镜头从遥控器摇到手机展示IPTV界面
+口播: 那是因为没装IPTV，装上以后直播、点播、回看全都有，想看什么搜什么，老人小孩都能用
+字幕: 装IPTV=直播+点播+回看
+【分镜3 18-30s】
+画面: 店员指引评论区
+口播: 扣「电视」发你频道清单和门店地址，到店装当天就能看
+字幕: 扣「电视」领频道清单
+
+引导闭环: 扣「电视」→自动回复IPTV频道清单+门店导航→到店开通当天能用
+拍摄提示: 第2镜镜头从电视遥控器摇到手机展示IPTV界面，对比感强烈，是信息核心
+BGM: 温馨家庭BGM
+标签: #IPTV #看电视 #营业厅</textarea><div class="card-top"><span class="card-no">5</span><span class="card-title">电视只能看几个台？你可能少装了一个东西</span><button class="copy-btn" id="btn-s5" onclick="copyScript('s5')">复制本条脚本</button></div><div class="source">搜索词: 电视搜不到台 | 话术模式: 痛点切入型</div><div class="meta-row"><span>时长 <b>30秒</b></span><span>出镜 <b>店员口播</b></span><span>场景 <b>门店门口</b></span><span>目标 <b>到店开通IPTV</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员手持遥控器对着镜头</td><td class="step-voice"><b>你家电视是不是只能看十几个台？</b></td><td class="step-sub">电视只能看十几个台？</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">镜头从遥控器摇到手机展示IPTV界面</td><td class="step-voice">那是因为没装IPTV，装上以后直播、点播、回看全都有，想看什么搜什么，<b>老人小孩都能用</b></td><td class="step-sub">装IPTV=直播+点播+回看</td></tr><tr><td class="step-no">3</td><td class="step-time">18-30s</td><td class="step-visual">店员指引评论区</td><td class="step-voice">扣「电视」发你频道清单和门店地址，<b>到店装当天就能看</b></td><td class="step-sub">扣「电视」领频道清单</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「电视」→自动回复IPTV频道清单+门店导航→到店开通当天能用</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜镜头从电视遥控器摇到手机展示IPTV界面，对比感强烈，是信息核心</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 温馨家庭BGM</span><span class="tags-tag">#IPTV #看电视 #营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s6">人在外地卡丢了，不用回老家也能补
+时长: 25秒  |  出镜: 店员口播  |  场景: 营业厅柜台
+搜索词: 异地补卡
+
+【分镜1 0-3s】
+画面: 店员快速拿起身份证举到镜头
+口播: 人在外地手机卡丢了，不用跑回老家
+字幕: 外地丢卡不用回老家！
+【分镜2 3-15s】
+画面: 店员在柜台指电脑屏幕展示
+口播: 现在全国都能异地补卡，带上身份证到最近营业厅就行，十分钟办好，跟回老家一样的效果
+字幕: 带身份证→就近营业厅→10分钟
+【分镜3 15-25s】
+画面: 店员指引评论区
+口播: 扣「异地」发你附近门店，到店就能办不用回老家跑一趟
+字幕: 扣「异地」查附近门店
+
+引导闭环: 扣「异地」→自动回复异地补卡须知+附近门店导航→到店10分钟办完
+拍摄提示: 第1镜店员在柜台拿身份证到镜头前的动作要快节奏，匹配25秒短时长
+BGM: 简洁明快BGM
+标签: #异地补卡 #补卡 #营业厅</textarea><div class="card-top"><span class="card-no">6</span><span class="card-title">人在外地卡丢了，不用回老家也能补</span><button class="copy-btn" id="btn-s6" onclick="copyScript('s6')">复制本条脚本</button></div><div class="source">搜索词: 异地补卡 | 话术模式: 指路型</div><div class="meta-row"><span>时长 <b>25秒</b></span><span>出镜 <b>店员口播</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>到店异地补卡</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员快速拿起身份证举到镜头</td><td class="step-voice"><b>人在外地手机卡丢了，不用跑回老家</b></td><td class="step-sub">外地丢卡不用回老家！</td></tr><tr><td class="step-no">2</td><td class="step-time">3-15s</td><td class="step-visual">店员在柜台指电脑屏幕展示</td><td class="step-voice">现在全国都能异地补卡，带上身份证到最近营业厅就行，<b>十分钟办好，跟回老家一样的效果</b></td><td class="step-sub">带身份证→就近营业厅→10分钟</td></tr><tr><td class="step-no">3</td><td class="step-time">15-25s</td><td class="step-visual">店员指引评论区</td><td class="step-voice">扣「异地」发你附近门店，<b>到店就能办不用回老家跑一趟</b></td><td class="step-sub">扣「异地」查附近门店</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「异地」→自动回复异地补卡须知+附近门店导航→到店10分钟办完</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第1镜店员在柜台拿身份证到镜头前的动作要快节奏，匹配25秒短时长</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 简洁明快BGM</span><span class="tags-tag">#异地补卡 #补卡 #营业厅</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-s7">暑假还没办学生套餐？这波错过了真可惜
+时长: 30秒  |  出镜: 店员口播  |  场景: 营业厅柜台
+搜索词: 学生套餐
+
+【分镜1 0-3s】
+画面: 店员举起学生证到镜头前
+口播: 有学生证的注意了，暑假有个专属福利
+字幕: 学生证专属福利！
+【分镜2 3-18s】
+画面: 店员在柜台展示套餐对比卡片
+口播: 学生套餐流量多、月费低，平时刷视频打游戏都用不完，比普通套餐划算不少，开学前办最合适
+字幕: 流量多+月费低+比普通划算
+【分镜3 18-30s】
+画面: 店员指引评论区
+口播: 扣「学生」发你套餐详情和附近门店，带学生证到店就能办
+字幕: 扣「学生」领套餐详情
+
+引导闭环: 扣「学生」→自动回复学生套餐详情+门店导航→带学生证到店办理
+拍摄提示: 第2镜用学生证或校牌展示是核心画面，让观众一眼识别学生身份关联
+BGM: 青春活力BGM
+标签: #学生套餐 #暑假 #营业厅</textarea><div class="card-top"><span class="card-no">7</span><span class="card-title">暑假还没办学生套餐？这波错过了真可惜</span><button class="copy-btn" id="btn-s7" onclick="copyScript('s7')">复制本条脚本</button></div><div class="source">搜索词: 学生套餐 | 话术模式: 经典CTA直销型</div><div class="meta-row"><span>时长 <b>30秒</b></span><span>出镜 <b>店员口播</b></span><span>场景 <b>营业厅柜台</b></span><span>目标 <b>到店办学生套餐</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-3s</td><td class="step-visual">店员举起学生证到镜头前</td><td class="step-voice"><b>有学生证的注意了，暑假有个专属福利</b></td><td class="step-sub">学生证专属福利！</td></tr><tr><td class="step-no">2</td><td class="step-time">3-18s</td><td class="step-visual">店员在柜台展示套餐对比卡片</td><td class="step-voice">学生套餐流量多、月费低，平时刷视频打游戏都用不完，<b>比普通套餐划算不少</b>，开学前办最合适</td><td class="step-sub">流量多+月费低+比普通划算</td></tr><tr><td class="step-no">3</td><td class="step-time">18-30s</td><td class="step-visual">店员指引评论区</td><td class="step-voice">扣「学生」发你套餐详情和附近门店，<b>带学生证到店就能办</b></td><td class="step-sub">扣「学生」领套餐详情</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「学生」→自动回复学生套餐详情+门店导航→带学生证到店办理</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>第2镜用学生证或校牌展示是核心画面，让观众一眼识别学生身份关联</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 青春活力BGM</span><span class="tags-tag">#学生套餐 #暑假 #营业厅</span></div></div>
+    <div class="section-header hot">热点引流脚本（3条）- 玩法推荐</div>
+    <div class="script-card"><textarea class="copy-textarea" id="copy-h1">营业厅工服也能一周不重样？挑战成功
+时长: 20秒  |  出镜: 店员对镜穿搭  |  场景: 门店门口/柜台前
+热点: 挑战夏日穿搭一周不重样  |  抖音热榜第45位 热度769.2万
+
+【分镜1 0-5s】
+画面: 店员对镜拍工服正面(胸牌+丝巾)
+口播: (配BGM)字幕:工服也能一周不重样
+字幕: 工服也能一周不重样
+【分镜2 5-12s】
+画面: 快速切换3-4个搭配(换丝巾/换胸牌/加手表)
+口播: (配BGM)字幕:周一到周五 每天不一样
+字幕: 周一到周五每天不一样
+【分镜3 12-20s】
+画面: 店员微笑摆pose+屏幕出现话题标签
+口播: (配BGM)字幕:挑战夏日穿搭 来营业厅跟拍
+字幕: 来营业厅一起跟拍
+
+引导闭环: 扣「穿搭」→自动回复穿搭pose参考图+话题标签→参与话题发视频蹭流量
+拍摄提示: 用手机前置摄像头对镜自拍，每天换一个配饰(胸牌/丝巾/手表)即可，15秒出片
+BGM: 抖音热门夏日穿搭BGM
+标签: #挑战夏日穿搭 #营业厅 #工服穿搭</textarea><div class="card-top"><span class="card-no hot">1</span><span class="card-title">营业厅工服也能一周不重样？挑战成功</span><button class="copy-btn" id="btn-h1" onclick="copyScript('h1')">复制本条脚本</button></div><div class="source">热点: 挑战夏日穿搭一周不重样 | 抖音热榜第45位 热度769.2万</div><div class="relevance">玩法类型:对镜穿搭 | 用工服不同搭配(胸牌/丝巾/配饰)跟拍穿搭挑战</div><div class="meta-row"><span>时长 <b>20秒</b></span><span>出镜 <b>店员对镜穿搭</b></span><span>场景 <b>门店门口/柜台前</b></span><span>目标 <b>参与话题+展示企业形象</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-5s</td><td class="step-visual">店员对镜拍工服正面(胸牌+丝巾)</td><td class="step-voice">(配BGM)字幕:工服也能一周不重样</td><td class="step-sub">工服也能一周不重样</td></tr><tr><td class="step-no">2</td><td class="step-time">5-12s</td><td class="step-visual">快速切换3-4个搭配(换丝巾/换胸牌/加手表)</td><td class="step-voice">(配BGM)字幕:周一到周五 每天不一样</td><td class="step-sub">周一到周五每天不一样</td></tr><tr><td class="step-no">3</td><td class="step-time">12-20s</td><td class="step-visual">店员微笑摆pose+屏幕出现话题标签</td><td class="step-voice">(配BGM)字幕:挑战夏日穿搭 来营业厅跟拍</td><td class="step-sub">来营业厅一起跟拍</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「穿搭」→自动回复穿搭pose参考图+话题标签→参与话题发视频蹭流量</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>用手机前置摄像头对镜自拍，每天换一个配饰(胸牌/丝巾/手表)即可，15秒出片</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 抖音热门夏日穿搭BGM</span><span class="tags-tag">#挑战夏日穿搭 #营业厅 #工服穿搭</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-h2">营业厅也能拍出港片大片感
+时长: 15秒  |  出镜: 店员+特效  |  场景: 营业厅内(暖光柜台)
+热点: 一张照片秒变港片主角  |  抖音热榜第39位 热度771.5万
+
+【分镜1 0-5s】
+画面: 店员在柜台暖光下用港片特效拍慢动作
+口播: (配BGM)字幕:营业厅的港片时刻
+字幕: 营业厅的港片时刻
+【分镜2 5-10s】
+画面: 卡点切换3个场景(柜台/门口/休息区)
+口播: (配BGM)字幕:暖光+滤镜=大片感
+字幕: 暖光+滤镜=大片感
+【分镜3 10-15s】
+画面: 最后定格微笑+话题标签浮出
+口播: (配BGM)字幕:一张照片秒变港片主角
+字幕: 你也来试试
+
+引导闭环: 扣「港片」→自动回复特效入口+拍摄教程→参与话题发视频蹭流量
+拍摄提示: 选柜台暖光区域拍摄，港片滤镜+暖光=王家卫同款氛围，15秒卡点切换画面
+BGM: 港片氛围BGM(粤语经典配乐)
+标签: #一张照片秒变港片主角 #营业厅 #特效</textarea><div class="card-top"><span class="card-no hot">2</span><span class="card-title">营业厅也能拍出港片大片感</span><button class="copy-btn" id="btn-h2" onclick="copyScript('h2')">复制本条脚本</button></div><div class="source">热点: 一张照片秒变港片主角 | 抖音热榜第39位 热度771.5万</div><div class="relevance">玩法类型:特效跟拍 | 用同款港片滤镜特效拍营业厅场景，展示氛围感</div><div class="meta-row"><span>时长 <b>15秒</b></span><span>出镜 <b>店员+特效</b></span><span>场景 <b>营业厅内(暖光柜台)</b></span><span>目标 <b>参与话题+展示企业形象</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-5s</td><td class="step-visual">店员在柜台暖光下用港片特效拍慢动作</td><td class="step-voice">(配BGM)字幕:营业厅的港片时刻</td><td class="step-sub">营业厅的港片时刻</td></tr><tr><td class="step-no">2</td><td class="step-time">5-10s</td><td class="step-visual">卡点切换3个场景(柜台/门口/休息区)</td><td class="step-voice">(配BGM)字幕:暖光+滤镜=大片感</td><td class="step-sub">暖光+滤镜=大片感</td></tr><tr><td class="step-no">3</td><td class="step-time">10-15s</td><td class="step-visual">最后定格微笑+话题标签浮出</td><td class="step-voice">(配BGM)字幕:一张照片秒变港片主角</td><td class="step-sub">你也来试试</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「港片」→自动回复特效入口+拍摄教程→参与话题发视频蹭流量</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>选柜台暖光区域拍摄，港片滤镜+暖光=王家卫同款氛围，15秒卡点切换画面</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 港片氛围BGM(粤语经典配乐)</span><span class="tags-tag">#一张照片秒变港片主角 #营业厅 #特效</span></div></div>
+<div class="script-card"><textarea class="copy-textarea" id="copy-h3">来营业厅吹空调的时候也想起了那段旅行
+时长: 20秒  |  出镜: 店员口播(弱化)  |  场景: 营业厅内(纳凉区)
+热点: 让旅行回忆替我们降降温吧  |  抖音热榜第5位 热度1037.4万
+
+【分镜1 0-6s】
+画面: 营业厅休息区，店员给顾客倒冰水(慢镜头)
+口播: (配BGM)字幕:来营业厅纳凉 也想起了那段旅行
+字幕: 来营业厅纳凉
+【分镜2 6-14s】
+画面: 切换画面:服务顾客/空调区/微笑特写
+口播: (配BGM)字幕:夏天来营业厅 吹着空调办业务
+字幕: 吹空调+办业务
+【分镜3 14-20s】
+画面: 画面渐暗+话题标签浮出
+口播: (配BGM)字幕:让旅行回忆替我们降降温吧
+字幕: 你也来一段回忆
+
+引导闭环: 扣「降温」→自动回复BGM名称+拍摄pose参考→用同款BGM发视频蹭话题
+拍摄提示: 选门店休息区或空调出风口附近拍，画面要凉感(冰饮/绿植/风扇)，BGM是灵魂
+BGM: 抖音热门旅行回忆BGM
+标签: #让旅行回忆替我们降降温吧 #营业厅 #夏日纳凉</textarea><div class="card-top"><span class="card-no hot">3</span><span class="card-title">来营业厅吹空调的时候也想起了那段旅行</span><button class="copy-btn" id="btn-h3" onclick="copyScript('h3')">复制本条脚本</button></div><div class="source">热点: 让旅行回忆替我们降降温吧 | 抖音热榜第5位 热度1037.4万</div><div class="relevance">玩法类型:BGM推荐 | 用同款BGM拍营业厅纳凉/服务日常，蹭夏日旅行回忆BGM流量</div><div class="meta-row"><span>时长 <b>20秒</b></span><span>出镜 <b>店员口播(弱化)</b></span><span>场景 <b>营业厅内(纳凉区)</b></span><span>目标 <b>参与话题+展示企业形象</b></span></div><div class="steps-box"><div class="section-title">分镜话术（照念就能拍）</div><table class="steps-table"><tr><th>镜</th><th>时间</th><th>画面</th><th>口播文案</th><th>字幕</th></tr><tr><td class="step-no">1</td><td class="step-time">0-6s</td><td class="step-visual">营业厅休息区，店员给顾客倒冰水(慢镜头)</td><td class="step-voice">(配BGM)字幕:来营业厅纳凉 也想起了那段旅行</td><td class="step-sub">来营业厅纳凉</td></tr><tr><td class="step-no">2</td><td class="step-time">6-14s</td><td class="step-visual">切换画面:服务顾客/空调区/微笑特写</td><td class="step-voice">(配BGM)字幕:夏天来营业厅 吹着空调办业务</td><td class="step-sub">吹空调+办业务</td></tr><tr><td class="step-no">3</td><td class="step-time">14-20s</td><td class="step-visual">画面渐暗+话题标签浮出</td><td class="step-voice">(配BGM)字幕:让旅行回忆替我们降降温吧</td><td class="step-sub">你也来一段回忆</td></tr></table></div><div class="cta-box"><div class="section-title">引导闭环</div><p>扣「降温」→自动回复BGM名称+拍摄pose参考→用同款BGM发视频蹭话题</p></div><div class="tip-box"><div class="section-title">拍摄提示</div><p>选门店休息区或空调出风口附近拍，画面要凉感(冰饮/绿植/风扇)，BGM是灵魂</p></div><div class="card-bottom"><span class="bgm-tag">BGM: 抖音热门旅行回忆BGM</span><span class="tags-tag">#让旅行回忆替我们降降温吧 #营业厅 #夏日纳凉</span></div></div>
     <div class="schedule-box">
-      <div class="schedule-title">5天发布排期建议</div>
-      <div class="schedule-grid">
-      <div class="schedule-day">
-        <div class="day">7/29<br>周三</div>
-        <div class="desc">h1 夏日穿搭<br>s3 学生套餐</div>
-      </div>
-      <div class="schedule-day">
-        <div class="day">7/30<br>周四</div>
-        <div class="desc">h2 魔性舞蹈<br>s1 流量超标</div>
-      </div>
-      <div class="schedule-day">
-        <div class="day">7/31<br>周五</div>
-        <div class="desc">s2 电视搜不到台</div>
-      </div>
-      <div class="schedule-day">
-        <div class="day">8/1<br>周六</div>
-        <div class="desc">h1/h2 补发</div>
-      </div>
-      <div class="schedule-day">
-        <div class="day">8/2<br>周日</div>
-        <div class="desc">s1/s2/s3 补发</div>
-      </div>
-      </div>
+        <div class="insight-title">发布排期建议（5天10条）</div>
+        <table class="schedule-table"><tr><th>日期</th><th>编号</th><th>内容</th><th>类型</th><th>时效</th></tr><tr><td>今天 7.30</td><td>s1</td><td>换套餐→算账对比</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>应季</td></tr><tr><td>今天 7.30</td><td>h3</td><td>旅行回忆降温BGM</td><td><span style="color:#7C3AED;font-weight:bold">热点引流</span></td><td>时效强</td></tr><tr><td>明天 7.31</td><td>s2</td><td>5G套餐→讲解对比</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>应季</td></tr><tr><td>明天 7.31</td><td>h1</td><td>夏日穿搭挑战</td><td><span style="color:#7C3AED;font-weight:bold">热点引流</span></td><td>时效强</td></tr><tr><td>后天 8.1</td><td>s3</td><td>补卡怎么办→三步搞定</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>长尾</td></tr><tr><td>8.2</td><td>s4</td><td>以旧换新→算账折抵</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>应季</td></tr><tr><td>8.3</td><td>s5</td><td>电视搜不到台→IPTV</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>应季</td></tr><tr><td>8.4</td><td>s6</td><td>异地补卡→指路到店</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>长尾</td></tr><tr><td>8.5</td><td>s7</td><td>学生套餐→直销福利</td><td><span style="color:#2563EB;font-weight:bold">搜索截流</span></td><td>应季</td></tr><tr><td>8.5</td><td>h2</td><td>港片特效跟拍</td><td><span style="color:#7C3AED;font-weight:bold">热点引流</span></td><td>时效强</td></tr></table>
     </div>
-
-    <div class="tips">
-      <div class="tips-title">照着念完拍30秒就行</div>
-      <div class="tips-detail">
-        竖屏9:16 · 露脸口播 · 背景露出营业厅 · 发抖音挂门店POI锚点<br>
-        口播严格遵守营业厅合规(禁极限词/资费数字/竞品名) · 有人扣字记得回复门店地址<br>
-        搜索截流型脚本发的时候在"种草词"填上对应的搜索词<br>
-        口播加粗部分是重点句，念的时候加重语气 · 点击「复制本条脚本」可直接粘贴到剪映使用
-      </div>
+    <div class="bottom-tip">
+        <h3>拍摄要点</h3>
+        <ul>
+            <li>- 照着口播念就行，加粗的句子是关键信息点，要重读</li>
+            <li>- 每条视频 15-35 秒，拍完直接发，不用剪辑</li>
+            <li>- 点击右上角「复制本条脚本」可一键复制全部口播和字幕，粘贴到剪映/备忘录即可使用</li>
+            <li>- 7 条搜索截流分 5 天发，3 条热点今天优先拍发</li>
+            <li>- 发布时挂门店 POI，到店才能成交</li>
+        </ul>
     </div>
-
     <div class="footer">
-      搜索截流+热点引流 7:3混合策略 · 精选5条 · 数据驱动选题<br>
-      2026年7月29日 · 自动生成
+        <p>精选 10 条 | 7 搜索截流 + 3 热点引流 | 2026年7月30日 自动生成</p>
+        <p>山西电信 抖本内容工坊 · 搜索截流 + 玩法推荐 · 合规五级审核</p>
     </div>
-  </div>
+</div>
+<script>
+function copyScript(id){
+  var ta=document.getElementById('copy-'+id);
+  ta.select();ta.setSelectionRange(0,99999);
+  try{document.execCommand('copy');}catch(e){}
+  var btn=document.getElementById('btn-'+id);
+  var o=btn.innerText;btn.innerText='已复制';btn.style.background='#10B981';
+  setTimeout(function(){btn.innerText=o;btn.style.background='#2563EB';},1500);
+}
+</script>
 </body>
 </html>
