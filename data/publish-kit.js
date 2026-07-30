@@ -383,7 +383,7 @@ function buildSeoTitle(tpl, loc, topic, scriptText) {
   // ═══ Fallback：基于模板类型的SEO标题 ═══
   if (tpl === 't1') {
     if (/宽带|网速|WiFi|光纤/i.test(ctx)) return loc + '宽带怎么选？过来人告诉你真相';
-    if (/手机|iPhone|荣耀|华为/i.test(ctx)) return loc + '买手机别踩坑，实测对比来了';
+    if (/手机|iPhone|荣耀|华为/i.test(ctx)) return loc + '买手机别踩雷，实测对比来了';
     return loc + (kw||'电信') + '怎么选？看完不花冤枉钱';
   }
   if (tpl === 't2') {
@@ -513,7 +513,7 @@ function getTemplateComments(tpl, city, topic, scriptText) {
     if (/政企|企业专线|企业宽带|云桌面|视频会议|办公网络|一站式|信息化|智慧办公/i.test(ctx)) {
       return [
         '你们公司用的什么网络方案？评论区聊聊，看谁家最快',
-        '企业宽带贵不贵？来算笔账，别被代理商忽悠',
+        '企业宽带贵不贵？来算笔账，别被代理商误导',
         'IT人进！你们公司网络有没有踩过坑？分享一下经验'
       ];
     }
@@ -532,7 +532,7 @@ function getTemplateComments(tpl, city, topic, scriptText) {
       return [
         loc + '的朋友，你家用的是哪家宽带？投个票，我帮你分析',
         '你家宽带一个月多少钱？评论区说说，我帮你看划不划算',
-        '觉得这个对比有用的点个赞，选宽带不踩坑'
+        '觉得这个对比有用的点个赞，选宽带不踩雷'
       ];
     }
     if (/手机|iPhone|荣耀|华为|OPPO|vivo|小米|换机|购机|nova|Mate|iQOO/i.test(ctx)) {
@@ -569,7 +569,7 @@ function getTemplateComments(tpl, city, topic, scriptText) {
     return [
       (devKw || '这东西') + '你用过吗？真实体验评论区聊聊',
       '还有哪个参数想深入了解？下期可以安排',
-      '买前收藏，买后回来对照，省得交智商税'
+      '买前收藏，买后回来对照，省得交冤枉钱'
     ];
   }
 
