@@ -210,6 +210,31 @@ function renderCommentItems(comments) {
 }
 
 // 2026-07-20: AI 真实生成评论（调 SCF Web 函数）
+function extractPreviewScriptText() {
+  // 1) 优先读取专用标记（T1 talk 兜底版、T3 等已加标记的场景）
+  var scriptEl = document.querySelector('[data-role="script-body"]');
+  if (scriptEl && scriptEl.textContent.trim().length >= 20) {
+    return scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim();
+  }
+  // 2) 找到当前可见的预览面板
+  var visiblePreview = null;
+  var previews = document.querySelectorAll('[id^="preview"]');
+  for (var i = 0; i < previews.length; i++) {
+    if (previews[i].offsetParent !== null) visiblePreview = previews[i];
+  }
+  if (!visiblePreview) return '';
+  // 3) 口播/话术主体通常包在 .dialogue 里，优先拼接这些（T1 talk/T1 calc/T2/T3/T4 口播形态）
+  var dialogues = visiblePreview.querySelectorAll('.dialogue');
+  var parts = [];
+  for (var i = 0; i < dialogues.length; i++) {
+    parts.push(dialogues[i].textContent.trim());
+  }
+  var text = parts.join('\n').replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim();
+  if (text.length >= 20) return text;
+  // 4) 兜底：取可见预览面板全部文本（图卡/无声等形态没有 .dialogue）
+  return visiblePreview.textContent.replace(/\n{3,}/g, '\n').trim();
+}
+
 async function triggerCommentAI(t, btn) {
   if (!btn) return;
   // 1) 配额检查
@@ -218,8 +243,7 @@ async function triggerCommentAI(t, btn) {
     return;
   }
   // 2) 取脚本 + 标题 + 标签
-  var scriptEl = document.querySelector('[data-role="script-body"]');
-  var scriptText = scriptEl ? scriptEl.textContent.replace(/^"|"$/g, '').replace(/^📖 主体：/, '').trim() : '';
+  var scriptText = extractPreviewScriptText();
   var title = (document.querySelector('.info-tag') || {}).textContent || '';
   if (!scriptText || scriptText.length < 20) {
     toast('请先预览脚本，再点 AI 生成评论', 'error');
