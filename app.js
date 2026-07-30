@@ -648,11 +648,25 @@ function track(action, detail) {
   var entry = { ts: Date.now(), action: action, detail: detail || '' };
   // Auto-attach bound store if available
   var store = localStorage.getItem(STORE_KEY);
-  if (store) entry.store = store;
+  var storeName = '';
+  if (store) {
+    entry.store = store;
+    try { storeName = (JSON.parse(store).name) || ''; } catch (e) {}
+  }
   s.events.push(entry);
   // Keep max 5000 events to avoid localStorage overflow
   if (s.events.length > 5000) s.events = s.events.slice(-4000);
   saveStats(s);
+  // 真实统计上报（非阻塞，失败静默）：落 SCF → Gitee 跨店聚合
+  try {
+    var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+    var payload = { mode: 'track', action: action, store: storeName, detail: detail || '', ts: Date.now() };
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(function () {});
+  } catch (e) {}
 }
 
 function unlockAdmin() {
@@ -5370,6 +5384,35 @@ function renderStats() {
     document.getElementById('statsMeta').style.color = '#D84315';
     document.getElementById('statsMeta').innerHTML += ' ⚠️ 存储接近上限，建议导出后清除';
   }
+  // 拉取全局真实数据（跨店聚合）
+  renderGlobalStats();
+}
+
+function renderGlobalStats() {
+  var box = document.getElementById('globalStatsBox');
+  if (!box) return;
+  var API = window.PERSONALIZE_API || 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode: 'stats' })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (!d || d.ok !== true) {
+      var err = document.getElementById('globalStatsErr');
+      if (err) { err.style.display = 'block'; err.textContent = '（真实统计接口暂不可用：' + (d && d.error ? d.error : '未知错误') + '）'; }
+      return;
+    }
+    setText('gTotalStores', d.totalStores);
+    setText('gTodayActive', d.todayActiveStores);
+    setText('gTotalExport', d.totalExport);
+    setText('gTodayExport', d.todayExport);
+    var up = document.getElementById('globalStatsUpdated');
+    if (up) up.textContent = '更新于 ' + (d.updated ? new Date(d.updated).toLocaleString('zh-CN') : (d.today || ''));
+  }).catch(function(e) {
+    var err = document.getElementById('globalStatsErr');
+    if (err) { err.style.display = 'block'; err.textContent = '（真实统计接口暂不可用：' + e.message + '）'; }
+  });
+  function setText(id, v) { var el = document.getElementById(id); if (el) el.textContent = (v == null ? '—' : v); }
 }
 
 function exportStats() {
