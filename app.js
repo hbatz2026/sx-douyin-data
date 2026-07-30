@@ -1613,7 +1613,7 @@ function generateContextHooks(t, type) {
     if (type === 'value') return [
       '花3分钟看完，办' + subject + '至少省300块——内部员工才知道的',
       '2026年最全' + subject + '攻略，收藏这篇就够了',
-      (city||'太原') + '人注意！来营业厅前先看这个，能少花冤枉钱'
+      (city||'本地') + '人注意！来营业厅前先看这个，能少花冤枉钱'
     ];
     if (type === 'suspense') return [
       '我在电信营业厅干了5年，今天告诉你一个' + subject + '的秘密——',
@@ -2367,35 +2367,25 @@ function searchT2AndFill(preset) {
   });
 }
 
-var __aiKey = null;
-
-var __aiKeyPromise = null;
-
-function getCachedAIKey() {
-  try {
-    var k = localStorage.getItem('_dy_ai_key');
-    if (k && k.length > 20) return k;
-  } catch(e) {}
-  return null;
-}
-
-function setCachedAIKey(k) {
-  try { if (k && k.length > 20) localStorage.setItem('_dy_ai_key', k); } catch(e) {}
-}
-
-// ── AI 配置（浏览器直调，纯前端架构下密钥公开是固有性质）──
-var AI_ENDPOINT = 'https://tbnx.plus7.plus/v1/chat/completions';
+// ── AI 配置（统一收口到 SCF 代理，浏览器不再直连、不再持有密钥）──
+// 所有 AI 文本生成均由 src/ai.js · src/pages.js 通过 PERSONALIZE_API + '?mode=ai' 走 SCF 代理，
+// SCF 后端用自有密钥调 tbnx 网关。前端零明文密钥、零直连。
 var AI_MODEL = 'deepseek-v4-pro';
-var AI_KEY = 'sk-YVIhIW12wWaXjxtq6qpU3z34UhZOhlekn7EKZ13Y7bf7o629';
 
-async function ensureAIKey() {
-  if (__aiKey) return __aiKey;
-  var cached = getCachedAIKey();
-  if (cached) { __aiKey = cached; return __aiKey; }
-  // 内置 key，与 SCF 统一走 tbnx 网关；如需临时覆盖可清 localStorage 的 _dy_ai_key 后由运营粘贴
-  __aiKey = AI_KEY;
-  setCachedAIKey(AI_KEY);
-  return __aiKey;
+// ── 硬封禁词：强制双校验（SCF 后端 + 前端各一遍），宁可误伤也不冒封号风险 ──
+// SCF 后端 callSiliconFlow 返回时已 sanitize 一次；前端在拿到 AI content 后再 sanitize 一次，
+// 双重保险确保最终落地的台词里绝不含这些高危词。
+var HARD_BAN_MAP = {
+  '合约机': '合约套餐', '合约价': '套餐价', '合约': '套餐', '话费': '通信费', '号卡': '号码',
+  '电话卡': '号码', '流量卡': '流量套餐', '月租费': '每月消费', '月租': '每月消费',
+  '套餐费': '套餐价', '资费': '费用', '办卡': '办理', '开卡': '入网',
+  '0元购': '特惠购', '免费领卡': '限时办理'
+};
+function sanitizeHardBan(text) {
+  if (!text || typeof text !== 'string') return text;
+  var out = text;
+  for (var k in HARD_BAN_MAP) { if (out.indexOf(k) >= 0) out = out.split(k).join(HARD_BAN_MAP[k]); }
+  return out;
 }
 
 function detectAdWords(text) {
@@ -2525,12 +2515,14 @@ setTimeout(function(){updateFreshness();updateFavCount();renderFavs()},800);
 function updateMobileNav(){var ap=document.querySelector('.page.active');if(!ap)return;var id=ap.id.replace('page-','');var items=document.querySelectorAll('.mobile-nav .mn-item');var map={schedule:0,template1:1,template2:2,template4:3,favorites:4};items.forEach(function(it){it.classList.remove('active')});if(map[id]!==undefined)items[map[id]].classList.add('active')}
 
 // ═══════ dataLoader.js ═══════
-// dataLoader.js — 2026-07-29 Plan B
-// 彻底解决「SCF 生成的新选题前端看不到」：运行时直拉 Gitee 最新数据，
-// 合并进前端全局(window.___X)，刷新被捕获的别名，并动态生成 t1/t2/t4 下拉。
-// CORS：Gitee API 对公开仓库返回 Access-Control-Allow-Origin:*，浏览器可直接 fetch，无需 token。
+// dataLoader.js — 2026-07-30 重构
+// 数据加载改为「同源 <script> 注入」：数据文件随前端构建打包进 data/，
+// 运行时用 <script src="data/X.js?t="> 加载，由浏览器原生执行其 window.___X 赋值。
+// 相比旧版「fetch Gitee API + new Function(code)」：无跨域依赖、无 eval、无密钥、无运行时限流风险。
+// 数据更新通过重新部署前端（build-data-bundle.mjs 重新合并本地 data/）下发，安全可控。
 
-const GITEE_API = 'https://gitee.com/api/v5/repos/hbatz/sx-douyin-data/contents/data/';
+// 同源数据目录；与当前页面同源，无需 CORS/token
+const DATA_BASE = 'data/';
 // 仅拉「选题/脚本/模板」类数据；phonePool/techDB 等为前端专用，不在此同步
 const REMOTE_DATA_FILES = [
   't1ScriptFullByPersona.js',
@@ -2542,26 +2534,19 @@ const REMOTE_DATA_FILES = [
   'topicPool.js'
 ];
 
-function __b64decodeUtf8(b64) {
-  const clean = (b64 || '').replace(/[\s-]/g, '');
-  const bin = atob(clean);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder('utf-8').decode(bytes);
-}
-
 async function __fetchGiteeDataFile(fname) {
-  const url = GITEE_API + encodeURIComponent(fname) + '?t=' + Date.now();
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const json = await res.json();
-  if (!json.content) throw new Error('empty content');
-  const code = __b64decodeUtf8(json.content);
-  const win = {};
-  // 数据文件形如 window.___X = {...}；在沙箱里执行以捕获赋值
-  new Function('window', code)(win);
+  // 同源注入：加载前记录已存在的 ___ 全局键，加载后只取新增/覆盖的键
+  const before = new Set();
+  for (const k in window) if (k.indexOf('___') === 0) before.add(k);
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = DATA_BASE + fname + '?t=' + Date.now();
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('load failed: ' + fname));
+    document.head.appendChild(s);
+  });
   const out = {};
-  for (const k in win) if (k.indexOf('___') === 0) out[k] = win[k];
+  for (const k in window) if (k.indexOf('___') === 0 && !before.has(k)) out[k] = window[k];
   return out;
 }
 
@@ -4172,7 +4157,7 @@ function buildPhoneTalkScript(phone, topic, city, bgm, title, tags, userHook) {
       p3 = '怎么验证？来' + city + '营业厅，我拿' + model + '当场给你演示：你手机装个App，手表绑上去，你走出店门看定位刷新多快。亲眼看到比你听我说一百遍都管用。';
     } else {
       hook = '你有没有遇到过——明明显示5G满格，视频就是加载不出来？';
-      p1 = '问题不在手机，在运营商。' + model + '搭配电信5G网络，我给大家说个真实的——电信的基站覆盖密度在咱山西这边，尤其是太原市区，你在地下车库、电梯里都不断网。这不是手机好，这是电信的信号好。你用别的运营商的卡，同样的手机，信号差一截。';
+      p1 = '问题不在手机，在运营商。' + model + '搭配电信5G网络，我给大家说个真实的——电信的基站覆盖密度在咱山西这边，尤其是咱这市区，你在地下车库、电梯里都不断网。这不是手机好，这是电信的信号好。你用别的运营商的卡，同样的手机，信号差一截。';
       p2 = chip + '这个处理器本身就支持完整的5G频段，电信的N78主流频段完美适配。简单说就是：手机和网络都拉满了。你打视频电话不会花屏、看直播不会转圈。';
       p3 = '怎么验证？来店里我直接用' + model + '给你跑个测速，你自己看数字——下载速度几百兆、延迟十几毫秒。不用我说，数据说话。' + city + '的朋友有空过来，就当路过看看。';
     }
@@ -4712,10 +4697,6 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     return;
   }
   try {
-    // 获取 AI key（首次缓存，后续复用）
-    var key = await ensureAIKey();
-    if (!key) throw new Error('no-ai-key');
-
     var tpl = detectTemplateType();
     var persona = getPersona();
     var p = personaDB[persona] || personaDB['sister'];
@@ -4736,12 +4717,9 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
     var userPrompt = '帮我把这段台词改得更自然、更像口语化的现场表达：\n```\n' + src + '\n```';
 
     var ctrl = new AbortController(), tid = setTimeout(function(){ctrl.abort();},45000);
-    var res = await fetch(AI_ENDPOINT, {
+    var res = await fetch(PERSONALIZE_API + '?mode=ai', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + key
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: AI_MODEL,
         messages: [
@@ -4760,7 +4738,8 @@ async function fetchVariantAI(cardId, topicKey, profile, btn, bodyEl, quotaEl) {
       throw new Error('AI ' + res.status + ': ' + errTxt.slice(0,100));
     }
     var data = await res.json();
-    var polished = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    // SCF 代理返回 { ok, content }；再走前端硬封禁词双校验
+    var polished = data && data.content ? sanitizeHardBan(data.content) : null;
     if (!polished) throw new Error('empty');
 
     // 消费配额
@@ -5169,7 +5148,7 @@ function showEmergencyScripts() {
   if (!card || !content) return;
   var scripts = [
     { t: '📢 只有你一个人 · 自说自话模式', s: '"大家好，我是' + store + '的主播小X。现在直播间就我一个人，没关系——我先给大家介绍一下今天的产品。' + store + '是咱们本地的电信营业厅，专做宽带和终端。你在小房子里能看到今天所有商品。路过的朋友点个关注，说不定哪天你需要宽带就知道找谁了。"' },
-    { t: '📢 进来1个又走了 · 挽留话术', s: '"诶，刚有位朋友进来又走了——没关系，我继续讲。我们' + store + '的宽带团购券，5块钱抵200元，比别人家便宜一截。你在太原范围内都能用，到我们店核销就行。不用拼团、不用等，拍了就能用。"' },
+    { t: '📢 进来1个又走了 · 挽留话术', s: '"诶，刚有位朋友进来又走了——没关系，我继续讲。我们' + store + '的宽带团购券，5块钱抵200元，比别人家便宜一截。你在当地范围内都能用，到我们店核销就行。不用拼团、不用等，拍了就能用。"' },
     { t: '📢 2-3人在线 · 一对一聊天模式', s: '"我看到有2位家人在线，欢迎欢迎！你们现在用的宽带多少兆的？有没有遇到过晚上看视频卡顿的情况？别不好意思，公屏告诉我。我在' + store + '干了X年了，网速慢的问题我见太多了——大部分都是路由器放角落或者设备太老，我今天专门教你们怎么解决。"' },
     { t: '📢 冷场超1分钟 · 自言自语熬时长', s: '"（喝口水，调整镜头）很多家人不知道——抖音本地生活这个功能特别方便。你点屏幕下方小房子，看到我们' + store + '的商品，直接下单，到店核销。不用下载App、不用注册、不用绑卡。从下单到核销，两分钟搞定。我再说一遍流程——先点小房子，选商品，点下单，付5块钱，然后来我们店，扫码核销，完事。"' },
     { t: '📢 有人点赞但没人说话 · 破冰引导', s: '"感谢点赞的朋友！你点赞说明你在听——那能不能在公屏告诉我，你家宽带用得怎么样？随便说一句就行。没人说话的话，我就当你默认网速还可以了哈（笑）。其实山西很多老小区网速都一般，因为线路老。来' + store + '免费测一下，我们师傅帮你排查。"' },
@@ -5596,9 +5575,9 @@ async function manualRefreshHotspot() {
   btn.disabled = true; btn.textContent = '⏳ 生成中...';
   status.textContent = '正在抓取热点 + AI 生成脚本...';
   try {
-    var resp = await fetch(AI_ENDPOINT, {
+    var resp = await fetch(PERSONALIZE_API + '?mode=ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI_KEY },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: AI_MODEL,
         messages: [{
@@ -5613,10 +5592,10 @@ async function manualRefreshHotspot() {
     });
     var data;
     try { data = await resp.json(); } catch(e) { throw new Error('AI 接口返回非 JSON 数据'); }
-    if (!data || !Array.isArray(data.choices) || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-      throw new Error('AI 返回结构异常（缺少 choices[0].message.content）');
+    if (!data || !data.content) {
+      throw new Error('AI 返回结构异常（缺少 content）');
     }
-    var content = data.choices[0].message.content;
+    var content = sanitizeHardBan(data.content);
     var jsonStr = content.replace(/```json|```/g, '').trim();
     var scripts = JSON.parse(jsonStr);
     // 更新内存数据
@@ -5776,9 +5755,9 @@ async function manualRefreshBGM() {
   var oldText = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ 生成中...';
   try {
-    var resp = await fetch(AI_ENDPOINT, {
+    var resp = await fetch(PERSONALIZE_API + '?mode=ai', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI_KEY },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: AI_MODEL,
         messages: [{
@@ -5793,10 +5772,10 @@ async function manualRefreshBGM() {
     });
     var data;
     try { data = await resp.json(); } catch(e) { throw new Error('AI 接口返回非 JSON 数据'); }
-    if (!data || !Array.isArray(data.choices) || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-      throw new Error('AI 返回结构异常（缺少 choices[0].message.content）');
+    if (!data || !data.content) {
+      throw new Error('AI 返回结构异常（缺少 content）');
     }
-    var content = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+    var content = sanitizeHardBan(data.content).replace(/```json|```/g, '').trim();
     var jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error('AI返回格式错误');
     window.___bgmList = JSON.parse(jsonMatch[0]);
