@@ -343,6 +343,7 @@ function copyText(text, btn) {
     fallbackCopy(text); done();
   }
   track('export_copy');
+  markTopicUsedStore(currentTopicForPage());
 }
 function fallbackCopy(text) {
   var ta = document.createElement('textarea');
@@ -704,6 +705,8 @@ function bindStore() {
   autoFillStore();
   toast('已绑定：' + name + ' · ' + (personaDB[persona]||{}).label, 'success');
   track('store_bind');
+  // 刷新下拉“已选”徽章（按本厅店隔离）
+  setTimeout(function(){ if (typeof window.__repopulateSelects === 'function') { try { window.__repopulateSelects(); } catch(e) {} } }, 60);
 }
 
 function showBoundStore(name, persona) {
@@ -724,6 +727,7 @@ function changeStore() {
   if (badge) badge.style.display = 'none';
   if (prompt) prompt.style.display = '';
   if (input) { input.value = ''; input.focus(); }
+  setTimeout(function(){ if (typeof window.__repopulateSelects === 'function') { try { window.__repopulateSelects(); } catch(e) {} } }, 60);
 }
 
 function readStoreName() {
@@ -1215,6 +1219,7 @@ function downloadAsImage(previewId) {
     w.document.write(`<html><head><title>脚本卡</title><style>body{background:#1a1a2e;color:#e0e0e0;padding:20px;font-family:"Microsoft YaHei";line-height:2;}</style></head><body>${card.innerHTML}</body></html>`);
     w.document.close();
     track('export_image');
+    markTopicUsedStore(currentTopicForPage());
     setTimeout(() => { w.print(); document.body.removeChild(card); }, 500);
   }
 }
@@ -1240,10 +1245,18 @@ function syncTopicDropdown() {
   // 2026-07-29: 上限从 24 提到 60，避免 SCF 新增决策题被截断（当前约 29 项，预留增长空间）
   topics = topics.slice(0, 60);
   var html = '';
+  var prev = sel.value;
   topics.forEach(function(t) {
-    html += '<option value="' + esc(t) + '">' + esc(t) + '</option>';
+    var label = esc(t);
+    if (isUsedByStore(t)) label += '　✓ 已选';
+    html += '<option value="' + esc(t) + '"' + (isUsedByStore(t) ? ' class="used-opt"' : '') + '>' + label + '</option>';
   });
-  if (html) { sel.innerHTML = html; sel.removeAttribute('data-retries'); try { labelDropdownOptions(); } catch(e) {} }
+  if (html) {
+    sel.innerHTML = html;
+    sel.removeAttribute('data-retries');
+    if (prev) { try { sel.value = prev; } catch(e) {} }
+    try { labelDropdownOptions(); } catch(e) {}
+  }
 }
 
 function checkDataFiles() {
@@ -2434,6 +2447,36 @@ function isFav(n){return _favs.some(function(f){return f.name===n})}
 function isUsed(n){return _used[n]}
 function markScriptUsed(n){if(!n)return;_used[n]=new Date().toISOString();localStorage.setItem('douyin_used',JSON.stringify(_used))}
 
+// 2026-07-30: 按绑定厅店隔离的「已选」标记（#3 需求：厅店已选过的选题给提示）
+var USED_BY_STORE_KEY = 'douyin_used_by_store';
+var _usedByStore = {};
+try { _usedByStore = JSON.parse(localStorage.getItem(USED_BY_STORE_KEY) || '{}'); } catch(e) {}
+function curStoreName() {
+  try { var o = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); return (o && o.name) || ''; } catch(e) { return ''; }
+}
+function usedSetForStore(store) { return (store && _usedByStore[store]) || {}; }
+function markTopicUsedStore(topic) {
+  var store = curStoreName();
+  if (!store || !topic) return;
+  if (!_usedByStore[store]) _usedByStore[store] = {};
+  _usedByStore[store][topic] = new Date().toISOString();
+  try { localStorage.setItem(USED_BY_STORE_KEY, JSON.stringify(_usedByStore)); } catch(e) {}
+  // 立即刷新下拉徽章（T1/T2/T4 全覆盖）
+  if (typeof window.__repopulateSelects === 'function') { try { window.__repopulateSelects(); } catch(e) {} }
+}
+function isUsedByStore(topic) {
+  var store = curStoreName();
+  return !!(store && _usedByStore[store] && _usedByStore[store][topic]);
+}
+// 取当前所在 tab 的选题 select 值（用于标记“已选”）
+function currentTopicForPage() {
+  var map = { template1:'t1_topic', template2:'t2_preset', template3:'t3_topic', template4:'t4_preset' };
+  var selId = map[currentPage];
+  if (!selId) return '';
+  var el = document.getElementById(selId);
+  return el ? el.value : '';
+}
+
 function addFavStar(pid,name) {
   var p=document.getElementById(pid); if(!p||p.querySelector('.fav-star')) return;
   var s=document.createElement('span'); s.className='fav-star'+(isFav(name)?' saved':''); s.textContent=isFav(name)?'\u2b50':'\u2606';
@@ -2592,7 +2635,10 @@ function __populateSelectGroups(selId, groups, placeholder) {
     html += '<optgroup label="' + label + '">';
     const sorted = g.keys.slice().sort((a, b) => a.localeCompare(b, 'zh'));
     for (const k of sorted) {
-      html += '<option value="' + k.replace(/"/g, '&quot;') + '">' + k.replace(/</g, '&lt;') + '</option>';
+      const used = (typeof isUsedByStore === 'function') && isUsedByStore(k);
+      const safe = k.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+      const label = used ? (safe + '　✓ 已选') : safe;
+      html += '<option value="' + safe + '"' + (used ? ' class="used-opt"' : '') + '>' + label + '</option>';
     }
     html += '</optgroup>';
   }
