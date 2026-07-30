@@ -5,7 +5,7 @@
 window.___dailyScripts = {
   "date": "2026-07-25",
   "weekday": "周五",
-  "city": "太原",
+  "city": "这儿",
   "isSummer": true,
   "todayHots": [
     "暑假过半各地旅游持续火爆",
