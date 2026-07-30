@@ -778,6 +778,8 @@
   .fav-star.saved { color:#F59E0B; }
   .fav-star:hover { color:#F59E0B; }
   .script-used-badge { font-size:10px; background:#E8F5E9; color:#2E7D32; padding:2px 6px; border-radius:4px; margin-left:6px; display:inline-block; }
+  /* 下拉选项内「✓ 已选」标记（按绑定厅店隔离，#3） */
+  select option.used-opt { color:#2E7D32; font-weight:600; }
   .banned-word { background:#FFCDD2; color:#C62828; padding:1px 2px; border-radius:2px; text-decoration:underline wavy #C62828; }
 
   /* ===== 快捷键说明按钮 + 弹窗 (v2.9) ===== */
