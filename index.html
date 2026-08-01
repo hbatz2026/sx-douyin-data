@@ -7,10 +7,10 @@
 <meta name="theme-color" content="#0052CC">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.38">
+  <link rel="stylesheet" href="styles.css?v=2.9.39">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.38" defer></script>
+  <script src="data/bundle.js?v=2.9.39" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
 
 </head>
@@ -34,10 +34,9 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.38</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.39</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
-      <a href="#" onclick="switchPage('hotspot', document.querySelector('.nav-tab[onclick*=hotspot]'));return false;" class="entry-btn entry-hot">🔥 热点跟拍 · 双车道 →</a>
       <a href="docs/score-guide.html" class="entry-btn entry-biz">📊 经营分指南 →</a>
     </div>
     <div id="storeBar" style="margin-top:8px;">
@@ -139,6 +138,35 @@
       </h3>
       <div style="font-size:12px;color:var(--orange);margin-bottom:8px;" id="weekDevice">📱 本周评测设备：加载中...</div>
       <div id="bgmRecommendGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; font-size:13px;">加载中...</div>
+    </div>
+
+    <!-- v2.9.39: 热点跟拍中心入口（数据双车道：话题热点 + 搜索截流） -->
+    <div class="card" id="hotspotCenterEntry" style="margin-top:16px;">
+      <h3 style="margin-bottom:10px;">🔥 热点跟拍中心 <span style="font-size:11px;color:#999;font-weight:400;">— 数据双车道</span></h3>
+      <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;">
+        <div class="hot-pick-col pick-fire" onclick="enterHotspotLane('hot')" style="cursor:pointer;transition:all .2s;">
+          <div class="hot-pick-col-head" style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:22px;">🔥</span>
+            <div>
+              <div style="font-weight:700;font-size:15px;color:#E65100;">热点车道</div>
+              <div style="font-size:11px;color:#999;">话题热点 · 抖音/微博/百度/知乎/头条/小红书</div>
+            </div>
+          </div>
+          <div id="homeHotCount" style="font-size:12px;color:#666;margin-top:10px;">点击加载今日热点脚本</div>
+          <div style="margin-top:10px;font-size:12px;color:#E65100;font-weight:600;">查看全部 →</div>
+        </div>
+        <div class="hot-pick-col pick-copy" onclick="enterHotspotLane('search')" style="cursor:pointer;transition:all .2s;">
+          <div class="hot-pick-col-head" style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:22px;">🔍</span>
+            <div>
+              <div style="font-weight:700;font-size:15px;color:#2E7D32;">搜索车道</div>
+              <div style="font-size:11px;color:#999;">搜索截流 · 把用户搜索词变成营业厅内容</div>
+            </div>
+          </div>
+          <div id="homeSearchCount" style="font-size:12px;color:#666;margin-top:10px;">点击加载搜索截流脚本</div>
+          <div style="margin-top:10px;font-size:12px;color:#2E7D32;font-weight:600;">查看全部 →</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -842,53 +870,53 @@
     </details>
   </div>
 
-  <!-- ==================== PAGE 5.5: Hotspot Follow-Templates (双车道) ==================== -->
+  <!-- ==================== PAGE 5.5: 热点跟拍中心 ==================== -->
   <div class="page" id="page-hotspot">
-    <h2 style="margin-bottom:4px;">🔥 热点跟拍 · 双车道</h2>
-    <p style="color:var(--body);font-size:12px;margin-bottom:12px;">
-      左车道实时抓取抖音/微博/百度/知乎/头条/小红书热搜 + 热门BGM + 短视频形式，AI 匹配营业厅脚本；右车道沉淀你收藏的选题，跨会话保存在本机。
-      <span style="color:var(--orange);" id="hotspotUpdateTime"></span>
-    </p>
-
-    <!-- 双车道 tab -->
-    <div class="hs-tabs" style="margin-bottom:14px;">
-      <button class="hs-tab active" id="tab-hot" onclick="switchHotspotTab('hot', this)">📡 今日热点跟拍</button>
-      <button class="hs-tab" id="tab-lib" onclick="switchHotspotTab('lib', this)">📚 我的选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
-    </div>
-
-    <!-- 车道1：今日热点跟拍 -->
-    <div id="lane-hot" class="lane-panel">
-      <div style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:6px;">
+      <div>
+        <h2 style="margin-bottom:4px;">🔥 热点跟拍中心</h2>
+        <p style="color:var(--body);font-size:12px;margin:0;">数据双车道：🔥 话题热点 + 🔍 搜索截流，AI 匹配营业厅脚本。</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <button class="btn btn-sm" style="background:#FF6F00;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
-        <span style="font-size:11px;color:var(--muted);margin-left:8px;" id="hotspotRefreshStatus"></span>
+        <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
       </div>
-      <!-- Lane Filter -->
-      <div class="hs-filter" style="margin-bottom:8px;">
-        <button class="bank-filter lane-filter active" onclick="filterHotspotLane('', this)">🌐 全部通道</button>
-        <button class="bank-filter lane-filter" onclick="filterHotspotLane('hot', this)">🔥 话题热点</button>
-        <button class="bank-filter lane-filter" onclick="filterHotspotLane('form', this)">🎬 短视频形式</button>
-        <button class="bank-filter lane-filter" onclick="filterHotspotLane('music', this)">🎵 热门BGM</button>
-        <button class="bank-filter lane-filter" onclick="filterHotspotLane('search', this)">🔍 搜索截流</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;min-height:18px;" id="hotspotRefreshStatus"></div>
+
+    <!-- 数据双车道 + 难度筛选 -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="hs-tabs" style="flex-wrap:wrap;">
+        <button class="hs-tab active lane-filter" id="hs-lane-all-btn" onclick="filterHotspotLane('', this)">🌐 全部</button>
+        <button class="hs-tab lane-filter" id="hs-lane-hot-btn" onclick="filterHotspotLane('hot', this)">🔥 热点车道</button>
+        <button class="hs-tab lane-filter" id="hs-lane-search-btn" onclick="filterHotspotLane('search', this)">🔍 搜索车道</button>
       </div>
-      <!-- Difficulty Filter -->
-      <div class="hs-filter">
-        <button class="bank-filter active" onclick="filterHotspot('all', this)">全部难度</button>
-        <button class="bank-filter" onclick="filterHotspot('tier1', this)">🥇 专业翻拍</button>
-        <button class="bank-filter" onclick="filterHotspot('tier2', this)">🥈 行业套用</button>
-        <button class="bank-filter" onclick="filterHotspot('tier3', this)">🥉 纯跟拍</button>
-        <button class="bank-filter" onclick="filterHotspot('easy', this)">⭐ 零基础</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:#999;">难度</span>
+        <select id="hsDifficulty" onchange="filterHotspot(this.value, null)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--body);cursor:pointer;">
+          <option value="all">全部难度</option>
+          <option value="tier1">🥇 专业翻拍</option>
+          <option value="tier2">🥈 行业套用</option>
+          <option value="tier3">🥉 纯跟拍</option>
+          <option value="easy">⭐ 零基础</option>
+        </select>
       </div>
-      <div class="hotspot-grid" id="hotspotGrid"></div>
     </div>
 
-    <!-- 车道2：我的选题库 -->
-    <div id="lane-lib" class="lane-panel" style="display:none;">
-      <div style="margin-bottom:10px;font-size:12px;color:var(--muted);">
-        收藏的脚本保存在本机浏览器（换设备不互通）。可一键复制全文 / 导出 JSON / 移除。
-      </div>
-      <div class="hotspot-grid" id="myLibraryGrid"></div>
-      <div id="myLibraryEmpty" style="text-align:center;padding:40px;color:#999;">
-        📚 选题库还是空的<br><span style="font-size:12px;">去「今日热点跟拍」点卡片上的 ⭐ 收进选题库</span>
+    <!-- 主列表 -->
+    <div class="hotspot-grid" id="hotspotGrid"></div>
+
+    <!-- 我的选题库浮层面板 -->
+    <div id="lane-lib" style="display:none;">
+      <div class="card" style="margin-top:16px;">
+        <h3 style="display:flex;justify-content:space-between;align-items:center;">📚 我的选题库 <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">✕ 关闭</button></h3>
+        <div style="margin-bottom:10px;font-size:12px;color:var(--muted);">
+          收藏的脚本保存在本机浏览器（换设备不互通）。可一键复制全文 / 移除。
+        </div>
+        <div class="hotspot-grid" id="myLibraryGrid"></div>
+        <div id="myLibraryEmpty" style="text-align:center;padding:40px;color:#999;">
+          📚 选题库还是空的<br><span style="font-size:12px;">去热点卡片点 ⭐ 收进选题库</span>
+        </div>
       </div>
     </div>
   </div>
@@ -996,6 +1024,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.38" defer></script>
+  <script src="app.js?v=2.9.39" defer></script>
 </body>
 </html>
