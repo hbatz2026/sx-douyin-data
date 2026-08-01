@@ -41,6 +41,7 @@ jobs:
         run: node deploy-all.mjs --scf-only
 
       - name: Cleanup redundant timers
+        # 幂等清理：保留 daily-hotspot-warmup，删除其余 7 个冗余 timer；可重复运行，NotFound 忽略
         env:
           TC_SECRET_ID: ${{ secrets.TC_SECRET_ID }}
           TC_SECRET_KEY: ${{ secrets.TC_SECRET_KEY }}
