@@ -200,6 +200,14 @@
   .bank-filter:hover { border-color: var(--blue); color: var(--blue); }
   .bank-filter.active { background: var(--blue); color: #fff; border-color: var(--blue); }
 
+  /* 热点双车道 tab */
+  .hs-tabs { display: flex; gap: 10px; }
+  .hs-tab { padding: 8px 18px; border-radius: 10px 10px 0 0; border: 1.5px solid var(--border); border-bottom: none; background: #F5F7FA; color: var(--body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .hs-tab:hover { color: var(--blue); }
+  .hs-tab.active { background: #fff; color: var(--blue); border-color: var(--blue); box-shadow: 0 -2px 8px rgba(0,82,204,0.06); }
+  .hs-tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 2px; border-radius: 9px; background: #FF6F00; color: #fff; font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; }
+  .lane-panel { border-top: 2px solid var(--blue); padding-top: 14px; }
+
   /* Topic meta badges */
   .topic-meta { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
   .meta-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 12px; font-weight: 600; }
