@@ -1,0 +1,41 @@
+# 抖本内容工坊 · SCF 自动部署（精简 CI）
+# 触发：push 到 master，或在 Actions 页面手动触发（workflow_dispatch）
+# 作用：仅自动部署 SCF（Web + Event），跳过前端（前端仍走本地 douyin-content-lab/deploy.mjs --quick）
+#
+# 首次使用需在仓库 Settings → Secrets and variables → Actions 添加以下 secrets：
+#   TC_SECRET_ID   腾讯云 SecretId（douyin-personalize / douyin-update-hotspot 部署用）
+#   TC_SECRET_KEY  腾讯云 SecretKey
+#   GITEE_TOKEN    Gitee 私人令牌（推送 SCF 代码到 Gitee 供运行时自部署）
+#   GH_TOKEN       GitHub PAT（预留，前端若后续也走 CI 时使用）
+#
+# 说明：本仓库根目录即部署脚本与 SCF 源码，CI 直接从根目录执行 node deploy-all.mjs --scf-only。
+name: Deploy SCF (douyin-personalize + douyin-update-hotspot)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-scf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Deploy SCF (Web + Event)
+        env:
+          TC_SECRET_ID: ${{ secrets.TC_SECRET_ID }}
+          TC_SECRET_KEY: ${{ secrets.TC_SECRET_KEY }}
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: node deploy-all.mjs --scf-only

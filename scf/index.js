@@ -1,21 +1,50 @@
-// SCF 云函数 v4 — 抖本工坊云端自动化
-// AI 增强（硅基流动） + 模板变体 + 关联度过滤
-// 环境变量: GITEE_TOKEN, GITEE_USERNAME, DEPLOY_HOOK_URL, SILICONFLOW_API_KEY
+// SCF 云函数 v4.3 — 抖本工坊云端自动化
+// AI 增强（硅基流动） + 模板变体 + 千人千面变体池 + 个性化 API
+// 环境变量: GITEE_TOKEN, GITEE_USERNAME, SILICONFLOW_API_KEY, GITHUB_TOKEN
 //
-// 模式: hotspot | bgm | topics
-// 更新时间: 2026-06-17
+// 模式: hotspot | bgm | topics | variants | personalize(HTTP)
+// 更新时间: 2026-06-25 (v4.3: 数据文件同步推 GitHub Pages)
 
 let _configCache = {};
 
 exports.main_handler = async (event, context) => {
+  // Detect HTTP request (API Gateway trigger) vs cron event
+  const isHTTP = event.httpMethod || event.headers;
+  
   let mode = event.mode;
   if (!mode && typeof event.Message === 'string') {
     try { mode = JSON.parse(event.Message).mode; } catch(e) {}
   }
+  if (!mode && isHTTP) mode = 'http';
   if (!mode) mode = 'hotspot';
+  // 定时器触发（无 Message）默认走每日热点预热（hotspot-warmup）
+  if (event && (event.Type === 'timer' || event.timer)) mode = 'hotspot-warmup';
 
   const ts = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
-  console.log(`[${ts()}] SCF v4 AI-enhanced | mode=${mode}`);
+  console.log(`[${ts()}] SCF v4.2 | mode=${mode} | isHTTP=${isHTTP}`);
+
+  // 每日定时预热（timer 触发器 payload {mode:'hotspot-warmup'}）：触发 Web 函数生成最新热点，
+  // Web 函数会自行持久化到 Gitee 共享缓存（data/hotspot-latest.json），前端即可秒级加载。
+  if (mode === 'hotspot-warmup') {
+    const EP = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+    try {
+      const p = fetch(EP, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'hotspot-fetch', model: 'deepseek-v4-pro', max_tokens: 8000, temperature: 0.9 })
+      });
+      p.then(() => console.log('[hotspot-warmup] web hotspot-fetch triggered')).catch(e => console.log('[hotspot-warmup] trigger err', e.message));
+      await new Promise(r => setTimeout(r, 800)); // 让请求先发出，再返回（避免容器冻结前连接被掐）
+      return { ok: true, mode: 'hotspot-warmup', note: 'triggered web hotspot-fetch (async)' };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  // HTTP gateway: route to personalize handler
+  if (isHTTP || mode === 'http') {
+    return await handleHTTP(event, context);
+  }
 
   try {
     const token = process.env.GITEE_TOKEN;
@@ -31,19 +60,43 @@ exports.main_handler = async (event, context) => {
       const { topics, t1 } = await genTopics(token, user);
       result['data/topicPool.js'] = topics;
       result['data/t1Presets.js'] = t1;
+    } else if (mode === 'variants') {
+      result['data/variantPool.js'] = await genVariants(token, user);
     } else {
       throw new Error('Unknown mode: ' + mode);
     }
 
     const updated = [];
     for (const [filename, content] of Object.entries(result)) {
-      await updateGiteeFile(filename, content, token, user);
+      if (filename === 'data/variantPool.js') {
+        await createOrUpdateGiteeFile(filename, content, token, user);
+      } else {
+        await updateGiteeFile(filename, content, token, user);
+      }
       updated.push(filename);
-      console.log(`[${ts()}] Updated: ${filename}`);
+      console.log(`[${ts()}] Updated Gitee: ${filename}`);
     }
 
-    const deployed = await deployViaEdgeOne(token, user);
-    console.log(`[${ts()}] EdgeOne deploy: ${deployed ? 'OK' : 'skipped'}`);
+    // Also push data files to GitHub Pages (frontend hosting)
+    var ghToken = process.env.GITHUB_TOKEN;
+    var ghUser = process.env.GITHUB_USERNAME || 'hbatz2026';
+    var ghSynced = 0;
+    if (ghToken) {
+      for (var fn of updated) {
+        try {
+          await pushToGitHub(fn, result[fn], ghToken, ghUser);
+          console.log(`[${ts()}] Synced GitHub: ${fn}`);
+          ghSynced++;
+        } catch(ghErr) {
+          console.error(`[${ts()}] GitHub sync failed for ${fn}: ${ghErr.message}`);
+        }
+      }
+    } else {
+      console.log(`[${ts()}] No GITHUB_TOKEN, skip GitHub sync`);
+    }
+
+    var deployed = ghSynced > 0 ? true : await deployViaEdgeOne(token, user);
+    console.log(`[${ts()}] GitHub:${ghSynced}/${updated.length} EdgeOne:${deployed ? 'OK' : 'skipped'}`);
 
     return { success: true, mode, files: updated, deployed, timestamp: ts() };
   } catch (err) {
@@ -861,9 +914,377 @@ async function updateGiteeFile(filePath, content, token, user) {
   }
 }
 
+// Push data file to GitHub Pages repo (for frontend hosting)
+async function pushToGitHub(filePath, content, token, user) {
+  var apiUrl = `https://api.github.com/repos/${user}/sx-douyin-data/contents/${encodeURIComponent(filePath)}`;
+  // Get current SHA
+  var getRes = await fetch(apiUrl, {
+    headers: { 'Authorization': `token ${token}`, 'User-Agent': 'sx-douyin-scf' }
+  });
+  var sha = null;
+  if (getRes.ok) {
+    var fileInfo = await getRes.json();
+    sha = fileInfo.sha;
+  } else if (getRes.status === 404) {
+    // File doesn't exist yet — will be created
+  } else {
+    var errText = await getRes.text();
+    throw new Error(`GitHub GET ${getRes.status}: ${errText.slice(0,200)}`);
+  }
+  
+  var body = {
+    message: `auto(${new Date().toISOString().slice(0,10)}): update ${filePath.split('/').pop()}`,
+    content: Buffer.from(content, 'utf-8').toString('base64'),
+    branch: 'master'
+  };
+  if (sha) body.sha = sha;
+  
+  var putRes = await fetch(apiUrl, {
+    method: 'PUT',
+    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json', 'User-Agent': 'sx-douyin-scf' },
+    body: JSON.stringify(body)
+  });
+  if (!putRes.ok) {
+    var errText2 = await putRes.text();
+    throw new Error(`GitHub PUT ${putRes.status}: ${errText2.slice(0,200)}`);
+  }
+  return true;
+}
+
 function fetchWithUA(url) {
   return fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36' },
     signal: AbortSignal.timeout(15000)
   });
+}
+
+// ============================================================
+// 千人千面 · 变体池生成 (variants mode)
+// ============================================================
+
+// 6 种营业厅人设（与前端 personaDB 一致）
+const PERSONAS = {
+  sweet:  { label: '甜美学姐', tone: '口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"。语速活泼，善用emoji和热梗拉近距离。文案要有呼吸感。', icon: '🌸' },
+  tech:   { label: '技术专家', tone: '用实测数据和参数对比说话。专业但不死板。"今天测了""直接上数据""建议截图"是口头禅。禁止用销售腔。', icon: '🔧' },
+  biz:    { label: '商务精英', tone: '说话干练，直奔主题，信息密度极高。数字前置，结论先行。"建议""结论明确"是风格。不讲废话。', icon: '💼' },
+  young:  { label: '活力小哥', tone: '口语化接地气，快节奏有网感。"兄弟们"开头，喜欢吐槽和夸张对比。"你敢信""直接打脸"是风格。', icon: '😎' },
+  master: { label: '资深师傅', tone: '用真实案例说话，稳重有分量。"干了这么多年""信我一次""经验之谈"是口头禅。不吹不黑。', icon: '👔' },
+  sister: { label: '暖心姐姐', tone: '用客户故事和生活场景切入，温暖亲切。"昨天来了个阿姨"是经典开头。不是推销是真心帮忙。', icon: '💝' }
+};
+
+// Keep key names for backward compatibility in variant pool
+PERSONAS.warm = PERSONAS.sister;
+PERSONAS.guy = PERSONAS.young;
+
+async function genVariants(token, user) {
+  const ts = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
+  console.log(`[${ts()}] genVariants start`);
+
+  const apiKey = process.env.SILICONFLOW_API_KEY;
+  if (!apiKey) {
+    console.log('No SILICONFLOW_API_KEY — using template fallback');
+    return buildTemplateVariantPool(token, user);
+  }
+
+  const cfg = await loadAIConfig(token, user);
+  const baseTopics = await getConfig('config/base-topics.json', token, user);
+
+  // Collect all unique topics from the 4 topic types
+  const allTopics = [];
+  const seen = new Set();
+  const keys = ['decision', 'scene', 'device', 'local'];
+  for (const key of keys) {
+    const list = baseTopics[key];
+    if (!list) continue;
+    for (const t of list) {
+      if (!seen.has(t)) { seen.add(t); allTopics.push(t); }
+    }
+  }
+
+  // Select this week's active topics (rotate by ISO week)
+  const weekNum = getISOWeek();
+  const pool = {};
+  const BATCH_SIZE = 5; // process in batches to avoid rate limits
+  const TOPICS_PER_BATCH = 4; // 4 topics per batch, each generates 12 variants
+  const MAX_TOPICS = 16; // max topics per run (API limit friendly)
+
+  // Select topics for this week
+  const selectedTopics = [];
+  for (let i = 0; i < Math.min(allTopics.length, MAX_TOPICS); i++) {
+    const idx = (weekNum * 7 + i * 13 + 3) % allTopics.length;
+    const t = allTopics[idx];
+    if (!selectedTopics.includes(t)) selectedTopics.push(t);
+  }
+
+  console.log(`[${ts()}] Selected ${selectedTopics.length} topics for variant generation`);
+
+  for (let bi = 0; bi < selectedTopics.length; bi += TOPICS_PER_BATCH) {
+    const batch = selectedTopics.slice(bi, bi + TOPICS_PER_BATCH);
+    const results = await Promise.all(batch.map(async (topic) => {
+      try {
+        return { topic, variants: await generateTopicVariants(topic, apiKey, cfg) };
+      } catch (e) {
+        console.log(`[${ts()}] Variant failed for "${topic.slice(0,30)}": ${e.message}`);
+        return null;
+      }
+    }));
+
+    for (const r of results) {
+      if (r && r.variants) pool[r.topic] = r.variants;
+    }
+
+    // Rate limit pause between batches
+    if (bi + TOPICS_PER_BATCH < selectedTopics.length) {
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const js =
+    '// 抖本内容工坊 · 千人千面变体池\n' +
+    `// 自动生成: ${dateStr} | 选题数: ${Object.keys(pool).length}\n` +
+    `// 格式: { "选题key": { "tech"/"warm"/"guy"/"biz": ["变体1","变体2","变体3"] } }\n` +
+    `// 占位符: {user_store}{user_city}{a}{b}{c} → 前端自动注入表单数据\n` +
+    'window.___variantPool = ' + JSON.stringify(pool, null, 2) + ';\n';
+
+  console.log(`[${ts()}] genVariants done: ${Object.keys(pool).length} topics`);
+  return js;
+}
+
+async function generateTopicVariants(topic, apiKey, cfg) {
+  const sysPrompt = `你是山西电信抖音短视频脚本专家。你的任务是为给定的选题生成12条开头话术（每个主播人设3条）。每条话术1-3句话，可直接作为视频开场使用。
+
+**四种人设要求：**
+• 技术达人（tech）：理性数据，用实测/对比/专业发现切入，语气专业自信
+• 暖心大姐（warm）：亲切自然，用客户故事/生活场景/共情切入，语气温暖
+• 邻家小哥（guy）：口语化接地气，用吐槽/疑问/夸张对比切入，语气轻松有网感
+• 专业商务（biz）：简洁高效直奔主题，用结论/数据/选择建议切入，语气干练
+
+**关键规则：**
+1. 每条话术必须有1-3句话的完整开场，不可单句
+2. 用人设对应的口吻切入该选题，不要念标题
+3. 话术中引用用户数据的地方用占位符：{user_store}=营业厅名 {user_city}=城市名 {a}{b}{c}=用户填的场景数据
+4. 不同人设的3条之间要有明显差异（不同场景、不同切入点）
+5. 输出严格合法JSON，不要markdown`;
+
+  const userPrompt = `选题：「${topic}」
+
+为上述选题生成12条开场话术，按4种人设分组，每个人设3条。每条话术必须是1-3句完整的视频开场白。
+
+输出JSON格式：
+{
+  "tech": ["话术1", "话术2", "话术3"],
+  "warm": ["话术1", "话术2", "话术3"],
+  "guy": ["话术1", "话术2", "话术3"],
+  "biz": ["话术1", "话术2", "话术3"]
+}`;
+
+  const response = await callSiliconFlow(sysPrompt, userPrompt, apiKey, cfg);
+  if (!response) throw new Error('Empty AI response');
+
+  // Parse JSON — handle AI wrapping in code blocks
+  let json = response.trim();
+  json = json.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(json);
+  } catch (e) {
+    // Last resort: try to extract JSON object
+    const m = json.match(/\{[\s\S]*\}/);
+    if (m) parsed = JSON.parse(m[0]);
+    else throw e;
+  }
+
+  // Validate structure
+  for (const p of ['tech', 'warm', 'guy', 'biz']) {
+    if (!Array.isArray(parsed[p]) || parsed[p].length < 3) {
+      throw new Error(`Missing or insufficient variants for persona: ${p}`);
+    }
+    parsed[p] = parsed[p].slice(0, 3); // ensure exactly 3
+  }
+
+  return parsed;
+}
+
+function getISOWeek() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const ys = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - ys) / 86400000 + 1) / 7);
+}
+
+function buildTemplateVariantPool(token, user) {
+  const dateStr = new Date().toISOString().slice(0, 10);
+  // Minimal fallback template pool (will be populated by AI on next run)
+  const pool = {};
+  const js =
+    '// 抖本内容工坊 · 千人千面变体池（模板兜底）\n' +
+    `// 生成时间: ${dateStr} | 状态: AI未启用，使用模板\n` +
+    'window.___variantPool = ' + JSON.stringify(pool) + ';\n';
+  return js;
+}
+
+// variantPool.js is a new file — may need create (not update)
+async function createOrUpdateGiteeFile(filePath, content, token, user) {
+  try {
+    await updateGiteeFile(filePath, content, token, user);
+  } catch (e) {
+    // If file doesn't exist, create it
+    if (e.message.includes('Cannot get SHA') || e.message.includes('404')) {
+      const apiUrl = `https://gitee.com/api/v5/repos/${user}/sx-douyin-data/contents/${encodeURIComponent(filePath)}`;
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_token: token,
+          content: Buffer.from(content, 'utf-8').toString('base64'),
+          message: `auto(${new Date().toISOString().slice(0,10)}): create ${filePath.split('/').pop()}`,
+          branch: 'master'
+        })
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gitee create ${res.status}: ${errText}`);
+      }
+      console.log('Created new file:', filePath);
+    } else {
+      throw e;
+    }
+  }
+}
+
+// ============================================================
+// HTTP Gateway Handler + Personalize API (懒生成 + 永久缓存)
+// ============================================================
+
+async function handleHTTP(event, context) {
+  const ts = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
+  
+  // CORS headers
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: 'ok' };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+  }
+
+  try {
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    const result = await personalize(body);
+    return { statusCode: 200, headers, body: JSON.stringify(result) };
+  } catch (e) {
+    console.error(`[${ts()}] personalize error: ${e.message}`);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };
+  }
+}
+
+// Persona System Prompts (6 types, synced with frontend personaDB)
+const PERSONA_PROMPTS = {
+  sweet:   '你是电信营业厅的年轻女员工。口吻轻快甜美，有抖音网感，爱用"宝子们""姐妹们"。用热梗拉近距离。',
+  tech:    '你是电信技术专家。用实测数据说话，喜欢对比参数。专业但不死板。"今天测了""直接上数据"是你的口头禅。',
+  biz:     '你是商务专家。说话干练，直奔主题，信息密度高。数字前置，结论先行。不讲废话。',
+  young:   '你是年轻男员工。说话口语化接地气，有网感。爱用"兄弟们"开头，喜欢吐槽和夸张对比。',
+  master:  '你是资深老师傅。干了二十年装维。用真实案例说话，稳重有分量。"信我一次""经验之谈"是你的口头禅。',
+  sister:  '你是暖心姐姐。用客户故事和生活场景切入。温暖亲切，感觉你不是在推销，是在真心帮忙。'
+};
+
+async function personalize(params) {
+  const ts = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const { store, persona, topic, city, fields, templateType } = params;
+  
+  if (!store || !topic || !persona) {
+    throw new Error('Missing required params: store, topic, persona');
+  }
+
+  const token = process.env.GITEE_TOKEN;
+  const user = process.env.GITEE_USERNAME || 'hbatz';
+  const apiKey = process.env.SILICONFLOW_API_KEY;
+  if (!apiKey) throw new Error('SILICONFLOW_API_KEY not configured');
+
+  // Cache key: deterministic per (store + topic + persona + week)
+  const weekNum = getISOWeek();
+  const cacheKey = require('crypto').createHash('md5')
+    .update(`${store}|${topic}|${persona}|${weekNum}`).digest('hex').slice(0, 12);
+  const cachePath = `cache/${cacheKey}.json`;
+
+  console.log(`[${ts()}] personalize cache=${cacheKey} topic="${topic.slice(0,30)}" persona=${persona}`);
+
+  // Step 1: Check cache
+  try {
+    const cached = await readGiteeFile(cachePath, token, user);
+    const parsed = JSON.parse(cached);
+    console.log(`[${ts()}] Cache HIT: ${cacheKey}`);
+    return { script: parsed.script, cached: true, cacheKey };
+  } catch (e) {
+    // Cache miss — proceed to AI generation
+    console.log(`[${ts()}] Cache MISS, generating...`);
+  }
+
+  // Step 2: Build prompt with full context
+  const personaPrompt = PERSONA_PROMPTS[persona] || PERSONA_PROMPTS.sister;
+  
+  // Build fields context
+  let fieldsContext = '';
+  if (fields) {
+    for (const [k, v] of Object.entries(fields)) {
+      if (v) fieldsContext += `${k}: ${v}\n`;
+    }
+  }
+
+  const systemPrompt = `${personaPrompt}
+你是山西电信抖音短视频脚本生成器，营业厅名称：${store}，所在城市：${city || '未知'}。
+你的任务是：为营业厅员工写一段完整的口播脚本开场白（3-5句话），可以直接照着念。
+脚本要求：口语化、自然、有人情味，用该人设的口气自然表达。用占位符引用用户数据。
+不要写分镜、不要写字幕说明、不要写BGM推荐——只写口播台词。`;
+
+  const userPrompt = `选题：${topic}
+用户填写的场景数据：
+${fieldsContext}
+
+请为${store}的营业员写一段完整的口播开场白（3-5句话），用"${personaPrompt.split('。')[0]}"的口吻。
+开头要自然、有钩子，中间不要太快进入产品细节（留给后面说），结尾要有停顿感。
+直接输出纯文本，不要JSON，不要markdown。`;
+
+  const cfg = await loadAIConfig(token, user);
+  const script = await callSiliconFlow(systemPrompt, userPrompt, apiKey, { 
+    ...cfg, 
+    temperature: 0.9,
+    maxTokens: 500 
+  });
+
+  if (!script) throw new Error('AI returned empty response');
+
+  // Step 3: Save to cache
+  const scriptClean = script.trim().replace(/^["']|["']$/g, '');
+  const cacheContent = JSON.stringify({ 
+    script: scriptClean, 
+    persona, topic, store,
+    generated: new Date().toISOString().slice(0, 10)
+  });
+  await createOrUpdateGiteeFile(cachePath, cacheContent, token, user);
+  
+  console.log(`[${ts()}] Generated + cached: ${cacheKey}`);
+  return { script: scriptClean, cached: false, cacheKey };
+}
+
+// Read a file from Gitee (for cache lookups)
+async function readGiteeFile(filePath, token, user) {
+  const apiUrl = `https://gitee.com/api/v5/repos/${user}/sx-douyin-data/contents/${encodeURIComponent(filePath)}`;
+  const res = await fetch(apiUrl + '?ref=master', {
+    headers: { 'Authorization': `token ${token}` }
+  });
+  if (!res.ok) throw new Error(`Gitee read ${res.status}`);
+  const info = await res.json();
+  if (!info.content) throw new Error('No content');
+  return Buffer.from(info.content, 'base64').toString('utf-8');
 }
