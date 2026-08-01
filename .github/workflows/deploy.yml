@@ -39,3 +39,9 @@ jobs:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: node deploy-all.mjs --scf-only
+
+      - name: Cleanup redundant timers
+        env:
+          TC_SECRET_ID: ${{ secrets.TC_SECRET_ID }}
+          TC_SECRET_KEY: ${{ secrets.TC_SECRET_KEY }}
+        run: node cleanup-triggers.mjs
