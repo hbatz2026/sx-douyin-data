@@ -140,13 +140,12 @@ if (!SCF_ONLY) {
   console.log('═══ [1] 跳过前端部署（--scf-only）═══');
 }
 
-// ─── Step 2: SCF Web 推 Gitee ───
+// ─── Step 2: SCF Web 推 Gitee（非致命：Gitee 偶发不可达不影响主部署 UpdateFunctionCode）───
 console.log('\n═══ [2] SCF Web 推 Gitee ═══');
 try {
   execSync(`node push-scf-web.mjs`, { stdio:'inherit', cwd: __dirname });
 } catch(e) {
-  console.error('❌ 推 Gitee 失败，SCF 冷启动将拉不到新代码');
-  process.exit(1);
+  console.warn('⚠️ 推 Gitee 失败（运行时自部署路径将暂时不可用，但 UpdateFunctionCode 主部署不受影响）');
 }
 
 // ─── Step 3: SCF Web 部署（UpdateFunctionCode）───

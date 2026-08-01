@@ -42,6 +42,8 @@ jobs:
 
       - name: Cleanup redundant timers
         # 幂等清理：保留 daily-hotspot-warmup，删除其余 7 个冗余 timer；可重复运行，NotFound 忽略
+        # if: always() —— 即使前面部署步骤因 Gitee 网络抖动失败，也照常清理定时器
+        if: always()
         env:
           TC_SECRET_ID: ${{ secrets.TC_SECRET_ID }}
           TC_SECRET_KEY: ${{ secrets.TC_SECRET_KEY }}
