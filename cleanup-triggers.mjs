@@ -36,13 +36,18 @@ async function callSCF(action, payload){
 }
 const FUNC = 'douyin-update-hotspot';
 const KEEP = new Set(['daily-hotspot-warmup']);
-const REMOVE = ['dailyPersonaFill','cron_bgm','cron_topics','cron_hotspot','bgm','topics','sxdouyingongfang'];
 (async () => {
   console.log(`\n🧹 清理 ${FUNC} 冗余定时器（保留 ${[...KEEP]}）...`);
-  for (const name of REMOVE) {
+  // 先列全部，取每个触发器的真实 Type/Qualifier（关键：$DEFAULT 绑定的触发器删时必须带 Qualifier）
+  const list = await callSCF('ListTriggers', { FunctionName: FUNC });
+  const triggers = (list.Triggers || []).filter(t => !KEEP.has(t.TriggerName));
+  for (const t of triggers) {
+    const name = t.TriggerName;
+    const type = t.Type || 'timer';
+    const qualifier = t.Qualifier || '$LATEST';
     try {
-      await callSCF('DeleteTrigger', { FunctionName: FUNC, TriggerName: name, Type: 'timer' });
-      console.log(`  ✅ 已删除: ${name}`);
+      await callSCF('DeleteTrigger', { FunctionName: FUNC, TriggerName: name, Type: type, Qualifier: qualifier });
+      console.log(`  ✅ 已删除: ${name} (Type=${type}, Qualifier=${qualifier})`);
     } catch (e) {
       if (/NotFound|ResourceNotFound|InvalidParameter|NoSuch/i.test(e.message)) {
         console.log(`  ⏭️ 不存在(已删/从未有): ${name}`);
@@ -51,7 +56,7 @@ const REMOVE = ['dailyPersonaFill','cron_bgm','cron_topics','cron_hotspot','bgm'
       }
     }
   }
-  // 校验剩余
+  // 校验剩余（最终一致，可能延迟数秒，以 CI 日志 ✅ 为准、隔数分钟实读确认）
   try {
     const r = await callSCF('ListTriggers', { FunctionName: FUNC });
     const names = (r.Triggers||[]).map(t=>t.TriggerName);
