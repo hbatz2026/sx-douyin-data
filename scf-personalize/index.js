@@ -775,7 +775,12 @@ http.createServer(async (req, res) => {
       if (!token) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'GITEE_TOKEN not configured' })); return; }
       try {
         const raw = await readGiteeFile('data/bgmList.js', token, user);
-        const jsonStr = raw.replace(/^window\.___\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
+        // 兼容 genBgm 生成的「// 注释头 + window.___bgmList = {...};」格式（注释行在赋值之前）
+        const jsonStr = raw
+          .replace(/^\s*\/\/[^\n]*\n?/g, '')     // 去掉行首 // 注释行
+          .replace(/^window\.___\w+\s*=\s*/, '') // 去掉 window.___bgmList =
+          .replace(/;\s*$/, '')                   // 去掉结尾 ;
+          .trim();
         const bgmList = JSON.parse(jsonStr);
         const updatedAt = (raw.match(/\/\/\s*Updated:\s*([\d-]+)/) || [,''])[1];
         res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok: true, bgmList, updatedAt }));
