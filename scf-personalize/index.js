@@ -776,8 +776,10 @@ http.createServer(async (req, res) => {
       try {
         const raw = await readGiteeFile('data/bgmList.js', token, user);
         // 兼容 genBgm 生成的「// 注释头 + window.___bgmList = {...};」格式（注释行在赋值之前）
+        // 必须用 m 标志：^ 要匹配每一行开头，否则只能剥掉第一行注释，第二行 // 残留会令 JSON.parse 失败
         const jsonStr = raw
-          .replace(/^\s*\/\/[^\n]*\n?/g, '')     // 去掉行首 // 注释行
+          .replace(/^\s*\/\/.*$/gm, '')           // 去掉所有 // 注释行（多行）
+          .trim()                                 // 去掉首尾空白（含注释残留的换行）
           .replace(/^window\.___\w+\s*=\s*/, '') // 去掉 window.___bgmList =
           .replace(/;\s*$/, '')                   // 去掉结尾 ;
           .trim();
