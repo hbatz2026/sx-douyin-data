@@ -41,7 +41,7 @@ const REMOVE = ['dailyPersonaFill','cron_bgm','cron_topics','cron_hotspot','bgm'
   console.log(`\n🧹 清理 ${FUNC} 冗余定时器（保留 ${[...KEEP]}）...`);
   for (const name of REMOVE) {
     try {
-      await callSCF('DeleteTrigger', { FunctionName: FUNC, TriggerName: name });
+      await callSCF('DeleteTrigger', { FunctionName: FUNC, TriggerName: name, Type: 'timer' });
       console.log(`  ✅ 已删除: ${name}`);
     } catch (e) {
       if (/NotFound|ResourceNotFound|InvalidParameter|NoSuch/i.test(e.message)) {
