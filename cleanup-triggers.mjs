@@ -4,7 +4,9 @@
 import { createHash, createHmac } from 'crypto';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const cfg = require('./tc-config.cjs');
+// CI 环境无本地 tc-config.cjs（未提交仓库），依赖环境变量 TC_SECRET_ID/KEY；本地有则读取
+let cfg = {};
+try { cfg = require('./tc-config.cjs'); } catch (e) { /* 回退环境变量 */ }
 function sha256Hex(d){ return createHash('sha256').update(d).digest('hex'); }
 function signTC3(secretKey, date, service, stringToSign){
   const kDate = createHmac('sha256', `TC3${secretKey}`).update(date).digest();
