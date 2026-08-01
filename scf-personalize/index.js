@@ -622,6 +622,78 @@ http.createServer(async (req, res) => {
       const content = JSON.stringify(payload);
       await createOrUpdateGiteeFile('data/hotspot-latest.json', content, token, user);
     }
+
+    // 2026-08-01: 精选 BGM 库生成（随每日预热一起刷新，写入 data/bgmList.js 供模板下拉自动填充）
+    function fetchWithUA(url) {
+      return fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36' },
+        signal: AbortSignal.timeout(15000)
+      });
+    }
+    async function genBgm(token, user) {
+      const today = new Date().toISOString().slice(0, 10);
+      let songs = [];
+      try { songs = await fetchKugouRank(); }
+      catch (e) { console.log('[genBgm] Kugou failed:', e.message); }
+      if (songs.length < 10) {
+        try { const fb = await getConfig('config/bgm-fallback.json', token, user); songs = fb.songs; } catch (e) { console.log('[genBgm] fallback failed:', e.message); }
+      }
+      let categorized = {};
+      try {
+        const bgmRules = await getConfig('config/bgm-rules.json', token, user);
+        categorized = categorizeBgm(songs, bgmRules);
+      } catch (e) { console.log('[genBgm] rules failed:', e.message); }
+      const js = JSON.stringify(categorized, null, 2);
+      return `// Auto-generated BGM\n// Updated: ${today}\nwindow.___bgmList = ${js};\n`;
+    }
+    async function fetchKugouRank() {
+      const res = await fetchWithUA('https://www.kugou.com/yy/html/rank.html');
+      const html = await res.text();
+      const results = [];
+      const titleRegex = /\*\*(\d+)\*\*\[([^\]]+)\]/g;
+      let m;
+      while ((m = titleRegex.exec(html)) !== null) {
+        results.push({ rank: parseInt(m[1]), title: m[2], artist: '' });
+      }
+      const artistRegex = /\\\s*-\s*([^\]\n<]+)/g;
+      const artists = [];
+      while ((m = artistRegex.exec(html)) !== null) { artists.push(m[1].trim()); }
+      for (let i = 0; i < Math.min(results.length, artists.length); i++) {
+        results[i].artist = artists[i];
+      }
+      return results.filter(s => s.artist && s.artist.length > 0).slice(0, 30);
+    }
+    function categorizeBgm(songs, rules) {
+      const fast = [], medium = [], slow = [];
+      const fastKw = rules.fast || [];
+      const slowKw = rules.slow || [];
+      for (const s of songs) {
+        const label = `${s.title} - ${s.artist}`;
+        if (fastKw.some(k => s.title.includes(k) || (s.artist||'').includes(k))) { fast.push(label); }
+        else if (slowKw.some(k => s.title.includes(k))) { slow.push(label); }
+        else { medium.push(label); }
+      }
+      const pick = (arr, n) => arr.slice(0, Math.min(n, arr.length));
+      const defaults = rules.defaultAssignments || {};
+      function fill(key, subKey) {
+        const def = defaults[key]?.[subKey];
+        const mood = def?.mood || 'medium';
+        const fb = def?.fallback || [];
+        if (mood === 'none') return fb;
+        const pool = mood === 'fast' ? fast : mood === 'slow' ? slow : medium;
+        const picked = pick(pool, 3);
+        return picked.length >= 3 ? picked : (pick(fb, 3).length >= 3 ? pick(fb, 3) : fb);
+      }
+      const cats = ['决策指南','一线场景','深度测评','本地事件','直播'];
+      const result = {};
+      for (const cat of cats) {
+        result[cat] = {};
+        for (const sk of Object.keys(defaults[cat] || {})) {
+          result[cat][sk] = fill(cat, sk);
+        }
+      }
+      return result;
+    }
     // 2026-08-01: 共享缓存读取（秒级，无需等 AI 生成）—— 前端热点中心优先调用此模式
     if (params.mode === 'hotspot-cache') {
       const token = process.env.GITEE_TOKEN;
@@ -682,11 +754,33 @@ http.createServer(async (req, res) => {
             hot: cands.hot.length, music: cands.music.length, form: cands.form.length, search: cands.search.length
           }, fetchedAt, promptVer: 'v2' }, token, user);
         } catch (pe) { console.warn('[hotspot-fetch] persist shared cache failed:', pe.message); }
+        // 2026-08-01: 每日额外生成精选 BGM 库（data/bgmList.js），随每日预热一起刷新，供模板下拉自动填充
+        try {
+          const bgmJs = await genBgm(token, user);
+          await createOrUpdateGiteeFile('data/bgmList.js', bgmJs, token, user);
+          console.log('[hotspot-fetch] 精选 BGM 库已刷新（data/bgmList.js）');
+        } catch (be) { console.warn('[hotspot-fetch] genBgm failed:', be.message); }
         res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok:true, count: scripts.length, scripts, promptVer: 'v2', lanes: {
           hot: cands.hot.length, music: cands.music.length, form: cands.form.length, search: cands.search.length
         }, musicCandidates, fetchedAt }));
       } catch (e) {
         res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: e.message || 'hotspot-fetch failed' }));
+      }
+      return;
+    }
+    // 2026-08-01: 读取每日生成的精选 BGM 库（data/bgmList.js），供前端按日加载 ___bgmList
+    if (params.mode === 'bgm-list') {
+      const token = process.env.GITEE_TOKEN;
+      const user = process.env.GITEE_USERNAME || 'hbatz';
+      if (!token) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'GITEE_TOKEN not configured' })); return; }
+      try {
+        const raw = await readGiteeFile('data/bgmList.js', token, user);
+        const jsonStr = raw.replace(/^window\.___\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
+        const bgmList = JSON.parse(jsonStr);
+        const updatedAt = (raw.match(/\/\/\s*Updated:\s*([\d-]+)/) || [,''])[1];
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok: true, bgmList, updatedAt }));
+      } catch (e) {
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok:false, empty:true, error: e.message }));
       }
       return;
     }
