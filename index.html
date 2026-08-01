@@ -7,10 +7,10 @@
 <meta name="theme-color" content="#0052CC">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.36">
+  <link rel="stylesheet" href="styles.css?v=2.9.37">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.36" defer></script>
+  <script src="data/bundle.js?v=2.9.37" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
 
 </head>
@@ -34,10 +34,10 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.36</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.37</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
-      <a href="hot/today-hotspot.html" class="entry-btn entry-hot">🔥 今日热点跟拍 →</a>
+      <a href="#" onclick="switchPage('hotspot', document.querySelector('.nav-tab[onclick*=hotspot]'));return false;" class="entry-btn entry-hot">🔥 今日热点跟拍 →</a>
       <a href="docs/score-guide.html" class="entry-btn entry-biz">📊 经营分指南 →</a>
     </div>
     <div id="storeBar" style="margin-top:8px;">
@@ -844,19 +844,28 @@
 
   <!-- ==================== PAGE 5.5: Hotspot Follow-Templates ==================== -->
   <div class="page" id="page-hotspot">
-    <h2 style="margin-bottom:4px;">🔥 本周热点跟拍</h2>
+    <h2 style="margin-bottom:4px;">🔥 今日热点跟拍</h2>
     <p style="color:var(--body);font-size:12px;margin-bottom:12px;">
-      每周一自动搜索抖音热点，筛选适合营业厅跟拍的内容。分三层：专业翻拍 / 行业套用 / 纯跟拍。
+      按日跟踪多平台热搜（抖音/微博/百度/知乎/头条/小红书）+ 热门BGM + 短视频形式（含京剧卡点等），AI 匹配营业厅脚本。
       <span style="color:var(--orange);" id="hotspotUpdateTime"></span>
     </p>
     <div style="margin-bottom:12px;">
-      <button class="btn btn-sm" style="background:#FF6F00;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 AI 刷新热点</button>
+      <button class="btn btn-sm" style="background:#FF6F00;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
       <span style="font-size:11px;color:var(--muted);margin-left:8px;" id="hotspotRefreshStatus"></span>
+    </div>
+
+    <!-- Lane Filter -->
+    <div class="hs-filter" style="margin-bottom:8px;">
+      <button class="bank-filter lane-filter active" onclick="filterHotspotLane('', this)">🌐 全部通道</button>
+      <button class="bank-filter lane-filter" onclick="filterHotspotLane('hot', this)">🔥 话题热点</button>
+      <button class="bank-filter lane-filter" onclick="filterHotspotLane('form', this)">🎬 短视频形式</button>
+      <button class="bank-filter lane-filter" onclick="filterHotspotLane('music', this)">🎵 热门BGM</button>
+      <button class="bank-filter lane-filter" onclick="filterHotspotLane('search', this)">🔍 搜索截流</button>
     </div>
 
     <!-- Difficulty Filter -->
     <div class="hs-filter">
-      <button class="bank-filter active" onclick="filterHotspot('all', this)">全部</button>
+      <button class="bank-filter active" onclick="filterHotspot('all', this)">全部难度</button>
       <button class="bank-filter" onclick="filterHotspot('tier1', this)">🥇 专业翻拍</button>
       <button class="bank-filter" onclick="filterHotspot('tier2', this)">🥈 行业套用</button>
       <button class="bank-filter" onclick="filterHotspot('tier3', this)">🥉 纯跟拍</button>
@@ -969,6 +978,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.36" defer></script>
+  <script src="app.js?v=2.9.37" defer></script>
 </body>
 </html>
