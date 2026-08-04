@@ -976,6 +976,14 @@ http.createServer(async (req, res) => {
       return;
     }
 
+    // ===== 未知 mode → 400（而非抛错被 catch 兜底成 500）=====
+    const KNOWN_MODES = ['diag', 'get-ai-key', 'search-t1', 'search-t2', 'trigger-hotspot', 'gen-hotspot', 'hotspot-cache', 'hotspot-fetch', 'weekly-persona', 'sfb-migrate', 'fill-missing-t1', 'bgm-list', 'proxy-douyin', 'ai', 'track', 'stats'];
+    if (params.mode && !KNOWN_MODES.includes(params.mode)) {
+      res.writeHead(400, corsHeaders);
+      res.end(JSON.stringify({ error: 'Unknown mode: ' + params.mode, knownModes: KNOWN_MODES }));
+      return;
+    }
+
     const result = await personalize(params);
     res.writeHead(200, corsHeaders); res.end(JSON.stringify(result));
   } catch (e) {
@@ -2201,12 +2209,19 @@ async function wpPlanTopics(apiKey, cfg, token, user, params) {
   const userP = '【本周话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt +
     '\n\n【已有选题（务必避开，新选题须明显不同）】\nt1: ' + exist.t1.join('、') + '\nt2: ' + exist.t2.join('、') + '\nt4: ' + exist.t4.join('、');
 
-  const raw = await callSiliconFlow(sys, userP, apiKey, {
-    endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro',
-    temperature: 0.95, maxTokens: 800, timeoutMs: 90000
-  });
-  const parsed = extractJsonObject(raw);
-  if (!parsed) throw new Error('plan 阶段 AI 解析失败: ' + String(raw).slice(0, 200));
+  // AI 偶发返回空/非 JSON，plan 是整个流程的入口，失败会阻塞后续所有步骤 → 内联重试 3 次
+  let parsed = null, lastRaw = '';
+  for (let attempt = 0; attempt < 3 && !parsed; attempt++) {
+    if (attempt) await new Promise(r => setTimeout(r, 1500));
+    try {
+      lastRaw = await callSiliconFlow(sys, userP, apiKey, {
+        endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro',
+        temperature: 0.95, maxTokens: 800, timeoutMs: 60000
+      });
+      parsed = extractJsonObject(lastRaw);
+    } catch (e) { lastRaw = 'EXC:' + e.message; }
+  }
+  if (!parsed) throw new Error('plan 阶段 AI 解析失败(重试3次): ' + String(lastRaw).slice(0, 200));
   const plan = {};
   for (const t of ['t1', 't2', 't4']) {
     const arr = Array.isArray(parsed[t]) ? parsed[t] : [];
@@ -2540,7 +2555,7 @@ async function loadScriptFull(t, token, user) {
   catch (e) { return {}; }
 }
 async function writeScriptFull(t, obj, token, user) {
-  await writeScriptFullChunked(t, obj, token, user);
+  return await writeScriptFullChunked(t, obj, token, user);
 }
 
 // 各类型脚本结构说明（用于 AI prompt）
