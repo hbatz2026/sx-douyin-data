@@ -10,14 +10,14 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.55&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278">
+  <link rel="stylesheet" href="styles.css?v=2.9.56&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278">
 
   <!-- P1 性能：预连接 SCF 数据端点，减少首屏 /data 请求的连接建立延迟 -->
   <link rel="preconnect" href="https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com" crossorigin>
   <link rel="dns-prefetch" href="https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.55&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
+  <script src="data/bundle.js?v=2.9.56&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
 
 </head>
@@ -41,7 +41,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.55</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.56</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
       <a href="docs/score-guide.html" class="entry-btn entry-biz">📊 经营分指南 →</a>
@@ -51,7 +51,7 @@
       <span id="storePrompt">
         <input id="storeInput" placeholder="输入你的营业厅名称（如：太原迎泽区柳巷电信营业厅）" style="padding:6px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;width:260px;max-width:70%;">
         <div id="personaPicker" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-          <span style="font-size:11px;color:#999;width:100%;margin-bottom:2px;">🎭 选最像你的风格（影响脚本语气，一次选好不用改）：</span>
+          <span style="font-size:11px;color:#55606e;width:100%;margin-bottom:2px;">🎭 选最像你的风格（影响脚本语气，一次选好不用改）：</span>
           <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
             <input type="radio" name="persona" value="sweet" onclick="setPersona('sweet')" style="display:none;"><span style="font-size:13px;">🌸</span><span>甜美学姐</span>
           </label>
@@ -72,7 +72,7 @@
           </label>
         </div>
         <button onclick="bindStore()" style="margin-top:8px;padding:6px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">✓ 绑定</button>
-        <span style="font-size:11px;color:#999;margin-left:8px;">填一次，以后自动带出</span>
+        <span style="font-size:11px;color:#55606e;margin-left:8px;">填一次，以后自动带出</span>
       </span>
     </div>
     <div class="week" id="weekLabel">📅 加载中...</div>
@@ -82,7 +82,7 @@
 
   <!-- Navigation -->
   <button class="hamburger" id="hamburgerBtn" onclick="toggleHamburger()">✕ 收起菜单</button>
-  <div id="navCollapseHint" style="display:none;font-size:11px;color:#999;margin-bottom:8px;text-align:center;">👆 点击「展开全部菜单」查看更多模板</div>
+  <div id="navCollapseHint" style="display:none;font-size:11px;color:#55606e;margin-bottom:8px;text-align:center;">👆 点击「展开全部菜单」查看更多模板</div>
   
   <!-- v2.8: 快捷搜索 + 收藏入口 -->
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;" id="quickBar">
@@ -136,11 +136,11 @@
     <div class="schedule-grid" id="scheduleGrid"></div>
     <div class="tips-bar" style="margin-top:20px;">
       <strong>💡 快速上手：</strong>点击上方排期卡片 → 选本周选题 → 点「预览脚本」→ 复制发布。<br>
-      <span style="font-size:11px;color:#999;margin-top:4px;display:inline-block;">⌨ 快捷键：Ctrl+1~6 切换页面 · 模板页 Ctrl+Enter 生成预览 · 已绑定营业厅自动匹配人设</span>
+      <span style="font-size:11px;color:#55606e;margin-top:4px;display:inline-block;">⌨ 快捷键：Ctrl+1~6 切换页面 · 模板页 Ctrl+Enter 生成预览 · 已绑定营业厅自动匹配人设</span>
     </div>
     <div class="btn-group" style="margin-top:12px;" id="scheduleActions"></div>
     <div class="card" style="margin-top:16px;">
-      <h3>🎵 本周抖音热门BGM（含实时热点榜 · 蹭抖音热点用）<span style="font-size:11px;color:#999;font-weight:400;"> — 点击歌名直达抖音搜索</span>
+      <h3>🎵 本周抖音热门BGM（含实时热点榜 · 蹭抖音热点用）<span style="font-size:11px;color:#55606e;font-weight:400;"> — 点击歌名直达抖音搜索</span>
       <button style="float:right;font-size:12px;background:#0052CC;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;" onclick="manualRefreshBGM()">🤖 AI 刷新BGM</button>
       </h3>
       <div style="font-size:12px;color:var(--orange);margin-bottom:8px;" id="weekDevice">📱 本周评测设备：加载中...</div>
@@ -149,14 +149,14 @@
 
     <!-- v2.9.40: 热点跟拍中心入口（热门话题 + 搜索截流） -->
     <div class="card" id="hotspotCenterEntry" style="margin-top:16px;">
-      <h3 style="margin-bottom:10px;">🔥 热点跟拍中心 <span style="font-size:11px;color:#999;font-weight:400;">— 热门话题 + 搜索截流</span></h3>
+      <h3 style="margin-bottom:10px;">🔥 热点跟拍中心 <span style="font-size:11px;color:#55606e;font-weight:400;">— 热门话题 + 搜索截流</span></h3>
       <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;">
         <div class="hot-pick-col pick-fire" onclick="enterHotspotLane('hot')" style="cursor:pointer;transition:all .2s;">
           <div class="hot-pick-col-head" style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:22px;">🔥</span>
             <div>
               <div style="font-weight:700;font-size:15px;color:#E65100;">热门话题</div>
-              <div style="font-size:11px;color:#999;">抖音/微博/百度/知乎/头条/小红书热搜</div>
+              <div style="font-size:11px;color:#55606e;">抖音/微博/百度/知乎/头条/小红书热搜</div>
             </div>
           </div>
           <div id="homeHotCount" style="font-size:12px;color:#666;margin-top:10px;">点击加载今日热点脚本</div>
@@ -167,7 +167,7 @@
             <span style="font-size:22px;">🔍</span>
             <div>
               <div style="font-weight:700;font-size:15px;color:#2E7D32;">搜索截流</div>
-              <div style="font-size:11px;color:#999;">把用户搜索词变成营业厅内容</div>
+              <div style="font-size:11px;color:#55606e;">把用户搜索词变成营业厅内容</div>
             </div>
           </div>
           <div id="homeSearchCount" style="font-size:12px;color:#666;margin-top:10px;">点击加载搜索截流脚本</div>
@@ -321,7 +321,7 @@
       <div class="form-group">
         <label>📋 故事模板 <span class="hint">（选模板自动填好全部7个字段，只需改关键信息）</span></label>
         <select id="t2_preset" onchange="fillT2Presets();applyHook('t2');expandT2Detail()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);"></select>
-        <div id="t2-autofill-hint" style="margin-top:4px;font-size:11px;color:#999;">⬆ 选一个场景模板，下面自动填好所有内容。你只需要改时间/地名等关键信息。</div>
+        <div id="t2-autofill-hint" style="margin-top:4px;font-size:11px;color:#55606e;">⬆ 选一个场景模板，下面自动填好所有内容。你只需要改时间/地名等关键信息。</div>
       </div>
 
       <!-- T2 覆盖提示（字段已精简） -->
@@ -783,7 +783,7 @@
       <!-- Mode-specific tips -->
       <div class="tips-bar" id="lv-tips" style="margin-bottom:12px;">
         <strong>🏪 厅店带货要点：</strong>开播先做福利预告，展示实物或价签，引导点击小房子查看商品。话术结构：福利钩子→产品介绍→引导下单→限时逼单。<br>
-        <span style="font-size:11px;color:#999;">💡 数据验证：78%的一线认为「福利促销」是最吸引人的直播内容（临汾问卷）</span>
+        <span style="font-size:11px;color:#55606e;">💡 数据验证：78%的一线认为「福利促销」是最吸引人的直播内容（临汾问卷）</span>
       </div>
 
       <!-- Buttons -->
@@ -816,20 +816,20 @@
         <div style="background:#E8F5E9;border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:24px;font-weight:700;color:#2E7D32;">12-14点</div>
           <div style="font-size:12px;color:#666;margin-top:4px;">午休时段 🥇 县城推荐</div>
-          <div style="font-size:11px;color:#999;margin-top:2px;">竞争少，用户有空刷直播</div>
+          <div style="font-size:11px;color:#55606e;margin-top:2px;">竞争少，用户有空刷直播</div>
         </div>
         <div style="background:#FFF3E0;border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:24px;font-weight:700;color:#E65100;">15-16点</div>
           <div style="font-size:12px;color:#666;margin-top:4px;">下午茶时段 🥈 太原推荐</div>
-          <div style="font-size:11px;color:#999;margin-top:2px;">避开17-19点踩踏高峰</div>
+          <div style="font-size:11px;color:#55606e;margin-top:2px;">避开17-19点踩踏高峰</div>
         </div>
         <div style="background:#E3F2FD;border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:24px;font-weight:700;color:#1565C0;">19-21点</div>
           <div style="font-size:12px;color:#666;margin-top:4px;">晚间黄金档 🥉</div>
-          <div style="font-size:11px;color:#999;margin-top:2px;">流量大但竞争也大</div>
+          <div style="font-size:11px;color:#55606e;margin-top:2px;">流量大但竞争也大</div>
         </div>
       </div>
-      <p style="font-size:11px;color:#999;margin-top:12px;">💡 1-6月数据：17-18点两小时集中了全天20%的直播场次，内部互相抢流量。15-16点是太原最佳避开高峰时段。</p>
+      <p style="font-size:11px;color:#55606e;margin-top:12px;">💡 1-6月数据：17-18点两小时集中了全天20%的直播场次，内部互相抢流量。15-16点是太原最佳避开高峰时段。</p>
     </div>
   </div>
 
@@ -899,7 +899,7 @@
         <button class="hs-tab lane-filter" id="hs-lane-search-btn" onclick="filterHotspotLane('search', this)">🔍 搜索截流</button>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:11px;color:#999;">难度</span>
+        <span style="font-size:11px;color:#55606e;">难度</span>
         <select id="hsDifficulty" onchange="filterHotspot(this.value, null)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--body);cursor:pointer;">
           <option value="all">全部难度</option>
           <option value="tier1">🥇 专业翻拍</option>
@@ -921,7 +921,7 @@
           收藏的脚本保存在本机浏览器（换设备不互通）。可一键复制全文 / 移除。
         </div>
         <div class="hotspot-grid" id="myLibraryGrid"></div>
-        <div id="myLibraryEmpty" style="text-align:center;padding:40px;color:#999;">
+        <div id="myLibraryEmpty" style="text-align:center;padding:40px;color:#55606e;">
           📚 选题库还是空的<br><span style="font-size:12px;">去热点卡片点 ⭐ 收进选题库</span>
         </div>
       </div>
@@ -940,8 +940,8 @@
   <!-- ==================== PAGE 10: Admin Stats ==================== -->
   <div class="page" id="page-stats">
     <h2 style="margin-bottom:4px;">📊 使用统计（管理员可见）</h2>
-    <p style="color:var(--body);font-size:12px;margin-bottom:16px;">数据存储在本机浏览器 · <span id="statsLastUpdate" style="color:#999;">加载中...</span></p>
-    <p id="statsMeta" style="font-size:11px;color:#999;margin-bottom:12px;"></p>
+    <p style="color:var(--body);font-size:12px;margin-bottom:16px;">数据存储在本机浏览器 · <span id="statsLastUpdate" style="color:#55606e;">加载中...</span></p>
+    <p id="statsMeta" style="font-size:11px;color:#55606e;margin-bottom:12px;"></p>
 
     <!-- 全局真实数据（跨店聚合，来自 SCF 后端统计） -->
     <div id="globalStatsBox" style="background:linear-gradient(135deg,#1A3A6B,#2E6FB8);border-radius:12px;padding:16px 18px;margin-bottom:18px;color:#fff;">
@@ -983,7 +983,7 @@
     <!-- Charts row 2: Store usage + Weekly compare -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
       <div class="card">
-        <h3>🏪 厅店使用排行 <span style="font-size:11px;color:#999;font-weight:400;">（需绑定门店）</span></h3>
+        <h3>🏪 厅店使用排行 <span style="font-size:11px;color:#55606e;font-weight:400;">（需绑定门店）</span></h3>
         <div id="statsStoreChart" style="margin-top:8px;"></div>
       </div>
       <div class="card">
@@ -1031,6 +1031,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.55&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
+  <script src="app.js?v=2.9.56&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
 </body>
 </html>
