@@ -779,6 +779,13 @@ http.createServer(async (req, res) => {
       return;
     }
 
+    // ===== fill-missing-t1: 批量补齐 t1Presets 缺脚本的选题 =====
+    if (params.mode === 'fill-missing-t1') {
+      try { await handleFillMissingT1(res, params, corsHeaders); }
+      catch (e) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: e.message || 'fill-missing-t1 failed' })); }
+      return;
+    }
+
     // 2026-08-01: 读取每日生成的精选 BGM 库（data/bgmList.js），供前端按日加载 ___bgmList
     if (params.mode === 'bgm-list') {
       const token = process.env.GITEE_TOKEN;
@@ -2168,6 +2175,60 @@ async function handleWeeklyPersona(res, params, corsHeaders) {
     res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok: true, added: added, week: week, weeklyNew: weeklyNew }));
   } catch (e) {
     res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'weekly-persona failed' }));
+  }
+}
+
+// 2026-08-04: 批量补齐 t1Presets 中缺脚本的选题（topicPool.decision 有但 t1Presets 无）
+async function handleFillMissingT1(res, params, corsHeaders) {
+  const token = process.env.GITEE_TOKEN;
+  const user = process.env.GITEE_USERNAME || 'hbatz';
+  const apiKey = process.env.SILICONFLOW_API_KEY;
+  if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error:'SILICONFLOW_API_KEY not configured' })); return; }
+  try {
+    // 读 topicPool + t1Presets
+    const [tpRaw, t1Raw] = await Promise.all([
+      readGiteeFile('data/topicPool.js', token, user),
+      readGiteeFile('data/t1Presets.js', token, user)
+    ]);
+    const pool = parseTopicPool(tpRaw);
+    const presets = parsePresetJs(t1Raw, 't1');
+    const haveKeys = new Set(Object.keys(presets));
+    const missing = (pool.decision || []).filter(k => !haveKeys.has(k));
+
+    if (missing.length === 0) {
+      res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok:true, filled:0, message:'无缺口' }));
+      return;
+    }
+
+    const cfg = await loadAIConfig(token, user);
+    const BATCH_SIZE = 6;
+    const allNew = {};
+
+    for (let i = 0; i < missing.length; i += BATCH_SIZE) {
+      const batch = missing.slice(i, i + BATCH_SIZE);
+      const sys = '你是山西电信抖音内容运营专家。为以下「决策指南」类选题生成脚本模板。每个选题给出2-3个人群/档位视角的一句话脚本。';
+      const userP = '请为以下' + batch.length + '个选题各生成脚本预设（JSON对象）：\n' + batch.map((k, idx) => (idx+1) + '. ' + k).join('\n') +
+        '\n\n【输出要求】只返回一个JSON对象（不要markdown代码块），键为选题名，值为{人群档位:"一句话脚本",...}。\n注意：山西电信在售宽带仅300/500/1000/FTTR，禁止出现100M/100兆/百兆。脚本站在营业员角度。';
+      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro', temperature: 0.85, maxTokens: 8000, timeoutMs: 180000 });
+      if (!raw) continue;
+      const parsed = extractJsonObject(raw);
+      if (!parsed || typeof parsed !== 'object') continue;
+      for (const k of Object.keys(parsed)) {
+        if (parsed[k] && typeof parsed[k] === 'object') {
+          const ck = hsSanitize(k);
+          allNew[ck] = sanitizePresetObj(parsed[k]);
+        }
+      }
+    }
+
+    // 合并写回
+    const merged = Object.assign({}, presets, allNew);
+    await writePreset('t1', merged, token, user);
+
+    res.writeHead(200, corsHeaders);
+    res.end(JSON.stringify({ ok: true, filled: Object.keys(allNew).length, total: Object.keys(merged).length, keys: Object.keys(allNew) }));
+  } catch (e) {
+    res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message }));
   }
 }
 
