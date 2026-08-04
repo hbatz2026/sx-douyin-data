@@ -492,6 +492,29 @@ http.createServer(async (req, res) => {
     res.writeHead(200, corsHeaders); res.end(); return;
   }
 
+  // 2026-08-05 Option A: GET /data/<file>.js —— 前端 <script src> 实时拉取 Gitee 数据（带 CORS）。
+  // 周一 weekly-persona 自动更新后，前端零人工重部署即可生效。仅放行白名单文件，其余 GET 仍 405。
+  if (req.method === 'GET') {
+    let _u;
+    try { _u = new URL(req.url || '/', 'http://localhost'); } catch (e) { _u = null; }
+    if (_u && _u.pathname.startsWith('/data/')) {
+      const fname = _u.pathname.slice('/data/'.length).replace(/^\/+/, '');
+      const ALLOWED = ['t1ScriptFullByPersona.js','t2ScriptFullByPersona.js','t4ScriptFullByPersona.js','t1Presets.js','t2Presets.js','t4Presets.js','topicPool.js','weeklyNew.js'];
+      const jsHeaders = { 'Content-Type':'application/javascript; charset=utf-8', 'Access-Control-Allow-Origin':'*', 'Cache-Control':'no-cache' };
+      if (ALLOWED.indexOf(fname) < 0) {
+        res.writeHead(403, jsHeaders); res.end('// forbidden: ' + fname); return;
+      }
+      try {
+        const token = process.env.GITEE_TOKEN, user = process.env.GITEE_USERNAME || 'hbatz';
+        const raw = await readGiteeFile('data/' + fname, token, user);
+        res.writeHead(200, jsHeaders); res.end(raw); return;
+      } catch (e) {
+        res.writeHead(404, jsHeaders); res.end('// not found: ' + fname); return;
+      }
+    }
+    res.writeHead(405, corsHeaders); res.end(JSON.stringify({ error: 'Method not allowed' })); return;
+  }
+
   if (req.method !== 'POST') {
     res.writeHead(405, corsHeaders); res.end(JSON.stringify({ error: 'Method not allowed' })); return;
   }
