@@ -810,6 +810,31 @@ http.createServer(async (req, res) => {
       return;
     }
 
+    // ===== sfb-migrate: 把旧的 data/{t}ScriptFullByPersona.js 单文件迁成分片存储 =====
+    // 只需跑一次（或新增类型时）。分开做是为了不占用 weekly-persona 的单次时间预算。
+    if (params.mode === 'sfb-migrate') {
+      try {
+        const token = process.env.GITEE_TOKEN;
+        const user = process.env.GITEE_USERNAME || 'hbatz';
+        const types = params.t ? [params.t] : ['t1', 't2', 't4'];
+        const out = {};
+        for (const t of types) {
+          try {
+            const raw = await readGiteeFile('data/' + t + 'ScriptFullByPersona.js', token, user);
+            const obj = parsePresetJs(raw, t) || {};
+            const keys = Object.keys(obj);
+            if (!keys.length) { out[t] = { skipped: '旧文件为空' }; continue; }
+            const wr = await writeScriptFullChunked(t, obj, token, user);
+            out[t] = { keys: keys.length, written: wr.written };
+          } catch (e) { out[t] = { error: e.message }; }
+        }
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok: true, migrated: out }));
+      } catch (e) {
+        res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'sfb-migrate failed' }));
+      }
+      return;
+    }
+
     // ===== fill-missing-t1: 批量补齐 t1Presets 缺脚本的选题 =====
     if (params.mode === 'fill-missing-t1') {
       try { await handleFillMissingT1(res, params, corsHeaders); }
@@ -2138,86 +2163,174 @@ setTimeout(updateEventFunction, 1000);
 // 内容来源：热点(4 lane) + 搜索截流 + 厅店日常活动(config 季节/活动/用户重点)
 // 结果：合并写入 data/{t}ScriptFullByPersona.js（新增 key 保留历史），并写 data/weeklyNew.js 供前端标「本周新增」
 // ============================================================
+// 2026-08-04 重构：可续跑分步流程。
+// 原实现在一次 HTTP 请求内串行跑 3 类 × 3 选题 × 6 人设（实测单选题 6 人设约 39s，
+// 总计 350s+），必然撞 SCF Web 函数 180s 超时上限 → 任何数据都写不进去。
+// 现改为「断点续跑」：每次请求只在时间预算内推进若干步，进度存 Gitee data/_wpDraft.json。
+// 客户端（GitHub Actions / 手动）循环 POST 同一个 mode，直到返回 done:true。
+const WP_DRAFT = 'data/_wpDraft.json';
+
+async function wpReadDraft(token, user) {
+  try { return JSON.parse(await readGiteeFileR(WP_DRAFT, token, user, 2)); } catch (e) { return null; }
+}
+async function wpWriteDraft(d, token, user) {
+  await createOrUpdateGiteeFile(WP_DRAFT, JSON.stringify(d, null, 2), token, user);
+}
+
+// 阶段1：一次轻量 AI 调用，产出 t1/t2/t4 各 3 个选题名（不含脚本，约 200 tokens，很快）
+async function wpPlanTopics(apiKey, cfg, token, user, params) {
+  const cands = await fetchAllHotspotsSCF();
+  const hotTxt = (cands.hot || []).slice(0, 25).map(c => '[热点] ' + c.word + (c.heat ? (' 热度' + c.heat) : '')).join('\n');
+  const searchTxt = (cands.search || []).slice(0, 15).map(c => '[搜索截流] ' + c.word + ' → 意图:' + (c.intent || '')).join('\n');
+  let actTxt = '';
+  try { const sa = await getConfig('config/t2-seasonal.json', token, user); actTxt += '【季节/活动配置】\n' + JSON.stringify(sa).slice(0, 800) + '\n'; } catch (e) {}
+  try { const up = await getConfig('config/user-priority.json', token, user); actTxt += '【用户固定重点选题】\n' + JSON.stringify(up).slice(0, 800) + '\n'; } catch (e) {}
+  try { const se = await getConfig('config/seasons.json', token, user); actTxt += '【季节】\n' + JSON.stringify(se).slice(0, 400) + '\n'; } catch (e) {}
+
+  const exist = {};
+  for (const t of ['t1', 't2', 't4']) {
+    try { exist[t] = Object.keys(await loadScriptFull(t, token, user)).slice(0, 40); } catch (e) { exist[t] = []; }
+  }
+
+  const sys = '你是山西电信抖音内容运营专家。请为三类内容各拟 3 个全新选题名（只要选题名，不要脚本）。\n' +
+    '- t1 = ' + SCRIPT_SPEC.t1.name + '：' + SCRIPT_SPEC.t1.task + '\n' +
+    '- t2 = ' + SCRIPT_SPEC.t2.name + '：' + SCRIPT_SPEC.t2.task + '\n' +
+    '- t4 = ' + SCRIPT_SPEC.t4.name + '：' + SCRIPT_SPEC.t4.task + '\n\n' +
+    '【要求】选题名 8-16 字，具体可拍，接地气，贴合本周热点/季节/厅店活动；禁止出现 100M/100兆/百兆；不做三家运营商横向对比。\n' +
+    '【输出】严格 JSON（无 markdown 代码块、无解释）：{"t1":["名1","名2","名3"],"t2":[...],"t4":[...]}';
+  const userP = '【本周话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt +
+    '\n\n【已有选题（务必避开，新选题须明显不同）】\nt1: ' + exist.t1.join('、') + '\nt2: ' + exist.t2.join('、') + '\nt4: ' + exist.t4.join('、');
+
+  const raw = await callSiliconFlow(sys, userP, apiKey, {
+    endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro',
+    temperature: 0.95, maxTokens: 800, timeoutMs: 90000
+  });
+  const parsed = extractJsonObject(raw);
+  if (!parsed) throw new Error('plan 阶段 AI 解析失败: ' + String(raw).slice(0, 200));
+  const plan = {};
+  for (const t of ['t1', 't2', 't4']) {
+    const arr = Array.isArray(parsed[t]) ? parsed[t] : [];
+    plan[t] = arr.filter(x => typeof x === 'string' && x.trim()).slice(0, 3).map(x => hsSanitize(x.trim()));
+  }
+  if (!plan.t1.length && !plan.t2.length && !plan.t4.length) throw new Error('plan 阶段未产出任何选题');
+  return plan;
+}
+
+// 阶段2：为单个选题生成 6 人设完整脚本（实测约 39s，稳在超时内）
+async function wpGenOneTopic(t, topic, apiKey, cfg, params) {
+  const spec = SCRIPT_SPEC[t];
+  const sys = '你是山西电信抖音内容运营专家。为「' + spec.name + '」的指定选题，写 6 个人设版本的完整可拍脚本。\n\n' +
+    '【6人设（key 必须严格用以下英文，禁止翻译或改名）】\n' +
+    PERSONA_STD.map(function (k) { return '- ' + k + '：' + PERSONA_DESC[k]; }).join('\n') + '\n\n' +
+    '【结构要求】\n' + spec.struct + '\n\n' +
+    '【通用约束】\n' +
+    '- 口语化、接地气，禁止AI味和书面腔\n' +
+    '- 山西电信在售宽带仅300M/500M/1000M/FTTR，禁止出现100M/100兆/百兆\n' +
+    '- 不直接做电信/联通/移动三家横向对比\n' +
+    '【输出】严格 JSON（无 markdown 代码块、无解释）：\n' +
+    '{"sister":"脚本","sweet":"脚本","tech":"脚本","biz":"脚本","young":"脚本","master":"脚本"}';
+  const userP = '选题：' + topic + '\n请生成 6 个人设的完整脚本。';
+  const raw = await callSiliconFlow(sys, userP, apiKey, {
+    endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro',
+    temperature: 0.92, maxTokens: 3500, timeoutMs: 110000
+  });
+  const parsed = extractJsonObject(raw);
+  if (!parsed) return null;
+  const pm = coercePersonaMap(parsed);
+  if (!pm) return null;
+  const clean = {};
+  for (const pk of PERSONA_STD) clean[pk] = hsSanitize(pm[pk] || '');
+  return clean;
+}
+
+function wpProgress(draft) {
+  const p = {};
+  let total = 0, done = 0;
+  for (const t of ['t1', 't2', 't4']) {
+    const pl = (draft.plan && draft.plan[t]) || [];
+    const dn = (draft.done && draft.done[t]) || [];
+    p[t] = dn.length + '/' + pl.length;
+    total += pl.length; done += dn.length;
+  }
+  return { byType: p, done: done, total: total, remaining: total - done };
+}
+
 async function handleWeeklyPersona(res, params, corsHeaders) {
   const token = process.env.GITEE_TOKEN;
   const user = process.env.GITEE_USERNAME || 'hbatz';
   const apiKey = process.env.SILICONFLOW_API_KEY;
-  if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error:'SILICONFLOW_API_KEY not configured' })); return; }
-  try {
-    const cands = await fetchAllHotspotsSCF();
-    const hotTxt = cands.hot.slice(0, 25).map(c => '[热点] ' + c.word + (c.heat ? (' 热度' + c.heat) : '')).join('\n');
-    const searchTxt = cands.search.slice(0, 15).map(c => '[搜索截流] ' + c.word + ' → 意图:' + (c.intent || '')).join('\n');
-    let actTxt = '';
-    try { const sa = await getConfig('config/t2-seasonal.json', token, user); actTxt += '【季节/活动配置】\n' + JSON.stringify(sa).slice(0, 1000) + '\n'; } catch (e) {}
-    try { const up = await getConfig('config/user-priority.json', token, user); actTxt += '【用户固定重点选题】\n' + JSON.stringify(up).slice(0, 1000) + '\n'; } catch (e) {}
-    try { const se = await getConfig('config/seasons.json', token, user); actTxt += '【季节】\n' + JSON.stringify(se).slice(0, 500) + '\n'; } catch (e) {}
+  if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'SILICONFLOW_API_KEY not configured' })); return; }
 
-    const cfg = await loadAIConfig(token, user);
-    const added = {};
-    for (const t of ['t1', 't2', 't4']) {
-      const existing = await loadScriptFull(t, token, user);
-      const existKeys = Object.keys(existing);
-      const spec = SCRIPT_SPEC[t];
-      const sys = '你是山西电信抖音内容运营专家。为「' + spec.name + '」内容生成3个全新选题，每个选题写6个人设版本的完整可拍脚本。\n\n' +
-        '【6人设（key 必须严格用以下英文，禁止翻译或改名）】\n' +
-        PERSONA_STD.map(function (k) { return '- ' + k + '：' + PERSONA_DESC[k]; }).join('\n') + '\n\n' +
-        '【结构要求】\n' + spec.struct + '\n\n' +
-        '【通用约束】\n' +
-        '- 口语化、接地气，禁止AI味和书面腔\n' +
-        '- 山西电信在售宽带仅300M/500M/1000M/FTTR，禁止出现100M/100兆/百兆\n' +
-        '- 不直接做电信/联通/移动三家横向对比\n' +
-        '- 输出严格JSON（不要markdown代码块、不要解释），结构：\n' +
-        '{"选题名1":{"sister":"脚本","sweet":"脚本","tech":"脚本","biz":"脚本","young":"脚本","master":"脚本"},"选题名2":{...},"选题名3":{...}}';
-      const userP = spec.task + '\n\n【话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt + '\n\n【现有选题（不要重复，新选题须明显不同）】\n' + existKeys.slice(0, 40).join('、') + '\n\n请生成3个新选题，每个选题写满6个人设脚本。';
-      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro', temperature: 0.92, maxTokens: 8000, timeoutMs: 180000 });
-      if (!raw) { added[t] = { error: 'AI 空响应' }; continue; }
-      const parsed = extractJsonObject(raw);
-      if (!parsed || typeof parsed !== 'object') { added[t] = { error: '解析失败', rawPreview: String(raw).slice(0, 300) }; continue; }
-      const merged = Object.assign({}, existing);
-      let cnt = 0;
-      const cleanKeys = [];
-      for (const k of Object.keys(parsed)) {
-        const pm = coercePersonaMap(parsed[k]);
-        if (pm) {
-          // 选题名 + 每个 persona 脚本都过 立场/100M 红线净化
-          const cleanKey = hsSanitize(k);
-          const cleanPm = {};
-          for (const pk of PERSONA_STD) cleanPm[pk] = hsSanitize(pm[pk] || '');
-          merged[cleanKey] = cleanPm;
-          cleanKeys.push(cleanKey);
-          cnt++;
-        }
-      }
-      await writeScriptFull(t, merged, token, user);
-      added[t] = { count: cnt, keys: cleanKeys };
+  const t0 = Date.now();
+  const budgetMs = Math.min(Number(params.budgetMs) || 130000, 160000); // 单次请求自控预算，远低于 SCF 180s
+  const RESERVE = 60000; // 单个选题 AI 生成 + Gitee 写入的保守预留
+  const week = isoWeek(new Date());
+  const steps = [];
+
+  try {
+    let draft = await wpReadDraft(token, user);
+    if (params.force === true || !draft || draft.week !== week || !draft.plan) draft = null;
+
+    // ── 阶段1: plan ──
+    if (!draft) {
+      const cfg0 = await loadAIConfig(token, user);
+      const plan = await wpPlanTopics(apiKey, cfg0, token, user, params);
+      draft = { week: week, plan: plan, done: { t1: [], t2: [], t4: [] }, finalized: false, startedAt: new Date().toISOString() };
+      await wpWriteDraft(draft, token, user);
+      steps.push('plan:' + JSON.stringify(plan));
     }
 
-    // t1 新选题同时并入选题库（topicPool.decision），供前端 t1 选题下拉展示「本周新增」
+    // ── 阶段2: fill（时间预算内尽可能多做，做不完下次续跑）──
+    const cfg = await loadAIConfig(token, user);
+    let filled = 0;
+    for (const t of ['t1', 't2', 't4']) {
+      const todo = ((draft.plan[t]) || []).filter(k => (draft.done[t] || []).indexOf(k) < 0);
+      for (const topic of todo) {
+        if (Date.now() - t0 > budgetMs - RESERVE) {
+          res.writeHead(200, corsHeaders);
+          res.end(JSON.stringify({ ok: true, done: false, week: week, filledThisCall: filled, progress: wpProgress(draft), steps: steps, elapsedMs: Date.now() - t0, hint: '未跑完，请再次 POST 同一 mode 续跑' }));
+          return;
+        }
+        let pm = null;
+        try { pm = await wpGenOneTopic(t, topic, apiKey, cfg, params); }
+        catch (e) { steps.push('fill-fail ' + t + '/' + topic + ': ' + e.message); continue; }
+        if (!pm) { steps.push('fill-empty ' + t + '/' + topic); continue; }
+        const existing = await loadScriptFull(t, token, user);
+        existing[topic] = pm;
+        const wr = await writeScriptFull(t, existing, token, user);
+        draft.done[t].push(topic);
+        await wpWriteDraft(draft, token, user);
+        filled++;
+        steps.push('filled ' + t + '/' + topic + ' (chunks written=' + (wr && wr.written) + ')');
+      }
+    }
+
+    // ── 阶段3: finalize ──
     try {
       const tpRaw = await readGiteeFile('data/topicPool.js', token, user);
       const tp = parseTopicPool(tpRaw);
-      const t1New = (added.t1 && added.t1.keys) || [];
       const dec = Array.isArray(tp.decision) ? tp.decision.slice() : [];
-      for (const k of t1New) { if (dec.indexOf(k) < 0) dec.push(k); }
+      for (const k of (draft.done.t1 || [])) { if (dec.indexOf(k) < 0) dec.push(k); }
       tp.decision = dec;
       const tpHeader = '// Auto-generated data file\n// Last updated: ' + new Date().toISOString().slice(0, 10) + ' · 数据源: 热点/搜索截流/厅店活动(每周一自动更新)\n';
-      const tpJs = tpHeader + 'window.___topicPool = ' + JSON.stringify(tp, null, 2) + ';';
-      await createOrUpdateGiteeFile('data/topicPool.js', tpJs, token, user);
-    } catch (e) { console.warn('[weekly-persona] topicPool merge failed:', e.message); }
+      await createOrUpdateGiteeFile('data/topicPool.js', tpHeader + 'window.___topicPool = ' + JSON.stringify(tp, null, 2) + ';', token, user);
+      steps.push('topicPool merged');
+    } catch (e) { steps.push('topicPool merge failed: ' + e.message); }
 
-    const week = isoWeek(new Date());
     const weeklyNew = {
-      t1: (added.t1.keys || []),
-      t2: (added.t2.keys || []),
-      t4: (added.t4.keys || []),
-      week: week,
-      updatedAt: new Date().toISOString()
+      t1: draft.done.t1 || [], t2: draft.done.t2 || [], t4: draft.done.t4 || [],
+      week: week, updatedAt: new Date().toISOString()
     };
     const wnJs = '// Auto-generated: weekly new topics (updated weekly)\n// Updated: ' + new Date().toISOString().slice(0, 10) + ' · 标注「本周新增」的选题由每周一自动生成\nwindow.___weeklyNew = ' + JSON.stringify(weeklyNew, null, 2) + ';';
     await createOrUpdateGiteeFile('data/weeklyNew.js', wnJs, token, user);
-    res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok: true, added: added, week: week, weeklyNew: weeklyNew }));
+    draft.finalized = true;
+    await wpWriteDraft(draft, token, user);
+
+    res.writeHead(200, corsHeaders);
+    res.end(JSON.stringify({ ok: true, done: true, week: week, filledThisCall: filled, progress: wpProgress(draft), weeklyNew: weeklyNew, steps: steps, elapsedMs: Date.now() - t0 }));
   } catch (e) {
-    res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'weekly-persona failed' }));
+    res.writeHead(500, corsHeaders);
+    res.end(JSON.stringify({ ok: false, done: false, error: e.message || 'weekly-persona failed', steps: steps, elapsedMs: Date.now() - t0 }));
   }
 }
 
@@ -2368,13 +2481,41 @@ async function readScriptFullChunked(t, token, user) {
   for (const [k, v] of parts) out[k] = v;
   return out;
 }
+// 增量写：保持旧 key 的分片下标不变，只写「新增 / 内容变化」的分片。
+// 避免每次都全量重写 N 个分片（N=17+ 时耗时 20s+，在分步流程里会撑爆时间预算）。
 async function writeScriptFullChunked(t, obj, token, user) {
   const keys = Object.keys(obj);
-  await createOrUpdateGiteeFile('data/' + t + 'SFB/_index.json', JSON.stringify(keys), token, user);
-  for (let i = 0; i < keys.length; i++) {
-    await createOrUpdateGiteeFile('data/' + t + 'SFB/' + i + '.json', JSON.stringify(obj[keys[i]]), token, user);
+  let oldKeys = [];
+  try {
+    const idxRaw = await readGiteeFileR('data/' + t + 'SFB/_index.json', token, user);
+    const parsed = JSON.parse(idxRaw);
+    if (Array.isArray(parsed)) oldKeys = parsed;
+  } catch (e) {}
+
+  // 保持旧顺序（仅保留仍存在的 key），新 key 追加到末尾
+  const finalKeys = oldKeys.filter(k => keys.indexOf(k) >= 0);
+  for (const k of keys) if (finalKeys.indexOf(k) < 0) finalKeys.push(k);
+
+  // 并发读旧分片内容，用于比对（读远快于写）
+  const oldBodies = {};
+  await Promise.all(oldKeys.map((k, i) =>
+    readGiteeFileR('data/' + t + 'SFB/' + i + '.json', token, user, 2)
+      .then(r => { oldBodies[i] = r; })
+      .catch(() => {})
+  ));
+
+  let written = 0;
+  for (let i = 0; i < finalKeys.length; i++) {
+    const body = JSON.stringify(obj[finalKeys[i]]);
+    if (oldBodies[i] !== undefined && String(oldBodies[i]).trim() === body) continue;
+    await createOrUpdateGiteeFile('data/' + t + 'SFB/' + i + '.json', body, token, user);
+    written++;
+  }
+  if (JSON.stringify(finalKeys) !== JSON.stringify(oldKeys)) {
+    await createOrUpdateGiteeFile('data/' + t + 'SFB/_index.json', JSON.stringify(finalKeys), token, user);
   }
   delete __sfbCache[t];
+  return { total: finalKeys.length, written: written };
 }
 async function assembleScriptFullJs(t, token, user) {
   const now = Date.now();
