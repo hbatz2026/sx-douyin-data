@@ -26,14 +26,19 @@
   .nav-tab.active { background: var(--blue); color: #fff; }
   .nav-tab .badge { background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 4px; }
   .nav-tab.active .badge { background: rgba(255,255,255,0.3); }
-  .nav-tab small { display: inline; margin-left: 2px; font-size: 12px; font-weight: 400; opacity: 0.65; }
+  .nav-tab small { display: inline; margin-left: 2px; font-size: 12px; font-weight: 400; color: #44546a; opacity: 1; }
   .nav-tab:hover small, .nav-tab.active small { opacity: 0.85; }
   #scheduleTabIcon { display: inline-block; margin-right: 2px; transition: transform 0.2s; font-size: 12px; }
   /* 排期tab: active时白底蓝字+边框，不用实心蓝（降低视觉权重） */
   .nav-tab.active#scheduleNavTab { background: #fff; color: var(--blue); border: 1.5px solid var(--blue); }
   .nav-tab.active#scheduleNavTab small { opacity: 0.7; }
   /* Nav group label */
-  .nav-group-label { display: flex; align-items: center; padding: 0 8px 0 4px; font-size: 12px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; border-left: 2px solid var(--border); margin-left: 4px; }
+  .nav-group-label { display: flex; align-items: center; padding: 0 8px 0 4px; font-size: 12px; color: #4a5568; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; border-left: 2px solid var(--border); margin-left: 4px; }
+
+  /* 人设选择标签：强制深色字，浅蓝选中底仍满足 WCAG AA（覆盖任何内联/继承白字） */
+  .persona-opt, .persona-opt span { color: #172B4D !important; }
+  .persona-opt[style*="E8F0FE"], .persona-opt.selected { background: #E8F0FE !important; }
+  .persona-opt[style*="E8F0FE"] span, .persona-opt.selected span { color: #0D1B36 !important; }
 
   /* Page sections */
   .page { display: none; }
@@ -866,7 +871,7 @@
     /* 入口按钮文字 */
     .entry-btn { color:#fff; }
     /* 人设选择标签（绑定页） */
-    .persona-opt { border-color:#444; background:#2A2A2A; color:#DDD; }
+    .persona-opt { border-color:#444; background:#2A2A2A; color:#DDD !important; }
     /* 搜索高亮 */
     .search-highlight { color:#222; }
   }
