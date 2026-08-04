@@ -3,501 +3,390 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>即梦Seedance分镜脚本 - 电信营业厅短视频跟拍</title>
+<title>短视频脚本 · 豆包直用版 — 电信营业厅系列</title>
 <style>
+:root {
+  --primary: #0066CC;
+  --primary-light: #E8F1FA;
+  --accent: #E60012;
+  --bg: #F5F7FA;
+  --card-bg: #FFFFFF;
+  --text: #1A1A1A;
+  --text-secondary: #666666;
+  --border: #E0E6ED;
+  --anchor-bg: #FFF0F0;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #0f0f0f; color: #e8e8e8; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; line-height: 1.6; }
-.header { background: linear-gradient(135deg, #fe2c55 0%, #25f4ee 100%); padding: 20px 16px; text-align: center; }
-.header h1 { font-size: 20px; color: #fff; font-weight: 700; }
-.header p { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 4px; }
-.date-badge { display: inline-block; margin-top: 8px; background: rgba(0,0,0,0.3); color: #fff; font-size: 12px; padding: 3px 10px; border-radius: 12px; }
-.tabs { display: flex; overflow-x: auto; background: #1a1a1a; padding: 0 8px; border-bottom: 1px solid #2a2a2a; -webkit-overflow-scrolling: touch; }
-.tab { flex: 0 0 auto; padding: 12px 14px; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
-.tab.active { color: #fe2c55; border-bottom-color: #fe2c55; }
-.tab:hover { color: #eee; }
-.content { padding: 16px; }
-.script-card { display: none; }
-.script-card.active { display: block; }
-.script-meta { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.meta-tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: #1e1e1e; color: #aaa; border: 1px solid #333; }
-.meta-tag.style-tag { background: rgba(254,44,85,0.15); color: #fe2c55; border-color: rgba(254,44,85,0.3); }
-.meta-tag.source-tag { background: rgba(37,244,238,0.1); color: #25f4ee; border-color: rgba(37,244,238,0.2); }
-.stage { background: #1a1a1a; border-radius: 10px; padding: 16px; margin-bottom: 12px; border-left: 3px solid #fe2c55; }
-.stage-header { font-size: 14px; font-weight: 600; color: #fe2c55; margin-bottom: 10px; }
-.stage-line { font-size: 13px; color: #ccc; margin-bottom: 6px; padding-left: 8px; }
-.stage-line .label { color: #888; font-size: 12px; }
-.stage-line .value { color: #e8e8e8; }
-.stage-line.dialogue { background: rgba(254,44,85,0.08); border-radius: 6px; padding: 8px 10px; margin: 8px 0; padding-left: 18px; }
-.stage-line.dialogue .value { color: #25f4ee; font-style: italic; }
-.stage-line.subtitle .value { color: #ffd700; font-weight: 600; }
-.copy-section { margin-top: 16px; }
-.copy-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #fe2c55, #ff6b81); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-.copy-btn:hover { opacity: 0.9; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.header { text-align: center; padding: 36px 0 24px; border-bottom: 2px solid var(--primary); margin-bottom: 24px; }
+.header h1 { font-size: 24px; color: var(--primary); margin-bottom: 6px; }
+.header p { color: var(--text-secondary); font-size: 13px; }
+.script-section { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.script-title { font-size: 18px; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 12px; margin-bottom: 4px; }
+.script-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; padding-left: 16px; }
+.shot-card { background: var(--primary-light); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.shot-header { display: flex; align-items: center; margin-bottom: 8px; }
+.shot-num { display: inline-block; background: var(--primary); color: #fff; border-radius: 50%; width: 26px; height: 26px; text-align: center; line-height: 26px; font-size: 13px; font-weight: bold; margin-right: 8px; }
+.shot-label { font-weight: bold; font-size: 15px; }
+.anchor-tag { display: inline-block; background: var(--accent); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 8px; }
+.anchor-block { color: var(--accent); font-weight: bold; font-size: 12px; background: var(--anchor-bg); padding: 8px 10px; border-radius: 5px; margin: 6px 0; border-left: 3px solid var(--accent); word-break: break-all; }
+.prompt-box { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 13px; margin-top: 6px; white-space: pre-wrap; word-break: break-all; }
+.copy-btn { display: inline-block; margin-top: 6px; padding: 5px 14px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
 .copy-btn:active { opacity: 0.7; }
-.copy-area { width: 100%; min-height: 120px; background: #111; color: #aaa; border: 1px solid #333; border-radius: 8px; padding: 10px; font-size: 12px; font-family: "Cascadia Code", "Fira Code", monospace; margin-top: 8px; resize: vertical; }
-.history-link { display: block; text-align: center; padding: 16px; color: #666; font-size: 12px; text-decoration: none; }
-.history-link:hover { color: #fe2c55; }
-.footer { text-align: center; padding: 20px; color: #444; font-size: 11px; }
-.compliance { background: #1a1a1a; border-radius: 8px; padding: 12px; margin-top: 16px; border: 1px solid #2a2a2a; }
-.compliance h4 { font-size: 13px; color: #4caf50; margin-bottom: 8px; }
-.compliance ul { font-size: 12px; color: #888; padding-left: 16px; }
-.compliance li { margin-bottom: 4px; }
+.copy-btn.copied { background: #4CAF50; }
+.business-implant { background: #E8F5E9; border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-size: 13px; border-left: 3px solid #4CAF50; }
+.business-implant strong { color: #2E7D32; }
+.tips { background: #FFF8E1; border-radius: 8px; padding: 16px; margin-top: 20px; font-size: 13px; }
+.tips h3 { color: #F57C00; margin-bottom: 8px; font-size: 15px; }
+.tips ul { padding-left: 18px; }
+.tips li { margin-bottom: 4px; }
+.compliance { background: #E8F5E9; border-radius: 8px; padding: 12px; margin-top: 16px; border: 1px solid #C8E6C9; }
+.compliance h4 { font-size: 13px; color: #2E7D32; margin-bottom: 6px; }
+.compliance ul { font-size: 12px; color: #555; padding-left: 16px; }
+.footer { text-align: center; padding: 24px 0; color: #999; font-size: 11px; }
 </style>
 </head>
 <body>
+<div class="container">
 
 <div class="header">
-  <h1>即梦Seedance分镜脚本</h1>
-  <p>电信营业厅短视频跟拍 · 一键AI生成</p>
-  <span class="date-badge">2026-08-04 生成</span>
+  <h1>短视频脚本 · 豆包直用版</h1>
+  <p>每镜一个prompt，复制即用 | 9:16竖屏 | 单视频10秒 | 角色一致性锚定</p>
+  <p style="margin-top:8px;font-size:12px;color:#E60012;">基于「文明的强子」喜剧引擎：逻辑鬼才+递进荒诞+职业崩溃+嘴硬反转+金句定格</p>
 </div>
 
-<div class="tabs">
-  <div class="tab active" data-idx="0">搞笑对话A</div>
-  <div class="tab" data-idx="1">搞笑科普D</div>
-  <div class="tab" data-idx="2">产品讲解</div>
-  <div class="tab" data-idx="3">场景种草</div>
-  <div class="tab" data-idx="4">方言亲切</div>
-</div>
+<!-- ========== 脚本1 ========== -->
+<div class="script-section">
+  <div class="script-title">我是营业员不是算命先生（1）</div>
+  <div class="script-subtitle">植入业务：千兆宽带 / 爱心翼站延时服务 | 喜剧引擎：逻辑鬼才+递进荒诞</div>
 
-<div class="content">
-
-<!-- ========== 脚本1: comedy_A ========== -->
-<div class="script-card active" id="script-0">
-  <div class="script-meta">
-    <span class="meta-tag style-tag">搞笑对话 · 客户vs营业员</span>
-    <span class="meta-tag source-tag">源：地球Online指导员</span>
-    <span class="meta-tag">30秒 · 4阶段</span>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">荒诞开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷拍桌子坐到柜台前："我这WiFi网速太慢了！你们得管管！"
+营业员职业微笑："大爷您别急，我帮您查查——" 大爷打断："我连的是邻居家的！"
+营业员职业微笑瞬间僵住。</div>
+    <button class="copy-btn" onclick="copyP('p1-1')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段一】0-5秒 钩子开场</div>
-    <div class="stage-line"><span class="value">&lt;营业厅导购员&gt;在&lt;电信营业厅柜台后&gt;中&lt;面对镜头无奈扶额&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景，手持感轻微晃动。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">写实风格，暖色调，营业厅LOGO清晰可见。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;营业厅嘈杂背景声&gt; (轻快BGM)</span></div>
-    <div class="stage-line dialogue"><span class="value">{欢迎来到电信营业厅！今天又遇到一位来办宽带的奇葩客户……}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷理直气壮："他家的网不也是你们电信的？一样网凭啥他快我慢？"
+营业员嘴角抽搐："大爷，那是因为人家办的是千兆——"
+大爷："千兆？那不还是你们电信的？一回事嘛！"</div>
+    <button class="copy-btn" onclick="copyP('p1-2')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段二】5-15秒 客户歪理</div>
-    <div class="stage-line"><span class="value">&lt;客户大哥&gt;在&lt;宽带展示区&gt;中&lt;叉腰指着展板，表情夸张&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">近景→特写，快切。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">分屏——左"线下营业厅"标红叉❌，右"线上办"标绿勾✅，数字弹跳动画。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;叮！音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{我租好房了，急着要办宽带！你给我推荐个贵的？别别别！同样是300兆，官网710一年，第三方才360，直接便宜一半！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷越说越激动："前天断网了，我孙子着急打游戏报警了！出警费你们出不出？"
+营业员捂住太阳穴，眼神已死："大爷……断网不是案件……"
+大爷："那网速慢算不算侵犯消费者权益？我要求精神损失费！"</div>
+    <button class="copy-btn" onclick="copyP('p1-3')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段三】15-25秒 营业员反转</div>
-    <div class="stage-line"><span class="value">&lt;导购员&gt;在&lt;装机工具区&gt;中&lt;拿起路由器演示，表情专业&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→俯拍手机屏幕，推镜。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">手机屏幕特写，全球网测APP跑分动画。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;科技感音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{大哥别急！听我说——选好方案，自己提前备好路由器，一定要问清楚：网速多少兆？有没有安装费？师傅装完当场测速！不达标让师傅现场排查，别等人走了才发现！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员精神一振，抓住救命稻草："大爷！您办个千兆宽带，全家上网飞快，再也不卡！而且我们爱心翼站还提供延时服务，您哪天网不好直接来厅里，我们帮您弄！"
+大爷愣住："……千兆？"</div>
+    <button class="copy-btn" onclick="copyP('p1-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：千兆宽带（体验线：全家上网飞快）+ 爱心翼站延时服务（场景线：来厅里帮您弄）</div>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段四】25-30秒 收尾CTA</div>
-    <div class="stage-line"><span class="value">&lt;导购员和客户&gt;在&lt;营业厅门口&gt;中&lt;击掌+竖大拇指&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景，定格。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">暖光逆光，营业厅招牌虚化。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;轻快收尾BGM&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{关注我，教你办宽带不踩坑！到店体验更多实惠方案！}</span></div>
-    <div class="stage-line subtitle"><span class="value">【字幕】来营业厅 办宽带不踩坑</span></div>
-  </div>
-
-  <div class="copy-section">
-    <button class="copy-btn" onclick="copyScript(0)">复制即梦Seedance提示词</button>
-    <textarea class="copy-area" id="copy-0" readonly>【阶段一】0-5秒
-<营业厅导购员>在<电信营业厅柜台后>中<面对镜头无奈扶额>。
-镜头：中景，手持感轻微晃动。
-画面：写实风格，暖色调，营业厅LOGO清晰可见。
-声音：<营业厅嘈杂背景声> (轻快BGM)
-{欢迎来到电信营业厅！今天又遇到一位来办宽带的奇葩客户……}
-
-【阶段二】5-15秒
-<客户大哥>在<宽带展示区>中<叉腰指着展板，表情夸张>。
-镜头：近景→特写，快切。
-画面：分屏——左"线下营业厅"标红叉❌，右"线上办"标绿勾✅，数字弹跳动画。
-声音：<叮！音效>
-{我租好房了，急着要办宽带！你给我推荐个贵的？别别别！同样是300兆，官网710一年，第三方才360，直接便宜一半！}
-
-【阶段三】15-25秒
-<导购员>在<装机工具区>中<拿起路由器演示，表情专业>。
-镜头：中景→俯拍手机屏幕，推镜。
-画面：手机屏幕特写，全球网测APP跑分动画。
-声音：<科技感音效>
-{大哥别急！听我说——选好方案，自己提前备好路由器，一定要问清楚：网速多少兆？有没有安装费？师傅装完当场测速！不达标让师傅现场排查，别等人走了才发现！}
-
-【阶段四】25-30秒
-<导购员和客户>在<营业厅门口>中<击掌+竖大拇指>。
-镜头：中景，定格。
-画面：暖光逆光，营业厅招牌虚化。
-声音：<轻快收尾BGM>
-{关注我，教你办宽带不踩坑！到店体验更多实惠方案！}
-【字幕】来营业厅 办宽带不踩坑</textarea>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷嘴一撇："我才不办呢！"偷偷瞄了一眼千兆宽带海报。
+营业员苦笑直视镜头，定格："我是营业员，不是算命先生。"
+字幕浮现：【千兆宽带 全家畅享 | 爱心翼站 温暖随行】</div>
+    <button class="copy-btn" onclick="copyP('p1-5')">复制prompt</button>
   </div>
 </div>
 
-<!-- ========== 脚本2: comedy_D ========== -->
-<div class="script-card" id="script-1">
-  <div class="script-meta">
-    <span class="meta-tag style-tag">搞笑科普 · 一本正经胡说</span>
-    <span class="meta-tag source-tag">源：地球Online指导员</span>
-    <span class="meta-tag">30秒 · 4阶段</span>
+<!-- ========== 脚本2 ========== -->
+<div class="script-section">
+  <div class="script-title">我是营业员不是算命先生（2）</div>
+  <div class="script-subtitle">植入业务：大流量组合 / 星级用户权益 / 智能家居 | 喜剧引擎：递进荒诞+嘴硬反转</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">气势出场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+中年女士拍桌坐下："我那个上网组合不想要了！给我换！"
+营业员淡定微笑："好的，您先说说哪里不满意？"
+女士："每月费用太贵了！"</div>
+    <button class="copy-btn" onclick="copyP('p2-1')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段一】0-5秒 钩子开场</div>
-    <div class="stage-line"><span class="value">&lt;科普博主&gt;在&lt;书房/工作台前&gt;中&lt;戴黑框眼镜，翻书，猛然抬头&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→近景，推镜。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">写实风格，书架背景，台灯暖光。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;翻书声&gt; (神秘BGM)</span></div>
-    <div class="stage-line dialogue"><span class="value">{今天给大家科普一个冷知识——办宽带，其实有99%的人都办错了！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+女士翻白眼："上个月剩了8个G流量没用了，清零了！那不是我的钱吗？！"
+营业员假笑："姐，流量是当月有效的——"
+女士打断："我花了自己的钱凭啥用不完就没了？那不是抢吗？"</div>
+    <button class="copy-btn" onclick="copyP('p2-2')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段二】5-15秒 荒诞科普</div>
-    <div class="stage-line"><span class="value">&lt;博主&gt;在&lt;白板前&gt;中&lt;画歪歪扭扭的线路图，越画越离谱&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">近景→白板特写，手持摇晃。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">白板上画着离谱的"宽带风水图"，箭头满天飞，配搞笑弹幕特效。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;白板写字声&gt; &lt;弹幕飞过音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{有人说南方选电信北方选联通——错！选哪个不是你说了算，要看你家有没有对应资源！还有人直接冲线下营业厅，结果呢？不是服务方案贵得离谱，就是让你再办张新卡！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+女士越说越激动："还有！我手机用了半年不喜欢了，你们支持退换吧？"
+营业员僵住，眼角抽搐："姐……手机不是在营业厅退换的……"
+女士："那你们卖手机不管售后？你们不是电信吗？什么都是你们电信的！"</div>
+    <button class="copy-btn" onclick="copyP('p2-3')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段三】15-25秒 正确知识翻盘</div>
-    <div class="stage-line"><span class="value">&lt;博主&gt;在&lt;电脑前&gt;中&lt;关掉白板，打开手机展示对比页面，表情认真&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">近景→屏幕特写，快推。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">手机屏幕对比：官网710 vs 第三方360，价格数字放大弹跳。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;数字跳动音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{但其实线上办才最划算！电信300兆单宽，官网710，第三方只要360，直接省一半！选好方案，备好路由器，装完当场测速，不达标让师傅现场修！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">连环暴击植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员掰手指数："姐您听我说！换个大流量组合，流量用不完！您还是星级用户，有专属权益！家里再装套智能家居，全屋WiFi一覆盖——"
+女士愣住："什么全屋WiFi？"</div>
+    <button class="copy-btn" onclick="copyP('p2-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：大流量组合（体验线：流量用不完）+ 星级用户权益 + 智能家居全屋WiFi（场景线）</div>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段四】25-30秒 收尾CTA</div>
-    <div class="stage-line"><span class="value">&lt;博主&gt;在&lt;书房&gt;中&lt;合书+指镜头&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景，定格。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">暖光收尾，书架虚化。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;轻松收尾BGM&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{关注我，办宽带不踩坑！到店体验更多实惠方案！}</span></div>
-    <div class="stage-line subtitle"><span class="value">【字幕】办宽带不踩坑 关注我</span></div>
-  </div>
-
-  <div class="copy-section">
-    <button class="copy-btn" onclick="copyScript(1)">复制即梦Seedance提示词</button>
-    <textarea class="copy-area" id="copy-1" readonly>【阶段一】0-5秒
-<科普博主>在<书房/工作台前>中<戴黑框眼镜，翻书，猛然抬头>。
-镜头：中景→近景，推镜。
-画面：写实风格，书架背景，台灯暖光。
-声音：<翻书声> (神秘BGM)
-{今天给大家科普一个冷知识——办宽带，其实有99%的人都办错了！}
-
-【阶段二】5-15秒
-<博主>在<白板前>中<画歪歪扭扭的线路图，越画越离谱>。
-镜头：近景→白板特写，手持摇晃。
-画面：白板上画着离谱的"宽带风水图"，箭头满天飞，配搞笑弹幕特效。
-声音：<白板写字声> <弹幕飞过音效>
-{有人说南方选电信北方选联通——错！选哪个不是你说了算，要看你家有没有对应资源！还有人直接冲线下营业厅，结果呢？不是服务方案贵得离谱，就是让你再办张新卡！}
-
-【阶段三】15-25秒
-<博主>在<电脑前>中<关掉白板，打开手机展示对比页面，表情认真>。
-镜头：近景→屏幕特写，快推。
-画面：手机屏幕对比：官网710 vs 第三方360，价格数字放大弹跳。
-声音：<数字跳动音效>
-{但其实线上办才最划算！电信300兆单宽，官网710，第三方只要360，直接省一半！选好方案，备好路由器，装完当场测速，不达标让师傅现场修！}
-
-【阶段四】25-30秒
-<博主>在<书房>中<合书+指镜头>。
-镜头：中景，定格。
-画面：暖光收尾，书架虚化。
-声音：<轻松收尾BGM>
-{关注我，办宽带不踩坑！到店体验更多实惠方案！}
-【字幕】办宽带不踩坑 关注我</textarea>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+女士站起来："我可不是因为你说的那些才要换的啊。"偷瞄智能家居宣传册。
+营业员苦笑直视镜头定格："每天三次，我专业的了。"
+字幕浮现：【大流量组合 用到爽 | 全屋WiFi 智慧到家】</div>
+    <button class="copy-btn" onclick="copyP('p2-5')">复制prompt</button>
   </div>
 </div>
 
-<!-- ========== 脚本3: product_explain ========== -->
-<div class="script-card" id="script-2">
-  <div class="script-meta">
-    <span class="meta-tag style-tag">产品讲解 · 大白话拆解</span>
-    <span class="meta-tag source-tag">源：地球Online指导员</span>
-    <span class="meta-tag">30秒 · 4阶段</span>
+<!-- ========== 脚本3 ========== -->
+<div class="script-section">
+  <div class="script-title">我是营业员不是算命先生（3）</div>
+  <div class="script-subtitle">植入业务：手机终端 / 碎屏险 / 天翼云盘 | 喜剧引擎：逻辑鬼才+职业崩溃</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">一本正经开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙坐到柜台前表情严肃："我这手机有问题。"
+营业员职业微笑："您说说，什么问题？"</div>
+    <button class="copy-btn" onclick="copyP('p3-1')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段一】0-5秒 开场引入</div>
-    <div class="stage-line"><span class="value">&lt;营业厅导员&gt;在&lt;明亮的电信营业厅&gt;中&lt;对着镜头热情招手&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→近景，缓推。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">写实风格，暖色调，营业厅LOGO清晰可见。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;营业厅背景音乐&gt; (轻快BGM)</span></div>
-    <div class="stage-line dialogue"><span class="value">{欢迎来到电信营业厅避坑指南，今天一条视频讲清楚办宽带的具体流程！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙指着手机前置摄像头："拍照太清楚了！痘拍得一清二楚，算不算过度还原？能不能调模糊点？"
+营业员彻底无语，捂脸。</div>
+    <button class="copy-btn" onclick="copyP('p3-2')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段二】5-15秒 痛点对比</div>
-    <div class="stage-line"><span class="value">&lt;导员&gt;在&lt;营业厅宽带展示区&gt;中&lt;拿起路由器对比展示&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→特写，切镜。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">分屏对比——左侧"直接去营业厅"标红叉，右侧"线上办"标绿勾。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;轻音效：叮&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{好不容易租好了房，迫不及待去办宽带，结果呢？不是服务方案贵得离谱，就是让你再办张新卡。记住：线上办才是最划算的！同样300兆宽带，官网710一年，第三方才360，直接便宜一半！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙继续："手机摔了算不算工伤？我在上班路上摔的！"
+营业员灵魂出窍："手机摔了……不算工伤……"
+小伙："那屏幕碎了你们管不管？！"</div>
+    <button class="copy-btn" onclick="copyP('p3-3')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段三】15-25秒 实操步骤</div>
-    <div class="stage-line"><span class="value">&lt;导员&gt;在&lt;装机工具区&gt;中&lt;演示测速软件界面&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">近景→俯拍手机屏幕，推镜。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">手机屏幕特写，全球网测APP跑分动画。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;科技感音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{选好宽带方案，自己提前准备好路由器，一定要问清楚这几个问题：网速多少兆？有没有安装费？预约师傅上门装完当场测速！不达标就让师傅现场排查，别等人走了才发现网速不对！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员崩溃中猛然正色："管！碎屏险管！您在我们这买手机，加个碎屏险，以后摔了直接换屏！而且您的照片可以存天翼云盘，手机摔了照片也不丢！"
+小伙："……云盘还能存照片？"</div>
+    <button class="copy-btn" onclick="copyP('p3-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：碎屏险（体验线：摔了直接换屏）+ 天翼云盘（场景线：手机摔了照片不丢）</div>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段四】25-30秒 收尾CTA</div>
-    <div class="stage-line"><span class="value">&lt;导员&gt;在&lt;营业厅门口&gt;中&lt;竖起大拇指+微笑&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景，定格。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">暖光逆光，营业厅招牌虚化。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;轻快收尾BGM&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{关注我，教你办宽带不踩坑！到店体验更多实惠方案！}</span></div>
-    <div class="stage-line subtitle"><span class="value">【字幕】来营业厅 办宽带不踩坑</span></div>
-  </div>
-
-  <div class="copy-section">
-    <button class="copy-btn" onclick="copyScript(2)">复制即梦Seedance提示词</button>
-    <textarea class="copy-area" id="copy-2" readonly>【阶段一】0-5秒
-<营业厅导员>在<明亮的电信营业厅>中<对着镜头热情招手>。
-镜头：中景→近景，缓推。
-画面：写实风格，暖色调，营业厅LOGO清晰可见。
-声音：<营业厅背景音乐> (轻快BGM)
-{欢迎来到电信营业厅避坑指南，今天一条视频讲清楚办宽带的具体流程！}
-
-【阶段二】5-15秒
-<导员>在<营业厅宽带展示区>中<拿起路由器对比展示>。
-镜头：中景→特写，切镜。
-画面：分屏对比——左侧"直接去营业厅"标红叉，右侧"线上办"标绿勾。
-声音：<轻音效：叮>
-{好不容易租好了房，迫不及待去办宽带，结果呢？不是服务方案贵得离谱，就是让你再办张新卡。记住：线上办才是最划算的！同样300兆宽带，官网710一年，第三方才360，直接便宜一半！}
-
-【阶段三】15-25秒
-<导员>在<装机工具区>中<演示测速软件界面>。
-镜头：近景→俯拍手机屏幕，推镜。
-画面：手机屏幕特写，全球网测APP跑分动画。
-声音：<科技感音效>
-{选好宽带方案，自己提前准备好路由器，一定要问清楚这几个问题：网速多少兆？有没有安装费？预约师傅上门装完当场测速！不达标就让师傅现场排查，别等人走了才发现网速不对！}
-
-【阶段四】25-30秒
-<导员>在<营业厅门口>中<竖起大拇指+微笑>。
-镜头：中景，定格。
-画面：暖光逆光，营业厅招牌虚化。
-声音：<轻快收尾BGM>
-{关注我，教你办宽带不踩坑！到店体验更多实惠方案！}
-【字幕】来营业厅 办宽带不踩坑</textarea>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙站起来："那云盘要是给我过度还原了怎么办？"偷瞄碎屏险海报。
+营业员专业碎裂→绝望苦笑，直视镜头定格："我是营业员，不是算命先生。"
+字幕浮现：【碎屏险 摔了不心疼 | 天翼云盘 珍贵不丢失】</div>
+    <button class="copy-btn" onclick="copyP('p3-5')">复制prompt</button>
   </div>
 </div>
 
-<!-- ========== 脚本4: scene_seed ========== -->
-<div class="script-card" id="script-3">
-  <div class="script-meta">
-    <span class="meta-tag style-tag">场景种草 · 沉浸式体验</span>
-    <span class="meta-tag source-tag">源：小咩在独立</span>
-    <span class="meta-tag">30秒 · 4阶段</span>
+<!-- ========== 脚本4 ========== -->
+<div class="script-section">
+  <div class="script-title">千兆宽带能算命吗？</div>
+  <div class="script-subtitle">植入业务：千兆宽带 / 全屋WiFi / 上门装维 | 喜剧引擎：逻辑鬼才+递进荒诞</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">荒诞开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨神秘兮兮凑过来："闺女，你们这千兆宽带能不能算命？"
+营业员微笑："阿姨，宽带是上网用的——"
+阿姨打断："我听说千兆的能看见未来！"</div>
+    <button class="copy-btn" onclick="copyP('p4-1')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段一】0-5秒 痛点场景</div>
-    <div class="stage-line"><span class="value">&lt;年轻租客&gt;在&lt;刚入住的空荡出租屋&gt;中&lt;坐在纸箱上刷手机，信号差频繁转圈&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→近景，手持感。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">冷色调，房间昏暗，手机屏幕转圈加载动画叠加。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;手机转圈加载声&gt; &lt;叹气声&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{刚入住新家，想办宽带却一头雾水？不知道选哪种？}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨一本正经："你想啊，千兆多快啊，刷视频一秒就出来了，那不就等于提前知道结果了？"
+营业员嘴角抽搐："阿姨，那不是算命，那是网速快——"
+阿姨："一回事嘛！快不就是先知道了嘛！"</div>
+    <button class="copy-btn" onclick="copyP('p4-2')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段二】5-15秒 方案对比</div>
-    <div class="stage-line"><span class="value">&lt;租客&gt;在&lt;明亮客厅&gt;中&lt;打开手机APP，界面展示宽带办理流程&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">近景→屏幕特写，跟随手势。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">手机屏幕分屏：左"融合宽带"（宽带+手机卡绑定），右"单宽带"（纯宽带无捆绑），配勾选动画。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;滑动切换音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{打开线上APP选装宽带，呼叫客服介绍合适的方案。融合宽带：宽带和手机卡绑定，话费按月付；单宽带：纯宽带不捆绑。哪个便宜选哪个！日常追剧300兆就够，多人或打游戏选500到1000兆！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨继续："还有，装宽带那个师傅能不能顺便看看我家风水？反正他也要上门——"
+营业员翻白眼："师傅是装网络的……"
+阿姨："网络也是路嘛，路走对了风水不就好了？一回事！"</div>
+    <button class="copy-btn" onclick="copyP('p4-3')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段三】15-25秒 安装过程</div>
-    <div class="stage-line"><span class="value">&lt;安装师傅&gt;在&lt;客厅墙边&gt;中&lt;连接光猫到路由器，动作麻利&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→特写光猫LAN口接线，推镜。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">光线从光纤口连接光猫，再到路由器WAN口，信号波纹扩散动画。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;接线咔哒声&gt; &lt;网络连接音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{下单后师傅上门，光纤入户装光猫，光猫转网线接路由器WAN口。不懂没关系，师傅全搞定！装完当场手机测速，下载速度一目了然！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员深吸一口气，拼了："阿姨！千兆宽带装上，全家每个角落信号满格！我们师傅上门给您装全屋WiFi，信号走到哪都不差——比看风水灵！"
+阿姨一愣："……真的？每个角落都有？"</div>
+    <button class="copy-btn" onclick="copyP('p4-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：千兆宽带（体验线：全网飞快）+ 全屋WiFi覆盖（场景线：每个角落信号满格）+ 上门装维服务</div>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段四】25-30秒 自由达成+CTA</div>
-    <div class="stage-line"><span class="value">&lt;租客&gt;在&lt;温馨的客厅沙发上&gt;中&lt;翘脚刷手机，满格WiFi信号，满意微笑&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景，定格。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">暖光，房间焕然一新，WiFi信号满格图标弹出。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;温暖BGM渐起&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{这样你就实现WiFi自由啦！到店体验更多实惠宽带方案！}</span></div>
-    <div class="stage-line subtitle"><span class="value">【字幕】到店办宽带 WiFi自由即刻达成</span></div>
-  </div>
-
-  <div class="copy-section">
-    <button class="copy-btn" onclick="copyScript(3)">复制即梦Seedance提示词</button>
-    <textarea class="copy-area" id="copy-3" readonly>【阶段一】0-5秒
-<年轻租客>在<刚入住的空荡出租屋>中<坐在纸箱上刷手机，信号差频繁转圈>。
-镜头：中景→近景，手持感。
-画面：冷色调，房间昏暗，手机屏幕转圈加载动画叠加。
-声音：<手机转圈加载声> <叹气声>
-{刚入住新家，想办宽带却一头雾水？不知道选哪种？}
-
-【阶段二】5-15秒
-<租客>在<明亮客厅>中<打开手机APP，界面展示宽带办理流程>。
-镜头：近景→屏幕特写，跟随手势。
-画面：手机屏幕分屏：左"融合宽带"（宽带+手机卡绑定），右"单宽带"（纯宽带无捆绑），配勾选动画。
-声音：<滑动切换音效>
-{打开线上APP选装宽带，呼叫客服介绍合适的方案。融合宽带：宽带和手机卡绑定，话费按月付；单宽带：纯宽带不捆绑。哪个便宜选哪个！日常追剧300兆就够，多人或打游戏选500到1000兆！}
-
-【阶段三】15-25秒
-<安装师傅>在<客厅墙边>中<连接光猫到路由器，动作麻利>。
-镜头：中景→特写光猫LAN口接线，推镜。
-画面：光线从光纤口连接光猫，再到路由器WAN口，信号波纹扩散动画。
-声音：<接线咔哒声> <网络连接音效>
-{下单后师傅上门，光纤入户装光猫，光猫转网线接路由器WAN口。不懂没关系，师傅全搞定！装完当场手机测速，下载速度一目了然！}
-
-【阶段四】25-30秒
-<租客>在<温馨的客厅沙发上>中<翘脚刷手机，满格WiFi信号，满意微笑>。
-镜头：中景，定格。
-画面：暖光，房间焕然一新，WiFi信号满格图标弹出。
-声音：<温暖BGM渐起>
-{这样你就实现WiFi自由啦！到店体验更多实惠宽带方案！}
-【字幕】到店办宽带 WiFi自由即刻达成</textarea>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨站起来："我才不算命呢！"转头又问："那个全屋WiFi，能不能先给我看看？"
+营业员苦笑直视镜头定格："千兆宽带不算命，但算靠谱。"
+字幕浮现：【千兆宽带 全家畅享 | 全屋WiFi 信号无死角】</div>
+    <button class="copy-btn" onclick="copyP('p4-5')">复制prompt</button>
   </div>
 </div>
 
-<!-- ========== 脚本5: dialect_friendly ========== -->
-<div class="script-card" id="script-4">
-  <div class="script-meta">
-    <span class="meta-tag style-tag">方言亲切 · 山西话推荐</span>
-    <span class="meta-tag source-tag">源：广州电信宽带阿莲</span>
-    <span class="meta-tag">30秒 · 4阶段</span>
+<!-- ========== 脚本5 ========== -->
+<div class="script-section">
+  <div class="script-title">智能家居能帮我遛狗吗？</div>
+  <div class="script-subtitle">植入业务：智能家居 / 千兆宽带 / 天翼云盘 | 喜剧引擎：逻辑鬼才+递进荒诞+职业崩溃</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">一本正经开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙子自信走入："听说你们这智能家居很厉害？"
+营业员职业微笑："是的，您想了解哪方面？"
+小伙："能帮我遛狗吗？"</div>
+    <button class="copy-btn" onclick="copyP('p5-1')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段一】0-5秒 亲切开场</div>
-    <div class="stage-line"><span class="value">&lt;山西大姐&gt;在&lt;电信营业厅柜台后&gt;中&lt;探出头来笑呵呵招手&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→近景，手持感。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">生活化写实风格，柜台上有小摆件，暖光。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;营业厅嘈杂背景声&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{哎，想办宽带又想省钱滴？这条干货你必须收好！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙解释："你看，智能门锁能自动开门，智能摄像头能看见狗，那开门让狗出去，摄像头盯着它——不就等于遛狗了？"
+营业员假笑："先生，那不叫遛狗，那叫放养——"
+小伙打断："一回事嘛！科技改变生活！"</div>
+    <button class="copy-btn" onclick="copyP('p5-2')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段二】5-15秒 方案展示</div>
-    <div class="stage-line"><span class="value">&lt;大姐&gt;在&lt;宽带方案展板前&gt;中&lt;用手指着展板上的数字&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">近景→展板特写，摇镜。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">展板特写，199千兆宽带方案数字放大弹框。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;白板写字音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{我给你说啊，首选办融合组合包！宽带加手机卡打包算，比单装宽带划算太多啦！199千兆宽带方案，能办一主两副三张卡，全家三个人都能用！自带60G流量，700分钟通话，两张副卡还有额外赠送40G加400分钟！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙继续："那千兆宽带能不能让狗跑快点？网快了嘛，速度也快了嘛！"
+营业员灵魂出窍："宽带是给人用的——"
+小伙："狗不算人吗？我给它开了个专属账号！"
+营业员捂脸，已无话可说。</div>
+    <button class="copy-btn" onclick="copyP('p5-3')">复制prompt</button>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段三】15-25秒 算账对比</div>
-    <div class="stage-line"><span class="value">&lt;大姐&gt;在&lt;手机展示区&gt;中&lt;拿起手机演示APP&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景→手机屏幕特写，快推。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">手机屏幕上话费账单对比动画（分开交 vs 融合交）。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;数字跳动音效&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{折算下来一共100G流量加1000分钟通话！家里直接上千兆宽带，话费流量一次搞定！不用分开交话费网费，一年下来省一两千滴手机服务费！}</span></div>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员正色回血："先生！智能家居不能遛狗，但能帮您看家——智能门锁、摄像头远程查看，出门遛狗也不怕！千兆宽带配全屋WiFi，手机随时看家里的情况。您不在家的时候，天翼云盘还能帮您存监控录像！"
+小伙愣住："……远程看家？"</div>
+    <button class="copy-btn" onclick="copyP('p5-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：智能家居门锁+摄像头（场景线：远程看家）+ 千兆宽带/全屋WiFi + 天翼云盘存监控</div>
   </div>
 
-  <div class="stage">
-    <div class="stage-header">【阶段四】25-30秒 收尾CTA</div>
-    <div class="stage-line"><span class="value">&lt;大姐&gt;在&lt;营业厅门口&gt;中&lt;双手合十+笑眯眯&gt;。</span></div>
-    <div class="stage-line"><span class="label">镜头：</span><span class="value">中景，定格。</span></div>
-    <div class="stage-line"><span class="label">画面：</span><span class="value">阳光洒进营业厅门口。</span></div>
-    <div class="stage-line"><span class="label">声音：</span><span class="value">&lt;温暖BGM渐起&gt;</span></div>
-    <div class="stage-line dialogue"><span class="value">{记不住滴朋友，来营业厅找我，我给你讲！}</span></div>
-    <div class="stage-line subtitle"><span class="value">【字幕】来营业厅找我 省钱办宽带</span></div>
-  </div>
-
-  <div class="copy-section">
-    <button class="copy-btn" onclick="copyScript(4)">复制即梦Seedance提示词</button>
-    <textarea class="copy-area" id="copy-4" readonly>【阶段一】0-5秒
-<山西大姐>在<电信营业厅柜台后>中<探出头来笑呵呵招手>。
-镜头：中景→近景，手持感。
-画面：生活化写实风格，柜台上有小摆件，暖光。
-声音：<营业厅嘈杂背景声>
-{哎，想办宽带又想省钱滴？这条干货你必须收好！}
-
-【阶段二】5-15秒
-<大姐>在<宽带方案展板前>中<用手指着展板上的数字>。
-镜头：近景→展板特写，摇镜。
-画面：展板特写，199千兆宽带方案数字放大弹框。
-声音：<白板写字音效>
-{我给你说啊，首选办融合组合包！宽带加手机卡打包算，比单装宽带划算太多啦！199千兆宽带方案，能办一主两副三张卡，全家三个人都能用！自带60G流量，700分钟通话，两张副卡还有额外赠送40G加400分钟！}
-
-【阶段三】15-25秒
-<大姐>在<手机展示区>中<拿起手机演示APP>。
-镜头：中景→手机屏幕特写，快推。
-画面：手机屏幕上话费账单对比动画（分开交 vs 融合交）。
-声音：<数字跳动音效>
-{折算下来一共100G流量加1000分钟通话！家里直接上千兆宽带，话费流量一次搞定！不用分开交话费网费，一年下来省一两千滴手机服务费！}
-
-【阶段四】25-30秒
-<大姐>在<营业厅门口>中<双手合十+笑眯眯>。
-镜头：中景，定格。
-画面：阳光洒进营业厅门口。
-声音：<温暖BGM渐起>
-{记不住滴朋友，来营业厅找我，我给你讲！}
-【字幕】来营业厅找我 省钱办宽带</textarea>
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙站起来往门口走，嘴里嘟囔："我才不需要遛狗呢……"偷偷回头瞄智能家居展区。
+营业员扶额苦笑直视镜头定格："智能家居帮不了狗，但帮得了你。"
+字幕浮现：【智能家居 远程看家 | 千兆宽带 随时在线】</div>
+    <button class="copy-btn" onclick="copyP('p5-5')">复制prompt</button>
   </div>
 </div>
 
-<!-- 合规声明 -->
-<div class="compliance">
-  <h4>五级合规审核通过</h4>
+<!-- 使用说明 -->
+<div class="tips">
+  <h3>豆包/即梦使用说明</h3>
   <ul>
-    <li>无违禁词（号卡/合约/月租/套餐 → 已替换为服务方案/组合包/宽带方案）</li>
-    <li>无竞品名称（仅提及"三家运营商"统称，未点名竞品）</li>
-    <li>无资费数字硬伤（价格均为公开渠道可查）</li>
-    <li>无极限词（最/第一/首选 → 已规避）</li>
-    <li>CTA可执行（"到店体验""来营业厅找我"均为可执行动作）</li>
+    <li>打开豆包/即梦，选择"文生视频"</li>
+    <li>逐镜复制prompt（必须包含红色锚定段，一字不改）</li>
+    <li>每镜独立生成10秒片段，5镜拼完约50秒</li>
+    <li>生成后用剪映拼接，添加字幕和背景音乐</li>
+    <li><strong>锚定段不可修改</strong>：确保所有镜头角色外观一致</li>
+    <li>如需更精准一致性：先生成第1镜参考图，后续镜头用"图生视频"+锚定段</li>
   </ul>
 </div>
 
-<a class="history-link" href="history/">查看历史版本</a>
-
-<div class="footer">
-  山西电信抖本内容工坊 · 即梦Seedance分镜脚本<br>
-  基于8个对标账号 · 5种风格模板 · 免费BcutASR逐字稿提取
+<div class="compliance">
+  <h4>五级合规审核通过</h4>
+  <ul>
+    <li>无运营商违禁词（号卡/合约/月租/套餐 → 已全部规避）</li>
+    <li>无抹黑营业厅内容（不出现"避坑""踩坑""贵得离谱"等负面描述）</li>
+    <li>业务植入走体验线和场景线，不走价格线和合约线</li>
+    <li>无竞品名称</li>
+    <li>CTA为正面引导：来营业厅体验/咨询</li>
+  </ul>
 </div>
 
-</div><!-- end .content -->
+<div class="footer">
+  山西电信抖本内容工坊 · 豆包直用版脚本<br>
+  基于「文明的强子」喜剧引擎 · 五大引擎全覆盖 · 锚定段角色一致性
+</div>
+
+</div>
 
 <script>
-// Tab switching
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', function() {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.script-card').forEach(c => c.classList.remove('active'));
-    this.classList.add('active');
-    document.getElementById('script-' + this.dataset.idx).classList.add('active');
-  });
-});
-
-// Copy to clipboard
-function copyScript(idx) {
-  const ta = document.getElementById('copy-' + idx);
-  ta.select();
-  ta.setSelectionRange(0, 99999);
-  navigator.clipboard.writeText(ta.value).then(() => {
-    const btn = ta.previousElementSibling;
-    btn.textContent = '已复制！';
-    setTimeout(() => { btn.textContent = '复制即梦Seedance提示词'; }, 2000);
+function copyP(id) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.nextElementSibling;
+    btn.textContent = '已复制!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '复制prompt'; btn.classList.remove('copied'); }, 2000);
   }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
     document.execCommand('copy');
-    const btn = ta.previousElementSibling;
-    btn.textContent = '已复制！';
-    setTimeout(() => { btn.textContent = '复制即梦Seedance提示词'; }, 2000);
+    document.body.removeChild(ta);
+    const btn = el.nextElementSibling;
+    btn.textContent = '已复制!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '复制prompt'; btn.classList.remove('copied'); }, 2000);
   });
 }
 </script>
