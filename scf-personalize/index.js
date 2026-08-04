@@ -492,6 +492,37 @@ http.createServer(async (req, res) => {
     res.writeHead(200, corsHeaders); res.end(); return;
   }
 
+  // 2026-08-05 Option A: GET /data/<file>.js —— 前端 <script src> 实时拉取 Gitee 数据（带 CORS）。
+  // 周一 weekly-persona 自动更新后，前端零人工重部署即可生效。仅放行白名单文件，其余 GET 仍 405。
+  if (req.method === 'GET') {
+    let _u;
+    try { _u = new URL(req.url || '/', 'http://localhost'); } catch (e) { _u = null; }
+    if (_u && _u.pathname.startsWith('/data/')) {
+      const fname = _u.pathname.slice('/data/'.length).replace(/^\/+/, '');
+      const ALLOWED = ['t1ScriptFullByPersona.js','t2ScriptFullByPersona.js','t4ScriptFullByPersona.js','t1Presets.js','t2Presets.js','t4Presets.js','topicPool.js','weeklyNew.js'];
+      const jsHeaders = { 'Content-Type':'application/javascript; charset=utf-8', 'Access-Control-Allow-Origin':'*', 'Cache-Control':'no-cache' };
+      if (ALLOWED.indexOf(fname) < 0) {
+        res.writeHead(403, jsHeaders); res.end('// forbidden: ' + fname); return;
+      }
+      try {
+        const token = process.env.GITEE_TOKEN, user = process.env.GITEE_USERNAME || 'hbatz';
+        // ScriptFullByPersona 体量较大（19–37KB），SCF 出网无法单次写大文件到 Gitee（请求体被截断但返回200，内容不落盘）。
+        // 改为分片小文件存储（data/{t}SFB/），此处内存拼装成单文件返回，前端无需改动。
+        let raw;
+        if (fname === 't1ScriptFullByPersona.js' || fname === 't2ScriptFullByPersona.js' || fname === 't4ScriptFullByPersona.js') {
+          const t = fname.replace('ScriptFullByPersona.js', '');
+          raw = await assembleScriptFullJs(t, token, user);
+        } else {
+          raw = await readGiteeFile('data/' + fname, token, user);
+        }
+        res.writeHead(200, jsHeaders); res.end(raw); return;
+      } catch (e) {
+        res.writeHead(404, jsHeaders); res.end('// not found: ' + fname); return;
+      }
+    }
+    res.writeHead(405, corsHeaders); res.end(JSON.stringify({ error: 'Method not allowed' })); return;
+  }
+
   if (req.method !== 'POST') {
     res.writeHead(405, corsHeaders); res.end(JSON.stringify({ error: 'Method not allowed' })); return;
   }
@@ -2103,9 +2134,9 @@ async function updateEventFunction() {
 setTimeout(updateEventFunction, 1000);
 
 // ============================================================
-// weekly-persona: 每周一 t1/t2/t4 各自动新增 3 个选题/模板
+// weekly-persona: 每周一 t1/t2/t4 各自动新增 3 个选题，并直接生成 6 人设完整口播稿
 // 内容来源：热点(4 lane) + 搜索截流 + 厅店日常活动(config 季节/活动/用户重点)
-// 结果：合并写入 data/{t}Presets.js（新增 key 保留历史），并写 data/weeklyNew.js 供前端标「本周新增」
+// 结果：合并写入 data/{t}ScriptFullByPersona.js（新增 key 保留历史），并写 data/weeklyNew.js 供前端标「本周新增」
 // ============================================================
 async function handleWeeklyPersona(res, params, corsHeaders) {
   const token = process.env.GITEE_TOKEN;
@@ -2124,12 +2155,21 @@ async function handleWeeklyPersona(res, params, corsHeaders) {
     const cfg = await loadAIConfig(token, user);
     const added = {};
     for (const t of ['t1', 't2', 't4']) {
-      const existing = await loadPreset(t, token, user);
+      const existing = await loadScriptFull(t, token, user);
       const existKeys = Object.keys(existing);
-      const spec = PRESET_SPEC[t];
-      const sys = '你是山西电信抖音内容运营专家。基于热点/搜索/厅店活动，为「' + spec.name + '」内容生成3个全新选题模板。';
-      const userP = spec.task + '\n\n【话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt + '\n\n【现有选题（不要重复，新选题须明显不同）】\n' + existKeys.slice(0, 40).join('、') + '\n\n【输出要求】\n只返回一个 JSON 对象（不要 markdown 代码块、不要解释）：\n' + spec.schema + '\n\n生成3个，键为选题/场景名（简短，≤12字），值为符合要求的结构。';
-      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro', temperature: 0.95, maxTokens: 6000, timeoutMs: 150000 });
+      const spec = SCRIPT_SPEC[t];
+      const sys = '你是山西电信抖音内容运营专家。为「' + spec.name + '」内容生成3个全新选题，每个选题写6个人设版本的完整可拍脚本。\n\n' +
+        '【6人设（key 必须严格用以下英文，禁止翻译或改名）】\n' +
+        PERSONA_STD.map(function (k) { return '- ' + k + '：' + PERSONA_DESC[k]; }).join('\n') + '\n\n' +
+        '【结构要求】\n' + spec.struct + '\n\n' +
+        '【通用约束】\n' +
+        '- 口语化、接地气，禁止AI味和书面腔\n' +
+        '- 山西电信在售宽带仅300M/500M/1000M/FTTR，禁止出现100M/100兆/百兆\n' +
+        '- 不直接做电信/联通/移动三家横向对比\n' +
+        '- 输出严格JSON（不要markdown代码块、不要解释），结构：\n' +
+        '{"选题名1":{"sister":"脚本","sweet":"脚本","tech":"脚本","biz":"脚本","young":"脚本","master":"脚本"},"选题名2":{...},"选题名3":{...}}';
+      const userP = spec.task + '\n\n【话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt + '\n\n【现有选题（不要重复，新选题须明显不同）】\n' + existKeys.slice(0, 40).join('、') + '\n\n请生成3个新选题，每个选题写满6个人设脚本。';
+      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro', temperature: 0.92, maxTokens: 8000, timeoutMs: 180000 });
       if (!raw) { added[t] = { error: 'AI 空响应' }; continue; }
       const parsed = extractJsonObject(raw);
       if (!parsed || typeof parsed !== 'object') { added[t] = { error: '解析失败', rawPreview: String(raw).slice(0, 300) }; continue; }
@@ -2137,15 +2177,18 @@ async function handleWeeklyPersona(res, params, corsHeaders) {
       let cnt = 0;
       const cleanKeys = [];
       for (const k of Object.keys(parsed)) {
-        if (parsed[k] && typeof parsed[k] === 'object') {
-          // 2026-08-04: 写回前递归净化（立场安全 + 100M/百兆档位红线），避免 AI 产出违规脚本
+        const pm = coercePersonaMap(parsed[k]);
+        if (pm) {
+          // 选题名 + 每个 persona 脚本都过 立场/100M 红线净化
           const cleanKey = hsSanitize(k);
-          merged[cleanKey] = sanitizePresetObj(parsed[k]);
+          const cleanPm = {};
+          for (const pk of PERSONA_STD) cleanPm[pk] = hsSanitize(pm[pk] || '');
+          merged[cleanKey] = cleanPm;
           cleanKeys.push(cleanKey);
           cnt++;
         }
       }
-      await writePreset(t, merged, token, user);
+      await writeScriptFull(t, merged, token, user);
       added[t] = { count: cnt, keys: cleanKeys };
     }
 
@@ -2263,6 +2306,120 @@ function sanitizePresetObj(obj) {
   if (typeof obj === 'string') return hsSanitize(obj);
   return obj;
 }
+
+// 2026-08-04 改造：weekly-persona 直接产出 6 人设完整口播稿（写 ScriptFullByPersona）
+const PERSONA_STD = ['sister', 'sweet', 'tech', 'biz', 'young', 'master'];
+const PERSONA_DESC = {
+  sister: '陌棠宇组·知性姐姐，专业但不端着，像经验丰富的客服主管',
+  sweet: '甜美学姐，甜美亲切，像邻家妹妹',
+  tech: '技术达人，极客范儿，理性分析型',
+  biz: '商务精英，干练简洁，效率优先',
+  young: '青春达人，潮流年轻人，网感强',
+  master: '资深店长，沉稳权威，像老师傅'
+};
+const PERSONA_ALIAS = {
+  sister: ['sister', '姐', '知性', '陌棠'],
+  sweet: ['sweet', '甜', '学姐', '妹'],
+  tech: ['tech', '技术', '极客'],
+  biz: ['biz', '商务', '精英', '老板'],
+  young: ['young', '青春', '年轻', '潮'],
+  master: ['master', '店长', '师傅', '资深', '老哥', '老弟', '叔']
+};
+
+// 把 AI 返回的任意 key 归一化为标准 6 人设；缺失/别名都兜底，保证 6 key 全有值
+function coercePersonaMap(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+  const out = {};
+  for (const k of PERSONA_STD) {
+    if (typeof entry[k] === 'string' && entry[k].trim()) out[k] = entry[k];
+  }
+  for (const k of PERSONA_STD) {
+    if (out[k]) continue;
+    const aliases = PERSONA_ALIAS[k] || [];
+    for (const ak of Object.keys(entry)) {
+      if (aliases.some(a => ak.toLowerCase().indexOf(a.toLowerCase()) >= 0)) { out[k] = entry[ak]; break; }
+    }
+  }
+  const vals = Object.values(out);
+  if (vals.length) {
+    for (const k of PERSONA_STD) if (!out[k]) out[k] = vals[0];
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+// ── ScriptFullByPersona 分片存储（解决 SCF 出网无法写大文件到 Gitee 的问题）──
+// 存储结构：data/{t}SFB/_index.json = [topicKey,...]；data/{t}SFB/{i}.json = 该选题的 6 人设脚本
+// 读取时按 index 拼装回单对象；SCF /data 端点再包成 window.___tXScriptFullByPersona 返回给前端。
+const __sfbCache = {};
+async function readGiteeFileR(p, token, user, tries = 3) {
+  for (let a = 0; a < tries; a++) {
+    try { return await readGiteeFile(p, token, user); }
+    catch (e) { if (a === tries - 1) throw e; await new Promise(r => setTimeout(r, 400 * (a + 1))); }
+  }
+}
+async function readScriptFullChunked(t, token, user) {
+  const idxRaw = await readGiteeFileR('data/' + t + 'SFB/_index.json', token, user);
+  const keys = JSON.parse(idxRaw);
+  if (!Array.isArray(keys)) throw new Error('bad SFB index');
+  const parts = await Promise.all(keys.map((k, i) =>
+    readGiteeFileR('data/' + t + 'SFB/' + i + '.json', token, user).then(r => [k, JSON.parse(r)])
+  ));
+  const out = {};
+  for (const [k, v] of parts) out[k] = v;
+  return out;
+}
+async function writeScriptFullChunked(t, obj, token, user) {
+  const keys = Object.keys(obj);
+  await createOrUpdateGiteeFile('data/' + t + 'SFB/_index.json', JSON.stringify(keys), token, user);
+  for (let i = 0; i < keys.length; i++) {
+    await createOrUpdateGiteeFile('data/' + t + 'SFB/' + i + '.json', JSON.stringify(obj[keys[i]]), token, user);
+  }
+  delete __sfbCache[t];
+}
+async function assembleScriptFullJs(t, token, user) {
+  const now = Date.now();
+  if (__sfbCache[t] && (now - __sfbCache[t].ts < 60000)) return __sfbCache[t].js;
+  let obj;
+  try {
+    obj = await readScriptFullChunked(t, token, user);
+  } catch (e) {
+    try { const raw = await readGiteeFile('data/' + t + 'ScriptFullByPersona.js', token, user); obj = parsePresetJs(raw, t) || {}; }
+    catch (e2) { obj = {}; }
+  }
+  const js = '// Auto-assembled ' + t + ' full scripts (by persona)\nwindow.___' + t + 'ScriptFullByPersona = ' + JSON.stringify(obj) + ';';
+  __sfbCache[t] = { ts: now, js };
+  return js;
+}
+async function loadScriptFull(t, token, user) {
+  try {
+    const chunked = await readScriptFullChunked(t, token, user);
+    if (chunked && Object.keys(chunked).length) return chunked;
+  } catch (e) {}
+  try { const raw = await readGiteeFile('data/' + t + 'ScriptFullByPersona.js', token, user); return parsePresetJs(raw, t) || {}; }
+  catch (e) { return {}; }
+}
+async function writeScriptFull(t, obj, token, user) {
+  await writeScriptFullChunked(t, obj, token, user);
+}
+
+// 各类型脚本结构说明（用于 AI prompt）
+const SCRIPT_SPEC = {
+  t1: {
+    name: '决策指南（对比推荐）口播稿',
+    task: '生成3个适合电信营业厅的「决策指南」类选题（如：XX怎么选，给出不同人群/场景该选什么）。',
+    struct: '每个选题写6人设口播稿，每版结构：开头钩子(1-2句，抓注意力)→分3档位口播正文(每档30-50字，像跟朋友聊天一样自然)→收尾CTA(引导到店/咨询)，总120-180字。'
+  },
+  t2: {
+    name: '一线服务故事口播稿',
+    task: '生成3个真实可拍的「一线服务场景」选题（如：某客户遇到XX问题，营业员怎么一步步解决）。',
+    struct: '每个选题写6人设服务故事口播稿，结构：具体人物(客户)+时间+问题+发现原因+解决步骤+客户反应+一句话总结，像讲身边发生的事，有画面感有对话，150-250字，结尾自然带出营业厅服务价值。'
+  },
+  t4: {
+    name: '本地福利活动推广口播稿',
+    task: '生成3个「本地探店/福利活动」选题（如：免费贴膜、办业务送礼、以旧换新、0元体验）。',
+    struct: '每个选题写6人设营销推广口播稿，结构：突出活动利益点(免费/优惠/礼品/体验)+明确行动号召(扫码/到店/关注)，短促有力，80-150字。'
+  }
+};
 
 function parsePresetJs(text, t) {
   const m = String(text);
