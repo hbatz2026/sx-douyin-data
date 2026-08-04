@@ -1,0 +1,21 @@
+name: Weekly Persona Auto-Update (t1/t2/t4)
+
+# 每周一 00:00 UTC = 北京时间周一 08:00，触发 Web 函数 weekly-persona 模式
+# Web 函数内部：抓取热点/搜索截流 + 读取厅店活动配置 → 调 AI 生成 t1/t2/t4 各 3 个新选题/模板
+# → 回写 Gitee（data/{t}Presets.js 合并新增、topicPool.decision 并入 t1 选题、data/weeklyNew.js 标记）
+# 前端读取 weeklyNew.js 在选题/场景下拉显示「本周新增」角标。
+on:
+  schedule:
+    - cron: '0 0 * * 1'   # 周一 00:00 UTC = 北京时间周一 08:00
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Trigger Web function weekly-persona
+        run: |
+          curl -s -m 600 -X POST 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com' \
+            -H 'Content-Type: application/json' \
+            -d '{"mode":"weekly-persona"}'

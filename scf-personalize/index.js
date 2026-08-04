@@ -768,6 +768,17 @@ http.createServer(async (req, res) => {
       }
       return;
     }
+
+    // ===== weekly-persona: 每周一 t1/t2/t4 各自动新增 3 选题/模板 =====
+    if (params.mode === 'weekly-persona') {
+      try {
+        await handleWeeklyPersona(res, params, corsHeaders);
+      } catch (e) {
+        res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: e.message || 'weekly-persona dispatch failed' }));
+      }
+      return;
+    }
+
     // 2026-08-01: 读取每日生成的精选 BGM 库（data/bgmList.js），供前端按日加载 ___bgmList
     if (params.mode === 'bgm-list') {
       const token = process.env.GITEE_TOKEN;
@@ -1719,6 +1730,9 @@ function sanitize100M(text) {
   out = out.replace(/100兆宽带/g, '300兆宽带');
   out = out.replace(/100M/g, '300M');
   out = out.replace(/100兆/g, '300兆');
+  // 2026-08-04: 补齐中文「百兆」写法（历史库曾出现「百兆宽带」），统一归到 300 档
+  out = out.replace(/百兆宽带/g, '300兆宽带');
+  out = out.replace(/百兆/g, '300兆');
   return out;
 }
 
@@ -2080,3 +2094,177 @@ async function updateEventFunction() {
 
 // 冷启动触发一次
 setTimeout(updateEventFunction, 1000);
+
+// ============================================================
+// weekly-persona: 每周一 t1/t2/t4 各自动新增 3 个选题/模板
+// 内容来源：热点(4 lane) + 搜索截流 + 厅店日常活动(config 季节/活动/用户重点)
+// 结果：合并写入 data/{t}Presets.js（新增 key 保留历史），并写 data/weeklyNew.js 供前端标「本周新增」
+// ============================================================
+async function handleWeeklyPersona(res, params, corsHeaders) {
+  const token = process.env.GITEE_TOKEN;
+  const user = process.env.GITEE_USERNAME || 'hbatz';
+  const apiKey = process.env.SILICONFLOW_API_KEY;
+  if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error:'SILICONFLOW_API_KEY not configured' })); return; }
+  try {
+    const cands = await fetchAllHotspotsSCF();
+    const hotTxt = cands.hot.slice(0, 25).map(c => '[热点] ' + c.word + (c.heat ? (' 热度' + c.heat) : '')).join('\n');
+    const searchTxt = cands.search.slice(0, 15).map(c => '[搜索截流] ' + c.word + ' → 意图:' + (c.intent || '')).join('\n');
+    let actTxt = '';
+    try { const sa = await getConfig('config/t2-seasonal.json', token, user); actTxt += '【季节/活动配置】\n' + JSON.stringify(sa).slice(0, 1000) + '\n'; } catch (e) {}
+    try { const up = await getConfig('config/user-priority.json', token, user); actTxt += '【用户固定重点选题】\n' + JSON.stringify(up).slice(0, 1000) + '\n'; } catch (e) {}
+    try { const se = await getConfig('config/seasons.json', token, user); actTxt += '【季节】\n' + JSON.stringify(se).slice(0, 500) + '\n'; } catch (e) {}
+
+    const cfg = await loadAIConfig(token, user);
+    const added = {};
+    for (const t of ['t1', 't2', 't4']) {
+      const existing = await loadPreset(t, token, user);
+      const existKeys = Object.keys(existing);
+      const spec = PRESET_SPEC[t];
+      const sys = '你是山西电信抖音内容运营专家。基于热点/搜索/厅店活动，为「' + spec.name + '」内容生成3个全新选题模板。';
+      const userP = spec.task + '\n\n【话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt + '\n\n【现有选题（不要重复，新选题须明显不同）】\n' + existKeys.slice(0, 40).join('、') + '\n\n【输出要求】\n只返回一个 JSON 对象（不要 markdown 代码块、不要解释）：\n' + spec.schema + '\n\n生成3个，键为选题/场景名（简短，≤12字），值为符合要求的结构。';
+      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro', temperature: 0.95, maxTokens: 6000, timeoutMs: 150000 });
+      if (!raw) { added[t] = { error: 'AI 空响应' }; continue; }
+      const parsed = extractJsonObject(raw);
+      if (!parsed || typeof parsed !== 'object') { added[t] = { error: '解析失败', rawPreview: String(raw).slice(0, 300) }; continue; }
+      const merged = Object.assign({}, existing);
+      let cnt = 0;
+      const cleanKeys = [];
+      for (const k of Object.keys(parsed)) {
+        if (parsed[k] && typeof parsed[k] === 'object') {
+          // 2026-08-04: 写回前递归净化（立场安全 + 100M/百兆档位红线），避免 AI 产出违规脚本
+          const cleanKey = hsSanitize(k);
+          merged[cleanKey] = sanitizePresetObj(parsed[k]);
+          cleanKeys.push(cleanKey);
+          cnt++;
+        }
+      }
+      await writePreset(t, merged, token, user);
+      added[t] = { count: cnt, keys: cleanKeys };
+    }
+
+    // t1 新选题同时并入选题库（topicPool.decision），供前端 t1 选题下拉展示「本周新增」
+    try {
+      const tpRaw = await readGiteeFile('data/topicPool.js', token, user);
+      const tp = parseTopicPool(tpRaw);
+      const t1New = (added.t1 && added.t1.keys) || [];
+      const dec = Array.isArray(tp.decision) ? tp.decision.slice() : [];
+      for (const k of t1New) { if (dec.indexOf(k) < 0) dec.push(k); }
+      tp.decision = dec;
+      const tpHeader = '// Auto-generated data file\n// Last updated: ' + new Date().toISOString().slice(0, 10) + ' · 数据源: 热点/搜索截流/厅店活动(每周一自动更新)\n';
+      const tpJs = tpHeader + 'window.___topicPool = ' + JSON.stringify(tp, null, 2) + ';';
+      await createOrUpdateGiteeFile('data/topicPool.js', tpJs, token, user);
+    } catch (e) { console.warn('[weekly-persona] topicPool merge failed:', e.message); }
+
+    const week = isoWeek(new Date());
+    const weeklyNew = {
+      t1: (added.t1.keys || []),
+      t2: (added.t2.keys || []),
+      t4: (added.t4.keys || []),
+      week: week,
+      updatedAt: new Date().toISOString()
+    };
+    const wnJs = '// Auto-generated: weekly new topics (updated weekly)\n// Updated: ' + new Date().toISOString().slice(0, 10) + ' · 标注「本周新增」的选题由每周一自动生成\nwindow.___weeklyNew = ' + JSON.stringify(weeklyNew, null, 2) + ';';
+    await createOrUpdateGiteeFile('data/weeklyNew.js', wnJs, token, user);
+    res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok: true, added: added, week: week, weeklyNew: weeklyNew }));
+  } catch (e) {
+    res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'weekly-persona failed' }));
+  }
+}
+
+function extractJsonObject(text) {
+  if (!text) return null;
+  const s = String(text);
+  const start = s.indexOf('{');
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false, end = -1;
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (esc) { esc = false; continue; }
+    if (ch === '\\') { esc = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end < 0) return null;
+  try { return JSON.parse(s.slice(start, end + 1)); } catch (e) { return null; }
+}
+
+// 2026-08-04: 递归净化 preset 对象的所有字符串叶子（选题名、脚本、desc 等），
+// 统一过 立场安全 + 100M/百兆档位红线，避免 AI 生成的嵌套脚本带违规表述。
+function sanitizePresetObj(obj) {
+  if (Array.isArray(obj)) return obj.map(function (v) { return sanitizePresetObj(v); });
+  if (obj && typeof obj === 'object') {
+    const out = {};
+    for (const k of Object.keys(obj)) out[hsSanitize(k)] = sanitizePresetObj(obj[k]);
+    return out;
+  }
+  if (typeof obj === 'string') return hsSanitize(obj);
+  return obj;
+}
+
+function parsePresetJs(text, t) {
+  const m = String(text);
+  const i = m.indexOf('{');
+  const j = m.lastIndexOf('}');
+  if (i < 0 || j < 0 || j < i) return {};
+  return JSON.parse(m.slice(i, j + 1));
+}
+
+function parseTopicPool(text) {
+  const m = String(text);
+  const i = m.indexOf('{');
+  const j = m.lastIndexOf('}');
+  if (i < 0 || j < 0 || j < i) return { decision: [], scene: [], review: [], local: [] };
+  return JSON.parse(m.slice(i, j + 1));
+}
+
+async function loadPreset(t, token, user) {
+  try { const raw = await readGiteeFile('data/' + t + 'Presets.js', token, user); return parsePresetJs(raw, t) || {}; }
+  catch (e) { return {}; }
+}
+
+async function writePreset(t, obj, token, user) {
+  const header = '// Auto-generated ' + t.toUpperCase() + ' presets\n// Updated: ' + new Date().toISOString().slice(0, 10) + ' · 数据源: 热点/搜索截流/厅店活动(每周一自动更新)\n';
+  const js = header + 'window.___' + t + 'Presets = ' + JSON.stringify(obj, null, 2) + ';';
+  await createOrUpdateGiteeFile('data/' + t + 'Presets.js', js, token, user);
+}
+
+function isoWeek(d) {
+  const date = new Date(d.getTime());
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  const week = 1 + Math.round(((date - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  return date.getFullYear() + '-W' + String(week).padStart(2, '0');
+}
+
+const PRESET_SPEC = {
+  t1: {
+    name: '决策指南（对比推荐）',
+    task: '生成3个适合电信营业厅的「决策指南」类选题模板。每个选题下给出2-3个人群/档位视角的一句话脚本，帮用户对比选择、说清谁适合什么。',
+    schema: `{
+  "选题名1": { "人群档位A": "一句话脚本：适合谁、为什么选", "人群档位B": "一句话脚本", "人群档位C": "一句话脚本" },
+  "选题名2": { ... },
+  "选题名3": { ... }
+}`
+  },
+  t2: {
+    name: '一线服务故事',
+    task: '生成3个真实可拍的「一线服务场景」故事模板（如上门维修/柜台服务/突发状况）。每个含 icon、desc、time、customer、problem、finding、steps、reaction、summary、tags。',
+    schema: `{
+  "场景名1": { "icon":"🔧","desc":"一句话场景描述","time":"今天下午","customer":"阿姨","problem":"客户遇到的问题","finding":"你发现的原因","steps":"1.步骤一 2.步骤二 3.步骤三","reaction":"客户反应","summary":"一句话总结（拉信任/引互动）","tags":"#标签1 #标签2" },
+  "场景名2": { ... },
+  "场景名3": { ... }
+}`
+  },
+  t4: {
+    name: '本地福利活动',
+    task: '生成3个「本地探店/福利活动」模板（如免费贴膜、办业务送礼、以旧换新）。每个含 icon、benefit、desc、tags、season。',
+    schema: `{
+  "活动名1": { "icon":"📱","benefit":"福利一句话","desc":"活动详情（在哪、有什么福利、怎么参与）","tags":"#标签1 #标签2","season":"全年/暑期/节日名" },
+  "活动名2": { ... },
+  "活动名3": { ... }
+}`
+  }
+};
