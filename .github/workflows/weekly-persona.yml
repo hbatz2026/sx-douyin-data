@@ -1,21 +1,58 @@
 name: Weekly Persona Auto-Update (t1/t2/t4)
 
 # 每周一 00:00 UTC = 北京时间周一 08:00，触发 Web 函数 weekly-persona 模式
-# Web 函数内部：抓取热点/搜索截流 + 读取厅店活动配置 → 调 AI 生成 t1/t2/t4 各 3 个新选题/模板
-# → 回写 Gitee（data/{t}Presets.js 合并新增、topicPool.decision 并入 t1 选题、data/weeklyNew.js 标记）
+# Web 函数内部：抓取热点/搜索截流 + 读取厅店活动配置 → 调 AI 生成 t1/t2/t4 各 3 个新选题
+#   → 每个选题写 6 人设完整口播稿 → 分片写回 Gitee data/{t}SFB/
+#   → topicPool.decision 并入 t1 新选题、data/weeklyNew.js 标记「本周新增」
 # 前端读取 weeklyNew.js 在选题/场景下拉显示「本周新增」角标。
+#
+# 2026-08-04：SCF Web 函数单次请求硬上限 180s，而完整生成需 350s+（实测单选题 6 人设约 39s）。
+# 因此 weekly-persona 已改为「可续跑分步」：单次请求在自控预算内推进若干选题，
+# 进度存 Gitee data/_wpDraft.json，返回 done:false 时需再次调用续跑。
+# 本 workflow 循环调用直到 done:true（最多 12 轮）。
 on:
   schedule:
     - cron: '0 0 * * 1'   # 周一 00:00 UTC = 北京时间周一 08:00
   workflow_dispatch:
+    inputs:
+      force:
+        description: '强制重新 plan（丢弃本周已有进度）'
+        required: false
+        default: 'false'
 
 jobs:
   trigger:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     steps:
-      - name: Trigger Web function weekly-persona
+      - name: Run weekly-persona until done
         run: |
-          curl -s -m 600 -X POST 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com' \
-            -H 'Content-Type: application/json' \
-            -d '{"mode":"weekly-persona"}'
+          ENDPOINT='https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com'
+          FORCE='${{ github.event.inputs.force }}'
+          BODY='{"mode":"weekly-persona"}'
+          if [ "$FORCE" = "true" ]; then BODY='{"mode":"weekly-persona","force":true}'; fi
+
+          for i in $(seq 1 12); do
+            echo "=== round $i ==="
+            RESP=$(curl -s -m 200 -X POST "$ENDPOINT" -H 'Content-Type: application/json' -d "$BODY")
+            echo "$RESP" | head -c 2000; echo
+            # 首轮之后不再传 force，避免反复重开
+            BODY='{"mode":"weekly-persona"}'
+
+            if echo "$RESP" | grep -q '"done":true'; then
+              echo "✅ weekly-persona 完成"
+              exit 0
+            fi
+            if echo "$RESP" | grep -q '"ok":false'; then
+              echo "⚠️ 本轮失败，5s 后重试"
+            fi
+            sleep 5
+          done
+
+          echo "❌ 12 轮后仍未完成，请检查 data/_wpDraft.json 进度"
+          exit 1
+
+      - name: Verify weeklyNew.js
+        if: always()
+        run: |
+          curl -s -m 60 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com/data/weeklyNew.js' | head -c 1200
