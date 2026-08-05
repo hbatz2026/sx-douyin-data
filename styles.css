@@ -210,7 +210,7 @@
   .hs-tab { padding: 8px 18px; border-radius: 10px 10px 0 0; border: 1.5px solid var(--border); border-bottom: none; background: #F5F7FA; color: var(--body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .hs-tab:hover { color: var(--blue); }
   .hs-tab.active { background: #fff; color: var(--blue); border-color: var(--blue); box-shadow: 0 -2px 8px rgba(0,82,204,0.06); }
-  .hs-tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 2px; border-radius: 9px; background: #FF6F00; color: #fff; font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; }
+  .hs-tab-badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 2px; border-radius: 9px; background: #C2410C; color: #fff; font-size: 11px; font-weight: 700; line-height: 16px; text-align: center; }
   .lane-panel { border-top: 2px solid var(--blue); padding-top: 14px; }
 
   /* Topic meta badges */
@@ -562,7 +562,7 @@
   .entry-btn:active { transform: translateY(0); }
   .entry-trial { background: linear-gradient(135deg, #FF6B00, #FF9A3D); box-shadow: 0 2px 8px rgba(255,107,0,.25); }
   .entry-hot   { background: linear-gradient(135deg, #7873f5, #0ff);    box-shadow: 0 2px 8px rgba(120,115,245,.25); }
-  .entry-biz   { background: linear-gradient(135deg, #F59E0B, #F97316); box-shadow: 0 2px 8px rgba(245,158,11,.25); }
+  .entry-biz   { background: linear-gradient(135deg, #B45309, #F97316); box-shadow: 0 2px 8px rgba(245,158,11,.25); }
   /* 桌面正常尺寸 */
   @media (max-width: 1024px) {
     .entry-btn { font-size: 12px; padding: 8px 12px; }
@@ -789,8 +789,8 @@
   /* === v2.8: 搜索 + 收藏 + 违禁词 === */
   .search-highlight { background:#FFF176; padding:1px 2px; border-radius:2px; }
   .fav-star { cursor:pointer; font-size:20px; color:#ccc; transition:color.2s; user-select:none; margin-left:8px; vertical-align:middle; }
-  .fav-star.saved { color:#F59E0B; }
-  .fav-star:hover { color:#F59E0B; }
+  .fav-star.saved { color:#B45309; }
+  .fav-star:hover { color:#B45309; }
   .script-used-badge { font-size: 12px; background:#E8F5E9; color:#2E7D32; padding:2px 6px; border-radius:4px; margin-left:6px; display:inline-block; }
   /* 下拉选项内「✓ 已选」标记（按绑定厅店隔离，#3） */
   select option.used-opt { color:#2E7D32; font-weight:600; }
@@ -888,3 +888,17 @@
     .hook-select { background:#2A2A2A; color:#DDD; border-color:#FFB300; }
     .hook-input { background:#2A2A2A; color:#DDD; border-color:#FFB300; }
   }
+
+  /* ── P3: 首屏/刷新骨架屏（热点中心加载占位）── */
+  .skeleton-card { pointer-events:none; }
+  .sk { position:relative; overflow:hidden; background:#E6E9EF; border-radius:6px; }
+  .sk::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent);
+    transform:translateX(-100%); animation:sk-shimmer 1.2s infinite;
+  }
+  @keyframes sk-shimmer { 100% { transform:translateX(100%); } }
+  .sk-title { height:16px; width:70%; margin:4px 0 10px; }
+  .sk-meta { height:12px; width:45%; }
+  .skeleton-card .hs-header { padding:14px 16px; }
+  @media (prefers-reduced-motion: reduce) { .sk::after { animation:none; } }
