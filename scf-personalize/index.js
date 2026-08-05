@@ -351,7 +351,10 @@ async function fetchAllHotspotsSCF() {
   // 并行抓取各平台热搜（每个平台内部 candidates 并行取第一个成功）
   const hotTasks = HS_TREND_SOURCES.map(async src => {
     const results = await hsFetchAny(src.candidates, { timeout: HS_TIMEOUT });
-    const got = results.find(r => r && r.length) || [];
+    // 关键修正：hsFetchAny 已返回扁平的 items 数组（或全部失败时 []），
+    // 这里直接当作 items 用，切勿再 .find(r=>r.length)（item 是对象没有 length，会恒为 []，
+    // 导致 hot 永远只剩硬编码小红书 8 条、music 永远 0）
+    const got = (Array.isArray(results) && results.length) ? results : [];
     return got.map(g => ({ platform: src.platform, lane:'hot', word: g.word, heat: g.heat, url: g.url }));
   });
   const hot = (await Promise.all(hotTasks)).flat().concat(HS_XIAOHONGSHU.map(t => ({ platform:'小红书', lane:'hot', word: t.word, heat: t.heat, url: t.url })));
@@ -359,7 +362,10 @@ async function fetchAllHotspotsSCF() {
   // 并行抓取音乐榜
   const musicTasks = HS_MUSIC_SOURCES.map(async src => {
     const results = await hsFetchAny(src.candidates, { timeout: HS_TIMEOUT });
-    const got = results.find(r => r && r.length) || [];
+    // 关键修正：hsFetchAny 已返回扁平的 items 数组（或全部失败时 []），
+    // 这里直接当作 items 用，切勿再 .find(r=>r.length)（item 是对象没有 length，会恒为 []，
+    // 导致 hot 永远只剩硬编码小红书 8 条、music 永远 0）
+    const got = (Array.isArray(results) && results.length) ? results : [];
     return got.map(g => ({ platform: src.platform, lane:'music', word: g.word, heat: g.heat, url: g.url||'', songTitle: g.songTitle||'', songAuthor: g.songAuthor||'' }));
   });
   const music = (await Promise.all(musicTasks)).flat();
