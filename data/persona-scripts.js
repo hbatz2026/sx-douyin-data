@@ -1,6 +1,7 @@
 // 抖本工坊 · 人设脚本包（懒加载，首页不加载）
 // 合并文件: t1ScriptFullByPersona.js, t2ScriptFullByPersona.js, t4ScriptFullByPersona.js
 // ===== t1ScriptFullByPersona.js =====
+// Synced from Gitee runtime · 2026-08-04
 window.___t1ScriptFullByPersona = {
   "宽带选多少兆": {
     "sister": "前天有个老弟来厅里，开口就问：姐，我家该办500兆还是1000兆？我反问他：你家几口人？几台设备？他说就一个人住，平时刷剧。那真没必要上千兆，300兆足够你用。\n\n独居刷剧选300兆，两口子都刷视频上500兆更稳当，家里有娃上网课或者打电竞，才考虑千兆。大户型想每个屋都满格，直接上FTTR。选宽带跟选鞋码一个理儿，合脚最重要。\n\n你家几台设备、住多大房？评论区告诉姐，我帮你参谋该办哪档。",
@@ -259,7 +260,6 @@ window.___t1ScriptFullByPersona = {
     "sister": "姐妹，你是不是也经常刷着刷着视频，突然弹出来“流量已用超”？上个月我闺蜜就因为这个多交了80块冤枉钱，心疼得直跺脚。别怕，电信其实有个隐藏福利——每天只要1块钱，就能多领10G专属流量，追剧、刷淘宝、看直播都不心疼。这个月我才用了9块9，月底还剩一大半。你要是也总差那几G，直接去电信营业厅App搜“流量包”，选那个1元10G的，别等扣费了再肉疼。快去查查你够不够用？"
   }
 };
-
 // ===== t2ScriptFullByPersona.js =====
 window.___t2ScriptFullByPersona = {
   "上门维修": {

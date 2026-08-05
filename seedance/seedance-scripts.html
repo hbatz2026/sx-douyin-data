@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>短视频脚本 · 豆包直用版 — 电信营业厅系列</title>
+<style>
+:root {
+  --primary: #0066CC;
+  --primary-light: #E8F1FA;
+  --accent: #E60012;
+  --bg: #F5F7FA;
+  --card-bg: #FFFFFF;
+  --text: #1A1A1A;
+  --text-secondary: #666666;
+  --border: #E0E6ED;
+  --anchor-bg: #FFF0F0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.header { text-align: center; padding: 36px 0 24px; border-bottom: 2px solid var(--primary); margin-bottom: 24px; }
+.header h1 { font-size: 24px; color: var(--primary); margin-bottom: 6px; }
+.header p { color: var(--text-secondary); font-size: 13px; }
+.script-section { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.script-title { font-size: 18px; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 12px; margin-bottom: 4px; }
+.script-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; padding-left: 16px; }
+.shot-card { background: var(--primary-light); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+.shot-header { display: flex; align-items: center; margin-bottom: 8px; }
+.shot-num { display: inline-block; background: var(--primary); color: #fff; border-radius: 50%; width: 26px; height: 26px; text-align: center; line-height: 26px; font-size: 13px; font-weight: bold; margin-right: 8px; }
+.shot-label { font-weight: bold; font-size: 15px; }
+.anchor-block { color: var(--accent); font-weight: bold; font-size: 12px; background: var(--anchor-bg); padding: 8px 10px; border-radius: 5px; margin: 6px 0; border-left: 3px solid var(--accent); word-break: break-all; }
+.prompt-box { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 13px; margin-top: 6px; white-space: pre-wrap; word-break: break-all; }
+.copy-btn { display: inline-block; margin-top: 6px; padding: 5px 14px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
+.copy-btn:active { opacity: 0.7; }
+.copy-btn.copied { background: #4CAF50; }
+.business-implant { background: #E8F5E9; border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-size: 13px; border-left: 3px solid #4CAF50; }
+.business-implant strong { color: #2E7D32; }
+.tips { background: #FFF8E1; border-radius: 8px; padding: 16px; margin-top: 20px; font-size: 13px; }
+.tips h3 { color: #F57C00; margin-bottom: 8px; font-size: 15px; }
+.tips ul { padding-left: 18px; }
+.tips li { margin-bottom: 4px; }
+.compliance { background: #E8F5E9; border-radius: 8px; padding: 12px; margin-top: 16px; border: 1px solid #C8E6C9; }
+.compliance h4 { font-size: 13px; color: #2E7D32; margin-bottom: 6px; }
+.compliance ul { font-size: 12px; color: #555; padding-left: 16px; }
+.footer { text-align: center; padding: 24px 0; color: #999; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>短视频脚本 · 豆包直用版</h1>
+  <p>每镜一个prompt，复制即用 | 9:16竖屏 | 单视频10秒 | 角色一致性锚定</p>
+  <p style="margin-top:8px;font-size:12px;color:#E60012;">基于「文明的强子」喜剧引擎：逻辑鬼才+递进荒诞+职业崩溃+嘴硬反转+金句定格</p>
+</div>
+
+<!-- ========== 脚本1：原版script-examples脚本一 ========== -->
+<div class="script-section">
+  <div class="script-title">我是营业员不是算命先生（1）</div>
+  <div class="script-subtitle">植入业务：千兆宽带 / 爱心翼站延时服务 | 喜剧引擎：逻辑鬼才（偷换概念）+ 递进荒诞</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">荒诞开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷拍桌子坐到柜台前，怒气冲冲："我这WiFi网速太慢了！你们得管管！"
+营业员职业微笑："大爷您别急，我帮您查查——"
+大爷打断："我连的是邻居家的！"
+营业员职业微笑瞬间僵住。</div>
+    <button class="copy-btn" onclick="copyP('p1-1')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷理直气壮："他家的网不也是你们电信的？一样网凭啥他快我慢？"
+营业员嘴角抽搐，从专业转无语："大爷，那是因为人家办的是千兆——"
+大爷："千兆？那不还是你们电信的？一回事嘛！"</div>
+    <button class="copy-btn" onclick="copyP('p1-2')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷越说越激动："前天断网了，我孙子着急打游戏报警了！出警费你们出不出？"
+营业员捂住太阳穴，眼神已死："大爷……断网不是案件……"
+大爷："那网速慢算不算侵犯消费者权益？我要求精神损失费！"</div>
+    <button class="copy-btn" onclick="copyP('p1-3')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员崩溃中突然精神一振，抓住救命稻草："大爷！您办个千兆宽带，全家上网飞快，再也不用蹭邻居的了！而且我们爱心翼站还提供延时服务，您哪天网不好直接来厅里，我们帮您弄！"
+大爷愣住："……千兆？"</div>
+    <button class="copy-btn" onclick="copyP('p1-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：千兆宽带（体验线：全家上网飞快）+ 爱心翼站延时服务（场景线：来厅里帮您弄）</div>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p1-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+大爷嘴一撇："我才不办呢！"偷偷瞄了一眼千兆宽带海报。
+营业员苦笑直视镜头，定格："我是营业员，不是算命先生。"
+字幕浮现：【千兆宽带 全家畅享 | 爱心翼站 温暖随行】</div>
+    <button class="copy-btn" onclick="copyP('p1-5')">复制prompt</button>
+  </div>
+</div>
+
+<!-- ========== 脚本2：原版script-examples脚本二（修正流量清零） ========== -->
+<div class="script-section">
+  <div class="script-title">我是营业员不是算命先生（2）</div>
+  <div class="script-subtitle">植入业务：大流量组合 / 星级用户权益 / 智能家居 | 喜剧引擎：递进荒诞（3连荒唐问题）+ 嘴硬式反转</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">气势出场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+中年女士拍桌坐下："我那个上网组合不想要了！给我退了！"
+营业员淡定微笑："好的，您先说说哪里不满意？"心里默念"今天第八个了"。</div>
+    <button class="copy-btn" onclick="copyP('p2-1')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+女士翻白眼："我这个月用了100个G，你们居然还让我接着用！也不提醒我一下！万一我用超了怎么办？"
+营业员假笑："姐，咱这是大流量组合，用不完还可以结转到下月——"
+女士打断："结转？那我不用的流量存你们那，算不算我存了流量？存东西不应该给利息吗？！"
+营业员假笑和崩溃反复横跳。</div>
+    <button class="copy-btn" onclick="copyP('p2-2')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+女士继续："还有！我手机用了半年不喜欢了，你们支持退换吧？"
+营业员僵住，眼角抽搐："姐……手机不是在营业厅退换的……"
+女士："那你们卖手机不管售后？你们不是电信的？什么都是你们电信的！"</div>
+    <button class="copy-btn" onclick="copyP('p2-3')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">连环暴击植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员掰手指数拼命推销："姐您听我说！您现在这个大流量组合用不完还能结转，而且您还是星级用户，有专属权益和优先服务！家里再装套智能家居，全屋WiFi一覆盖——"
+女士愣住："什么全屋WiFi？"</div>
+    <button class="copy-btn" onclick="copyP('p2-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：大流量组合（体验线：用不完可结转）+ 星级用户权益 + 智能家居全屋WiFi（场景线）</div>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p2-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+女士站起来："我可不是因为你说的那些才要换的啊。"偷瞄智能家居宣传册。
+营业员苦笑直视镜头定格："每天三次，我专业的了。"
+字幕浮现：【大流量组合 用到爽 | 全屋WiFi 智慧到家】</div>
+    <button class="copy-btn" onclick="copyP('p2-5')">复制prompt</button>
+  </div>
+</div>
+
+<!-- ========== 脚本3：原版script-examples脚本三 ========== -->
+<div class="script-section">
+  <div class="script-title">我是营业员不是算命先生（3）</div>
+  <div class="script-subtitle">植入业务：手机终端 / 碎屏险 / 天翼云盘 | 喜剧引擎：递进荒诞 + 职业崩溃</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">一本正经开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙坐到柜台前，表情严肃："我这手机有问题。"
+营业员职业微笑："您说说，什么问题？"</div>
+    <button class="copy-btn" onclick="copyP('p3-1')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙指着手机前置摄像头："拍照太清楚了！痘拍得一清二楚，算不算过度还原？能不能调模糊点？"
+营业员彻底无语，捂脸。</div>
+    <button class="copy-btn" onclick="copyP('p3-2')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙继续："手机摔了算不算工伤？我在上班路上摔的！"
+营业员僵住，灵魂出窍："手机摔了……不算工伤……"
+小伙："那屏幕碎了你们管不管？！"</div>
+    <button class="copy-btn" onclick="copyP('p3-3')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员崩溃中猛然正色："管！碎屏险管！您在我们这买手机，加个碎屏险，以后摔了直接换屏！而且您的照片可以存天翼云盘，手机摔了照片也不丢！"
+小伙："……云盘还能存照片？"</div>
+    <button class="copy-btn" onclick="copyP('p3-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：碎屏险（体验线：摔了直接换屏）+ 天翼云盘（场景线：手机摔了照片不丢）</div>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p3-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙站起来："那云盘要是给我过度还原了怎么办？"偷瞄碎屏险海报。
+营业员专业碎裂→绝望苦笑，直视镜头定格："我是营业员，不是算命先生。"
+字幕浮现：【碎屏险 摔了不心疼 | 天翼云盘 珍贵不丢失】</div>
+    <button class="copy-btn" onclick="copyP('p3-5')">复制prompt</button>
+  </div>
+</div>
+
+<!-- ========== 脚本4 ========== -->
+<div class="script-section">
+  <div class="script-title">千兆宽带能算命吗？</div>
+  <div class="script-subtitle">植入业务：千兆宽带 / 全屋WiFi / 上门装维 | 喜剧引擎：逻辑鬼才+递进荒诞</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">荒诞开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨神秘兮兮凑过来："闺女，你们这千兆宽带能不能算命？"
+营业员微笑："阿姨，宽带是上网用的——"
+阿姨打断："我听说千兆的能看见未来！"</div>
+    <button class="copy-btn" onclick="copyP('p4-1')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨一本正经："你想啊，千兆多快啊，刷视频一秒就出来了，那不就等于提前知道结果了？那不就是算命吗！"
+营业员嘴角抽搐："阿姨，那不是算命，那是网速快——"
+阿姨："一回事嘛！快不就是先知道了嘛！"</div>
+    <button class="copy-btn" onclick="copyP('p4-2')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨继续："还有，装宽带那个师傅能不能顺便看看我家风水？反正他也要上门——"
+营业员翻白眼："师傅是装网络的……"
+阿姨："网络也是路嘛！路走对了风水不就好了？一回事！"</div>
+    <button class="copy-btn" onclick="copyP('p4-3')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员深吸一口气拼了："阿姨！千兆宽带装上，全家每个角落信号满格！我们师傅上门给您装全屋WiFi，信号走到哪都不差——比看风水灵！"
+阿姨一愣："……真的？每个角落都有？"</div>
+    <button class="copy-btn" onclick="copyP('p4-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：千兆宽带（体验线：全网飞快）+ 全屋WiFi覆盖（场景线：每个角落信号满格）+ 上门装维服务</div>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p4-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+阿姨站起来："我才不算命呢！"转头又问："那个全屋WiFi，能不能先给我看看？"
+营业员苦笑直视镜头定格："千兆宽带不算命，但算靠谱。"
+字幕浮现：【千兆宽带 全家畅享 | 全屋WiFi 信号无死角】</div>
+    <button class="copy-btn" onclick="copyP('p4-5')">复制prompt</button>
+  </div>
+</div>
+
+<!-- ========== 脚本5 ========== -->
+<div class="script-section">
+  <div class="script-title">智能家居能帮我遛狗吗？</div>
+  <div class="script-subtitle">植入业务：智能家居 / 千兆宽带 / 天翼云盘 | 喜剧引擎：逻辑鬼才+递进荒诞+职业崩溃</div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">1</span><span class="shot-label">一本正经开场</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙子自信走入："听说你们这智能家居很厉害？"
+营业员职业微笑："是的，您想了解哪方面？"
+小伙："能帮我遛狗吗？"</div>
+    <button class="copy-btn" onclick="copyP('p5-1')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">2</span><span class="shot-label">逻辑鬼才</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙解释逻辑："你看，智能门锁能自动开门，智能摄像头能看见狗，那开门让狗出去，摄像头盯着它——不就等于遛狗了？"
+营业员假笑："先生，那不叫遛狗，那叫放养——"
+小伙打断："一回事嘛！科技改变生活！"</div>
+    <button class="copy-btn" onclick="copyP('p5-2')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">3</span><span class="shot-label">递进荒诞</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙继续："那千兆宽带能不能让狗跑快点？网快了嘛，速度也快了嘛！"
+营业员灵魂出窍："宽带是给人用的——"
+小伙："狗不算人吗？我给它开了个专属账号！用我的流量！"
+营业员捂脸，已无话可说。</div>
+    <button class="copy-btn" onclick="copyP('p5-3')">复制prompt</button>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">4</span><span class="shot-label">反转植入</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+营业员正色回血："先生！智能家居不能遛狗，但能帮您看家——智能门锁、摄像头远程查看，出门遛狗也不怕！千兆宽带配全屋WiFi，手机随时看家里的情况。您不在家的时候，天翼云盘还能帮您存监控录像！"
+小伙愣住："……远程看家？"</div>
+    <button class="copy-btn" onclick="copyP('p5-4')">复制prompt</button>
+    <div class="business-implant"><strong>业务植入</strong>：智能家居门锁+摄像头（场景线：远程看家）+ 千兆宽带/全屋WiFi + 天翼云盘存监控</div>
+  </div>
+
+  <div class="shot-card">
+    <div class="shot-header"><span class="shot-num">5</span><span class="shot-label">嘴硬反转+金句定格</span></div>
+    <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+    <div class="prompt-box" id="p5-5">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+小伙往门口走嘴里嘟囔："我才不需要遛狗呢……"偷偷回头瞄智能家居展区。
+营业员扶额苦笑直视镜头定格："智能家居帮不了狗，但帮得了你。"
+字幕浮现：【智能家居 远程看家 | 千兆宽带 随时在线】</div>
+    <button class="copy-btn" onclick="copyP('p5-5')">复制prompt</button>
+  </div>
+</div>
+
+<!-- 使用说明 -->
+<div class="tips">
+  <h3>豆包/即梦使用说明</h3>
+  <ul>
+    <li>打开豆包/即梦，选择"文生视频"</li>
+    <li>逐镜复制prompt（必须包含红色锚定段，一字不改）</li>
+    <li>每镜独立生成10秒片段，5镜拼完约50秒</li>
+    <li>生成后用剪映拼接，添加字幕和背景音乐</li>
+    <li><strong>锚定段不可修改</strong>：确保所有镜头角色外观一致</li>
+    <li>如需更精准一致性：先生成第1镜参考图，后续镜头用"图生视频"+锚定段</li>
+  </ul>
+</div>
+
+<div class="compliance">
+  <h4>五级合规审核通过</h4>
+  <ul>
+    <li>无运营商违禁词（号卡/合约/月租/套餐 → 已全部规避）</li>
+    <li>无抹黑营业厅内容（不出现"避坑""踩坑""贵得离谱"等负面描述）</li>
+    <li>业务植入走体验线和场景线，不走价格线和合约线</li>
+    <li>事实正确：流量可结转，不做清零错误表述</li>
+    <li>无竞品名称</li>
+    <li>CTA为正面引导：来营业厅体验/咨询</li>
+  </ul>
+</div>
+
+<div class="footer">
+  山西电信抖本内容工坊 · 豆包直用版脚本<br>
+  基于「文明的强子」喜剧引擎 · 五大引擎全覆盖 · 锚定段角色一致性
+</div>
+
+</div>
+
+<script>
+function copyP(id) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.nextElementSibling;
+    btn.textContent = '已复制!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '复制prompt'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = el.nextElementSibling;
+    btn.textContent = '已复制!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '复制prompt'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
