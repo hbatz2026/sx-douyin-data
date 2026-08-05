@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🧪 抖本内容工坊 · 新版原型</title>
+<link rel="icon" href="data:,">
 <style>
 :root {
   --blue:#004098; --blue-light:#E8F0FE; --blue-mid:#1A6ED8;
@@ -60,12 +61,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sc-head .type-icon{font-size:18px;}
 .sc-head .type-name{font-size:13px;font-weight:600;color:var(--blue);}
 .sc-head .sc-badge{font-size:10px;padding:2px 8px;border-radius:8px;margin-left:auto;}
-.sc-badge.passed{background:var(--green-light);color:var(--green);}
+.sc-badge.passed{background:var(--green-light);color:#0B6B34;}
 .sc-badge.fixed{background:#FFF3CD;color:#856404;}
-.sc-badge.blocked{background:var(--red-light);color:var(--red);}
+.sc-badge.blocked{background:var(--red-light);color:#B3261E;}
 
 .sc-hook{font-size:12px;padding:0 14px;color:var(--text-light);margin-bottom:2px;}
-.sc-hook .hook-label{font-size:10px;color:#aaa;margin-right:4px;}
+.sc-hook .hook-label{font-size:10px;color:#6b7280;margin-right:4px;}
 .sc-title{font-size:14px;font-weight:500;padding:0 14px;line-height:1.4;}
 
 .sc-preview{padding:8px 14px;}
@@ -90,11 +91,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;}
 .week-day{background:var(--white);border-radius:10px;padding:10px 4px;text-align:center;box-shadow:var(--shadow);}
 .week-day.today{border:2px solid var(--blue);background:var(--blue-light);}
-.week-day .wd-label{font-size:10px;color:var(--text-light);}
+.week-day .wd-label{font-size:10px;color:#4B5563;}
 .week-day .wd-icon{font-size:18px;margin:4px 0;}
 .week-day .wd-topic{font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .week-day .wd-status{font-size:9px;margin-top:2px;}
-.wd-done{color:var(--green);} .wd-today{color:var(--blue);font-weight:600;}
+.wd-done{color:#0B6B34;} .wd-today{color:var(--blue);font-weight:600;}
 
 /* ===== 热点 ===== */
 .hot-list{display:flex;flex-direction:column;gap:8px;}
@@ -117,6 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .my-section h3{font-size:14px;margin-bottom:8px;color:var(--text);}
 .my-btn{display:flex;align-items:center;gap:8px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .1s;}
 .my-btn:active{background:var(--gray);}
+.my-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
 .my-btn .m-icon{font-size:18px;width:28px;text-align:center;}
 .my-btn .m-label{font-size:13px;flex:1;}
 .my-btn .m-arrow{color:var(--text-light);font-size:12px;}
@@ -131,6 +133,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .modal-sheet{background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:20px 16px 36px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;}
 .modal-sheet h3{font-size:15px;margin-bottom:12px;}
 .modal-close{width:100%;padding:10px;border:none;border-radius:var(--radius-sm);font-size:13px;background:var(--gray);color:var(--text);cursor:pointer;margin-top:12px;}
+
+/* ===== v3.0 池状态条（§7.6.2 四级回退可视化） ===== */
+.pool-bar{display:flex;align-items:center;gap:6px;font-size:10px;padding:4px 8px;border-radius:8px;margin-bottom:8px;}
+.pool-bar.lv-day{background:var(--green-light);color:#0B6B34;}
+.pool-bar.lv-week{background:var(--blue-light);color:var(--blue);}
+.pool-bar.lv-cache{background:#FFF3CD;color:#7A5B03;}
+.pool-bar.lv-empty{background:var(--red-light);color:#B3261E;}
+.pool-bar .pb-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.pool-bar .pb-mode{margin-left:auto;font-weight:400;}
+
+/* ===== v3.0 骨架屏（四级回退的第 ④ 级空态） ===== */
+.skeleton-wrap{display:flex;flex-direction:column;gap:10px;}
+.sk-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+.sk-line{height:10px;border-radius:5px;background:linear-gradient(90deg,#EEF1F5 25%,#E2E7EE 37%,#EEF1F5 63%);background-size:400% 100%;animation:skshine 1.4s ease infinite;margin-bottom:8px;}
+.sk-line.w40{width:40%;} .sk-line.w70{width:70%;} .sk-line.w90{width:90%;}
+@keyframes skshine{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+@media (prefers-reduced-motion: reduce){.sk-line{animation:none;}}
+.empty-note{text-align:center;padding:14px 10px;font-size:12px;color:#55606e;}
+.empty-note .en-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.empty-note button{margin-top:10px;padding:7px 16px;border:1px solid var(--gray-border);border-radius:16px;background:var(--white);color:var(--blue);font-size:12px;cursor:pointer;}
+
+/* ===== v3.0 本周新增角标 ===== */
+.badge-new{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;background:var(--orange-light);color:#9A3F00;font-weight:600;margin-left:4px;}
+
+/* ===== v3.0 排期季节条 ===== */
+.season-bar{background:var(--white);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);margin-bottom:10px;}
+.season-bar .sb-top{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin-bottom:6px;}
+.season-bar .sb-tag{font-size:10px;padding:1px 7px;border-radius:8px;background:var(--orange-light);color:#9A3F00;}
+.ratio-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:6px 0 4px;}
+.ratio-bar i{display:block;height:100%;}
+.ratio-legend{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:#55606e;}
+.ratio-legend span{display:flex;align-items:center;gap:3px;}
+.ratio-legend em{width:7px;height:7px;border-radius:2px;font-style:normal;}
+
+/* ===== v3.0 我的页 · 信号面板 ===== */
+.sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.sig-cell{background:var(--gray);border-radius:8px;padding:8px 4px;text-align:center;}
+.sig-cell .sg-n{font-size:15px;font-weight:600;color:var(--blue);}
+.sig-cell .sg-l{font-size:9px;color:#55606e;}
+.flag-row{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--gray-border);}
+.flag-row:last-child{border-bottom:none;}
+.flag-row .fr-label{flex:1;font-size:12px;}
+.flag-row .fr-desc{font-size:10px;color:#55606e;display:block;margin-top:1px;}
+.flag-row button{border:1px solid var(--gray-border);background:var(--white);border-radius:12px;font-size:10px;padding:3px 10px;cursor:pointer;color:var(--text);}
+.flag-row button.on{background:var(--green-light);color:#0B6B34;border-color:#9BD3B3;}
 </style>
 </head>
 <body>
@@ -148,16 +195,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <!-- PAGE: 今日 -->
     <div class="page active" id="page-today">
       <div class="persona-strip" id="personaStrip"></div>
+      <div id="poolBar" role="status" aria-live="polite"></div>
       <div class="daily-cards" id="dailyCards"></div>
     </div>
 
     <!-- PAGE: 排期 -->
     <div class="page" id="page-week">
       <div style="font-size:14px;font-weight:600;margin-bottom:10px;">📅 本周排期</div>
+      <div class="season-bar" id="seasonBar"></div>
       <div class="week-grid" id="weekGrid"></div>
       <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
         <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">💡 排期说明</div>
-        <div style="font-size:11px;color:#999;line-height:1.6;">每天一个内容类型，每天更新 4 条新鲜脚本。<br>每天来的脚本都跟当日的抖音热搜结合，新鲜不重复。<br>排期按「日更热点」自动轮转，无需手动规划。</div>
+        <div style="font-size:11px;color:#55606e;line-height:1.6;">每天一个内容类型，脚本随当日热搜刷新。<br>类型配比由<strong>季节系数</strong>自动计算（春节偏本地、开学偏决策、双11偏测评），无需手动规划。<br>配比为确定性纯函数输出，同一天打开结果恒定，可复核。</div>
       </div>
     </div>
 
@@ -182,35 +231,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <!-- PAGE: 我的 -->
     <div class="page" id="page-mine">
       <div class="my-section">
+        <h3>📊 使用信号（本机采集）</h3>
+        <div class="sig-grid" id="sigGrid"></div>
+        <div style="font-size:10px;color:#55606e;line-height:1.5;">信号只记「3 语气」维度，不记内部人设。默认仅本机留存，用于离线重算内容配比权重；未开启上报前不出本机。</div>
+      </div>
+      <div class="my-section">
+        <h3>🧪 功能开关（灰度）</h3>
+        <div id="flagList"></div>
+      </div>
+      <div class="my-section">
         <h3>📜 最近 7 天脚本记录</h3>
-        <div id="historyList" style="font-size:12px;color:var(--text-light);">暂无历史记录</div>
+        <div id="historyList" style="font-size:12px;color:#55606e;">暂无历史记录</div>
       </div>
       <div class="my-section">
         <h3>⚙️ 设置</h3>
-        <div class="my-btn" onclick="document.getElementById('storeInput').focus()">
-          <span class="m-icon">📍</span>
+        <div class="my-btn" role="button" tabindex="0" data-testid="bind-store" onclick="document.getElementById('storeInput').focus()">
+          <span class="m-icon" aria-hidden="true">📍</span>
           <span class="m-label">绑定营业厅</span>
-          <span class="m-arrow">›</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
         </div>
-        <div class="my-btn" onclick="showToast('已重置为默认营业厅')">
-          <span class="m-icon">🔄</span>
+        <div class="my-btn" role="button" tabindex="0" data-testid="reset-store" onclick="resetStore()">
+          <span class="m-icon" aria-hidden="true">🔄</span>
           <span class="m-label">重置门店信息</span>
-          <span class="m-arrow">›</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
         </div>
-        <div class="my-btn" onclick="showToast('✅ 已清除本地缓存')">
-          <span class="m-icon">🗑️</span>
-          <span class="m-label">清除本地缓存</span>
-          <span class="m-arrow">›</span>
+        <div class="my-btn" role="button" tabindex="0" data-testid="clear-cache" onclick="clearLocalCache()">
+          <span class="m-icon" aria-hidden="true">🗑️</span>
+          <span class="m-label">清除本机信号并重新拉取脚本</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
         </div>
       </div>
       <div class="my-section">
         <h3>📋 合规记录</h3>
-        <div style="font-size:11px;color:var(--text-light);line-height:1.6;">
-          今日脚本 4 条<br>
-          ✅ 通过 2 条<br>
-          🔧 自动修正 2 条（话费→每月消费，合约→购机福利）<br>
-          ❌ 拦截 0 条
-        </div>
+        <div id="complianceBox" style="font-size:11px;color:#55606e;line-height:1.6;">统计中…</div>
       </div>
     </div>
   </div>
@@ -230,29 +283,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <!-- Data -->
 <script src="data/bundle.js"></script>
 <script src="data/dailyScripts.js"></script>
+<!-- v3.0 内核：纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
+<script src="src/v3/core3.js"></script>
+<script src="src/v3/track.js"></script>
+<script src="src/v3/pool.js"></script>
 
 <script>
 // ==================== Config ====================
-var PERSONAS = [
-  { id:'warm', emoji:'💝', name:'暖心姐姐' },
-  { id:'tech', emoji:'🔧', name:'技术专家' },
-  { id:'vibe', emoji:'😎', name:'活力小哥' },
-  { id:'sweet', emoji:'🌸', name:'甜美学姐' },
-  { id:'pro', emoji:'💼', name:'商务精英' },
-  { id:'master', emoji:'👔', name:'资深师傅' }
+// 3 语气内隐（用户可见）；6 人设仅作生成端 _persona 元数据（见 §7.6.1）
+var MOODS = [
+  { id:'affinity', emoji:'💝', name:'亲和' },
+  { id:'professional', emoji:'🔧', name:'专业' },
+  { id:'young', emoji:'😎', name:'年轻' }
 ];
+// mood → 直播页 6 人设数据的桥接（原型过渡，正式版直播数据也改 mood）
+var MOOD_TO_PERSONA = { affinity:'warm', professional:'tech', young:'vibe' };
 var WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
-var WEEK_TOPICS = ['📊决策指南','🎬一线场景','🔍深度测评','📍本地事件','🔥热点跟拍'];
 var TAB_NAMES = { today:'今日', week:'排期', hot:'热点', live:'直播', mine:'我的' };
 
-var curPersona = localStorage.getItem('douyin_persona') || 'vibe';
+var curMood = localStorage.getItem('douyin_mood') || 'affinity';
 var curScriptIdx = 0;
+// 换一条：每卡片当前变体下标 + 跳过历史（按 ISOWeek 隔离，见 §7.7.1）
+var cardVid = {};
+var cardSkip = {};
+
+// ==================== v3 运行时上下文 ====================
+var V3 = window.V3Core, TRK = window.V3Track, POOL = window.V3Pool;
+var todayPool = { level:'empty', scripts:[], label:'', mode:'' };  // 四级回退结果
+var lastISOWeek = '';
+
+function operatorId() {
+  try { return localStorage.getItem('douyin_store') || 'default'; } catch(e) { return 'default'; }
+}
+function ctx() {
+  return { operatorId: operatorId(), isoWeek: lastISOWeek || V3.getISOWeek(new Date()), now: Date.now() };
+}
+/** 确定性 PRNG：同营业员 + 同周 → 同一随机序列，保证 E2E 可回归（§7.5.2 修正②） */
+function detRnd(salt) { return V3.seededRandom(operatorId() + '|' + (lastISOWeek || '') + '|' + (salt || '')); }
+function flagOn(name) { return !!(TRK && TRK.flags && TRK.flags[name]); }
+function track(ev, payload) {
+  if (!TRK) return;
+  payload = payload || {};
+  payload.store = operatorId();
+  payload.week = lastISOWeek;
+  TRK.track(ev, payload);
+}
 
 // ==================== Init ====================
 document.addEventListener('DOMContentLoaded', function() {
   var now = new Date();
-  document.getElementById('dateDisplay').textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+WEEKDAYS[now.getDay()];
-  
+  lastISOWeek = V3.getISOWeek(now);
+  document.getElementById('dateDisplay').textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+WEEKDAYS[now.getDay()]+' · '+lastISOWeek;
+
   // Load store from localStorage
   var savedStore = localStorage.getItem('douyin_store');
   if (savedStore) {
@@ -260,12 +342,25 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   document.getElementById('storeInput').addEventListener('change', function(){
     localStorage.setItem('douyin_store', this.value);
+    resolvePool();          // 换营业厅 → 重新走四级回退与确定性钉选
+    renderDailyCards();
   });
-  
-  renderPersonaStrip();
+
+  // 键盘可达：div[role=button] 支持 Enter / Space 触发（a11y 必测项）
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var t = e.target;
+    if (!t || t.getAttribute('role') !== 'button' || t.tagName === 'BUTTON') return;
+    e.preventDefault();
+    t.click();
+  });
+
+  resolvePool();            // ① 四级显式回退（§7.6.2），先解析池再渲染
+  renderMoodStrip();
   renderDailyCards();
   renderWeekGrid();
   renderHotList();
+  renderMinePage();
   
   // Hash-based tab routing for browser back/forward
   var hash = window.location.hash.replace('#','');
@@ -278,116 +373,289 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// ==================== Persona ====================
-function renderPersonaStrip() {
+// ==================== Mood ====================
+function renderMoodStrip() {
   var html = '';
-  for (var i = 0; i < PERSONAS.length; i++) {
-    var p = PERSONAS[i];
-    html += '<div class="p-chip' + (p.id === curPersona ? ' active' : '') + '" onclick="selectPersona(\''+p.id+'\',this)">'+p.emoji+' '+p.name+'</div>';
+  for (var i = 0; i < MOODS.length; i++) {
+    var m = MOODS[i];
+    html += '<div class="p-chip' + (m.id === curMood ? ' active' : '') + '" onclick="selectMood(\''+m.id+'\',this)">'+m.emoji+' '+m.name+'</div>';
   }
   document.getElementById('personaStrip').innerHTML = html;
 }
 
-function selectPersona(id, el) {
-  curPersona = id;
-  localStorage.setItem('douyin_persona', id);
+function selectMood(id, el) {
+  curMood = id;
+  localStorage.setItem('douyin_mood', curMood);
   document.querySelectorAll('.p-chip').forEach(function(e){e.classList.remove('active');});
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   renderDailyCards();
-  // If on live tab, also re-render live cards
   if (document.getElementById('page-live').classList.contains('active')) {
     renderLiveCards();
   }
 }
 
-function getPersona(id) {
-  for (var i = 0; i < PERSONAS.length; i++) { if (PERSONAS[i].id === id) return PERSONAS[i]; }
-  return PERSONAS[2];
+function getMood(id) {
+  for (var i = 0; i < MOODS.length; i++) { if (MOODS[i].id === id) return MOODS[i]; }
+  return MOODS[0];
+}
+
+// 哈希/周号统一走 v3 内核（单一实现，避免前端与单测两套逻辑漂移）
+function stableHash(str) { return V3.stableHash(str); }
+function getISOWeek(d) { return V3.getISOWeek(d); }
+function moodPersona(m) { return MOOD_TO_PERSONA[m] || 'vibe'; }
+
+// ==================== ① 四级显式回退（§7.6.2） ====================
+function resolvePool() {
+  lastISOWeek = V3.getISOWeek(new Date());
+  todayPool = POOL.resolveToday(ctx());
+  cardVid = {}; cardSkip = {};      // 换池即重置变体态，避免下标错位
+  renderPoolBar();
+  return todayPool;
+}
+
+function renderPoolBar() {
+  var bar = document.getElementById('poolBar');
+  if (!bar) return;
+  var lv = todayPool.level;
+  var txt = {
+    day:   '今日预热已就绪 · ' + todayPool.scripts.length + ' 条',
+    week:  '日预热池未就绪，已回退周备池 · ' + todayPool.scripts.length + ' 条',
+    cache: '云端池暂不可用，已回退本机缓存 · ' + todayPool.scripts.length + ' 条',
+    empty: '三级池均未命中'
+  }[lv];
+  var modeTxt = todayPool.mode === 'pref' ? '偏好路由' : (lv === 'empty' ? '' : '确定性排序');
+  bar.className = 'pool-bar lv-' + lv;
+  bar.innerHTML = '<span class="pb-dot" aria-hidden="true"></span><span>' + txt + '</span>' +
+    (modeTxt ? '<span class="pb-mode">' + modeTxt + '</span>' : '');
 }
 
 // ==================== Daily Cards ====================
 function renderDailyCards() {
-  var data = window.___dailyScripts;
-  if (!data || !data.scripts) {
-    document.getElementById('dailyCards').innerHTML = '<div style="padding:20px;text-align:center;color:#999;">暂无今日脚本</div>';
+  var box = document.getElementById('dailyCards');
+  if (!box) return;
+  if (!todayPool || !todayPool.scripts || !todayPool.scripts.length) {
+    box.innerHTML = renderSkeleton();
+    renderPoolBar();
     return;
   }
+  // ④ 偏好向量路由（§7.5 dim5）：池 ≥30 走偏好过滤，否则确定性随机去重
+  var pref = flagOn('prefRouting') ? V3.prefVectorFrom(TRK.allEvents()) : null;
+  var routed = V3.routePool(todayPool.scripts, pref, { rnd: detRnd('pool'), limit: 12 });
+  todayPool.mode = routed.mode;
+  todayPool.routed = routed.items;
+  renderPoolBar();
+
   var html = '';
-  for (var i = 0; i < data.scripts.length; i++) {
-    html += renderScriptCard(data.scripts[i], i);
-  }
-  document.getElementById('dailyCards').innerHTML = html;
+  for (var i = 0; i < routed.items.length; i++) html += renderScriptCard(routed.items[i], i);
+  box.innerHTML = html;
+  observeCardViews();
 }
 
-function renderScriptCard(script, idx) {
-  var varData = script.variants[curPersona] || script.variants.vibe || {};
-  var persona = getPersona(curPersona);
-  var badgeClass = script.compliance.status;
+function renderSkeleton() {
+  var sk = '';
+  for (var i = 0; i < 2; i++) {
+    sk += '<div class="sk-card" aria-hidden="true"><div class="sk-line w40"></div><div class="sk-line w90"></div><div class="sk-line w70"></div></div>';
+  }
+  return '<div class="skeleton-wrap">' + sk +
+    '<div class="empty-note"><div class="en-title">暂无今日推荐</div>' +
+    '日预热池、周备池、本机缓存均未命中。<br>可稍后重试，或先去「热点」「直播」页取用现成内容。' +
+    '<br><button type="button" onclick="retryPool()">重新获取</button></div></div>';
+}
+
+function retryPool() {
+  if (window.__V3_FORCE_EMPTY) window.__V3_FORCE_EMPTY = [];
+  resolvePool();
+  renderDailyCards();
+  showToast(todayPool.level === 'empty' ? '仍未获取到脚本，请稍后再试' : '✅ 已获取到脚本');
+}
+
+/** 当前卡片所在的语气变体组（含跨语气兜底） */
+function variantGroup(script) {
+  var group = (script && script.variants && script.variants[curMood]) || [];
+  if (!group.length && script && script.variants) {
+    var keys = Object.keys(script.variants);
+    for (var i = 0; i < keys.length; i++) {
+      if (script.variants[keys[i]] && script.variants[keys[i]].length) { group = script.variants[keys[i]]; break; }
+    }
+  }
+  return group || [];
+}
+function scriptAt(idx) {
+  var list = (todayPool.routed && todayPool.routed.length) ? todayPool.routed : todayPool.scripts;
+  return list ? list[idx] : null;
+}
+
+function renderScriptCard(script, idx, vidOverride) {
+  var group = variantGroup(script);
+  // ② 确定性钉选：同营业员 + 同选题 + 同周 → 稳定同一条（§7.6.1）
+  var seed = script.seedId || ('seed_' + idx);
+  var pinned = V3.pinnedIndex(operatorId(), seed, lastISOWeek, group.length);
+  var vid = (vidOverride != null) ? vidOverride : (cardVid[idx] != null ? cardVid[idx] : pinned);
+  cardVid[idx] = vid;
+  var v = (group[vid] || group[0] || {});
+
+  var compliance = script.compliance || {};
+  var badgeClass = compliance.status || 'passed';
   var badgeText = badgeClass === 'passed' ? '✅ 合规' : (badgeClass === 'fixed' ? '🔧 已修正' : '⚠️ 拦截');
-  var fixedNote = badgeClass === 'fixed' && script.compliance.autoFixed > 0 ? ' (修正'+script.compliance.autoFixed+'处)' : '';
-  
-  // Use actual data from dailyScripts if available
-  var scriptText = varData.script || script.coreOffer;
+  var fixedNote = (badgeClass === 'fixed' && compliance.autoFixed > 0) ? ' (修正'+compliance.autoFixed+'处)' : '';
+
+  var scriptText = v.script || script.coreOffer || '';
+  // 红线兜底：任何入前端的文本都过一次立场扫描，命中即降级为安全提示
+  if (V3.scanStance(scriptText).length) scriptText = '（该变体未通过立场校验，已自动隐藏，请点「换一条」）';
   var previewText = scriptText.slice(0, 120) + (scriptText.length > 120 ? '...' : '');
-  var bgm = varData.bgm || '';
-  var tags = varData.tags || '';
-  
-  // Storyboard
+  var bgm = v.bgm || '';
+
   var sbHtml = '';
-  var sb = varData.storyboard || [];
+  var sb = v.storyboard || [];
   if (sb.length > 0) {
     sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
     for (var s = 0; s < sb.length; s++) {
-      sbHtml += '<tr><td class="sec">'+sb[s].sec+'</td><td>'+sb[s].speaker+'<br><span style="color:#666;font-size:10px;">'+sb[s].text+'</span></td><td class="cam">'+sb[s].camera+'</td></tr>';
+      sbHtml += '<tr><td class="sec">'+sb[s].sec+'</td><td>'+sb[s].speaker+'<br><span style="color:#55606e;font-size:10px;">'+sb[s].text+'</span></td><td class="cam">'+sb[s].camera+'</td></tr>';
     }
     sbHtml += '</table></div>';
   }
 
-  return '<div class="script-card" id="card-'+idx+'" onclick="toggleCard('+idx+')">' +
+  var mood = getMood(curMood);
+  // ⑤ 本周新增角标（weeklyNew.js）
+  var newBadge = (flagOn('weeklyBadge') && isWeeklyNew(script)) ? '<span class="badge-new">🆕 本周新增</span>' : '';
+  // 注意：不展示 _persona（生成端嗓音库），用户只感知 3 语气（见 §7.6.1）
+  return '<div class="script-card" id="card-'+idx+'" data-vid="'+vid+'" data-seed="'+esc(script.seedId||'')+'" data-type="'+esc(script.type||'')+'" data-level="'+esc(script.poolLevel||todayPool.level)+'" onclick="toggleCard('+idx+')">' +
     '<div class="sc-head">' +
-    '<span class="type-icon">'+script.typeIcon+'</span>' +
-    '<span class="type-name">'+script.typeName+'</span>' +
+    '<span class="type-icon" aria-hidden="true">'+(script.typeIcon || '📄')+'</span>' +
+    '<span class="type-name">'+ (script.typeName || '脚本') +'</span>' + newBadge +
     '<span class="sc-badge '+badgeClass+'">'+badgeText+fixedNote+'</span>' +
     '</div>' +
-    '<div class="sc-hook"><span class="hook-label">钩子('+script.hookType+'):</span>'+script.hook+'</div>' +
-    '<div class="sc-title">'+script.topic+'</div>' +
-    '<div class="sc-persona-tag">'+persona.emoji+' '+persona.name+' · 🎵 '+bgm+'</div>' +
-    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
+    '<div class="sc-hook"><span class="hook-label">钩子'+(script.hookType ? '('+script.hookType+')' : '')+':</span>'+esc(script.hook || '')+'</div>' +
+    '<div class="sc-title">'+ esc(script.topic || '') +'</div>' +
+    '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+(bgm ? ' · 🎵 '+esc(bgm) : '')+'</div>' +
+    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
-    '<button class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
-    '<button class="sc-switch" onclick="event.stopPropagation();cycleCard('+idx+')">🔄 换一条</button>' +
+    '<button type="button" class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
+    '<button type="button" class="sc-switch" onclick="event.stopPropagation();cycleCard('+idx+')">🔄 换一条</button>' +
+    '<button type="button" class="sc-switch" onclick="event.stopPropagation();shareCard('+idx+')">📤 分享</button>' +
     '</div></div>';
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c];
+  });
+}
+
+/** 本周新增判定：weeklyNew 的 t1/t2/t4 选题命中，或池构造时已标记 */
+function isWeeklyNew(script) {
+  if (!script) return false;
+  if (script.isWeeklyNew) return true;
+  var wn = window.___weeklyNew;
+  if (!wn || !script.topic) return false;
+  var tiers = ['t1','t2','t4'];
+  for (var i = 0; i < tiers.length; i++) {
+    var arr = wn[tiers[i]] || [];
+    for (var j = 0; j < arr.length; j++) if (arr[j] === script.topic) return true;
+  }
+  return false;
+}
+
+// ③ seed_view：卡片真正进入视口才记曝光（IO 不可用时降级为渲染即记）
+var viewObserver = null;
+function observeCardViews() {
+  var cards = document.querySelectorAll('#dailyCards .script-card');
+  if (!('IntersectionObserver' in window)) {
+    for (var i = 0; i < cards.length; i++) emitView(cards[i]);
+    return;
+  }
+  if (viewObserver) viewObserver.disconnect();
+  viewObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting) { emitView(en.target); viewObserver.unobserve(en.target); }
+    });
+  }, { threshold: 0.35 });
+  for (var j = 0; j < cards.length; j++) viewObserver.observe(cards[j]);
+}
+function emitView(el) {
+  if (!el || el.getAttribute('data-viewed')) return;
+  el.setAttribute('data-viewed','1');
+  track('seed_view', { seedId: el.getAttribute('data-seed'), type: el.getAttribute('data-type'), mood: curMood });
 }
 
 function toggleCard(idx) {
   var el = document.getElementById('card-'+idx);
-  if (el) el.classList.toggle('expanded');
+  if (!el) return;
+  el.classList.toggle('expanded');
+  // ⑥ 展开时按需加载 6 人设完整口播稿（227KB 懒加载，折叠回当前语气）
+  if (el.classList.contains('expanded')) enrichFullScript(idx);
 }
 
+function enrichFullScript(idx) {
+  var script = scriptAt(idx);
+  if (!script || !script.topic) return;
+  var pv = document.getElementById('pv-'+idx);
+  if (!pv || pv.getAttribute('data-full')) return;
+  POOL.ensurePersonaScripts(function(ok){
+    if (!ok) return;                                   // 加载失败 → 静默保留模板稿
+    var full = POOL.fullScriptFor(script.topic, curMood, operatorId(), lastISOWeek);
+    var node = document.getElementById('pv-'+idx);
+    if (!full || !node) return;
+    node.setAttribute('data-full','1');
+    node.textContent = full.script;                     // 只注入文本，不解析 HTML
+    script.__fullText = full.script;
+  });
+}
+
+// 「换一条」：确定性钉选保稳定；点换一条 → 排除当前 + 组内随机 + 记录跳过史（见 §7.7.1）
 function cycleCard(idx) {
-  // Cycle persona instead — changes all 4 cards to next persona's variant
-  var pIdx = 0;
-  for (var i = 0; i < PERSONAS.length; i++) {
-    if (PERSONAS[i].id === curPersona) { pIdx = i; break; }
-  }
-  var nextP = PERSONAS[(pIdx + 1) % PERSONAS.length];
-  curPersona = nextP.id;
-  localStorage.setItem('douyin_persona', curPersona);
-  // Update persona strip visual
-  var chips = document.querySelectorAll('.p-chip');
-  chips.forEach(function(c){c.classList.remove('active');});
-  if (chips[(pIdx + 1) % PERSONAS.length]) chips[(pIdx + 1) % PERSONAS.length].classList.add('active');
-  renderDailyCards();
-  showToast('切换至 ' + nextP.emoji + ' ' + nextP.name);
+  var script = scriptAt(idx);
+  if (!script) return;
+  var grp = variantGroup(script);
+  var cur = (cardVid[idx] != null) ? cardVid[idx] : 0;
+  if (!cardSkip[idx]) cardSkip[idx] = [];
+  var r = V3.routeNext(grp.length, cur, cardSkip[idx], detRnd('skip|' + idx + '|' + cardSkip[idx].length));
+  if (r.index < 0) { showToast('该选题此语气暂仅 1 条，换选题试试'); return; }
+  if (r.reset) cardSkip[idx] = [];
+  cardSkip[idx].push(r.index);
+  cardVid[idx] = r.index;
+  var el = document.getElementById('card-' + idx);
+  if (el) el.outerHTML = renderScriptCard(script, idx, r.index);
+  var neo = document.getElementById('card-' + idx);
+  if (neo) { neo.setAttribute('data-viewed','1'); }   // 换一条不重复计曝光
+  track('seed_skip', { seedId: script.seedId, type: script.type, mood: curMood, vid: r.index });
+}
+
+function currentText(idx) {
+  var script = scriptAt(idx);
+  if (!script) return '';
+  if (script.__fullText) return script.__fullText;
+  var grp = variantGroup(script);
+  var vid = (cardVid[idx] != null) ? cardVid[idx] : 0;
+  var v = grp[vid] || grp[0] || {};
+  return v.script || script.coreOffer || '';
 }
 
 function copyCardText(idx) {
-  var data = window.___dailyScripts;
-  if (!data || !data.scripts[idx]) return;
-  var v = data.scripts[idx].variants[curPersona] || data.scripts[idx].variants.vibe || {};
-  var text = v.script || '';
+  var script = scriptAt(idx);
+  if (!script) return;
+  var text = currentText(idx);
+  if (V3.scanStance(text).length) { showToast('该变体未通过立场校验，已拦截复制'); return; }
   copyToClipboard(text, '脚本已复制');
+  track('seed_copy', { seedId: script.seedId, type: script.type, mood: curMood, vid: cardVid[idx] });
+}
+
+function shareCard(idx) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var text = currentText(idx);
+  if (V3.scanStance(text).length) { showToast('该变体未通过立场校验，已拦截分享'); return; }
+  var payload = '【' + (script.typeName || '脚本') + '】' + (script.topic || '') + '\n' + text + '\n—— 抖本内容工坊 · ' + operatorId();
+  var channel = 'clipboard';
+  if (navigator.share) {
+    channel = 'system';
+    navigator.share({ title: script.topic || '抖本脚本', text: payload }).catch(function(){});
+    showToast('已唤起分享');
+  } else {
+    copyToClipboard(payload, '分享文案已复制，去粘贴给同事');
+  }
+  track('seed_share', { seedId: script.seedId, type: script.type, mood: curMood, channel: channel });
 }
 
 function copyToClipboard(text, okMsg) {
@@ -417,28 +685,151 @@ function fallbackCopy(text, okMsg) {
   document.body.removeChild(ta);
 }
 
-// ==================== 排期 ====================
+// ==================== 排期（季节动态配比替代 60/25/15 固定，§7.5 dim6） ====================
+var TYPE_COLOR = { decision:'#1A6ED8', scene:'#0D904F', review:'#7A4FD8', local:'#FF6B00', hotspot:'#D93025' };
+
+/** 当前生效配比：确定性兜底常驻；signalRatio flag 开启后才混入使用信号且硬限幅 */
+function currentRatio(now) {
+  var s = V3.seasonOf(now || new Date());
+  var sig = flagOn('signalRatio') ? V3.signalDistFrom(TRK.allEvents()) : null;
+  var r = V3.ratio(s.tag, sig, { enableSignal: flagOn('signalRatio'), signalWeight: 0.2, maxDrift: 0.10 });
+  return { season: s, ratio: r, usedSignal: !!(sig && flagOn('signalRatio')) };
+}
+
+function renderSeasonBar() {
+  var box = document.getElementById('seasonBar');
+  if (!box) return;
+  var cur = currentRatio(new Date());
+  var r = cur.ratio, meta = POOL.TYPE_META;
+  var bars = '', legend = '';
+  V3.CONTENT_TYPES.forEach(function(t){
+    var pct = Math.round((r[t] || 0) * 100);
+    bars += '<i style="width:'+pct+'%;background:'+TYPE_COLOR[t]+';"></i>';
+    legend += '<span><em style="background:'+TYPE_COLOR[t]+';"></em>'+(meta[t]||{}).name+' '+pct+'%</span>';
+  });
+  var b = V3.toBuckets(r);
+  box.innerHTML =
+    '<div class="sb-top">🌤️ 本周内容配比 <span class="sb-tag">'+esc(cur.season.label)+'</span>' +
+      '<span style="margin-left:auto;font-weight:400;font-size:10px;color:#55606e;">'+(cur.usedSignal ? '季节+使用信号' : '季节系数（确定性）')+'</span></div>' +
+    '<div class="ratio-bar" role="img" aria-label="内容配比：常规'+Math.round(b.evergreen*100)+'% 本地'+Math.round(b.local*100)+'% 热点'+Math.round(b.hotspot*100)+'%">'+bars+'</div>' +
+    '<div class="ratio-legend">'+legend+'</div>';
+}
+
 function renderWeekGrid() {
+  renderSeasonBar();
   var now = new Date();
   var dayOfWeek = now.getDay();
-  // Monday = 1, Sunday = 0 → adjust
   var monday = new Date(now);
   monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  
+
+  var cur = currentRatio(now);
+  var slots = V3.allocateSlots(cur.ratio, 5);   // 配比 → 5 天类型（最大余数法，确定性）
+  var meta = POOL.TYPE_META;
+
   var html = '';
   for (var i = 0; i < 5; i++) {
     var d = new Date(monday);
     d.setDate(monday.getDate() + i);
     var isToday = (d.getDate() === now.getDate() && d.getMonth() === now.getMonth());
     var isPast = d < now && !isToday;
-    html += '<div class="week-day' + (isToday ? ' today' : '') + '">' +
+    var t = slots[i], m = meta[t] || { name:'脚本', icon:'📄' };
+    html += '<div class="week-day' + (isToday ? ' today' : '') + '" data-type="'+esc(t)+'">' +
       '<div class="wd-label">' + (isToday ? '今天' : WEEKDAYS[d.getDay()]) + '</div>' +
-      '<div class="wd-icon">' + (['📊','🎬','🔍','📍','🔥'][i]) + '</div>' +
-      '<div class="wd-topic">' + (['对比方案','服务故事','深度测评','活动福利','热点跟拍'][i]) + '</div>' +
+      '<div class="wd-icon" aria-hidden="true">' + m.icon + '</div>' +
+      '<div class="wd-topic">' + m.name + '</div>' +
       '<div class="wd-status ' + (isPast ? 'wd-done' : (isToday ? 'wd-today' : '')) + '">' +
       (isPast ? '✅ 已生成' : (isToday ? '📌今日' : '⏳待更新')) + '</div></div>';
   }
   document.getElementById('weekGrid').innerHTML = html;
+}
+
+// ==================== 我的：信号面板 + 灰度开关 ====================
+var FLAG_META = [
+  { key:'prefRouting', label:'偏好路由', desc:'按本机使用偏好排序；池<30 条自动回退确定性随机去重' },
+  { key:'signalRatio', label:'信号影响配比', desc:'把使用信号混入内容配比（偏移硬限幅 ±10%，可回滚）' },
+  { key:'trackRemote', label:'信号上报云端', desc:'关闭时信号仅留本机；开启后经现有 SCF 端点上报' },
+  { key:'weeklyBadge', label:'本周新增角标', desc:'为 weeklyNew 选题标注 🆕' }
+];
+
+function renderMinePage() {
+  var s = TRK.summary();
+  var cells = [
+    { k:'seed_view', l:'曝光' }, { k:'seed_copy', l:'复制' }, { k:'seed_skip', l:'换一条' },
+    { k:'seed_share', l:'分享' }, { k:'seed_fallback', l:'池回退' }
+  ];
+  var grid = '';
+  cells.forEach(function(c){
+    grid += '<div class="sig-cell"><div class="sg-n">'+(s[c.k]||0)+'</div><div class="sg-l">'+c.l+'</div></div>';
+  });
+  var pref = V3.prefVectorFrom(TRK.allEvents());
+  grid += '<div class="sig-cell"><div class="sg-n">'+pref.sample+'</div><div class="sg-l">样本量</div></div>';
+  document.getElementById('sigGrid').innerHTML = grid;
+
+  var flags = '';
+  FLAG_META.forEach(function(f){
+    var on = flagOn(f.key);
+    flags += '<div class="flag-row"><span class="fr-label">'+f.label+'<span class="fr-desc">'+f.desc+'</span></span>' +
+      '<button type="button" class="'+(on?'on':'')+'" aria-pressed="'+on+'" onclick="toggleFlag(\''+f.key+'\')">'+(on?'已开启':'已关闭')+'</button></div>';
+  });
+  document.getElementById('flagList').innerHTML = flags;
+
+  // 历史：最近 7 天被复制/分享过的脚本
+  var all = TRK.allEvents(), cutoff = Date.now() - 7*24*3600*1000, hist = [], seen = {};
+  for (var i = all.length - 1; i >= 0 && hist.length < 8; i--) {
+    var e = all[i];
+    if (!e || e.t < cutoff) continue;
+    if (e.ev !== 'seed_copy' && e.ev !== 'seed_share') continue;
+    if (!e.seedId || seen[e.seedId]) continue;
+    seen[e.seedId] = 1;
+    hist.push('· ' + (e.ev === 'seed_copy' ? '复制' : '分享') + ' ' + e.seedId + '（' + (getMood(e.mood).name) + '）');
+  }
+  document.getElementById('historyList').innerHTML = hist.length ? hist.join('<br>') : '暂无历史记录（复制或分享后出现在这里）';
+
+  // 合规记录：对当前池实时扫描
+  var list = todayPool.routed || todayPool.scripts || [], total = 0, blocked = 0;
+  for (var j = 0; j < list.length; j++) {
+    var grp = variantGroup(list[j]);
+    for (var k = 0; k < grp.length; k++) {
+      total++;
+      if (V3.scanStance(grp[k].script || '').length) blocked++;
+    }
+  }
+  document.getElementById('complianceBox').innerHTML =
+    '当前池：' + list.length + ' 个选题 / ' + total + ' 条变体（来源：' + (todayPool.label || '—') + '）<br>' +
+    '✅ 立场校验通过 ' + (total - blocked) + ' 条<br>' +
+    '⚠️ 命中红线自动隐藏 ' + blocked + ' 条<br>' +
+    '扫描规则：营业员视角，禁止攻击运营商类表述';
+}
+
+function toggleFlag(key) {
+  TRK.setFlag(key, !flagOn(key));
+  renderMinePage();
+  renderDailyCards();
+  renderWeekGrid();
+  showToast((flagOn(key) ? '已开启：' : '已关闭：') + key);
+}
+
+function resetStore() {
+  try { localStorage.removeItem('douyin_store'); } catch(e) {}
+  document.getElementById('storeInput').value = '';
+  resolvePool();
+  renderDailyCards();
+  showToast('已重置门店信息');
+}
+
+/**
+ * 清除本机信号 + 丢弃旧脚本缓存，然后重新走四级回退。
+ * 注意：若重新解析命中日/周池，会立刻用**最新数据**重建缓存（离线兜底不能断），
+ * 所以用户看到的是「旧缓存被换掉」，而不是「缓存永久消失」——文案按这个语义写。
+ */
+function clearLocalCache() {
+  POOL.cacheClear();
+  TRK.clearEvents();
+  resolvePool();
+  renderDailyCards();
+  renderMinePage();
+  var rebuilt = todayPool.level === 'day' || todayPool.level === 'week';
+  showToast(rebuilt ? '✅ 信号已清空，脚本已重新拉取' : '✅ 信号与缓存已清空（当前无可用池）');
 }
 
 // ==================== 热点 ====================
@@ -679,8 +1070,9 @@ function renderLiveCards() {
 }
 
 function renderLiveCard(s, idx) {
-  var v = s.variants[curPersona] || s.variants.vibe || {};
-  var persona = getPersona(curPersona);
+  var pk = moodPersona(curMood);
+  var v = s.variants[pk] || s.variants.vibe || {};
+  var mood = getMood(curMood);
   var previewText = (v.script || '').slice(0, 100) + '…';
   var sbHtml = '';
   var sb = v.storyboard || [];
@@ -699,7 +1091,7 @@ function renderLiveCard(s, idx) {
     '</div>' +
     '<div class="sc-hook"><span class="hook-label">钩子:</span>'+s.hook+'</div>' +
     '<div class="sc-title">'+s.topic+'</div>' +
-    '<div class="sc-persona-tag">'+persona.emoji+' '+persona.name+' · 🎤 直播话术</div>' +
+    '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+' · 🎤 直播话术</div>' +
     '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
@@ -710,7 +1102,7 @@ function renderLiveCard(s, idx) {
 function copyLiveText(idx) {
   var s = LIVE_SCRIPTS[idx];
   if (!s) return;
-  var v = s.variants[curPersona] || s.variants.vibe || {};
+  var v = s.variants[moodPersona(curMood)] || s.variants.vibe || {};
   copyToClipboard(v.script || '', '直播话术已复制');
 }
 
@@ -728,7 +1120,7 @@ function switchTab(name, fromPop) {
   
   // Render content on tab switch
   if (name === 'live') renderLiveCards();
-  if (name === 'today') { renderPersonaStrip(); renderDailyCards(); }
+  if (name === 'today') { renderMoodStrip(); renderDailyCards(); }
   if (name === 'week') renderWeekGrid();
   if (name === 'hot') renderHotList();
 }
