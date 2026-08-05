@@ -238,20 +238,25 @@ async function hsFetch(url, opts = {}) {
   } catch (e) { return null; }
   finally { clearTimeout(t); }
 }
-// 单平台多候选：任一成功即返回（Promise.any），全部失败返回空数组（不再等所有超时）
+// 单平台多候选：Promise.any 竞速，任一成功即返回。
+// 关键修正：失败候选必须 reject（不能 resolve([])），否则 Promise.any 会取"第一个 settle"的空数组
+// 把仍在 pending 的真实成功源直接丢弃（之前 hot:8/music:0 的根因）。
 async function hsFetchAny(candidates, opts = {}) {
   if (!candidates.length) return [];
-  // 给每个候选加独立超时，用 Promise.any 竞争
-  const tasks = candidates.map(c => hsFetchJson(c.url, c.parse, Object.assign({}, opts, c)).catch(() => []));
-  // 加一个全局兜底超时：即使单个候选没超时，整个平台也不超过 HS_TIMEOUT * 1.5
-  const timeoutTask = new Promise(resolve => setTimeout(() => resolve([]), (opts.timeout || HS_TIMEOUT) * 1.5));
-  return Promise.any([...tasks, timeoutTask]);
+  // 失败/空结果一律 reject，让 Promise.any 等到真正的成功源
+  const tasks = candidates.map(c => hsFetchJson(c.url, c.parse, Object.assign({}, opts, c)));
+  // 全局兜底：整个平台超过 HS_TIMEOUT*2 仍无成功源才落空（reject，不抢跑）
+  const timeoutTask = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), (opts.timeout || HS_TIMEOUT) * 2));
+  return Promise.any([...tasks, timeoutTask]).catch(() => []);
 }
 async function hsFetchJson(url, parse, opts) {
   const raw = await hsFetch(url, opts);
-  if (raw == null) return [];
-  try { return (parse(raw) || []).filter(x => x && x.word).slice(0, 20); }
-  catch (e) { return []; }
+  if (raw == null) throw new Error('fetch-null');
+  let arr;
+  try { arr = (parse(raw) || []).filter(x => x && x.word).slice(0, 20); }
+  catch (e) { throw new Error('parse-fail'); }
+  if (!arr.length) throw new Error('empty');
+  return arr;
 }
 
 // 话题热搜：2026-08-05 重构——剔除已死的 vvhan.com/oioweb.cn/tenapi.cn，
