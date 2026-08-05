@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>短视频脚本 · 豆包直用版 v5</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#F5F7FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:#333;line-height:1.7;padding:12px}
+.container{max-width:800px;margin:0 auto}
+.header{text-align:center;padding:28px 20px 20px;background:linear-gradient(135deg,#0066CC 0%,#004499 100%);border-radius:12px;color:#fff;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,102,204,0.25)}
+.header h1{font-size:22px;font-weight:700;letter-spacing:1px}
+.header .sub{font-size:13px;opacity:.85;margin-top:6px}
+.script-section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:20px;overflow:hidden}
+.script-title-bar{background:#fff;border-bottom:2px solid #E8EEF5;padding:16px 20px 12px;display:flex;align-items:center;gap:12px}
+.title-blue-bar{width:4px;height:28px;background:#0066CC;border-radius:2px;flex-shrink:0}
+.script-title-bar h2{font-size:17px;color:#0066CC;font-weight:700}
+.script-title-bar .tag{font-size:11px;background:#E8F0FF;color:#0066CC;padding:2px 8px;border-radius:4px;margin-left:8px;white-space:nowrap}
+.script-sub{font-size:12px;color:#888;padding:0 20px 12px 36px}
+.shot-card{border-top:1px solid #F0F2F5;padding:16px 20px}
+.shot-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.shot-num{background:#0066CC;color:#fff;font-size:12px;font-weight:600;padding:2px 10px;border-radius:4px}
+.shot-label{font-size:13px;color:#666}
+.anchor-block{background:#FFF0F0;border-left:3px solid #E53935;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;font-size:13px;color:#C62828;line-height:1.7}
+.prompt-box{background:#FAFBFC;border:1px solid #E8EEF5;border-radius:8px;padding:14px;margin-bottom:8px;position:relative;font-size:14px;line-height:1.8;white-space:pre-wrap;word-break:break-all}
+.copy-btn{position:absolute;top:8px;right:8px;background:#0066CC;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;transition:background .2s}
+.copy-btn:hover{background:#004C99}
+.char-count{position:absolute;bottom:8px;right:8px;font-size:11px;color:#aaa;background:#FAFBFC;padding:2px 6px;border-radius:3px}
+.biz-box{background:#E8F5E9;border-left:3px solid #43A047;padding:10px 14px;border-radius:0 8px 8px 0;margin-top:10px;font-size:13px;color:#2E7D32}
+.biz-box b{color:#1B5E20}
+.tips-box{background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:16px 20px;margin:20px 0;font-size:13px;color:#795548;line-height:1.8}
+.tips-box h3{color:#F57F17;margin-bottom:6px;font-size:15px}
+.compliance-box{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:#2E7D32;line-height:1.8}
+.compliance-box h3{color:#1B5E20;margin-bottom:6px;font-size:15px}
+.footer{text-align:center;padding:20px;font-size:12px;color:#aaa}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 24px;border-radius:6px;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s}
+.toast.show{opacity:1}
+@media(max-width:600px){
+  .header h1{font-size:18px}
+  .prompt-box{font-size:13px;padding:12px}
+  .shot-card{padding:12px 14px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>短视频脚本 · 豆包直用版</h1>
+    <div class="sub">基于原版逐字稿改写 · 10秒/分镜 · 短句对话节奏 · 即梦Seedance直用</div>
+  </div>
+
+  <!-- ========== 脚本1：安装师傅走了 ========== -->
+  <div class="script-section">
+    <div class="script-title-bar">
+      <div class="title-blue-bar"></div>
+      <h2>脚本1 · 安装师傅走了</h2>
+      <span class="tag">宽带安装+上门服务</span>
+      <span class="tag">逻辑鬼才</span>
+    </div>
+    <div class="script-sub">原版：律师——逃逸=走了 | 3段分镜 | 约30秒</div>
+
+    <!-- 分镜1-1 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 1</span>
+        <span class="shot-label">荒谬开场 · 师傅走了</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p1-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+（微笑）小伙冲到柜台："你们安装师傅走了！我爸断网了！"营业员："装完走了是正常的——"小伙（声音发颤）："走得很安详。"营业员（笑容僵住）："啊？"<button class="copy-btn" onclick="copyP('p1-1')">复制</button></div>
+    </div>
+
+    <!-- 分镜1-2 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 2</span>
+        <span class="shot-label">递进崩溃 · 嘎了=走了=诈尸</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p1-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+（翻白眼）"你你你说的是人话吗！"小伙（理直气壮）："嘎了不就是走了吗？嘎了不走那不是诈尸吗！"营业员（扶柜台）："网怎么断了？"小伙："拿路由器砸蚊子，信号撞飞一千多米！"<button class="copy-btn" onclick="copyP('p1-2')">复制</button></div>
+    </div>
+
+    <!-- 分镜1-3 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 3</span>
+        <span class="shot-label">金句定格 · 冥币支付上门费</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p1-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（咬牙微笑）："我们有上门服务，师傅到您家检测信号——"小伙："上门收费吗？"营业员："免费上门——"小伙（严肃脸）：画面褪为黑白"我爸说了，拿冥币支付上门费。"营业员（嘴角抽搐定格）："嗯哈哈哈……啊？"<button class="copy-btn" onclick="copyP('p1-3')">复制</button></div>
+      <div class="biz-box"><b>业务植入：</b>宽带安装上门服务——师傅上门检测信号、调路由器，免费上门，专业到位。</div>
+    </div>
+  </div>
+
+  <!-- ========== 脚本2：排除法报障 ========== -->
+  <div class="script-section">
+    <div class="script-title-bar">
+      <div class="title-blue-bar"></div>
+      <h2>脚本2 · 排除法报障</h2>
+      <span class="tag">宽带报障+上门检测</span>
+      <span class="tag">逻辑鬼才</span>
+    </div>
+    <div class="script-sub">原版：医生——排除法诊断 | 4段分镜 | 约40秒</div>
+
+    <!-- 分镜2-1 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 1</span>
+        <span class="shot-label">排除法开场 · 换光猫算维修吗</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p2-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+大姐："我家网不行了！"营业员（微笑）："您光猫换过吗？"大姐："换过啊！"营业员："那不叫故障——"大姐（瞪眼）："换光猫也算维修吗？！"营业员（摆手）："你莫你莫说也算嘛！"大姐："那你排除一下子！"<button class="copy-btn" onclick="copyP('p2-1')">复制</button></div>
+    </div>
+
+    <!-- 分镜2-2 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 2</span>
+        <span class="shot-label">排除法递进 · 全查了一遍</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p2-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（推眼镜）："排除法——网线插了？WiFi开了？电视能看？路由器亮着？"大姐："满——你等会儿！信号满的但网不行！"营业员（假笑）："那不就是网速问题嘛。"大姐："那你说半天排除什么呢！"<button class="copy-btn" onclick="copyP('p2-2')">复制</button></div>
+    </div>
+
+    <!-- 分镜2-3 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 3</span>
+        <span class="shot-label">52度WiFi · 测速不能看视频</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p2-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员："测网速前不能看视频啊。"大姐（怒）：画面褪为黑白"测网速还不能看视频？52度的WiFi烫手是吧！"营业员（嘴角一抽）："52度那是热水——"大姐（理直气壮）："你刚说的时候我已经在看了！"<button class="copy-btn" onclick="copyP('p2-3')">复制</button></div>
+    </div>
+
+    <!-- 分镜2-4 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 4</span>
+        <span class="shot-label">金句定格 · 上门检测</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p2-4">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（咬牙）："排除法查完了——您开了八个视频在测网速！"大姐："那不就我网不够快吗！"营业员："我们有上门检测——"大姐："师傅来之前说一声，我怕我在看视频。"营业员（嘴角抽搐定格）。<button class="copy-btn" onclick="copyP('p2-4')">复制</button></div>
+      <div class="biz-box"><b>业务植入：</b>宽带报障上门检测——师傅上门实测网速、排查信号问题，专业调试到位。</div>
+    </div>
+  </div>
+
+  <!-- ========== 脚本3：宽带费=诈骗 ========== -->
+  <div class="script-section">
+    <div class="script-title-bar">
+      <div class="title-blue-bar"></div>
+      <h2>脚本3 · 宽带费=诈骗</h2>
+      <span class="tag">宽带方案+爱心翼站上门</span>
+      <span class="tag">逻辑鬼才</span>
+    </div>
+    <div class="script-sub">原版：律师——交学费=诈骗 | 3段分镜 | 约30秒</div>
+
+    <!-- 分镜3-1 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 1</span>
+        <span class="shot-label">荒谬开场 · 交了费=诈骗</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p3-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+大爷（拍桌）："交了宽带费网不行，算诈骗吗！"营业员："宽带费是正常——"大爷："我儿子交学费没学会算不算诈骗？一回事嘛！"营业员："这不是——"大爷（瞪眼）：画面褪为黑白"交了钱没效果就是诈骗！"<button class="copy-btn" onclick="copyP('p3-1')">复制</button></div>
+    </div>
+
+    <!-- 分镜3-2 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 2</span>
+        <span class="shot-label">递进升级 · 侵犯知情权+退费</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p3-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（假笑）："可能是路由器——"大爷："你你别说路由器！隔壁老王也电信的，凭什么他快我慢！"营业员："老王家千兆——"大爷（拍桌）："都是电信的！侵犯知情权！能退费吗！"营业员："走流程——"大爷："老年用户退款！<button class="copy-btn" onclick="copyP('p3-2')">复制</button></div>
+    </div>
+
+    <!-- 分镜3-3 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 3</span>
+        <span class="shot-label">金句定格 · 你能替他去吗</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p3-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（咬牙微笑）："您这个可以升级千兆——"大爷（岔开）："我有个朋友想办业务，腿脚不好来不了。"营业员（眼睛一亮）："我们有爱心翼站上门——"大爷（面无表情）：画面褪为黑白"不是你，你能替他去吗？"营业员（嘴角抽搐定格）："啊？"<button class="copy-btn" onclick="copyP('p3-3')">复制</button></div>
+      <div class="biz-box"><b>业务植入：</b>宽带方案升级+爱心翼站上门服务——千兆畅快上网，上门帮办业务，你不用跑我们跑。</div>
+    </div>
+  </div>
+
+  <!-- ========== 脚本4：他快我慢 ========== -->
+  <div class="script-section">
+    <div class="script-title-bar">
+      <div class="title-blue-bar"></div>
+      <h2>脚本4 · 他快我慢</h2>
+      <span class="tag">千兆宽带+全屋WiFi</span>
+      <span class="tag">递进荒诞</span>
+    </div>
+    <div class="script-sub">原版：律师——员工拖欠工资 | 3段分镜 | 约30秒</div>
+
+    <!-- 分镜4-1 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 1</span>
+        <span class="shot-label">荒谬开场 · 凭什么他快我慢</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p4-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+大哥（冲到柜台）："我交了钱！凭什么他网速快我慢！"营业员（微笑）："因为他家装的是千兆——"大哥（打断）："不都是你们电信的？一回事嘛！"营业员（深吸一口气）。<button class="copy-btn" onclick="copyP('p4-1')">复制</button></div>
+    </div>
+
+    <!-- 分镜4-2 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 2</span>
+        <span class="shot-label">递进崩溃 · 摔手机算工伤</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p4-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（翻白眼）："您买的是百兆的——"大哥（拍桌）："我连WiFi摔手机了！算工伤！"营业员："这不算——"大哥（义正言辞）：画面褪为黑白"断网掉线！精神损失费！你们是不是欠我网速！网速拖欠费！利息怎么算！"<button class="copy-btn" onclick="copyP('p4-2')">复制</button></div>
+    </div>
+
+    <!-- 分镜4-3 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 3</span>
+        <span class="shot-label">金句定格 · 冥币缴费</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p4-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（咬牙）："升级千兆全屋WiFi，全家满格——"大哥："那手机摔了算你们的吗？"营业员（嘴角抽搐定格）："不算——"大哥：画面褪为黑白"那我拿冥币缴宽带费行不行！"营业员（灵魂出窍定格）。<button class="copy-btn" onclick="copyP('p4-3')">复制</button></div>
+      <div class="biz-box"><b>业务植入：</b>千兆宽带+全屋WiFi——全家信号满格，不存在谁快谁慢。</div>
+    </div>
+  </div>
+
+  <!-- ========== 脚本5：好评是我的 ========== -->
+  <div class="script-section">
+    <div class="script-title-bar">
+      <div class="title-blue-bar"></div>
+      <h2>脚本5 · 好评是我的</h2>
+      <span class="tag">星级服务+专属权益</span>
+      <span class="tag">递进荒诞</span>
+    </div>
+    <div class="script-sub">原版：离婚上交工资 | 3段分镜 | 约30秒</div>
+
+    <!-- 分镜5-1 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 1</span>
+        <span class="shot-label">荒谬开场 · 好评应该是我的</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p5-1">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+大姐（怒）："谁家用完电信不把好评给我的！"营业员（懵）："好评？"大姐（拍桌）："之前你给我办宽带我给了好评！你等会儿！那个好评——应该是我的！"<button class="copy-btn" onclick="copyP('p5-1')">复制</button></div>
+    </div>
+
+    <!-- 分镜5-2 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 2</span>
+        <span class="shot-label">递进崩溃 · 三点测网速</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p5-2">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+大姐："你没有上进心！你早上三点起来帮我测网速！"营业员（翻白眼）："三点？"大姐（掰手指）：画面褪为黑白"中午装路由器！晚上调信号！夜里全屋WiFi覆盖！"营业员（捂脸）："我还要睡觉吗？"<button class="copy-btn" onclick="copyP('p5-2')">复制</button></div>
+    </div>
+
+    <!-- 分镜5-3 -->
+    <div class="shot-card">
+      <div class="shot-header">
+        <span class="shot-num">分镜 3</span>
+        <span class="shot-label">金句定格 · 闺蜜好评也算我的</span>
+      </div>
+      <div class="anchor-block">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。</div>
+      <div class="prompt-box" id="p5-3">[锚定]年轻女性营业员，齐肩黑发，蓝色电信工装外套+白衬衫，工牌挂绳。电信营业厅柜台内，暖白顶灯，背景有业务海报。9:16竖屏实拍风格。
+
+营业员（咬牙）："好评是我帮您办业务您评的，所以是我的——"大姐："帮我办的，好评当然是我的！"营业员急了："我帮你办怎么是你的！"大姐（摊手）：画面褪为黑白"我好评给你了，那就是我的嘛！"营业员（灵魂出窍定格）。<button class="copy-btn" onclick="copyP('p5-3')">复制</button></div>
+      <div class="biz-box"><b>业务植入：</b>星级服务+专属权益——星级客户享专属客服、优先通道，好评是服务赢得的。</div>
+    </div>
+  </div>
+
+  <!-- ========== 使用说明 ========== -->
+  <div class="tips-box">
+    <h3>使用说明</h3>
+    1. 每个分镜prompt包含[锚定段]+场景描述+台词+微表情+语气标注，可直接复制粘贴到即梦Seedance生成视频<br>
+    2. 锚定段确保角色一致性：同一脚本内营业员外观、场景背景保持统一<br>
+    3. 语气词和情绪爆发点是喜剧灵魂，生成时务必保留<br>
+    4. 每段约10秒，全部脚本3段×10秒=30秒<br>
+    5. "画面褪为黑白"是客户说最离谱话时的喜剧特效，务必在prompt中体现<br>
+    6. 微表情渐变：（微笑）→（假笑）→（翻白眼）→（捂脸）→（灵魂出窍）<br>
+    7. 业务植入框不在prompt中，可在视频结尾以文字/口播方式呈现
+  </div>
+
+  <!-- ========== 合规审核 ========== -->
+  <div class="compliance-box">
+    <h3>合规审核 ✅ 通过</h3>
+    □ 无违禁词：未出现号卡/合约/月租/套餐等运营商红线词<br>
+    □ 无竞品名：未提及移动/联通/广电等竞品名称<br>
+    □ 无资费数字：未出现具体资费金额<br>
+    □ 无极限词：未使用"最快""最便宜"等绝对化用语<br>
+    □ 事实正确：流量可结转，未出现"流量清零"等错误表述<br>
+    □ CTA可执行：业务植入均为实际可办理的服务<br>
+    □ 不抹黑营业厅：所有笑点来自客户荒谬逻辑，营业员始终专业应对
+  </div>
+
+  <div class="footer">
+    短视频脚本 · 豆包直用版 · 5条脚本 13个分镜 · 基于原版逐字稿改写 · v5<br>
+    生成时间：2026-08-05
+  </div>
+</div>
+
+<div class="toast" id="toast">已复制到剪贴板</div>
+
+<script>
+function copyP(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var btn=el.querySelector('.copy-btn');
+  var text=el.innerText;
+  if(btn){
+    var btnText=btn.innerText;
+    text=text.replace(btnText,'').trim();
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(showToast).catch(function(){fallbackCopy(text)});
+  }else{
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.left='-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');showToast()}catch(e){}
+  document.body.removeChild(ta);
+}
+function showToast(){
+  var t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},1500);
+}
+</script>
+</body>
+</html>
