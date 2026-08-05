@@ -10,14 +10,15 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.58&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278">
+  <link rel="stylesheet" href="styles.css?v=2.9.59&t=1785901466633&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278">
 
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230052CC'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23fff'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
   <!-- P1 性能：预连接 SCF 数据端点，减少首屏 /data 请求的连接建立延迟 -->
   <link rel="preconnect" href="https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com" crossorigin>
   <link rel="dns-prefetch" href="https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com">
 
   <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.58&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
+  <script src="data/bundle.js?v=2.9.59&t=1785901466633&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
   <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
 
 </head>
@@ -41,7 +42,7 @@
   <!-- Header -->
   <header class="header" role="banner">
     <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.58</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
+    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.59</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
     <div id="leftEntryBar">
       <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
       <a href="docs/score-guide.html" class="entry-btn entry-biz">📊 经营分指南 →</a>
@@ -186,7 +187,7 @@
 
       <div class="price-warning">
         <span class="pw-icon">⚠️</span>
-        <div><strong>重要提醒：</strong>脚本中的套餐价格/资费仅为示例模板，<strong style="color:#D84315;">发布前务必根据本厅店实际资费修改！</strong>各地市套餐政策不同，擅自使用不实价格可能引发客诉。标题和标签中涉及的品牌/价格也需核对。</div>
+        <div><strong>重要提醒：</strong>脚本中的套餐价格/资费仅为示例模板，<strong style="color:#B91C1C;">发布前务必根据本厅店实际资费修改！</strong>各地市套餐政策不同，擅自使用不实价格可能引发客诉。标题和标签中涉及的品牌/价格也需核对。</div>
       </div>
 
       <!-- Mode Selector 已隐藏（2026-07-20：对比图卡/场景化算账模式整合进口播脚本，保留唯一预览入口） -->
@@ -204,7 +205,7 @@
         </div>
         <div class="form-group">
           <label>本周选题 <span class="hint">（从选题库选一个）</span></label>
-          <select id="t1_topic" onchange="fillT1Presets()"></select>
+          <select id="t1_topic" aria-label="选择选题" onchange="fillT1Presets()"></select>
         </div>
       </div>
 
@@ -244,7 +245,7 @@
 
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（已推荐近期热门，抖音App内可直接搜到）</span></label>
-        <select id="t1_bgm"></select>
+        <select id="t1_bgm" aria-label="选择BGM"></select>
       </div>
 
       <div class="form-group">
@@ -315,12 +316,12 @@
 
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（强烈建议不加，用现场原声；如需可选用温情感）</span></label>
-        <select id="t2_bgm"></select>
+        <select id="t2_bgm" aria-label="选择BGM"></select>
       </div>
 
       <div class="form-group">
         <label>📋 故事模板 <span class="hint">（选模板自动填好全部7个字段，只需改关键信息）</span></label>
-        <select id="t2_preset" onchange="fillT2Presets();applyHook('t2');expandT2Detail()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);"></select>
+        <select id="t2_preset" aria-label="选择预设模板" onchange="fillT2Presets();applyHook('t2');expandT2Detail()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);"></select>
         <div id="t2-autofill-hint" style="margin-top:4px;font-size:11px;color:#55606e;">⬆ 选一个场景模板，下面自动填好所有内容。你只需要改时间/地名等关键信息。</div>
       </div>
 
@@ -403,12 +404,12 @@
       <!-- === Shared Fields (both modes) === -->
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（轻声纯音乐·口播不压人声；无声模式当背景）</span></label>
-        <select id="t3_bgm"></select>
+        <select id="t3_bgm" aria-label="选择BGM"></select>
       </div>
 
       <div class="form-group">
         <label>📱 选择设备 <span class="hint">（选完设备，选题自动加载）</span></label>
-        <select id="t3_device" onchange="loadTopicsByDevice()">
+        <select id="t3_device" aria-label="选择设备" onchange="loadTopicsByDevice()">
           <option value="">-- 请先选择设备 --</option>
           <optgroup label="📡 电信设备">
             <option value="光猫">🖥 光猫</option>
@@ -424,7 +425,7 @@
 
       <div class="form-group">
         <label>📋 选择选题 <span class="hint">（选完自动填好所有技术内容）</span></label>
-        <select id="t3_topic" onchange="autoFillTech()">
+        <select id="t3_topic" aria-label="选择选题" onchange="autoFillTech()">
           <option value="">-- 请先选设备，再选选题 --</option>
         </select>
       </div>
@@ -538,12 +539,12 @@
 
       <div class="form-group">
         <label>🎵 BGM <span class="hint">（本地生活/探店类热门，轻松愉快）</span></label>
-        <select id="t4_bgm"></select>
+        <select id="t4_bgm" aria-label="选择BGM"></select>
       </div>
 
       <div class="form-group">
         <label>🎁 活动类型 <span class="hint">（选活动自动填福利+标签，地名地址自己填）</span></label>
-        <select id="t4_preset" onchange="fillT4Presets()"></select>
+        <select id="t4_preset" aria-label="选择预设模板" onchange="fillT4Presets()"></select>
       </div>
       
       <div class="form-row form-row-3">
@@ -651,8 +652,8 @@
         <div>
           <strong>合规红线（必须遵守）：</strong><br>
           1. 仅使用抖音本地生活「小房子」挂载商品，不使用小黄车<br>
-          2. <strong style="color:#D84315;">禁止直播号卡类商品</strong>（号卡服务、合约服务全类目禁止）<br>
-          3. <strong style="color:#D84315;">禁止提及月租、套餐、话费</strong>等号卡相关表述<br>
+          2. <strong style="color:#B91C1C;">禁止直播号卡类商品</strong>（号卡服务、合约服务全类目禁止）<br>
+          3. <strong style="color:#B91C1C;">禁止提及月租、套餐、话费</strong>等号卡相关表述<br>
           4. 可播内容：纯宽带业务、终端购机补贴、便民服务、福利品<br>
           5. 直播间必须挂出门店标识牌
         </div>
@@ -674,7 +675,7 @@
         </div>
         <div class="form-group">
           <label>主打产品 <span class="hint">（从下方产品清单中选择）</span></label>
-          <select id="lv_product" onchange="updateLiveProductDesc()">
+          <select id="lv_product" aria-label="选择直播商品" onchange="updateLiveProductDesc()">
             <option value="" disabled selected>-- 请选择主打产品 --</option>
             <option value="__custom__">✏️ 自定义产品（手动输入）</option>
             <optgroup label="宽带类">
@@ -738,7 +739,7 @@
 
       <div class="form-group">
         <label>🎵 直播间BGM <span class="hint">（推荐背景音乐）</span></label>
-        <select id="lv_bgm">
+        <select id="lv_bgm" aria-label="选择BGM">
           <optgroup label="🏆 直播带货首选">
             <option value="好运来 - 祖海" selected>🎊 好运来 (直播间热场经典)</option>
             <option value="恭喜发财 - 刘德华">🧧 恭喜发财 (带货氛围)</option>
@@ -770,7 +771,7 @@
           ☐ FTTR全光礼包（老用户专享）<br>
           ☐ 免费贴膜/网检（到店礼）<br>
           ☐ 合约机直降补贴（华为/荣耀/vivo/OPPO）<br>
-          <span style="font-size:11px;color:#D84315;">⚠️ 小房子上架确认：以上商品需提前在抖音来客后台创建团购券</span>
+          <span style="font-size:11px;color:#B91C1C;">⚠️ 小房子上架确认：以上商品需提前在抖音来客后台创建团购券</span>
         </div>
       </div>
 
@@ -885,7 +886,7 @@
         <p style="color:var(--body);font-size:12px;margin:0;">热门话题 + 搜索截流，AI 匹配营业厅脚本。</p>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-sm" style="background:#FF6F00;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
+        <button class="btn btn-sm" style="background:#C2410C;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
         <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
       </div>
     </div>
@@ -900,7 +901,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:11px;color:#55606e;">难度</span>
-        <select id="hsDifficulty" onchange="filterHotspot(this.value, null)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--body);cursor:pointer;">
+        <select id="hsDifficulty" aria-label="筛选难度" onchange="filterHotspot(this.value, null)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--body);cursor:pointer;">
           <option value="all">全部难度</option>
           <option value="tier1">🥇 专业翻拍</option>
           <option value="tier2">🥈 行业套用</option>
@@ -1015,7 +1016,7 @@
   <div class="page" id="page-favorites">
     <h2 style="margin-bottom:4px;">💾 我的收藏</h2>
     <p style="color:var(--body);font-size:12px;margin-bottom:12px;">点击模板预览区的 ⭐ 按钮收藏脚本，收藏的内容会出现在这里。</p>
-    <div id="favoritesContent"><div class="card" style="text-align:center;padding:40px;color:#94A3B8;">暂无收藏。去模板页点击 ⭐ 收藏喜欢的脚本吧。</div></div>
+    <div id="favoritesContent"><div class="card" style="text-align:center;padding:40px;color:#64748B;">暂无收藏。去模板页点击 ⭐ 收藏喜欢的脚本吧。</div></div>
   </div>
 
   </main>
@@ -1031,6 +1032,6 @@
 </div>
 
 <!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.58&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
+  <script src="app.js?v=2.9.59&t=1785901466633&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
 </body>
 </html>
