@@ -224,7 +224,7 @@ async function callSCFApi(action, params, secretId, secretKey, sessionToken) {
 // AI 调用复用 callSiliconFlow（已含 toAsciiJson + 清洗）。
 // ============================================================
 
-const HS_TIMEOUT = 8000;
+const HS_TIMEOUT = 4000; // 2026-08-05 降级：vvhan.com 常挂，4s 超时够探测存活（原 8s 导致 7 源全挂时等 56s+）
 async function hsFetch(url, opts = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), opts.timeout || HS_TIMEOUT);
@@ -238,6 +238,15 @@ async function hsFetch(url, opts = {}) {
   } catch (e) { return null; }
   finally { clearTimeout(t); }
 }
+// 单平台多候选：任一成功即返回（Promise.any），全部失败返回空数组（不再等所有超时）
+async function hsFetchAny(candidates, opts = {}) {
+  if (!candidates.length) return [];
+  // 给每个候选加独立超时，用 Promise.any 竞争
+  const tasks = candidates.map(c => hsFetchJson(c.url, c.parse, Object.assign({}, opts, c)).catch(() => []));
+  // 加一个全局兜底超时：即使单个候选没超时，整个平台也不超过 HS_TIMEOUT * 1.5
+  const timeoutTask = new Promise(resolve => setTimeout(() => resolve([]), (opts.timeout || HS_TIMEOUT) * 1.5));
+  return Promise.any([...tasks, timeoutTask]);
+}
 async function hsFetchJson(url, parse, opts) {
   const raw = await hsFetch(url, opts);
   if (raw == null) return [];
@@ -245,15 +254,33 @@ async function hsFetchJson(url, parse, opts) {
   catch (e) { return []; }
 }
 
-// 话题热搜：原生上游优先（移植 DailyHotApi），第三方聚合兜底
+// 话题热搜：2026-08-05 重构——剔除已死的 vvhan.com/oioweb.cn/tenapi.cn，
+// 全部替换为实测可用的原生上游 + 聚合兜底（每平台多候选用 hsFetchAny 竞速，任一成功即用）
 const HS_TREND_SOURCES = [
   { platform: '抖音', candidates: [
-    { url: 'https://api.vvhan.com/api/hotlist/douyin', parse: j => (j.data||[]).map(x => ({ word: x.title||x.word, heat: x.hot||'', url: x.url||'' })) },
-    { url: 'https://www.oioweb.cn/api/v1/douyin/hot', parse: j => (j.data||j.list||[]).map(x => ({ word: x.title||x.word, heat: x.hot||x.num||'', url: x.url||'' })) },
+    // 抖音官方热搜榜（最对口，50 条）
+    { url: 'https://www.iesdouyin.com/web/api/v2/hotsearch/billboard/word/',
+      parse: j => (j.word_list||[]).map(x => ({ word: x.word, heat: String(x.hot_value||''), url: 'https://www.douyin.com/search/'+encodeURIComponent(x.word) })) },
+    // 抖音 aweme 热搜（备份1）
+    { url: 'https://aweme.snssdk.com/aweme/v1/hot/search/list/',
+      parse: j => ((j.data&&j.data.word_list)||[]).map(x => ({ word: x.word, heat: String(x.hot_value||''), url: 'https://www.douyin.com/search/'+encodeURIComponent(x.word) })) },
+    // 60s.viki 抖音聚合（备份2）
+    { url: 'https://60s.viki.moe/v2/douyin',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.hot_value||''), url: x.link||'' })) },
   ]},
   { platform: '微博', candidates: [
-    { url: 'https://weibo.com/ajax/side/hotSearch', parse: j => ((j.data&&j.data.realtime)||[]).map(x => ({ word: x.word||x.word_scheme, heat: x.num||'', url: 'https://s.weibo.com/weibo?q='+encodeURIComponent(x.word||x.word_scheme) })) },
-    { url: 'https://tenapi.cn/v2/weibohot', parse: j => (j.data||j.list||[]).map(x => ({ word: x.word||x.title, heat: x.hot||x.num||'', url: x.url||'' })) },
+    { url: 'https://60s.viki.moe/v2/weibo',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.hot_value||''), url: x.link||'' })) },
+  ]},
+  { platform: '知乎', candidates: [
+    { url: 'https://60s.viki.moe/v2/zhihu',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: '', url: x.link||'' })) },
+  ]},
+  { platform: '头条', candidates: [
+    { url: 'https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc',
+      parse: j => (j.data||[]).map(v => ({ word: v.Title, heat: String(v.HotValue||''), url: 'https://www.toutiao.com/trending/'+v.ClusterIdStr+'/' })) },
+    { url: 'https://60s.viki.moe/v2/toutiao',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.hot_value||''), url: x.link||'' })) },
   ]},
   { platform: '百度', candidates: [
     { url: 'https://top.baidu.com/board?tab=realtime', asText: true, parse: html => {
@@ -264,27 +291,12 @@ const HS_TREND_SOURCES = [
       return list.map(v => { const title = v.word ?? v.title ?? ''; const q = v.query ?? title;
         return { word: title, heat: (v.hotScore||v.hotTag||'').toString(), url: 'https://www.baidu.com/s?wd='+encodeURIComponent(q) }; });
     }},
-    { url: 'https://api.vvhan.com/api/hotlist/baidu', parse: j => (j.data||[]).map(x => ({ word: x.title||x.word, heat: x.hot||'', url: x.url||'' })) },
-  ]},
-  { platform: '知乎', candidates: [
-    { url: 'https://api.vvhan.com/api/hotlist/zhihu', parse: j => (j.data||[]).map(x => ({ word: x.title||x.word, heat: x.hot||'', url: x.url||'' })) },
-    { url: 'https://api.zhihu.com/topstory/hot-lists/total?limit=50', parse: j => (j.data||[]).map(v => ({ word: v.target?.title, heat: (parseFloat((v.detail_text||'').split(' ')[0])*10000)||'', url: v.target?.url||'' })) },
-  ]},
-  { platform: '头条', candidates: [
-    { url: 'https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc', parse: j => (j.data||[]).map(v => ({ word: v.Title, heat: v.HotValue||'', url: 'https://www.toutiao.com/trending/'+v.ClusterIdStr+'/' })) },
-    { url: 'https://api.vvhan.com/api/hotlist/toutiao', parse: j => (j.data||[]).map(x => ({ word: x.title||x.word, heat: x.hot||'', url: x.url||'' })) },
-  ]},
-  { platform: '快手', candidates: [
-    { url: 'https://api.vvhan.com/api/hotlist/kuaishou', parse: j => (j.data||[]).map(x => ({ word: x.title||x.word, heat: x.hot||'', url: x.url||'' })) },
-  ]},
-  { platform: 'B站', candidates: [
-    { url: 'https://api.vvhan.com/api/hotlist/bilibili', parse: j => (j.data||[]).map(x => ({ word: x.title||x.word, heat: x.hot||'', url: x.url||'' })) },
   ]},
 ];
 const HS_XIAOHONGSHU = ['多巴胺穿搭','Citywalk','职场穿搭','减脂餐打卡','周末露营','手机摄影技巧','租房改造','副业搞钱']
   .map(w => ({ word: w, heat: '', url: 'https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(w) }));
 
-// 热门 BGM：抖音音乐榜（移植 douyin-hot-hub）+ 酷狗/网易云兜底
+// 热门 BGM：抖音音乐榜（原生，最对口）+ QQ音乐热歌榜兜底（均为实测可用源，已剔除酷狗/网易云不稳源）
 const HS_MUSIC_SOURCES = [
   { platform: '抖音音乐', candidates: [
     { url: 'https://aweme.snssdk.com/aweme/v1/chart/music/list/?chart_id=6853972723954146568&count=50&device_platform=android&version_name=13.2.0&version_code=130200&aid=1128',
@@ -294,10 +306,10 @@ const HS_MUSIC_SOURCES = [
         const title = m.title||m.matched_song?.title||''; const author = m.author||m.owner_nickname||'';
         return { word: `${title} - ${author}`, heat: (m.user_count||it.heat||'').toString(), url: play, songTitle: title, songAuthor: author };
       }) },
-    { url: 'https://mobilecdn.kugou.com/api/v3/rank/song?ranktype=2&rankid=8888&page=1&pagesize=30',
-      parse: j => (j.data?.info||[]).map(x => ({ word: `${x.songname} - ${x.singername}`, heat:'', url:'', songTitle: x.songname, songAuthor: x.singername })) },
-    { url: 'https://music.163.com/api/v1/discovery/recommend/songs', headers: { 'Referer': 'https://music.163.com/' },
-      parse: j => (j.recommend||[]).map(x => { const s = x.song||x; return { word: `${s.name} - ${(s.artists||[]).map(a=>a.name).join('/')}`, heat:'', url:'', songTitle: s.name, songAuthor: (s.artists||[]).map(a=>a.name).join('/') }; }) },
+    { url: 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?type=top&topid=26&song_begin=0&song_num=30&format=json',
+      headers: { 'Referer': 'https://y.qq.com/', 'User-Agent': 'Mozilla/5.0' },
+      parse: j => (j.songlist||[]).map(x => { const d = x.data||x; const name = d.songname||d.name||''; const singer = (d.singer||[]).map(a=>a.name).join('/');
+        return { word: `${name} - ${singer}`, heat:'', url:'', songTitle: name, songAuthor: singer }; }) },
   ]},
 ];
 
@@ -333,7 +345,7 @@ function hsSanitize(t) { return sanitize100M(sanitizeStance(sanitizeHardBan(t ||
 async function fetchAllHotspotsSCF() {
   // 并行抓取各平台热搜（每个平台内部 candidates 并行取第一个成功）
   const hotTasks = HS_TREND_SOURCES.map(async src => {
-    const results = await Promise.all(src.candidates.map(c => hsFetchJson(c.url, c.parse, { headers: c.headers||{}, asText: !!c.asText, timeout: 6000 })));
+    const results = await hsFetchAny(src.candidates, { timeout: HS_TIMEOUT });
     const got = results.find(r => r && r.length) || [];
     return got.map(g => ({ platform: src.platform, lane:'hot', word: g.word, heat: g.heat, url: g.url }));
   });
@@ -341,7 +353,7 @@ async function fetchAllHotspotsSCF() {
 
   // 并行抓取音乐榜
   const musicTasks = HS_MUSIC_SOURCES.map(async src => {
-    const results = await Promise.all(src.candidates.map(c => hsFetchJson(c.url, c.parse, { headers: c.headers||{}, asText: !!c.asText, timeout: 6000 })));
+    const results = await hsFetchAny(src.candidates, { timeout: HS_TIMEOUT });
     const got = results.find(r => r && r.length) || [];
     return got.map(g => ({ platform: src.platform, lane:'music', word: g.word, heat: g.heat, url: g.url||'', songTitle: g.songTitle||'', songAuthor: g.songAuthor||'' }));
   });
@@ -350,6 +362,33 @@ async function fetchAllHotspotsSCF() {
   const form = HS_FORM_LIBRARY.map(f => ({ platform:'形式库', lane:'form', word:f.word, heat:'', url:'', desc:f.desc, example:f.example, difficulty:f.difficulty, needFace:f.needFace }));
   const search = HS_SEARCH_KEYWORDS.map(k => ({ platform:'百度', lane:'search', word:k.word, heat:'', url:k.url, intent:k.intent }));
   return { hot: hsDedupe(hot), music: hsDedupe(music), form, search, fetchedAt: new Date().toISOString() };
+}
+
+// 2026-08-05 诊断：逐源在 SCF 环境实测（耗时/成败/条数），不依赖本地网络
+async function hsSourceCheck() {
+  const out = [];
+  const groups = [...HS_TREND_SOURCES.map(s => ({ kind:'hot', platform:s.platform, candidates:s.candidates })),
+                  ...HS_MUSIC_SOURCES.map(s => ({ kind:'music', platform:s.platform, candidates:s.candidates }))];
+  for (const g of groups) {
+    const cands = [];
+    for (const c of g.candidates) {
+      const t0 = Date.now();
+      let status = 'OK', count = 0, sample = '', err = '';
+      try {
+        const raw = await hsFetch(c.url, { headers: c.headers, asText: c.asText, timeout: HS_TIMEOUT });
+        if (raw == null) { status = 'NULL(超时/无响应)'; }
+        else {
+          const arr = (c.parse ? c.parse(raw) : []);
+          count = arr.length;
+          if (count === 0) status = 'EMPTY(解析0条)';
+          else sample = (arr[0].word || '').slice(0, 24);
+        }
+      } catch (e) { status = 'ERR'; err = e.message.slice(0, 60); }
+      cands.push({ url: c.url.slice(0, 64), ms: Date.now() - t0, status, count, sample, err });
+    }
+    out.push({ kind: g.kind, platform: g.platform, candidates: cands });
+  }
+  return out;
 }
 
 function buildHotspotMessages(cands) {
@@ -726,6 +765,16 @@ http.createServer(async (req, res) => {
       return result;
     }
     // 2026-08-01: 共享缓存读取（秒级，无需等 AI 生成）—— 前端热点中心优先调用此模式
+    if (params.mode === 'hotspot-source-check') {
+      try {
+        const report = await hsSourceCheck();
+        res.writeHead(200, corsHeaders);
+        res.end(JSON.stringify({ ok: true, report }));
+      } catch (e) {
+        res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: e.message }));
+      }
+      return;
+    }
     if (params.mode === 'hotspot-cache') {
       const token = process.env.GITEE_TOKEN;
       const user = process.env.GITEE_USERNAME || 'hbatz';
@@ -977,7 +1026,7 @@ http.createServer(async (req, res) => {
     }
 
     // ===== 未知 mode → 400（而非抛错被 catch 兜底成 500）=====
-    const KNOWN_MODES = ['diag', 'get-ai-key', 'search-t1', 'search-t2', 'trigger-hotspot', 'gen-hotspot', 'hotspot-cache', 'hotspot-fetch', 'weekly-persona', 'sfb-migrate', 'fill-missing-t1', 'bgm-list', 'proxy-douyin', 'ai', 'track', 'stats'];
+    const KNOWN_MODES = ['diag', 'get-ai-key', 'search-t1', 'search-t2', 'trigger-hotspot', 'gen-hotspot', 'hotspot-cache', 'hotspot-fetch', 'hotspot-source-check', 'weekly-persona', 'sfb-migrate', 'fill-missing-t1', 'bgm-list', 'proxy-douyin', 'ai', 'track', 'stats'];
     if (params.mode && !KNOWN_MODES.includes(params.mode)) {
       res.writeHead(400, corsHeaders);
       res.end(JSON.stringify({ error: 'Unknown mode: ' + params.mode, knownModes: KNOWN_MODES }));
