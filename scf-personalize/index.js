@@ -2248,8 +2248,10 @@ async function wpWriteDraft(d, token, user) {
 // 阶段1：一次轻量 AI 调用，产出 t1/t2/t4 各 3 个选题名（不含脚本，约 200 tokens，很快）
 async function wpPlanTopics(apiKey, cfg, token, user, params) {
   const cands = await fetchAllHotspotsSCF();
-  const hotTxt = (cands.hot || []).slice(0, 25).map(c => '[热点] ' + c.word + (c.heat ? (' 热度' + c.heat) : '')).join('\n');
-  const searchTxt = (cands.search || []).slice(0, 15).map(c => '[搜索截流] ' + c.word + ' → 意图:' + (c.intent || '')).join('\n');
+  // 2026-08-05 修复：热点/截流原文过长会触发 tbnx 网关偶发空响应（200 但 content 为空），
+  // 故裁剪输入规模，保留足够信号的同时降低空响应概率。
+  const hotTxt = (cands.hot || []).slice(0, 15).map(c => '[热点] ' + c.word + (c.heat ? (' 热度' + c.heat) : '')).join('\n');
+  const searchTxt = (cands.search || []).slice(0, 10).map(c => '[搜索截流] ' + c.word + ' → 意图:' + (c.intent || '')).join('\n');
   let actTxt = '';
   try { const sa = await getConfig('config/t2-seasonal.json', token, user); actTxt += '【季节/活动配置】\n' + JSON.stringify(sa).slice(0, 800) + '\n'; } catch (e) {}
   try { const up = await getConfig('config/user-priority.json', token, user); actTxt += '【用户固定重点选题】\n' + JSON.stringify(up).slice(0, 800) + '\n'; } catch (e) {}
@@ -2269,19 +2271,27 @@ async function wpPlanTopics(apiKey, cfg, token, user, params) {
   const userP = '【本周话题热点】\n' + hotTxt + '\n\n【搜索截流词】\n' + searchTxt + '\n\n【厅店日常活动/季节】\n' + actTxt +
     '\n\n【已有选题（务必避开，新选题须明显不同）】\nt1: ' + exist.t1.join('、') + '\nt2: ' + exist.t2.join('、') + '\nt4: ' + exist.t4.join('、');
 
-  // AI 偶发返回空/非 JSON，plan 是整个流程的入口，失败会阻塞后续所有步骤 → 内联重试 3 次
+  // AI 偶发返回空/非 JSON，plan 是整个流程的入口，失败会阻塞后续所有步骤。
+  // 2026-08-05 修复：tbnx 网关偶发返回空 content（200 但 choices[0].message.content 为空），
+  // 单一模型重试仍会得到 null → 改为「跨模型候选 + 重试」，避免一次空响应直接阻塞整条流水线。
   let parsed = null, lastRaw = '';
-  for (let attempt = 0; attempt < 3 && !parsed; attempt++) {
-    if (attempt) await new Promise(r => setTimeout(r, 1500));
-    try {
-      lastRaw = await callSiliconFlow(sys, userP, apiKey, {
-        endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro',
-        temperature: 0.95, maxTokens: 800, timeoutMs: 60000
-      });
-      parsed = extractJsonObject(lastRaw);
-    } catch (e) { lastRaw = 'EXC:' + e.message; }
+  const modelCandidates = [cfg.model || 'deepseek-v4-pro', 'deepseek-ai/DeepSeek-V4-Pro', 'deepseek-v4']
+    .filter((v, i, a) => a.indexOf(v) === i); // 去重，保持配置模型优先
+  outer:
+  for (const m of modelCandidates) {
+    for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
+      if (attempt || m !== modelCandidates[0]) await new Promise(r => setTimeout(r, 1200));
+      try {
+        lastRaw = await callSiliconFlow(sys, userP, apiKey, {
+          endpoint: cfg.endpoint, model: m,
+          temperature: 0.95, maxTokens: 800, timeoutMs: 60000
+        });
+        parsed = extractJsonObject(lastRaw);
+      } catch (e) { lastRaw = 'EXC:' + e.message; }
+    }
+    if (parsed) break outer;
   }
-  if (!parsed) throw new Error('plan 阶段 AI 解析失败(重试3次): ' + String(lastRaw).slice(0, 200));
+  if (!parsed) throw new Error('plan 阶段 AI 解析失败(跨模型重试均空): ' + String(lastRaw).slice(0, 200));
   const plan = {};
   for (const t of ['t1', 't2', 't4']) {
     const arr = Array.isArray(parsed[t]) ? parsed[t] : [];
@@ -2305,10 +2315,17 @@ async function wpGenOneTopic(t, topic, apiKey, cfg, params) {
     '【输出】严格 JSON（无 markdown 代码块、无解释）：\n' +
     '{"sister":"脚本","sweet":"脚本","tech":"脚本","biz":"脚本","young":"脚本","master":"脚本"}';
   const userP = '选题：' + topic + '\n请生成 6 个人设的完整脚本。';
-  const raw = await callSiliconFlow(sys, userP, apiKey, {
-    endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro',
-    temperature: 0.92, maxTokens: 3500, timeoutMs: 110000
-  });
+  // 2026-08-05 修复：与 plan 同因，跨模型候选兜底，避免单模型空响应导致该选题整条跳过。
+  const genModels = [cfg.model || 'deepseek-v4-pro', 'deepseek-ai/DeepSeek-V4-Pro'].filter((v, i, a) => a.indexOf(v) === i);
+  let raw = null;
+  for (const m of genModels) {
+    try {
+      raw = await callSiliconFlow(sys, userP, apiKey, {
+        endpoint: cfg.endpoint, model: m, temperature: 0.92, maxTokens: 3500, timeoutMs: 110000
+      });
+    } catch (e) { raw = 'EXC:' + e.message; }
+    if (raw && !String(raw).startsWith('EXC:')) break;
+  }
   const parsed = extractJsonObject(raw);
   if (!parsed) return null;
   const pm = coercePersonaMap(parsed);
