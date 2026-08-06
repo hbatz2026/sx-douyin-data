@@ -524,6 +524,49 @@ function normalizeHotspot(scripts) {
   return out;
 }
 
+// ===== 内容质量门禁 G6（2026-08-05 闭环）：校验 hotspot 脚本卡质量 =====
+// 校验对象为 normalizeHotspot 产出的脚本卡：voice(口播逐字稿) + steps(分镜)
+// 规则：① voice 连续口播 150–250 字；② steps 分镜 ≥3 段（非单句摘要）；③ 红线 0 命中；④ 档位仅 300/500/1000/FTTR
+// 非阻塞：仅附加 quality 元数据 + 达标率告警，不阻断持久化（避免清空日池）
+const QG_FORBIDDEN = [
+  '别给运营商白送钱', '给运营商白送钱', '给运营商送钱', '运营商白送钱', '白给运营商送钱',
+  '别急着骂运营商', '别骂运营商', '骂运营商', '别怪运营商', '怪运营商',
+  '电信更坑人', '不要相信运营商', '运营商都是坑', '运营商坑人'
+];
+const QG_BAD_TIER = /100\s?[Mm兆]/;
+function qgCountChars(s) { return (s || '').replace(/\s/g, '').length; }
+function qgRedlineHit(text) {
+  const t = text || '';
+  for (const w of QG_FORBIDDEN) if (t.includes(w)) return w;
+  if (QG_BAD_TIER.test(t)) return '100M/100兆档位字样';
+  return null;
+}
+function gateHotspotScript(s) {
+  const reasons = []; let score = 100;
+  const voiceText = (Array.isArray(s.voice) ? s.voice.join('') : (s.voice || '')).replace(/\s/g, '');
+  const n = qgCountChars(voiceText);
+  if (!voiceText) { reasons.push({ level: 'error', msg: '口播稿 voice 为空' }); score -= 25; }
+  else if (n < 150 || n > 250) { reasons.push({ level: 'error', msg: `口播稿字数 ${n} 超出 [150,250]` }); score -= 20; }
+  const steps = Array.isArray(s.steps) ? s.steps : [];
+  if (steps.length < 3) { reasons.push({ level: 'warn', msg: `分镜仅 ${steps.length} 段（建议≥3）` }); score -= 10; }
+  const allText = [s.title, s.why, voiceText, (s.loop || ''), (s.tip || ''), ...steps.map(st => (st.shot || '') + (st.sub || ''))].join('\n');
+  const hit = qgRedlineHit(allText);
+  if (hit) { reasons.push({ level: 'error', msg: `红线命中: ${hit}` }); score -= 40; }
+  const pass = !reasons.some(r => r.level === 'error');
+  return { pass, score: Math.max(0, Math.round(score)), reasons };
+}
+function gateHotspotPool(scripts) {
+  let passed = 0, total = 0; const details = [];
+  for (const s of (scripts || [])) {
+    total++; const r = gateHotspotScript(s);
+    if (r.pass) passed++;
+    s.quality = { pass: r.pass, score: r.score, reasons: r.reasons };
+    details.push({ id: s.id, title: s.title, ...r });
+  }
+  const passRate = total ? passed / total : 0;
+  return { total, passed, passRate, details };
+}
+
 // Start HTTP server (SCF Web 函数标准模式)
 const PORT = process.env.SCF_CUSTOM_CONTAINER_EVENT_PORT || 9000;
 
@@ -822,7 +865,7 @@ http.createServer(async (req, res) => {
           model: cfg.model || params.model || 'deepseek-v4-pro',
           temperature: 0.9,
           maxTokens: 10000,
-          timeoutMs: 150000
+          timeoutMs: 180000
         });
         if (!raw) { res.writeHead(502, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'AI 生成失败（空响应）' })); return; }
         const content = raw.replace(/```json|```/g, '').trim();
@@ -832,6 +875,10 @@ http.createServer(async (req, res) => {
           return;
         }
         const scripts = normalizeHotspot(extracted);
+        // G6 内容质量门禁：校验每日脚本卡质量，非阻塞（附 quality 元数据 + 达标率告警）
+        const qg = gateHotspotPool(scripts);
+        console.log(`[hotspot-fetch] 内容质量门禁：通过 ${qg.passed}/${qg.total}（达标率 ${(qg.passRate * 100).toFixed(0)}%）`);
+        if (qg.passRate < 0.95) console.warn('[hotspot-fetch] 内容质量达标率低于 95% 阈值，建议人工复核');
         const fetchedAt = new Date().toISOString();
         const musicCandidates = cands.music.slice(0, 12).map(m => ({
           word: m.word || '',
@@ -851,7 +898,7 @@ http.createServer(async (req, res) => {
           await createOrUpdateGiteeFile('data/bgmList.js', bgmJs, token, user);
           console.log('[hotspot-fetch] 精选 BGM 库已刷新（data/bgmList.js）');
         } catch (be) { console.warn('[hotspot-fetch] genBgm failed:', be.message); }
-        res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok:true, count: scripts.length, scripts, promptVer: 'v2', lanes: {
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok:true, count: scripts.length, scripts, promptVer: 'v2', quality: { passRate: qg.passRate, passed: qg.passed, total: qg.total }, lanes: {
           hot: cands.hot.length, music: cands.music.length, form: cands.form.length, search: cands.search.length
         }, musicCandidates, fetchedAt }));
       } catch (e) {
@@ -1784,11 +1831,24 @@ async function searchT2({ preset, topic }) {
 // AI call (SiliconFlow)
 // ============================================================
 
+// 2026-08-06: bundled AI 配置兜底。Gitee 不可达（如 token 失效）时，loadAIConfig 回退到此，
+// 确保函数仍走 vectorengine 网关 + DeepSeek 主 / Qwen 兜底，不回退写死的旧 tbnx 网关。
+const BUNDLED_AI_CONFIG = {
+  enabled: true,
+  endpoint: 'https://api.vectorengine.cn/v1/chat/completions',
+  model: 'deepseek-v4-pro',
+  temperature: 0.8,
+  maxTokens: 2000,
+  timeoutMs: 180000,
+  fallbackModel: 'qwen3.7-max'
+};
+
 async function loadAIConfig(token, user) {
   try {
     return await getConfig('config/ai-config.json', token, user);
   } catch (e) {
-    return { enabled: true };
+    console.warn('[loadAIConfig] Gitee 读取失败，回退 bundled 配置:', e.message);
+    return BUNDLED_AI_CONFIG;
   }
 }
 
@@ -1876,32 +1936,54 @@ function toAsciiJson(obj) {
 }
 
 async function callSiliconFlow(system, user, apiKey, cfg) {
-  const res = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: toAsciiJson({
-      model: cfg.model || 'deepseek-ai/DeepSeek-V4-Pro',
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user }
-      ],
-      temperature: cfg.temperature || 0.8,
-      max_tokens: cfg.maxTokens || 2000
-    }),
-    signal: AbortSignal.timeout(cfg.timeoutMs || 180000)
-  });
+  // R1【模型选型头对头 QA 整改，2026-08-06】：主模型失败/超时/空响应时，自动降级到兜底模型，
+  // 消除每日 08:05 预热 + 周一 weekly-persona 的"空池"中断风险。改动限于调用处，零风险。
+  const primary = cfg.model || 'deepseek-ai/DeepSeek-V4-Pro';
+  const fb = cfg.fallbackModel || null;
+  const seen = new Set();
+  const models = [primary, fb].filter(Boolean).filter(m => { if (seen.has(m)) return false; seen.add(m); return true; });
+  let lastErr = null;
+  for (const m of models) {
+    try {
+      const res = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: toAsciiJson({
+          model: m,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ],
+          temperature: cfg.temperature || 0.8,
+          max_tokens: cfg.maxTokens || 2000
+        }),
+        signal: AbortSignal.timeout(cfg.timeoutMs || 180000)
+      });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`SiliconFlow ${res.status}: ${err.slice(0, 200)}`);
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`SiliconFlow ${res.status}: ${err.slice(0, 200)}`);
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content || null;
+      const cleaned = content ? sanitize100M(sanitizeStance(sanitizeHardBan(content))) : null;
+      if (cleaned) {
+        if (m !== primary) console.warn(`[callSiliconFlow] 主模型 ${primary} 失败，已降级到兜底模型 ${m} 生成成功`);
+        return cleaned;
+      }
+      lastErr = new Error(`模型 ${m} 返回空内容`);
+      console.warn(`[callSiliconFlow] 模型 ${m} 返回空内容，尝试下一个候选`);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[callSiliconFlow] 模型 ${m} 调用失败：${e.message}`);
+    }
   }
-
-  const json = await res.json();
-  const content = json.choices?.[0]?.message?.content || null;
-  return content ? sanitize100M(sanitizeStance(sanitizeHardBan(content))) : null;
+  if (lastErr) throw lastErr;
+  return null;
 }
 
 // ============================================================

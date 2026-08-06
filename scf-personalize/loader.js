@@ -10,6 +10,9 @@ const TOKEN = process.env.GITEE_TOKEN;
 const USER = process.env.GITEE_USERNAME || 'hbatz';
 const REPO = 'sx-douyin-data';
 const FILE_PATH = 'scf-personalize/index.js';
+// 2026-08-06: 自部署开关。默认 false = GitHub-only 模式，冷启动只用 UpdateFunctionCode 打的 zip，不拉 Gitee；
+// 设为 'true' 且 GITEE_TOKEN 存在时恢复从 Gitee 拉取（遗留/调试用）。
+const SELF_DEPLOY = process.env.SELF_DEPLOY === 'true';
 
 // Suppress uncaught errors during module load (the remote code will handle its own errors)
 process.on('uncaughtException', function(e) {
@@ -18,8 +21,8 @@ process.on('uncaughtException', function(e) {
 });
 
 (async function boot() {
-  // Try remote code first
-  if (TOKEN) {
+  // 仅 SELF_DEPLOY 开启且持有 token 时，才从 Gitee 拉取远程代码（遗留/调试用）
+  if (SELF_DEPLOY && TOKEN) {
     try {
       console.log('[Loader] Fetching latest from Gitee...');
       const res = await fetch(
@@ -47,7 +50,7 @@ process.on('uncaughtException', function(e) {
       console.log(`[Loader] Fetch failed (${e.message}), using bundled code`);
     }
   } else {
-    console.log('[Loader] No GITEE_TOKEN, using bundled code');
+    console.log(SELF_DEPLOY ? '[Loader] SELF_DEPLOY 开启但无 GITEE_TOKEN，使用 bundled 代码' : '[Loader] SELF_DEPLOY 关闭（GitHub-only 模式），使用 bundled 代码');
   }
 
   // Fallback: bundled code
