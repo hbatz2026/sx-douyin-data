@@ -72,7 +72,22 @@ async function main(){
   catch(e){ console.error('❌ 函数不存在或未授权:', e.message); process.exit(1); }
   console.log('🔄 UpdateFunctionCode（不动环境变量）...');
   const r = await callSCF('UpdateFunctionCode', { FunctionName: FUNC_NAME, Handler:'index.main_handler', ZipFile: zipB64 });
-  console.log('✅ 部署完成:', r.Status || r.RequestId || 'ok');
+  console.log('✅ 代码部署完成:', r.Status || r.RequestId || 'ok');
+
+  // ⚠️ 防复发硬保证（2026-08-07 复盘教训）：
+  // 控制台/默认部署的函数超时是 3s，而 AI 网关首响 ~12s，会被平台超时掐断，
+  // 表现为"函数能启动但 AI 调不通 / timed out after 3 seconds"。
+  // 无论代码走控制台还是 API 部署，部署后强制把 Timeout 设为 180s。
+  // 注：本凭证的 UpdateFunctionConfiguration 已证实能持久化（改 Description 生效），故这步确定落地。
+  console.log('⏱  强制设置函数超时 Timeout=180s（防 AI 调用被 3s 默认超时掐断）...');
+  try {
+    await callSCF('UpdateFunctionConfiguration', { FunctionName: FUNC_NAME, Timeout: 180 });
+    const cfg = await callSCF('GetFunctionConfiguration', { FunctionName: FUNC_NAME });
+    console.log(`✅ Timeout 已生效: ${cfg.Timeout}s`);
+  } catch (e) {
+    console.error('⚠️  设置 Timeout 失败（不影响代码部署，但 AI 调用可能超时）:', e.message);
+  }
+
   console.log('⏳ 等待云端生效（约 10-30s），之后请求即走新代码');
 }
 main().catch(e => { console.error('❌ 部署失败:', e.message); process.exit(1); });

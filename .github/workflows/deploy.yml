@@ -33,6 +33,7 @@ jobs:
           node-version: '22'
 
       - name: Deploy SCF (Web + Event)
+        # 部署脚本内置 Timeout=180s 强制设置（防 AI 调用被 3s 默认超时掐断，2026-08-07 复盘）
         env:
           TC_SECRET_ID: ${{ secrets.TC_SECRET_ID }}
           TC_SECRET_KEY: ${{ secrets.TC_SECRET_KEY }}
