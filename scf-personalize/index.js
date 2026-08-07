@@ -8,6 +8,7 @@ const BUNDLED_TS = 1785564338118;
 const CACHE_VER = 'v21'; // BUNDLED_TIMESTAMP 自更新机制
 
 const http = require('http');
+const { runSeedPool } = require('./seed-pool-mode.cjs');
 
 let _configCache = {};
 let _selfShaCheck = 0;
@@ -920,6 +921,22 @@ http.createServer(async (req, res) => {
         await handleWeeklyPersona(res, params, corsHeaders);
       } catch (e) {
         res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: e.message || 'weekly-persona dispatch failed' }));
+      }
+      return;
+    }
+
+    // ===== seed-pool: 3.0 SEED_POOL 生成（断点续跑，产出 mood 分组种子，写回 data/v3-seedpool.js）=====
+    if (params.mode === 'seed-pool') {
+      try {
+        const token = process.env.GITEE_TOKEN;
+        const user = process.env.GITEE_USERNAME || 'hbatz';
+        const apiKey = process.env.SILICONFLOW_API_KEY;
+        if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'SILICONFLOW_API_KEY 未设置' })); return; }
+        const cfg = await loadAIConfig(token, user);
+        const sp = await runSeedPool({ apiKey, token, user, cfg, params, helpers: { callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize } });
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify(sp));
+      } catch (e) {
+        res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'seed-pool failed' }));
       }
       return;
     }
