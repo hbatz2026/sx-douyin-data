@@ -24,7 +24,7 @@
     weeklyBadge: true         // 本周新增角标
   };
 
-  var SCF_ENDPOINT = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+  var SCF_ENDPOINT = 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com';
 
   function readFlags() {
     var f = {}, k;
