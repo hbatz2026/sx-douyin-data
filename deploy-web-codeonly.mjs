@@ -48,18 +48,83 @@ async function callSCF(action, payload){
   if (json.Response.Error) throw new Error(`${json.Response.Error.Code}: ${json.Response.Error.Message}`);
   return json.Response;
 }
-function createZipFile(srcDir){
-  const tmpZip = join(tmpdir(), `scf-${Date.now()}.zip`);
-  if (process.platform === 'win32') {
-    const psCmd = `Compress-Archive -Path '${srcDir}\\*' -DestinationPath '${tmpZip}' -Force`;
-    execSync(`powershell -NoProfile -Command "${psCmd}"`, { stdio:'pipe' });
-  } else {
-    // GitHub Actions (ubuntu) 无 PowerShell，用系统 zip 命令（store 完整目录到 zip 根）
-    execSync(`cd "${srcDir}" && zip -r - . > "${tmpZip}"`, { stdio:'pipe' });
+// Node 手写 zip（store 模式），强制权限位，不依赖系统 zip / git 文件权限。
+// 关键：scf_bootstrap 必须 0755 且位于 zip 根，否则腾讯云 Web 函数 443。
+function crc32(buf) {
+  let c;
+  const table = crc32.table || (crc32.table = (() => {
+    const t = [];
+    for (let n = 0; n < 256; n++) {
+      c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c >>> 0;
+    }
+    return t;
+  })());
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) crc = (crc >>> 8) ^ table[(crc ^ buf[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function createZipFile(srcDir) {
+  const files = ['index.js', 'loader.js', 'scf_bootstrap', 'version.txt'];
+  const localParts = [];
+  const central = [];
+  let offset = 0;
+  for (const name of files) {
+    let data = readFileSync(join(srcDir, name));
+    // 统一 LF，避免 Windows CRLF 导致腾讯云校验丢弃
+    data = Buffer.from(data.toString('utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
+    const crc = crc32(data);
+    const mode = (name === 'scf_bootstrap') ? 0o100755 : 0o100644;
+    const nameBuf = Buffer.from(name, 'utf8');
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0, 6);
+    local.writeUInt16LE(0, 8); // store, no compression
+    local.writeUInt16LE(0, 10);
+    local.writeUInt16LE(0, 12);
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(data.length, 22);
+    local.writeUInt16LE(nameBuf.length, 26);
+    local.writeUInt16LE(0, 28);
+    const localFull = Buffer.concat([local, nameBuf, data]);
+    localParts.push(localFull);
+    const cen = Buffer.alloc(46);
+    cen.writeUInt32LE(0x02014b50, 0);
+    cen.writeUInt16LE(20, 4);
+    cen.writeUInt16LE(20, 6);
+    cen.writeUInt16LE(0, 8);
+    cen.writeUInt16LE(0, 10);
+    cen.writeUInt16LE(0, 12);
+    cen.writeUInt16LE(0, 14);
+    cen.writeUInt32LE(crc, 16);
+    cen.writeUInt32LE(data.length, 20);
+    cen.writeUInt32LE(data.length, 24);
+    cen.writeUInt16LE(nameBuf.length, 28);
+    cen.writeUInt16LE(0, 30);
+    cen.writeUInt16LE(0, 32);
+    cen.writeUInt16LE(0, 34);
+    cen.writeUInt16LE(0, 36);
+    cen.writeUInt32LE((mode << 16) >>> 0, 38); // 权限位，>>>0 防 32 位有符号溢出
+    cen.writeUInt32LE(offset, 42);
+    central.push(Buffer.concat([cen, nameBuf]));
+    offset += localFull.length;
   }
-  const data = readFileSync(tmpZip);
-  try { unlinkSync(tmpZip); } catch(e){}
-  return data.toString('base64');
+  const zip = Buffer.concat([Buffer.concat(localParts), Buffer.concat(central), (() => {
+    const end = Buffer.alloc(22);
+    end.writeUInt32LE(0x06054b50, 0);
+    end.writeUInt16LE(0, 4);
+    end.writeUInt16LE(0, 6);
+    end.writeUInt16LE(files.length, 8);
+    end.writeUInt16LE(files.length, 10);
+    end.writeUInt32LE(Buffer.concat(central).length, 12);
+    end.writeUInt32LE(Buffer.concat(localParts).length, 16);
+    end.writeUInt16LE(0, 20);
+    return end;
+  })()]);
+  return zip.toString('base64');
 }
 
 async function main(){
