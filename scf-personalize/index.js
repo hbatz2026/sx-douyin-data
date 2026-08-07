@@ -23,6 +23,13 @@ async function maybeSelfUpdate() {
   if (now - _selfShaCheck < SELF_SHA_INTERVAL) return;
   _selfShaCheck = now;
   
+  // 2026-08-06: GitHub-only 部署模式，默认禁用 Gitee 自部署。
+  // 背景：函数自身 CAM 凭证（TENCENTCLOUD_SECRETID/KEY）能真实写入 SCF，
+  // 但 Gitee token 已死 / scf-personalize 目录版本不一致会导致自部署用坏 zip 覆盖函数，
+  // 使 CodeSize=0 → 运行时报 [./scf_bootstrap] no such file or directory (443)，且本地 UpdateFunctionCode 为 no-op 无法救回。
+  // 故统一由 CI（GitHub Actions，真实 TC Secrets）部署，函数运行时只信任已部署代码，不再自部署。
+  // 仅在显式 SELF_DEPLOY=true 且 GITEE_TOKEN 有效时保留（调试/灰度用）。
+  if (process.env.SELF_DEPLOY !== 'true') return;
   const token = process.env.GITEE_TOKEN;
   if (!token) return;
   
