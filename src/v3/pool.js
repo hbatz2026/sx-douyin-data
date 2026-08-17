@@ -61,7 +61,8 @@
 
   // ==================== ① 日预热池 ====================
   function loadDayPool() {
-    var d = root.___dailyScripts;
+    // 3.0 SEED_POOL：优先读 SCF seed-pool 模式产出的 mood 分组契约数据；fallback 回 v2.x dailyScripts
+    var d = root.___v3SeedPool || root.___dailyScripts;
     if (!d || !d.scripts || !d.scripts.length) return null;
     var out = [];
     for (var i = 0; i < d.scripts.length; i++) {
