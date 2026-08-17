@@ -5,6 +5,12 @@
 // helpers 由 index.js 注入：{ callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize }
 'use strict';
 const Q = require('./quality-gate.cjs');
+const path = require('path');
+// 合规规则：加载随包 config/compliance-rules.json（零代码加规则），失败回退内置红线
+try {
+  const rules = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'config', 'compliance-rules.json'), 'utf8'));
+  Q.setExternalRules(rules);
+} catch (e) { /* 内置 FORBIDDEN 兜底 */ }
 
 const DRAFT = 'data/_seedPoolDraft.json';
 const OUT = 'data/v3-seedpool.js';
