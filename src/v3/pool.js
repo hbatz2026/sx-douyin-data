@@ -257,6 +257,16 @@
     personaReady: personaReady,
     fullScriptFor: fullScriptFor,
     TYPE_META: TYPE_META,
-    CACHE_KEY: CACHE_KEY
+    CACHE_KEY: CACHE_KEY,
+    // G2 偏好向量：localStorage 使用信号 → 权重（无事件=全 1 不歪，冷启动安全；core3.prefVectorFrom）
+    prefVector: function () {
+      return C.prefVectorFrom(T && T.allEvents ? T.allEvents() : []);
+    },
+    // G3 季节配比：当前季节 → 内容配比 → n 天排期（core3 纯函数 seasonOf/ratio/allocateSlots，确定性）
+    seasonPlan: function (n) {
+      var s = C.seasonOf(new Date());
+      var r = C.ratio(s.tag, null);
+      return { tag: s.tag, label: s.label, ratios: r, slots: C.allocateSlots(r, n || 5) };
+    }
   };
 })(typeof self !== 'undefined' ? self : this);
