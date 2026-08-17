@@ -1,0 +1,50 @@
+name: Seed Pool Auto-Update (3.0 SEED_POOL)
+
+# 每周一 00:30 UTC = 北京时间周一 08:30（weekly-persona 08:00 之后错峰）
+# 触发 Web 函数 seed-pool 模式：5 选题 × 3 mood × 2 变体 = 30 条
+#   → AI 生成(带 beats/hookKind/算法要素) → quality-gate 门禁(重试≤5) → 组装 SEED_POOL
+#   → 写回 data/v3-seedpool.js（前端 bundle 合并，trial 首页今日卡消费）
+# 断点续跑：进度存 data/_seedPoolDraft.json，本 workflow 循环 POST 直到 done:true（最多 30 轮）。
+on:
+  schedule:
+    - cron: '30 0 * * 1'   # 周一 00:30 UTC = 北京 08:30
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '强制重跑本周（丢弃现有 draft）'
+        required: false
+        default: 'false'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Run seed-pool until done
+        run: |
+          ENDPOINT='https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com'
+          FORCE='${{ github.event.inputs.force }}'
+          BODY='{"mode":"seed-pool"}'
+          if [ "$FORCE" = "true" ]; then BODY='{"mode":"seed-pool","force":true}'; fi
+
+          for i in $(seq 1 30); do
+            echo "=== round $i ==="
+            RESP=$(curl -s -m 200 -X POST "$ENDPOINT" -H 'Content-Type: application/json' -d "$BODY")
+            echo "$RESP" | head -c 1500; echo
+            # 首轮之后不再传 force，避免反复重开
+            BODY='{"mode":"seed-pool"}'
+
+            if echo "$RESP" | grep -q '"done":true'; then
+              echo "✅ seed-pool 完成"
+              exit 0
+            fi
+            sleep 3
+          done
+
+          echo "❌ 30 轮后仍未完成，请检查 data/_seedPoolDraft.json 进度"
+          exit 1
+
+      - name: Verify v3-seedpool.js
+        if: always()
+        run: |
+          curl -s -m 60 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com/data/v3-seedpool.js' | head -c 400
