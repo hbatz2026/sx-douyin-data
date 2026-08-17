@@ -18,13 +18,33 @@
   const BEAT_KEYS = ['hook', 'pain', 'solution', 'proof', 'cta'];
   const MIN_CHARS = 150, MAX_CHARS = 250, MIN_BEAT = 12, MIN_HOOK = 6;
 
+  // ── 外部规则（config/compliance-rules.json，零代码加规则）──
+  let EXT = { block: [], warn: [] }; // {id, pattern} 列表
+
+  function setExternalRules(rules) {
+    EXT = { block: [], warn: [] };
+    const list = (rules && rules.rules) || [];
+    for (const r of list) {
+      if (!r || !r.pattern) continue;
+      if (r.severity === 'block') EXT.block.push({ id: r.id, pattern: r.pattern });
+      else if (r.severity === 'warn') EXT.warn.push({ id: r.id, pattern: r.pattern });
+    }
+  }
+
   function countChars(s) { return (s || '').replace(/\s/g, '').length; }
 
   function redlineHit(text) {
     const t = text || '';
     for (const w of FORBIDDEN) if (t.includes(w)) return w;
+    for (const r of EXT.block) if (t.includes(r.pattern)) return '[' + (r.id || 'rule') + '] ' + r.pattern;
     if (BAD_TIER.test(t)) return '100M/100兆档位字样';
     return null;
+  }
+
+  function warnHits(text) {
+    const out = [];
+    for (const r of EXT.warn) if ((text || '').includes(r.pattern)) out.push(r.pattern);
+    return out;
   }
 
   function checkVariant(v, parent) {
@@ -56,6 +76,10 @@
     const hit = redlineHit(allText);
     if (hit) { reasons.push({ level: 'error', msg: '红线命中: ' + hit }); score -= 40; }
 
+    // 外部规则 warn 级：标记人工复核，不阻断
+    const warns = warnHits(allText);
+    for (const w of warns) { reasons.push({ level: 'warn', msg: '规则warn: ' + w }); score -= 3; }
+
     const pass = !reasons.some(r => r.level === 'error');
     return { pass, score: Math.max(0, Math.round(score)), reasons };
   }
@@ -77,5 +101,5 @@
     return out;
   }
 
-  return { checkVariant, checkPool, FORBIDDEN, BEAT_KEYS, MIN_CHARS, MAX_CHARS, MIN_BEAT, MIN_HOOK, HOOK_KINDS };
+  return { checkVariant, checkPool, setExternalRules, FORBIDDEN, BEAT_KEYS, MIN_CHARS, MAX_CHARS, MIN_BEAT, MIN_HOOK, HOOK_KINDS };
 });
