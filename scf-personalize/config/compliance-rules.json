@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "_comment": "抖本内容工坊合规规则（SCF quality-gate 加载，与前端共用同一套红线）。severity: block=废弃(命中即 error) / warn=标记人工复核(不阻断)。新增规则零代码：改本文件 + CI 部署即可。",
+  "rules": [
+    { "id": "ad_001", "category": "广告法", "severity": "block", "pattern": "最好", "description": "广告法第九条绝对化用语" },
+    { "id": "ad_002", "category": "广告法", "severity": "block", "pattern": "第一", "description": "广告法绝对化用语" },
+    { "id": "ad_003", "category": "广告法", "severity": "block", "pattern": "唯一", "description": "广告法绝对化用语" },
+    { "id": "ad_004", "category": "广告法", "severity": "block", "pattern": "最强", "description": "广告法绝对化用语" },
+    { "id": "ad_005", "category": "广告法", "severity": "block", "pattern": "全网最低", "description": "广告法绝对化用语" },
+    { "id": "ad_006", "category": "广告法", "severity": "block", "pattern": "最低价", "description": "广告法绝对化用语" },
+    { "id": "ad_007", "category": "广告法", "severity": "block", "pattern": "顶级", "description": "广告法绝对化用语" },
+    { "id": "ad_008", "category": "广告法", "severity": "block", "pattern": "极致", "description": "广告法绝对化用语" },
+    { "id": "tel_001", "category": "电信行业", "severity": "block", "pattern": "信号全覆盖", "description": "不承诺信号覆盖" },
+    { "id": "tel_002", "category": "电信行业", "severity": "block", "pattern": "网速保证", "description": "不承诺网速" },
+    { "id": "tel_003", "category": "电信行业", "severity": "block", "pattern": "免费送", "description": "不承诺免费赠送（需核实活动）" },
+    { "id": "tel_004", "category": "电信行业", "severity": "block", "pattern": "100M", "description": "档位红线：在售仅 300/500/1000/FTTR" },
+    { "id": "tel_005", "category": "电信行业", "severity": "block", "pattern": "100兆", "description": "档位红线" },
+    { "id": "tel_006", "category": "电信行业", "severity": "block", "pattern": "百兆", "description": "档位红线" },
+    { "id": "op_001", "category": "运营商立场", "severity": "block", "pattern": "骂运营商", "description": "不攻击运营商" },
+    { "id": "op_002", "category": "运营商立场", "severity": "block", "pattern": "运营商坑人", "description": "不攻击运营商" },
+    { "id": "op_003", "category": "运营商立场", "severity": "block", "pattern": "别给运营商白送钱", "description": "不攻击运营商" },
+    { "id": "op_004", "category": "运营商立场", "severity": "block", "pattern": "不要相信运营商", "description": "不攻击运营商" },
+    { "id": "dy_001", "category": "抖音平台", "severity": "block", "pattern": "加微信", "description": "不引导站外交易" },
+    { "id": "dy_002", "category": "抖音平台", "severity": "block", "pattern": "私信转账", "description": "不引导站外交易" },
+    { "id": "dy_003", "category": "抖音平台", "severity": "block", "pattern": "私信打钱", "description": "不引导站外交易" },
+    { "id": "warn_001", "category": "广告法", "severity": "warn", "pattern": "最划算", "description": "疑似极限词，人工复核" },
+    { "id": "warn_002", "category": "广告法", "severity": "warn", "pattern": "最便宜", "description": "疑似极限词，人工复核" },
+    { "id": "warn_003", "category": "电信行业", "severity": "warn", "pattern": "无限流量", "description": "表述不准确，需复核" }
+  ]
+}
