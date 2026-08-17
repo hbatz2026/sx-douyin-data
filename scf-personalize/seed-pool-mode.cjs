@@ -163,7 +163,7 @@ async function runSeedPool(ctx) {
     let v = null;
     for (let attempt = 0; attempt <= MAX_RETRY && !v; attempt++) {
       try {
-        const model = (attempt === 0) ? (cfg.model || 'deepseek-v4-pro') : (cfg.fallbackModel || 'qwen3.7-max');
+        const model = (attempt === 0) ? (cfg.model || 'qwen3.7-max') : (cfg.fallbackModel || 'deepseek-v4-flash');
         const raw = await callSiliconFlow(SYSTEM, buildUser(hsSanitize(job.topic), MOODS[job.mood], job.idx), apiKey, {
           endpoint: cfg.endpoint, model, temperature: 0.8, maxTokens: 1200, timeoutMs: 90000
         });
