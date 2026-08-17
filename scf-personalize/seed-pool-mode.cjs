@@ -15,7 +15,7 @@ try {
 const DRAFT = 'data/_seedPoolDraft.json';
 const OUT = 'data/v3-seedpool.js';
 const TIME_BUDGET_MS = 80000; // 每轮最多跑 ~80s，留余量给 Web 函数 180s 超时
-const MAX_RETRY = 2;
+const MAX_RETRY = 4; // 与本地 gen-weekpool 对齐(5 次尝试)：新算法 SYSTEM 严要求下提高达标率(本地实测 100%)
 
 // 选题源（与本地 spike ② 一致，5 选题 = 方案最小周池口径）
 const PICKS = [
