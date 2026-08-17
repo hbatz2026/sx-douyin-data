@@ -26,7 +26,7 @@ exports.main_handler = async (event, context) => {
   // 每日定时预热（timer 触发器 payload {mode:'hotspot-warmup'}）：触发 Web 函数生成最新热点，
   // Web 函数会自行持久化到 Gitee 共享缓存（data/hotspot-latest.json），前端即可秒级加载。
   if (mode === 'hotspot-warmup') {
-    const EP = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+    const EP = 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com';
     try {
       const p = fetch(EP, {
         method: 'POST',

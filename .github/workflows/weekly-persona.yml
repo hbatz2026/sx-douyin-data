@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Run weekly-persona until done
         run: |
-          ENDPOINT='https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com'
+          ENDPOINT='https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com'
           FORCE='${{ github.event.inputs.force }}'
           BODY='{"mode":"weekly-persona"}'
           if [ "$FORCE" = "true" ]; then BODY='{"mode":"weekly-persona","force":true}'; fi
@@ -55,4 +55,4 @@ jobs:
       - name: Verify weeklyNew.js
         if: always()
         run: |
-          curl -s -m 60 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com/data/weeklyNew.js' | head -c 1200
+          curl -s -m 60 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com/data/weeklyNew.js' | head -c 1200

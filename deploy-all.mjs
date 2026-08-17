@@ -27,7 +27,7 @@ const FULL = ARGS.includes('--full');
 const QUICK = ARGS.includes('--quick') || !FULL;
 const SCF_ONLY = ARGS.includes('--scf-only');
 
-const ENDPOINT = 'https://1253338744-66eug9kqc7.ap-guangzhou.tencentscf.com';
+const ENDPOINT = 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com';
 const FRONTEND_URL = 'https://hbatz2026.github.io/sx-douyin-data';
 
 // ─── TC 凭证（读 tc-config.cjs）───
