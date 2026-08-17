@@ -1,0 +1,64 @@
+name: Day Pool Auto-Update (3.0 日预热池)
+
+# 每日 00:40 UTC = 北京时间 08:40（daily-hotspot-warmup 08:05 之后错峰，等热点池先就绪）
+# 触发 Web 函数 day-pool 模式：今日热点前 3 话题 × 3 mood × 2 变体 = 18 条
+#   → AI 生成(带 beats/hookKind/算法要素) → quality-gate 门禁(重试≤5) → 组装 SEED_POOL 日池
+#   → 写回 data/dayPool.js（前端 pool.js 日池优先，四级回退第①级）
+# 断点续跑：进度存 data/_dayPoolDraft.json，本 workflow 循环 POST 直到 done:true（最多 30 轮）。
+on:
+  schedule:
+    - cron: '40 0 * * *'   # 每日 00:40 UTC = 北京 08:40
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '强制重跑今日（丢弃现有 draft）'
+        required: false
+        default: 'false'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Run day-pool until done
+        run: |
+          ENDPOINT='https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com'
+          FORCE='${{ github.event.inputs.force }}'
+          BODY='{"mode":"day-pool"}'
+          if [ "$FORCE" = "true" ]; then BODY='{"mode":"day-pool","force":true}'; fi
+
+          for i in $(seq 1 30); do
+            echo "=== round $i ==="
+            RESP=$(curl -s -m 200 -X POST "$ENDPOINT" -H 'Content-Type: application/json' -d "$BODY")
+            echo "$RESP" | head -c 1500; echo
+            # 首轮之后不再传 force，避免反复重开
+            BODY='{"mode":"day-pool"}'
+
+            if echo "$RESP" | grep -q '"done":true'; then
+              echo "✅ day-pool 完成"
+              exit 0
+            fi
+            sleep 3
+          done
+
+          echo "❌ 30 轮后仍未完成，请检查 data/_dayPoolDraft.json 进度"
+          exit 1
+
+      - name: Sync dayPool.js to Pages (Gitee → GitHub)
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          curl -sL -m 60 -o /tmp/dayPool.js 'https://gitee.com/hbatz/sx-douyin-data/raw/master/data/dayPool.js'
+          if ! grep -q '___dayPool' /tmp/dayPool.js; then echo '⚠️ Gitee 无日池数据，跳过同步'; exit 0; fi
+          B64=$(base64 -w0 /tmp/dayPool.js)
+          SHA=$(curl -s -m 30 "https://api.github.com/repos/hbatz2026/sx-douyin-data/contents/data/dayPool.js?ref=master" -H "Authorization: Bearer $GH_TOKEN" | python3 -c "import sys,json;print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
+          BODY="{\"message\":\"sync dayPool from Gitee (day-pool workflow)\",\"content\":\"$B64\",\"branch\":\"master\"}"
+          if [ -n "$SHA" ]; then BODY="{\"message\":\"sync dayPool from Gitee (day-pool workflow)\",\"content\":\"$B64\",\"branch\":\"master\",\"sha\":\"$SHA\"}"; fi
+          curl -s -m 60 -X PUT "https://api.github.com/repos/hbatz2026/sx-douyin-data/contents/data/dayPool.js" -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/json" -d "$BODY" | head -c 300
+          echo
+
+      - name: Verify dayPool.js
+        if: always()
+        run: |
+          curl -s -m 60 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com/data/dayPool.js' | head -c 400
