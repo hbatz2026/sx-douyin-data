@@ -44,6 +44,20 @@ jobs:
           echo "❌ 30 轮后仍未完成，请检查 data/_seedPoolDraft.json 进度"
           exit 1
 
+      - name: Sync v3-seedpool.js to Pages (Gitee → GitHub)
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          curl -sL -m 60 -o /tmp/v3-seedpool.js 'https://gitee.com/hbatz/sx-douyin-data/raw/master/data/v3-seedpool.js'
+          if ! grep -q '___v3SeedPool' /tmp/v3-seedpool.js; then echo '⚠️ Gitee 无 seedpool 数据，跳过同步'; exit 0; fi
+          B64=$(base64 -w0 /tmp/v3-seedpool.js)
+          SHA=$(curl -s -m 30 "https://api.github.com/repos/hbatz2026/sx-douyin-data/contents/data/v3-seedpool.js?ref=master" -H "Authorization: Bearer $GH_TOKEN" | python3 -c "import sys,json;print(json.load(sys.stdin).get('sha',''))" 2>/dev/null || true)
+          BODY="{\"message\":\"sync v3-seedpool from Gitee (seed-pool workflow)\",\"content\":\"$B64\",\"branch\":\"master\"}"
+          if [ -n "$SHA" ]; then BODY="{\"message\":\"sync v3-seedpool from Gitee (seed-pool workflow)\",\"content\":\"$B64\",\"branch\":\"master\",\"sha\":\"$SHA\"}"; fi
+          curl -s -m 60 -X PUT "https://api.github.com/repos/hbatz2026/sx-douyin-data/contents/data/v3-seedpool.js" -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/json" -d "$BODY" | head -c 300
+          echo
+
       - name: Verify v3-seedpool.js
         if: always()
         run: |
