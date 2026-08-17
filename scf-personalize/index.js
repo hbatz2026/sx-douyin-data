@@ -8,7 +8,7 @@ const BUNDLED_TS = 1785564338118;
 const CACHE_VER = 'v21'; // BUNDLED_TIMESTAMP 自更新机制
 
 const http = require('http');
-const { runSeedPool } = require('./seed-pool-mode.cjs');
+const { runSeedPool, runDayPool } = require('./seed-pool-mode.cjs');
 
 let _configCache = {};
 let _selfShaCheck = 0;
@@ -649,8 +649,9 @@ http.createServer(async (req, res) => {
         const r = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.SILICONFLOW_API_KEY}` },
-          body: JSON.stringify({ model: cfg.model || 'deepseek-v4-pro', messages: [{ role:'user', content:'ping' }], max_tokens: 1 }),
-          signal: AbortSignal.timeout(5000)
+          body: JSON.stringify({ model: cfg.model || 'qwen3.7-max', messages: [{ role:'user', content:'ping' }], max_tokens: 1 }),
+          // 2026-08-17: 5s→30s 修 diag 假阳性（网关首响 3-22s 抖动，5s 探测必误报 ai_reachable:false）
+          signal: AbortSignal.timeout(30000)
         });
         diag.checks.ai_endpoint = cfg.endpoint;
         diag.checks.ai_status = r.status;
@@ -938,6 +939,22 @@ http.createServer(async (req, res) => {
         res.writeHead(200, corsHeaders); res.end(JSON.stringify(sp));
       } catch (e) {
         res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'seed-pool failed' }));
+      }
+      return;
+    }
+
+    // ===== day-pool: 日预热池 mood 种子（方案 7.5 修正①，选题=今日热点，写回 data/dayPool.js）=====
+    if (params.mode === 'day-pool') {
+      try {
+        const token = process.env.GITEE_TOKEN;
+        const user = process.env.GITEE_USERNAME || 'hbatz';
+        const apiKey = process.env.SILICONFLOW_API_KEY;
+        if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'SILICONFLOW_API_KEY 未设置' })); return; }
+        const cfg = await loadAIConfig(token, user);
+        const dp = await runDayPool({ apiKey, token, user, cfg, params, helpers: { callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize } });
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify(dp));
+      } catch (e) {
+        res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'day-pool failed' }));
       }
       return;
     }
