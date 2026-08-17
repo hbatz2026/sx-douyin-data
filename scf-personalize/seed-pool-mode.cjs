@@ -182,10 +182,11 @@ async function runSeedPool(ctx) {
   const t0 = Date.now();
   const force = !!(params && params.force);
 
-  // 1) 断点续跑 draft
+  // 1) 断点续跑 draft（重建条件：force 或 draft 缺失/损坏，或 done 已全部完成——done 未满时续跑推进）
   let draft = null;
   try { draft = JSON.parse(await readGiteeFileR(DRAFT, token, user, 2)); } catch (e) { draft = null; }
-  if (force || !draft || !draft.jobs || draft.done) {
+  const doneCount = (draft && draft.done && Object.keys(draft.done).length) || 0;
+  if (force || !draft || !draft.jobs || doneCount >= (draft.jobs || []).length) {
     const picks = (await getWeeklyPicks(readGiteeFileR, token, user)) || PICKS;
     const jobs = buildJobs(picks);
     draft = { week: isoWeek(new Date()), picks: picks, jobs, done: {}, updatedAt: new Date().toISOString(), force: !!force };
@@ -268,10 +269,11 @@ async function runDayPool(ctx) {
   const t0 = Date.now();
   const force = !!(params && params.force);
 
-  // 1) 断点续跑 draft
+  // 1) 断点续跑 draft（重建条件同 runSeedPool：done 未满时续跑推进）
   let draft = null;
   try { draft = JSON.parse(await readGiteeFileR(DAY_DRAFT, token, user, 2)); } catch (e) { draft = null; }
-  if (force || !draft || !draft.jobs || draft.done) {
+  const doneCount = (draft && draft.done && Object.keys(draft.done).length) || 0;
+  if (force || !draft || !draft.jobs || doneCount >= (draft.jobs || []).length) {
     // 读今日热点 → 前 3 个话题作选题（清洗 #话题符；失败 fallback 静态 PICKS 前 3）
     let picks = null;
     try {
