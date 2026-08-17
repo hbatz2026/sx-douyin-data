@@ -25,7 +25,7 @@ const PICKS = [
   { type: 'review', topic: 'FTTR全屋光纤实测：每个房间网速都能跑满千兆吗？' },
   { type: 'local', topic: 'XX路电信营业厅重新装修了，欢迎来打卡' }
 ];
-const TYPE_META = { decision: ['决策指南', '📊'], scene: ['一线场景', '🎬'], review: ['深度测评', '🔍'], local: ['本地事件', '📍'] };
+const TYPE_META = { decision: ['决策指南', '📊'], scene: ['一线场景', '🎬'], review: ['深度测评', '🔍'], local: ['本地事件', '📍'], hotspot: ['热点跟拍', '🔥'] };
 const MOODS = {
   affinity: '暖心亲和（暖心姐姐式）：称呼"街坊/姐/宝子"，服务向、温暖、爱举例帮助人',
   professional: '专业理性（技术专家式）：数据、参数、专业判断，理性说服',
@@ -113,7 +113,33 @@ function isoWeek(d) {
   return date.getFullYear() + '-W' + String(weekNo).padStart(2, '0');
 }
 
-// 动态选题：联动 weekly-persona 本周话题（t1/t2/t4），新鲜 + 类型覆盖(决策/场景/本地) + 季节跟随；失败 fallback 静态 PICKS
+// ── Phase 3 季节配比（与前端 core3 SEASON_DELTA 对齐，纯函数可单测）──
+// 三维类型：decision(业务转化) / scene(热点场景) / local(日常本地)。配比 Σ=1。
+// 夏季/暑期档提升决策类（宽带/学生场景），冬季提升本地类，春秋均衡。
+const SEASON_RATIO = {
+  spring:       { decision: 0.4, scene: 0.3, local: 0.3 },
+  summer:       { decision: 0.5, scene: 0.3, local: 0.2 },
+  summer_break: { decision: 0.5, scene: 0.35, local: 0.15 },
+  autumn:       { decision: 0.4, scene: 0.3, local: 0.3 },
+  winter:       { decision: 0.35, scene: 0.3, local: 0.35 }
+};
+// 与 core3 seasonOf 同判：3-5 春 / 6-8 夏（7 月或 8 月 20 日前=暑期档）/ 9-11 秋 / 12-2 冬
+function seasonTag(d) {
+  const m = d.getMonth() + 1, day = d.getDate();
+  const season = (m >= 3 && m <= 5) ? 'spring' : (m >= 6 && m <= 8) ? 'summer' : (m >= 9 && m <= 11) ? 'autumn' : 'winter';
+  if (m === 7 || (m === 8 && day < 20)) return 'summer_break';
+  return season;
+}
+function ratioFor(tag) { return SEASON_RATIO[tag] || SEASON_RATIO.autumn; }
+// 按配比把 n 个槽位分给 decision/scene/local（四舍五入 + 本地补足，保证 Σ=n）
+function allocateByRatio(r, n) {
+  const decision = Math.round(n * r.decision);
+  const scene = Math.round(n * r.scene);
+  const local = n - decision - scene;
+  return { decision, scene, local };
+}
+
+// 动态选题：联动 weekly-persona 本周话题（t1/t2/t4），按季节配比分配类型，新鲜 + 类型覆盖 + 季节跟随；失败 fallback 静态 PICKS
 async function getWeeklyPicks(readGiteeFileR, token, user) {
   try {
     const raw = await readGiteeFileR('data/weeklyNew.js', token, user, 2);
@@ -122,11 +148,25 @@ async function getWeeklyPicks(readGiteeFileR, token, user) {
     let w;
     try { w = JSON.parse(m[1].replace(/,\s*([}\]])/g, '$1')); } catch (e) { w = null; }
     if (!w) return null;
+    // 按季节配比分配 5 个槽位（decision 从 t1、scene 从 t2、local 从 t4 取）
+    const r = ratioFor(seasonTag(new Date()));
+    const alloc = allocateByRatio(r, 5);
     const picks = [];
-    const take = (t, type, n) => { const arr = w[t] || []; if (arr[n]) picks.push({ type: type, topic: arr[n] }); };
-    take('t1', 'decision', 0); take('t2', 'scene', 0); take('t4', 'local', 0);
-    take('t1', 'decision', 1); take('t2', 'scene', 1);
-    return picks.length >= 3 ? picks : null;
+    const take = (t, type, n) => { const arr = w[t] || []; for (let i = 0; i < n && arr[i]; i++) picks.push({ type: type, topic: arr[i] }); };
+    take('t1', 'decision', alloc.decision);
+    take('t2', 'scene', alloc.scene);
+    take('t4', 'local', alloc.local);
+    // 池不足时用静态 PICKS 补足（按类型找对应 topic）
+    const staticByType = { decision: PICKS.filter(p => p.type === 'decision'), scene: PICKS.filter(p => p.type === 'scene'), local: PICKS.filter(p => p.type === 'local'), review: PICKS.filter(p => p.type === 'review') };
+    const need = { decision: alloc.decision, scene: alloc.scene, local: alloc.local };
+    ['decision', 'scene', 'local'].forEach(typ => {
+      while (picks.filter(p => p.type === typ).length < need[typ] && staticByType[typ].length) {
+        picks.push({ type: typ, topic: staticByType[typ][0].topic });
+      }
+    });
+    // 仍不足（如 t4 空）→ 用 review 兜底补足至 5 条
+    while (picks.length < 5 && staticByType.review.length) { picks.push({ type: 'review', topic: staticByType.review[0].topic }); }
+    return picks.length >= 3 ? picks.slice(0, 5) : null;
   } catch (e) { return null; }
 }
 
@@ -187,10 +227,10 @@ async function runSeedPool(ctx) {
   // 3) 每轮落盘 draft（断点续跑）
   await createOrUpdateGiteeFile(DRAFT, JSON.stringify(draft, null, 2), token, user);
 
-  // 4) 全部完成 → 组装 SEED_POOL 写回
+  // 4) 全部完成 → 组装 SEED_POOL 写回（遍历 draft.picks，动态选题与静态 PICKS 同构）
   let done = remaining === 0;
   if (done) {
-    const scripts = PICKS.map((p, pi) => {
+    const scripts = (draft.picks || PICKS).map((p, pi) => {
       const variants = {};
       Object.keys(MOODS).forEach(mood => {
         const arr = [];
@@ -217,4 +257,97 @@ async function runSeedPool(ctx) {
   return { ok: true, done: false, week: draft.week, filledThisCall: filled, remaining, progress: { done: jobs.length - remaining, total: jobs.length }, hint: '未跑完，请再次 POST mode=seed-pool 续跑', elapsedMs: Date.now() - t0 };
 }
 
-module.exports = { runSeedPool, SYSTEM, buildUser, PICKS, MOODS, DRAFT, OUT };
+// ── 日预热池（方案 7.5 修正①）：每日热点话题 × 3 mood × 2 变体，产出 SEED_POOL 契约日池 data/dayPool.js
+// 选题来自当日 hotspot-latest.json（已门禁达标），断点续跑 draft: data/_dayPoolDraft.json
+const DAY_DRAFT = 'data/_dayPoolDraft.json';
+const DAY_OUT = 'data/dayPool.js';
+
+async function runDayPool(ctx) {
+  const { apiKey, token, user, cfg, params, helpers } = ctx;
+  const { callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize } = helpers;
+  const t0 = Date.now();
+  const force = !!(params && params.force);
+
+  // 1) 断点续跑 draft
+  let draft = null;
+  try { draft = JSON.parse(await readGiteeFileR(DAY_DRAFT, token, user, 2)); } catch (e) { draft = null; }
+  if (force || !draft || !draft.jobs || draft.done) {
+    // 读今日热点 → 前 3 个话题作选题（清洗 #话题符；失败 fallback 静态 PICKS 前 3）
+    let picks = null;
+    try {
+      const raw = await readGiteeFileR('data/hotspot-latest.json', token, user, 2);
+      const hs = JSON.parse(raw);
+      picks = (hs.scripts || []).slice(0, 3)
+        .map(s => ({ type: 'hotspot', topic: hsSanitize((s.title || '').replace(/[#♨【】\[\]]/g, '').trim()) }))
+        .filter(p => p.topic.length >= 4);
+    } catch (e) { picks = null; }
+    if (!picks || picks.length === 0) picks = PICKS.slice(0, 3).map(p => ({ type: p.type, topic: p.topic }));
+    const jobs = buildJobs(picks);
+    draft = { week: isoWeek(new Date()), date: new Date().toISOString().slice(0, 10), picks, jobs, done: {}, updatedAt: new Date().toISOString(), force: !!force };
+  }
+  const jobs = draft.jobs || buildJobs(draft.picks);
+  const doneMap = draft.done || {};
+
+  // 2) 时间预算内推进（同 runSeedPool）
+  let filled = 0;
+  for (const job of jobs) {
+    if (Date.now() - t0 > TIME_BUDGET_MS) break;
+    const key = job.pi + '/' + job.mood + '/' + job.idx;
+    if (doneMap[key]) continue;
+    let v = null;
+    for (let attempt = 0; attempt <= MAX_RETRY && !v; attempt++) {
+      try {
+        const model = (attempt === 0) ? (cfg.model || 'qwen3.7-max') : (cfg.fallbackModel || 'deepseek-v4-flash');
+        const raw = await callSiliconFlow(SYSTEM, buildUser(hsSanitize(job.topic), MOODS[job.mood], job.idx), apiKey, {
+          endpoint: cfg.endpoint, model, temperature: 0.8, maxTokens: 1200, timeoutMs: 90000
+        });
+        if (!raw) continue;
+        const obj = extractJson(extractJsonObject, raw);
+        const cand = { _vid: job.mood[0] + (job.idx + 1), _persona: 'gen', bgm: obj.bgm || '', title: obj.title || job.topic, script: obj.script || '', hookKind: obj.hookKind || '', beats: obj.beats || {}, tags: obj.tags || [] };
+        const r = Q.checkVariant(cand, {});
+        if (r.pass) v = cand; else if (attempt < MAX_RETRY) { /* 静默重试 */ }
+      } catch (e) { /* 静默重试 */ }
+    }
+    if (!v) {
+      v = { _vid: job.mood[0] + (job.idx + 1), _persona: 'gen', bgm: '', title: job.topic, script: '（生成未达标，占位）', hookKind: 'value', beats: { hook: '这个问题很多人拿不准，别着急', pain: '很多人因为拿不准就随便选了，结果用着不顺手还多花钱', solution: '按人数、房型、预算三步筛，山西电信家宽在售 300M/500M/1000M/FTTR 四档，对号入座就行', proof: '上周帮一个三口之家按这三步选好，用下来都说合适', cta: '拿不准的来营业厅，我帮你一条条对' }, tags: [], _fallback: true };
+    }
+    doneMap[key] = v;
+    filled++;
+  }
+  const remaining = jobs.filter(j => !doneMap[j.pi + '/' + j.mood + '/' + j.idx]).length;
+  draft.done = doneMap;
+  draft.updatedAt = new Date().toISOString();
+
+  // 3) 每轮落盘 draft
+  await createOrUpdateGiteeFile(DAY_DRAFT, JSON.stringify(draft, null, 2), token, user);
+
+  // 4) 全部完成 → 组装日池写回
+  if (remaining === 0) {
+    const scripts = (draft.picks || PICKS).map((p, pi) => {
+      const variants = {};
+      Object.keys(MOODS).forEach(mood => {
+        const arr = [];
+        for (let idx = 0; idx < 2; idx++) { const v = doneMap[pi + '/' + mood + '/' + idx]; if (v) arr.push(v); }
+        variants[mood] = arr;
+      });
+      const [typeName, typeIcon] = TYPE_META[p.type] || ['脚本', '📄'];
+      return {
+        seedId: 'd_' + (p.type || 'hs') + '_' + pi, topic: p.topic, type: p.type, typeName, typeIcon,
+        mood: 'affinity', hookType: '', hookKind: (variants.affinity && variants.affinity[0] && variants.affinity[0].hookKind) || 'value',
+        hook: (variants.affinity && variants.affinity[0] && variants.affinity[0].beats && variants.affinity[0].beats.hook) || '',
+        structure: '五段式', scene: '店内柜台', day: pi + 1,
+        compliance: { status: 'passed', autoFixed: 0, blocked: false }, variants, slots: ['city', 'store']
+      };
+    });
+    const pool = { week: draft.week, date: draft.date, generatedAt: new Date().toISOString(), scripts };
+    const q = Q.checkPool(pool);
+    const body = '// 3.0 日预热池（SCF day-pool 模式生成，来源今日热点）date=' + draft.date + '\n' +
+      '// 达标率 ' + q.passed + '/' + q.total + ' 生成于 ' + pool.generatedAt + '\nwindow.___dayPool = ' + JSON.stringify(pool) + ';\n';
+    await createOrUpdateGiteeFile(DAY_OUT, body, token, user);
+    return { ok: true, done: true, date: draft.date, total: q.total, passed: q.passed, failed: q.failed, out: DAY_OUT, elapsedMs: Date.now() - t0 };
+  }
+
+  return { ok: true, done: false, date: draft.date, filledThisCall: filled, remaining, progress: { done: jobs.length - remaining, total: jobs.length }, hint: '未跑完，请再次 POST mode=day-pool 续跑', elapsedMs: Date.now() - t0 };
+}
+
+module.exports = { runSeedPool, runDayPool, SYSTEM, buildUser, PICKS, MOODS, DRAFT, OUT, DAY_DRAFT, DAY_OUT };
