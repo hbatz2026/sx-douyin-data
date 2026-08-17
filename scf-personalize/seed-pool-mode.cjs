@@ -113,9 +113,26 @@ function isoWeek(d) {
   return date.getFullYear() + '-W' + String(weekNo).padStart(2, '0');
 }
 
-function buildJobs() {
+// 动态选题：联动 weekly-persona 本周话题（t1/t2/t4），新鲜 + 类型覆盖(决策/场景/本地) + 季节跟随；失败 fallback 静态 PICKS
+async function getWeeklyPicks(readGiteeFileR, token, user) {
+  try {
+    const raw = await readGiteeFileR('data/weeklyNew.js', token, user, 2);
+    const m = raw.match(/window\.___weeklyNew\s*=\s*(\{[\s\S]*\});?\s*$/);
+    if (!m) return null;
+    let w;
+    try { w = JSON.parse(m[1].replace(/,\s*([}\]])/g, '$1')); } catch (e) { w = null; }
+    if (!w) return null;
+    const picks = [];
+    const take = (t, type, n) => { const arr = w[t] || []; if (arr[n]) picks.push({ type: type, topic: arr[n] }); };
+    take('t1', 'decision', 0); take('t2', 'scene', 0); take('t4', 'local', 0);
+    take('t1', 'decision', 1); take('t2', 'scene', 1);
+    return picks.length >= 3 ? picks : null;
+  } catch (e) { return null; }
+}
+
+function buildJobs(picks) {
   const jobs = [];
-  PICKS.forEach((p, pi) => Object.keys(MOODS).forEach(mood => { for (let idx = 0; idx < 2; idx++) jobs.push({ pi, type: p.type, topic: p.topic, mood, idx }); }));
+  (picks || PICKS).forEach((p, pi) => Object.keys(MOODS).forEach(mood => { for (let idx = 0; idx < 2; idx++) jobs.push({ pi, type: p.type, topic: p.topic, mood, idx }); }));
   return jobs;
 }
 
@@ -129,11 +146,12 @@ async function runSeedPool(ctx) {
   let draft = null;
   try { draft = JSON.parse(await readGiteeFileR(DRAFT, token, user, 2)); } catch (e) { draft = null; }
   if (force || !draft || !draft.jobs || draft.done) {
-    const jobs = buildJobs();
-    draft = { week: isoWeek(new Date()), jobs, done: {}, updatedAt: new Date().toISOString(), force: !!force };
+    const picks = (await getWeeklyPicks(readGiteeFileR, token, user)) || PICKS;
+    const jobs = buildJobs(picks);
+    draft = { week: isoWeek(new Date()), picks: picks, jobs, done: {}, updatedAt: new Date().toISOString(), force: !!force };
     if (force && draft) { /* force 重跑 */ }
   }
-  const jobs = draft.jobs || buildJobs();
+  const jobs = draft.jobs || buildJobs(draft.picks);
   const doneMap = draft.done || {};
 
   // 2) 时间预算内推进
