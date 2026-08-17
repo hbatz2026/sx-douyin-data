@@ -97,6 +97,16 @@ function extractJson(extractJsonObject, text) {
   throw new Error('AI 输出无法解析为 JSON');
 }
 
+// ISO 周（周一为一周起点），draft.week 用动态周而非写死
+function isoWeek(d) {
+  const date = new Date(d.getTime());
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return date.getFullYear() + '-W' + String(weekNo).padStart(2, '0');
+}
+
 function buildJobs() {
   const jobs = [];
   PICKS.forEach((p, pi) => Object.keys(MOODS).forEach(mood => { for (let idx = 0; idx < 2; idx++) jobs.push({ pi, type: p.type, topic: p.topic, mood, idx }); }));
@@ -114,7 +124,7 @@ async function runSeedPool(ctx) {
   try { draft = JSON.parse(await readGiteeFileR(DRAFT, token, user, 2)); } catch (e) { draft = null; }
   if (force || !draft || !draft.jobs || draft.done) {
     const jobs = buildJobs();
-    draft = { week: '2026-W32', jobs, done: {}, updatedAt: new Date().toISOString(), force: !!force };
+    draft = { week: isoWeek(new Date()), jobs, done: {}, updatedAt: new Date().toISOString(), force: !!force };
     if (force && draft) { /* force 重跑 */ }
   }
   const jobs = draft.jobs || buildJobs();
