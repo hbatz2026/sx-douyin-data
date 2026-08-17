@@ -454,7 +454,7 @@ JSON schema (one object per script):
   "schedule": "suggested publish day + timeliness"
 }`;
   const user = `以下是今日多平台候选（话题热点 + 热门BGM + 短视频形式 + 搜索截流）。
-请严格按以下要求生成：总数 4 条脚本，覆盖话题热点(hot)和搜索截流(search)两类；每条脚本必须包含 4 个 steps，每个 step 必须包含 shot（画面动作，15-25字）、sub（屏幕字幕/关键信息，15-25字）、duration（建议时长，如"3-5秒"）；每条脚本必须包含 4 句 voice 口播逐字稿，与 4 个 steps 严格一一对应，营业员拿到可直接照念；必须包含 formTip（这种形式怎么拍最出彩）、tip（1条具体拍摄建议）、loop（1句诱导互动的问题）、bgm（具体热门歌名-作者）。务必完整输出 JSON 数组，不要被截断。
+请严格按以下要求生成：总数 4 条脚本，覆盖话题热点(hot)和搜索截流(search)两类；每条脚本必须包含 4 个 steps，每个 step 必须包含 shot（画面动作，15-25字）、sub（屏幕字幕/关键信息，15-25字）、duration（建议时长，如"3-5秒"）；每条脚本必须包含 4 句 voice 口播逐字稿，与 4 个 steps 严格一一对应，营业员拿到可直接照念；**voice 每句 40-65 字、4 句合计必须 170-250 字（宁长勿短，总字数不足 170 字视为不合格整条重写，杜绝 130 字左右的短稿）**；必须包含 formTip（这种形式怎么拍最出彩）、tip（1条具体拍摄建议）、loop（1句诱导互动的问题）、bgm（具体热门歌名-作者）。务必完整输出 JSON 数组，不要被截断。
 
 【话题热点候选】
 ${hot}
@@ -468,7 +468,7 @@ ${form}
 【搜索截流候选】
 ${search}
 
-请直接输出 JSON 数组，严格按上面 schema。口播逐字稿(voice)要口语化、可照念；步骤(steps)与逐字稿一一对应；评论引导(loop)要带一个问题诱导互动；formTip 写清这种形式怎么拍最出彩。`;
+请直接输出 JSON 数组，严格按上面 schema。口播逐字稿(voice)要口语化、可照念，**4 句合计 170-250 字，宁长勿短**；步骤(steps)与逐字稿一一对应；评论引导(loop)要带一个问题诱导互动；formTip 写清这种形式怎么拍最出彩。`;
   return { system, user };
 }
 
@@ -871,6 +871,7 @@ http.createServer(async (req, res) => {
         const raw = await callSiliconFlow(msgs.system, msgs.user, apiKey, {
           endpoint: cfg.endpoint,
           model: cfg.model || params.model || 'deepseek-v4-pro',
+          fallbackModel: cfg.fallbackModel || 'deepseek-v4-flash',
           temperature: 0.9,
           maxTokens: 10000,
           timeoutMs: 180000
@@ -1062,6 +1063,7 @@ http.createServer(async (req, res) => {
         const raw = await callSiliconFlow(system, userMsg, apiKey, {
           endpoint: cfg.endpoint,
           model: params.model || cfg.model || 'deepseek-v4-pro',
+          fallbackModel: cfg.fallbackModel || 'deepseek-v4-flash',
           temperature: params.temperature || cfg.temperature || 0.8,
           maxTokens: params.max_tokens || cfg.maxTokens || 2000,
           // 2026-07-31: tbnx deepseek-v4-pro 实测首响 ~82s，45s 太短必超时；提到 180s
@@ -1860,11 +1862,11 @@ async function searchT2({ preset, topic }) {
 const BUNDLED_AI_CONFIG = {
   enabled: true,
   endpoint: 'https://api.vectorengine.cn/v1/chat/completions',
-  model: 'deepseek-v4-pro',
+  model: 'qwen3.7-max',
   temperature: 0.8,
   maxTokens: 2000,
   timeoutMs: 180000,
-  fallbackModel: 'qwen3.7-max'
+  fallbackModel: 'deepseek-v4-flash'
 };
 
 async function loadAIConfig(token, user) {
@@ -1960,50 +1962,65 @@ function toAsciiJson(obj) {
 }
 
 async function callSiliconFlow(system, user, apiKey, cfg) {
-  // R1【模型选型头对头 QA 整改，2026-08-06】：主模型失败/超时/空响应时，自动降级到兜底模型，
-  // 消除每日 08:05 预热 + 周一 weekly-persona 的"空池"中断风险。改动限于调用处，零风险。
-  const primary = cfg.model || 'deepseek-ai/DeepSeek-V4-Pro';
+  // R1 强制包装（2026-08-17 加强）：同模型"快速失败"重试 1 次 + 跨模型兜底 + 总预算控制。
+  // 预算 170s（函数超时 180s 留 10s 余量），主模型单次超时绝不吞掉整个请求，
+  // 消除">240s 超时→当日热点池清空"隐患：主模型失败时兜底模型永远有执行机会。
+  const primary = cfg.model || 'deepseek-v4-pro';
   const fb = cfg.fallbackModel || null;
   const seen = new Set();
   const models = [primary, fb].filter(Boolean).filter(m => { if (seen.has(m)) return false; seen.add(m); return true; });
+  const budgetMs = Math.max(30000, Math.min(cfg.timeoutMs || 180000, 170000));
+  const t0 = Date.now();
   let lastErr = null;
   for (const m of models) {
-    try {
-      const res = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: toAsciiJson({
-          model: m,
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: user }
-          ],
-          temperature: cfg.temperature || 0.8,
-          max_tokens: cfg.maxTokens || 2000
-        }),
-        signal: AbortSignal.timeout(cfg.timeoutMs || 180000)
-      });
+    const isFallback = (m !== primary);
+    const maxAttempts = isFallback ? 1 : 2; // 主模型快速失败重试 1 次；兜底预算有限只 1 次
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const elapsed = Date.now() - t0;
+      const remain = budgetMs - elapsed;
+      if (remain < 20000) { if (!lastErr) lastErr = new Error('AI 调用预算耗尽（' + budgetMs + 'ms）'); break; }
+      // 主模型每次留 20s 给兜底；兜底用尽剩余预算
+      const fetchTimeout = isFallback ? remain : Math.max(15000, remain - 20000);
+      try {
+        const res = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: toAsciiJson({
+            model: m,
+            messages: [
+              { role: 'system', content: system },
+              { role: 'user', content: user }
+            ],
+            temperature: cfg.temperature || 0.8,
+            max_tokens: cfg.maxTokens || 2000
+          }),
+          signal: AbortSignal.timeout(fetchTimeout)
+        });
 
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`SiliconFlow ${res.status}: ${err.slice(0, 200)}`);
-      }
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(`SiliconFlow ${res.status}: ${err.slice(0, 200)}`);
+        }
 
-      const json = await res.json();
-      const content = json.choices?.[0]?.message?.content || null;
-      const cleaned = content ? sanitize100M(sanitizeStance(sanitizeHardBan(content))) : null;
-      if (cleaned) {
-        if (m !== primary) console.warn(`[callSiliconFlow] 主模型 ${primary} 失败，已降级到兜底模型 ${m} 生成成功`);
-        return cleaned;
+        const json = await res.json();
+        const content = json.choices?.[0]?.message?.content || null;
+        const cleaned = content ? sanitize100M(sanitizeStance(sanitizeHardBan(content))) : null;
+        if (cleaned) {
+          if (m !== primary) console.warn(`[callSiliconFlow] 主模型 ${primary} 失败，已降级到兜底模型 ${m} 生成成功（耗时 ${Date.now() - t0}ms）`);
+          else if (attempt > 0) console.warn(`[callSiliconFlow] 模型 ${m} 第 ${attempt + 1} 次尝试成功（耗时 ${Date.now() - t0}ms）`);
+          return cleaned;
+        }
+        lastErr = new Error(`模型 ${m} 返回空内容`);
+        console.warn(`[callSiliconFlow] 模型 ${m} 返回空内容${isFallback ? '' : '，尝试下一个候选'}`);
+      } catch (e) {
+        lastErr = e;
+        console.warn(`[callSiliconFlow] 模型 ${m} 调用失败（attempt ${attempt + 1}）：${e.message}`);
       }
-      lastErr = new Error(`模型 ${m} 返回空内容`);
-      console.warn(`[callSiliconFlow] 模型 ${m} 返回空内容，尝试下一个候选`);
-    } catch (e) {
-      lastErr = e;
-      console.warn(`[callSiliconFlow] 模型 ${m} 调用失败：${e.message}`);
+      // 同模型 retry 仅限快速失败：若已用掉大部分预算，直接降级，不再重试
+      if (Date.now() - t0 > budgetMs - 20000) break;
     }
   }
   if (lastErr) throw lastErr;
