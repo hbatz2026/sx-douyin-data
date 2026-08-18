@@ -10,11 +10,17 @@
  *  3. UMD：浏览器挂 window.V3Core，Node 走 module.exports，同一份代码两处跑。
  */
 (function (root, factory) {
-  var api = factory();
+  var api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.V3Core = api;
-})(typeof self !== 'undefined' ? self : this, function () {
+})(typeof self !== 'undefined' ? self : this, function (root) {
   'use strict';
+
+  // N-5：人设/语气共享常量取自 personas.js（前后端共用，禁止各自硬编码）
+  var P = (typeof require === 'function') ? require('./personas') : (root.V3Personas || {});
+  if (!P || !P.PERSONA_TO_MOOD) {
+    console.warn('[core3] V3Personas 未加载，回退内置映射（请确认 personas.js 在 core3.js 之前加载）');
+  }
 
   // ==================== 1. 哈希 / 时间 ====================
 
@@ -224,10 +230,10 @@
 
   // ==================== 3. 3 语气 × 6 人设映射（§7.6.1） ====================
 
-  var MOODS = ['affinity', 'professional', 'young'];
+  var MOODS = (P && P.MOODS) || ['affinity', 'professional', 'young'];
 
-  /** 6 人设 → 3 语气；兼容 2.x(sister/sweet/tech/biz/young/master) 与原型(warm/vibe/pro) 两套命名 */
-  var PERSONA_TO_MOOD = {
+  /** 6 人设 → 3 语气；兼容 2.x(sister/sweet/tech/biz/young/master) 与原型(warm/vibe/pro) 两套命名（来源 personas.js） */
+  var PERSONA_TO_MOOD = (P && P.PERSONA_TO_MOOD) || {
     warm: 'affinity', sister: 'affinity', sweet: 'affinity',
     tech: 'professional', biz: 'professional', pro: 'professional', master: 'professional',
     vibe: 'young', young: 'young'
@@ -251,8 +257,8 @@
 
   // ==================== 4. 偏好向量 + 路由（§7.5 dim5） ====================
 
-  /** 事件权重：复制/分享是强正反馈，换一条是负反馈，曝光是弱正反馈 */
-  var SIGNAL_WEIGHT = { seed_copy: 2, seed_share: 3, seed_view: 0.2, seed_skip: -1.5 };
+  /** 事件权重：复制/分享/显式好评是强正反馈，换一条/差评是负反馈，曝光是弱正反馈 */
+  var SIGNAL_WEIGHT = { seed_copy: 2, seed_share: 3, seed_view: 0.2, seed_skip: -1.5, seed_feedback: 3 };
 
   /**
    * 由使用信号推导偏好向量（纯函数，事件数组由调用方给）
@@ -268,6 +274,8 @@
     for (i = 0; i < events.length; i++) {
       e = events[i]; if (!e || !e.ev) continue;
       w = SIGNAL_WEIGHT[e.ev]; if (w == null) continue;
+      // N-8：显式反馈事件带 rating（+1 好评 / -1 差评），乘到事件权重上（无 rating 则乘 1，向后兼容）
+      if (e.rating != null) w = w * (e.rating > 0 ? 1 : -1);
       n++;
       if (e.mood && moodScore[e.mood] != null) moodScore[e.mood] += w;
       if (e.type && typeScore[e.type] != null) typeScore[e.type] += w;
@@ -294,6 +302,7 @@
     for (i = 0; i < events.length; i++) {
       var e = events[i]; if (!e || !e.type || dist[e.type] == null) continue;
       var w = SIGNAL_WEIGHT[e.ev]; if (w == null) continue;
+      if (e.rating != null) w = w * (e.rating > 0 ? 1 : -1);
       dist[e.type] += w;
     }
     for (t in dist) dist[t] = Math.max(0, dist[t]);
@@ -364,11 +373,21 @@
 
   // ==================== 5. 立场合规（红线，与 src/core.js sanitizeStance 同源） ====================
 
-  var STANCE_PATTERNS = [
-    /别?(急着)?骂运营商/g, /骂运营商/g, /怪运营商/g,
-    /(白)?送钱给运营商/g, /给运营商(白)?送钱/g, /运营商白送钱/g,
-    /电信更坑人/g, /不要相信运营商/g, /运营商都是坑/g, /运营商坑人/g
-  ];
+  // N-3：立场红线取自共享合规规则（config/compliance-rules.json → compliance-rules.js），缺失回退内置
+  var COMPLIANCE = (typeof require === 'function')
+    ? (function () { try { return require('./compliance-rules'); } catch (e) { return null; } })()
+    : (root.___COMPLIANCE_RULES || null);
+  var STANCE_PATTERNS = [];
+  if (COMPLIANCE && COMPLIANCE.stance && COMPLIANCE.stance.block) {
+    for (var si = 0; si < COMPLIANCE.stance.block.length; si++) STANCE_PATTERNS.push(new RegExp(COMPLIANCE.stance.block[si], 'g'));
+  }
+  if (!STANCE_PATTERNS.length) {
+    STANCE_PATTERNS = [
+      /别?(急着)?骂运营商/g, /骂运营商/g, /怪运营商/g,
+      /(白)?送钱给运营商/g, /给运营商(白)?送钱/g, /运营商白送钱/g,
+      /电信更坑人/g, /不要相信运营商/g, /运营商都是坑/g, /运营商坑人/g
+    ];
+  }
 
   /** 返回命中的违规片段（空数组=合规）——渲染前自检，杜绝红线内容出前端 */
   function scanStance(text) {
