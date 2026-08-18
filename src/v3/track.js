@@ -1,21 +1,28 @@
 /**
  * 抖本内容工坊 3.0 · 信号埋点（§7.6.3 最小信号集）
  *
- * 5 事件：seed_view / seed_copy / seed_skip / seed_share / seed_fallback
+ * 事件：seed_view / seed_copy / seed_skip / seed_share / seed_fallback / seed_feedback
  * 维度铁律：一律带 mood（用户可见 3 语气），**禁止**带 _persona（生成端嗓音库）。
  *
  * 落地姿态（§7.5.2 修正②第 4 条「信号采集先于权重演进」）：
  *  · 默认只做本地采集（内存 + localStorage ring buffer），不改线上推荐行为；
  *  · 远端上报挂 feature-flag（默认 OFF），开启后走现有 SCF 端点，keepalive 不阻塞交互；
  *  · 上报失败静默降级，绝不把埋点故障暴露成用户可见错误（控制台 0 error 是发布铁律）。
+ *
+ * N-6/N-8（2026-08-18 补）：离线权重重算 + Phase5 反馈闭环。
+ *  · feedback(seedId, mood, type, rating) —— 显式反馈事件（rating: +1 好评 / -1 差评），
+ *    只入本地信号池，不实时改线上行为（权重演进挂 feature-flag）；
+ *  · recompute() —— 离线聚合 allEvents 生成权重快照（mood/type/signalDist/70-20-10），
+ *    落 localStorage('sxdy_v3_offline_weights')，供管理员/CI 巡检（§7.5.2 修正②「离线重算」）。
  */
 (function (root) {
   'use strict';
 
   var STORE_KEY = 'sxdy_v3_events';
   var FLAG_KEY = 'sxdy_v3_flags';
+  var WEIGHTS_KEY = 'sxdy_v3_offline_weights';
   var MAX_EVENTS = 300;           // ring buffer 上限，防止 localStorage 膨胀
-  var VALID = { seed_view: 1, seed_copy: 1, seed_skip: 1, seed_share: 1, seed_fallback: 1 };
+  var VALID = { seed_view: 1, seed_copy: 1, seed_skip: 1, seed_share: 1, seed_fallback: 1, seed_feedback: 1 };
 
   var DEFAULT_FLAGS = {
     trackRemote: false,       // 远端上报（默认关：先采集，后演进）
@@ -83,6 +90,7 @@
       type: payload.type || null,
       mood: payload.mood || null,          // 只记 mood，绝不记 _persona
       vid: payload.vid == null ? null : payload.vid,
+      rating: payload.rating == null ? null : (payload.rating > 0 ? 1 : -1), // N-8：显式反馈方向（+1/-1）
       level: payload.level || null,        // 仅 seed_fallback
       channel: payload.channel || null,    // 仅 seed_share
       store: payload.store || null,
@@ -132,11 +140,56 @@
     return s;
   }
 
+  // ==================== N-8 Phase5 反馈闭环：显式反馈事件 ====================
+  /** 用户显式反馈（rating: +1 喜欢 / -1 不喜欢）→ 本地信号池，供离线重算消费 */
+  function feedback(seedId, mood, type, rating, extra) {
+    var payload = { seedId: seedId, mood: mood, type: type };
+    if (rating != null) payload.rating = rating > 0 ? 1 : -1;
+    if (extra) for (var k in extra) if (extra[k] != null) payload[k] = extra[k];
+    return track('seed_feedback', payload);
+  }
+
+  // ==================== N-6 信号离线权重重算（§7.5.2 修正②「离线重算 + 确定性快照」） ====================
+  /**
+   * 聚合全部使用信号 → 离线权重快照（不改线上行为，只产出可巡检数据）。
+   * @returns {{generatedAt:number, sample:number, evCount:object, mood:{affinity:number,...},
+   *            type:{decision:number,...}, signalDist:object|null, buckets:{evergreen:number,local:number,hotspot:number}}}
+   */
+  function recompute() {
+    var all = allEvents();
+    var core = root.V3Core;
+    var out = {
+      generatedAt: Date.now(),
+      sample: all.length,
+      evCount: summary(),
+      mood: null, type: null, signalDist: null, buckets: null
+    };
+    if (core && typeof core.prefVectorFrom === 'function' && all.length) {
+      var pv = core.prefVectorFrom(all);
+      out.mood = pv.mood; out.type = pv.type;
+      out.signalDist = (typeof core.signalDistFrom === 'function') ? core.signalDistFrom(all) : null;
+      if (out.signalDist && typeof core.toBuckets === 'function') out.buckets = core.toBuckets(out.signalDist);
+    }
+    try { localStorage.setItem(WEIGHTS_KEY, JSON.stringify(out)); } catch (e) {}
+    return out;
+  }
+
+  /** 读最近一次离线权重快照（无则 null） */
+  function lastWeights() {
+    try {
+      var raw = localStorage.getItem(WEIGHTS_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
   root.V3Track = {
     track: track,
     allEvents: allEvents,
     clearEvents: clearEvents,
     summary: summary,
+    feedback: feedback,
+    recompute: recompute,
+    lastWeights: lastWeights,
     flags: flags,
     setFlag: setFlag,
     ENDPOINT: SCF_ENDPOINT,
