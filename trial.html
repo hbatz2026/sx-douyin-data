@@ -64,6 +64,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sc-badge.passed{background:var(--green-light);color:#0B6B34;}
 .sc-badge.fixed{background:#FFF3CD;color:#856404;}
 .sc-badge.blocked{background:var(--red-light);color:#B3261E;}
+.sc-badge.draft{background:#B45309;color:#fff;}
 
 .sc-hook{font-size:12px;padding:0 14px;color:var(--text-light);margin-bottom:2px;}
 .sc-hook .hook-label{font-size:10px;color:#6b7280;margin-right:4px;}
@@ -178,6 +179,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .flag-row .fr-desc{font-size:10px;color:#55606e;display:block;margin-top:1px;}
 .flag-row button{border:1px solid var(--gray-border);background:var(--white);border-radius:12px;font-size:10px;padding:3px 10px;cursor:pointer;color:var(--text);}
 .flag-row button.on{background:var(--green-light);color:#0B6B34;border-color:#9BD3B3;}
+
+/* ===== 桌面端适配（方案C：双列 + 放大 + 展开提示，2026-08-18） ===== */
+.expand-hint{display:flex;align-items:center;gap:4px;font-size:10px;color:#8a93a3;padding:2px 14px 0;cursor:pointer;user-select:none;}
+.script-card.expanded .expand-hint{display:none;}
+@media (min-width:768px){
+  .app{max-width:980px;}
+  .tab-bar{max-width:980px;}
+  .content{padding:16px 20px 28px;}
+  .daily-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+  .script-card:active{transform:none;}
+  .script-card:hover{box-shadow:var(--shadow-card);transform:translateY(-1px);}
+  .sc-title{font-size:15px;}
+  .sc-hook{font-size:13px;}
+  .sc-preview .preview-text{font-size:14px;line-height:1.7;-webkit-line-clamp:3;}
+}
 </style>
 </head>
 <body>
@@ -234,6 +250,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <h3>📊 使用信号（本机采集）</h3>
         <div class="sig-grid" id="sigGrid"></div>
         <div style="font-size:10px;color:#55606e;line-height:1.5;">信号只记「3 语气」维度，不记内部人设。默认仅本机留存，用于离线重算内容配比权重；未开启上报前不出本机。</div>
+        <div class="my-btn" role="button" tabindex="0" data-testid="recompute-weights" onclick="recomputeWeights()">
+          <span class="m-icon" aria-hidden="true">🧮</span>
+          <span class="m-label">离线权重重算（N-6）</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
+        </div>
+        <div id="weightsBox" style="font-size:11px;color:#55606e;line-height:1.7;margin-top:8px;word-break:break-all;">未重算（信号样本 0）</div>
       </div>
       <div class="my-section">
         <h3>🧪 功能开关（灰度）</h3>
@@ -284,10 +306,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script src="data/bundle.js"></script>
   <script src="data/dailyScripts.js"></script>
   <script src="data/v3-seedpool.js"></script>
-  <!-- v3.0 内核：纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-<script src="src/v3/core3.js"></script>
-<script src="src/v3/track.js"></script>
-<script src="src/v3/pool.js"></script>
+  <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
+  <script src="src/v3/personas.js"></script>
+  <script src="src/v3/core3.js"></script>
+  <script src="src/v3/track.js"></script>
+  <script src="src/v3/gate.js"></script>
+  <script src="src/v3/pool.js"></script>
 
 <script>
 // ==================== Config ====================
@@ -494,10 +518,11 @@ function renderScriptCard(script, idx, vidOverride) {
   var vid = (vidOverride != null) ? vidOverride : (cardVid[idx] != null ? cardVid[idx] : pinned);
   cardVid[idx] = vid;
   var v = (group[vid] || group[0] || {});
+  var isDraft = !!v.draft || !!script.draft;               // 门禁下沉：未达口播稿标准 → 草稿态角标
 
   var compliance = script.compliance || {};
-  var badgeClass = compliance.status || 'passed';
-  var badgeText = badgeClass === 'passed' ? '✅ 合规' : (badgeClass === 'fixed' ? '🔧 已修正' : '⚠️ 拦截');
+  var badgeClass = isDraft ? 'draft' : (compliance.status || 'passed');
+  var badgeText = isDraft ? '⚠️ 草稿态·未达口播稿标准' : (badgeClass === 'passed' ? '✅ 合规' : (badgeClass === 'fixed' ? '🔧 已修正' : '⚠️ 拦截'));
   var fixedNote = (badgeClass === 'fixed' && compliance.autoFixed > 0) ? ' (修正'+compliance.autoFixed+'处)' : '';
 
   var scriptText = v.script || script.coreOffer || '';
@@ -529,12 +554,14 @@ function renderScriptCard(script, idx, vidOverride) {
     '<div class="sc-hook"><span class="hook-label">钩子'+(script.hookType ? '('+script.hookType+')' : '')+':</span>'+esc(script.hook || '')+'</div>' +
     '<div class="sc-title">'+ esc(script.topic || '') +'</div>' +
     '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+(bgm ? ' · 🎵 '+esc(bgm) : '')+'</div>' +
-    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div></div>' +
+    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div><div class="expand-hint" aria-hidden="true">👁 点击查看全文</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
     '<button type="button" class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
     '<button type="button" class="sc-switch" onclick="event.stopPropagation();cycleCard('+idx+')">🔄 换一条</button>' +
     '<button type="button" class="sc-switch" onclick="event.stopPropagation();shareCard('+idx+')">📤 分享</button>' +
+    '<button type="button" class="sc-switch fb-up" title="这条对我有用" aria-label="好评" onclick="event.stopPropagation();feedbackCard('+idx+',1)">👍</button>' +
+    '<button type="button" class="sc-switch fb-down" title="这条没帮助" aria-label="差评" onclick="event.stopPropagation();feedbackCard('+idx+',-1)">👎</button>' +
     '</div></div>';
 }
 
@@ -756,7 +783,7 @@ function renderMinePage() {
   var s = TRK.summary();
   var cells = [
     { k:'seed_view', l:'曝光' }, { k:'seed_copy', l:'复制' }, { k:'seed_skip', l:'换一条' },
-    { k:'seed_share', l:'分享' }, { k:'seed_fallback', l:'池回退' }
+    { k:'seed_share', l:'分享' }, { k:'seed_feedback', l:'反馈' }, { k:'seed_fallback', l:'池回退' }
   ];
   var grid = '';
   cells.forEach(function(c){
@@ -765,6 +792,21 @@ function renderMinePage() {
   var pref = V3.prefVectorFrom(TRK.allEvents());
   grid += '<div class="sig-cell"><div class="sg-n">'+pref.sample+'</div><div class="sg-l">样本量</div></div>';
   document.getElementById('sigGrid').innerHTML = grid;
+
+  // N-6：离线权重快照展示（上次重算结果；未重算给提示）
+  var w = TRK.lastWeights();
+  var wBox = document.getElementById('weightsBox');
+  if (w && w.sample > 0) {
+    var fmt = function(o){ if (!o) return '—'; return Object.keys(o).map(function(k){ return k+':'+o[k]; }).join(' '); };
+    var buck = w.buckets ? ('常规:' + w.buckets.evergreen + ' 本地:' + w.buckets.local + ' 热点:' + w.buckets.hotspot) : '—';
+    wBox.innerHTML = '⏱ ' + new Date(w.generatedAt).toLocaleString() + ' · 样本 ' + w.sample +
+      '<br>语气权重：' + fmt(w.mood) +
+      '<br>类型权重：' + fmt(w.type) +
+      '<br>70/20/10 桶（由信号推导）：' + buck +
+      '<br><span style="color:#8a93a3;">（确定性兜底常驻，此表仅离线重算产物，不实时改线上配比）</span>';
+  } else {
+    wBox.innerHTML = '未重算（信号样本 0）——点上方按钮生成离线权重快照';
+  }
 
   var flags = '';
   FLAG_META.forEach(function(f){
@@ -800,6 +842,24 @@ function renderMinePage() {
     '✅ 立场校验通过 ' + (total - blocked) + ' 条<br>' +
     '⚠️ 命中红线自动隐藏 ' + blocked + ' 条<br>' +
     '扫描规则：营业员视角，禁止攻击运营商类表述';
+}
+
+// N-8 Phase5 反馈闭环：卡片 👍/👎 显式反馈 → 本地信号池（离线重算消费，不实时改线上）
+function feedbackCard(idx, rating) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var grp = variantGroup(script);
+  var vid = (cardVid[idx] != null) ? cardVid[idx] : V3.pinnedIndex(operatorId(), script.seedId || ('seed_'+idx), lastISOWeek, grp.length);
+  TRK.feedback(script.seedId || ('seed_'+idx), curMood, script.type || 'decision', rating);
+  showToast(rating > 0 ? '👍 已记好评，这类选题会多推' : '👎 已记差评，这类选题会少推');
+}
+
+// N-6 信号离线权重重算：聚合本机全部事件 → 权重快照（确定性兜底常驻，本产物仅供巡检）
+function recomputeWeights() {
+  if (!TRK || typeof TRK.recompute !== 'function') { showToast('信号模块未就绪'); return; }
+  var out = TRK.recompute();
+  renderMinePage();
+  showToast('离线权重已重算：样本 ' + out.sample);
 }
 
 function toggleFlag(key) {
@@ -1093,7 +1153,7 @@ function renderLiveCard(s, idx) {
     '<div class="sc-hook"><span class="hook-label">钩子:</span>'+s.hook+'</div>' +
     '<div class="sc-title">'+s.topic+'</div>' +
     '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+' · 🎤 直播话术</div>' +
-    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
+    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div><div class="expand-hint" aria-hidden="true">👁 点击查看全文</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
     '<button class="sc-copy" onclick="event.stopPropagation();copyLiveText('+idx+')">📋 复制话术</button>' +
