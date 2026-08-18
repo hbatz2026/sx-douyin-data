@@ -303,15 +303,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="toast" id="toast"></div>
 
 <!-- Data -->
-<script src="data/bundle.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
-  <script src="data/dailyScripts.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
-  <script src="data/v3-seedpool.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+<script src="data/bundle.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/dailyScripts.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/v3-seedpool.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/core3.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/track.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/gate.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/pool.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/personas.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/core3.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/track.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/gate.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/pool.js?v=2.9.68&t=1787047894587&t=1787045070999&t=1787041885133"></script>
 
 <script>
 // ==================== Config ====================
@@ -554,7 +554,7 @@ function renderScriptCard(script, idx, vidOverride) {
     '<div class="sc-hook"><span class="hook-label">钩子'+(script.hookType ? '('+script.hookType+')' : '')+':</span>'+esc(script.hook || '')+'</div>' +
     '<div class="sc-title">'+ esc(script.topic || '') +'</div>' +
     '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+(bgm ? ' · 🎵 '+esc(bgm) : '')+'</div>' +
-    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div><div class="expand-hint" aria-hidden="true">👁 点击查看全文</div></div>' +
+    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'" data-preview-text="'+esc(previewText)+'" data-full-text="'+esc(scriptText)+'">'+esc(previewText)+'</div><div class="expand-hint" aria-hidden="true">👁 点击查看全文</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
     '<button type="button" class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
@@ -610,9 +610,20 @@ function emitView(el) {
 function toggleCard(idx) {
   var el = document.getElementById('card-'+idx);
   if (!el) return;
-  el.classList.toggle('expanded');
+  var expanded = el.classList.toggle('expanded');
+  // 展开/折叠时切换 .preview-text 的内容（折叠时 previewText 120 字截断 + "..."；展开时完整 scriptText）
+  var pv = document.getElementById('pv-'+idx);
+  if (pv) {
+    var prevText = pv.getAttribute('data-preview-text');
+    var fullText = pv.getAttribute('data-full-text');
+    if (expanded && fullText) {
+      pv.textContent = fullText;
+    } else if (!expanded && prevText != null) {
+      pv.textContent = prevText;
+    }
+  }
   // ⑥ 展开时按需加载 6 人设完整口播稿（227KB 懒加载，折叠回当前语气）
-  if (el.classList.contains('expanded')) enrichFullScript(idx);
+  if (expanded) enrichFullScript(idx);
 }
 
 function enrichFullScript(idx) {
