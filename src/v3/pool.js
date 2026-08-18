@@ -15,6 +15,12 @@
 
   var C = root.V3Core;
   var T = root.V3Track;
+  // N-5：语气模板取自共享常量 personas.js（TONE 不再本地硬编码）
+  var PERSONAS = root.V3Personas || (typeof require === 'function' ? require('./personas') : {});
+  var TONE = (PERSONAS && PERSONAS.TONE) || {};
+  if (!TONE || !TONE.affinity) {
+    console.warn('[pool] V3Personas.TONE 未加载，周备池模板拼装将失败（请确认 personas.js 在 pool.js 之前加载）');
+  }
   var CACHE_KEY = 'sxdy_v3_pool_cache';
   var CACHE_MAX_AGE_MS = 7 * 24 * 3600 * 1000;
 
@@ -44,8 +50,34 @@
 
   var HOOK_BY_TYPE = {
     decision: '选之前先搞清这一条', scene: '真实发生在营业厅的一件小事',
-    review: '实测数据摆出来看', local: '太原本地才有的这个安排', hotspot: '今天这个热点，营业厅能接'
+    review: '实测数据摆出来看', local: '[city]本地才有的这个安排', hotspot: '今天这个热点，营业厅能接'
   };
+
+  // ==================== P-1 插槽事实替换（[city]/[store] → 营业厅实际信息） ====================
+  var SHANXI_CITIES = ['太原', '大同', '阳泉', '长治', '晋城', '朔州', '晋中', '运城', '忻州', '临汾', '吕梁'];
+
+  /** 从营业厅名称推导城市（山西 11 地市首匹配），无匹配返回 '' */
+  function cityOf(storeName) {
+    if (!storeName) return '';
+    for (var i = 0; i < SHANXI_CITIES.length; i++) {
+      if (storeName.indexOf(SHANXI_CITIES[i]) >= 0) return SHANXI_CITIES[i];
+    }
+    return '';
+  }
+
+  /**
+   * 把文本中的 [city]/[store]（及 {{city}}/{{store}}）占位符替换为营业厅实际信息。
+   * 纯函数：ctx = { city?, storeName?|operatorId? }；缺失时用中性词兜底（本店/本地），不崩溃。
+   */
+  function applySlots(text, ctx) {
+    if (!text || typeof text !== 'string') return text;
+    ctx = ctx || {};
+    var store = ctx.storeName || ctx.operatorId || '';
+    var city = ctx.city || cityOf(store);
+    return String(text)
+      .replace(/\[store\]|\{\{store\}\}/g, store || '本店')
+      .replace(/\[city\]|\{\{city\}\}/g, city || '本地');
+  }
 
   function forcedEmpty() {
     var set = {};
@@ -90,17 +122,45 @@
     return '按人数、房型、预算三步筛，山西电信家宽在售 300M / 500M / 1000M / FTTR 四档，对号入座就行。';
   }
 
+  // ==================== 质量门禁下沉（G-3.0a/c · 与 3.0 构建门禁 checkScriptQuality 对齐） ====================
+  // 硬门禁 = 完整口播稿(isFullScript) + 广告法(detectAdWords) + 立场红线(scanStance) + 山西电信在售档位。
+  // 说明：不复用 2.x 前端 auditScript 作硬门禁——其 retention/cta 为软互动评分，实测会误伤 60-70% 已达标稿
+  //       （seed-pool 在字数/beats/档位/红线全 100% 达标，却被 auditScript 卡掉 60-70%）。故门禁对齐 SCF
+  //       构建门禁 checkScriptQuality.cjs 口径（beats/字数/红线/档位），并补广告法一维（构建门禁漏检项）。
+  function gateText(text) {
+    var reasons = [];
+    if (typeof root.isFullScript === 'function' && !root.isFullScript(text)) {
+      reasons.push('非完整口播稿（字数/五段式结构不足）');
+    }
+    if (typeof root.detectAdWords === 'function') {
+      var ad = root.detectAdWords(text || '');
+      if (ad.length) reasons.push('广告法违禁词：' + ad.join('、'));
+    }
+    if (root.V3Core && typeof root.V3Core.scanStance === 'function') {
+      var st = root.V3Core.scanStance(text || '');
+      if (st.length) reasons.push('立场红线：' + st.join('、'));
+    }
+    if (!/(300M|500M|1000M|FTTR|融合套餐)/.test(text || '')) {
+      reasons.push('缺山西电信在售档位(300/500/1000/FTTR)');
+    }
+    return { ok: reasons.length === 0, reasons: reasons };
+  }
+
   function makeSeed(topic, type, isNew, idx) {
     var seedId = 's_w_' + type + '_' + C.stableHash(topic).toString(36);
     var variants = {};
     var moods = C.MOODS;
+    var anyOk = false;
     for (var m = 0; m < moods.length; m++) {
       var mood = moods[m], arr = [], tpl = TONE[mood] || [];
       for (var i = 0; i < tpl.length; i++) {
         var text = tpl[i].f(topic, pointOf(topic));
         if (C.scanStance(text).length) continue;          // 合规最后一道闸：命中红线直接不入池
+        var g = gateText(text);                            // 质量门禁下沉：与 2.x auditScript 同标准
+        if (g.ok) anyOk = true;
         arr.push({ _vid: mood.charAt(0) + (i + 1), _persona: tpl[i].p, bgm: ['温馨轻快', '沉稳专业', '动感'][m],
-                   title: topic, script: text, tags: [ (TYPE_META[type] || {}).name || type ] });
+                   title: topic, script: text, tags: [ (TYPE_META[type] || {}).name || type ],
+                   draft: !g.ok, quality: g });
       }
       variants[mood] = arr;
     }
@@ -110,6 +170,7 @@
       typeIcon: (TYPE_META[type] || {}).icon || '📄',
       mood: 'affinity', hookType: '周备池', hook: HOOK_BY_TYPE[type] || '',
       isWeeklyNew: !!isNew, poolLevel: 'week',
+      draft: !anyOk,                                       // 三条语气变体全未达门禁 → 整卡标草稿态
       compliance: { status: 'passed', autoFixed: 0, blocked: false },
       variants: variants
     };
@@ -186,6 +247,21 @@
     // 命中日/周池 → 顺手写本地缓存，供下次断网兜底
     if (level === 'day' || level === 'week') cacheWrite(level, res);
 
+    // P-1 插槽事实替换：把 [city]/[store] 占位符替换为营业厅实际信息（写死"太原"的模板稿经 TONE 占位符后在此落位）
+    if (res && res.length) {
+      for (var i = 0; i < res.length; i++) {
+        var s = res[i];
+        if (!s || !s.variants) continue;
+        for (var md in s.variants) {
+          var arr = s.variants[md];
+          if (!arr) continue;
+          for (var j = 0; j < arr.length; j++) {
+            if (arr[j] && arr[j].script) arr[j].script = applySlots(arr[j].script, ctx);
+          }
+        }
+      }
+    }
+
     if (T) T.track('seed_fallback', { level: level, store: ctx.operatorId || null, week: ctx.isoWeek || null });
 
     return {
@@ -235,6 +311,8 @@
         if (C.moodOfPersona(persona) !== mood) continue;
         var text = byPersona[persona];
         if (!text || C.scanStance(text).length) continue;   // 存量 2.x 文本入前端前必须过红线扫描
+        var g = gateText(text);                              // 质量门禁下沉：未过 audit 的人设稿不入前端
+        if (!g.ok) continue;
         candidates.push({ script: text, _persona: persona });
       }
       if (candidates.length) break;
@@ -242,7 +320,10 @@
     if (!candidates.length) return null;
     // 确定性钉选：同人同选题同周恒定同一嗓音
     var idx = C.pinnedIndex(operatorId || 'default', topic + '|full', isoWeek || '', candidates.length);
-    return candidates[idx];
+    var picked = candidates[idx];
+    // P-1：人设真稿同样做插槽事实替换
+    picked.script = applySlots(picked.script, { operatorId: operatorId });
+    return picked;
   }
 
   root.V3Pool = {
@@ -253,6 +334,8 @@
     cacheWrite: cacheWrite,
     cacheClear: cacheClear,
     forcedEmpty: forcedEmpty,
+    applySlots: applySlots,
+    cityOf: cityOf,
     ensurePersonaScripts: ensurePersonaScripts,
     personaReady: personaReady,
     fullScriptFor: fullScriptFor,
