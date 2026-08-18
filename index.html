@@ -179,6 +179,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .flag-row .fr-desc{font-size:10px;color:#55606e;display:block;margin-top:1px;}
 .flag-row button{border:1px solid var(--gray-border);background:var(--white);border-radius:12px;font-size:10px;padding:3px 10px;cursor:pointer;color:var(--text);}
 .flag-row button.on{background:var(--green-light);color:#0B6B34;border-color:#9BD3B3;}
+
+/* ===== 桌面端适配（方案C：双列 + 放大 + 展开提示，2026-08-18） ===== */
+.expand-hint{display:flex;align-items:center;gap:4px;font-size:10px;color:#8a93a3;padding:2px 14px 0;cursor:pointer;user-select:none;}
+.script-card.expanded .expand-hint{display:none;}
+@media (min-width:768px){
+  .app{max-width:980px;}
+  .tab-bar{max-width:980px;}
+  .content{padding:16px 20px 28px;}
+  .daily-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+  .script-card:active{transform:none;}
+  .script-card:hover{box-shadow:var(--shadow-card);transform:translateY(-1px);}
+  .sc-title{font-size:15px;}
+  .sc-hook{font-size:13px;}
+  .sc-preview .preview-text{font-size:14px;line-height:1.7;-webkit-line-clamp:3;}
+}
 </style>
 </head>
 <body>
@@ -288,15 +303,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="toast" id="toast"></div>
 
 <!-- Data -->
-<script src="data/bundle.js?v=2.9.66&t=1787041885133"></script>
-  <script src="data/dailyScripts.js?v=2.9.66&t=1787041885133"></script>
-  <script src="data/v3-seedpool.js?v=2.9.66&t=1787041885133"></script>
+<script src="data/bundle.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="data/dailyScripts.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="data/v3-seedpool.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.66&t=1787041885133"></script>
-  <script src="src/v3/core3.js?v=2.9.66&t=1787041885133"></script>
-  <script src="src/v3/track.js?v=2.9.66&t=1787041885133"></script>
-  <script src="src/v3/gate.js?v=2.9.66&t=1787041885133"></script>
-  <script src="src/v3/pool.js?v=2.9.66&t=1787041885133"></script>
+  <script src="src/v3/personas.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/core3.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/track.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/gate.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/pool.js?v=2.9.67&t=1787045070999&t=1787041885133"></script>
 
 <script>
 // ==================== Config ====================
@@ -539,7 +554,7 @@ function renderScriptCard(script, idx, vidOverride) {
     '<div class="sc-hook"><span class="hook-label">钩子'+(script.hookType ? '('+script.hookType+')' : '')+':</span>'+esc(script.hook || '')+'</div>' +
     '<div class="sc-title">'+ esc(script.topic || '') +'</div>' +
     '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+(bgm ? ' · 🎵 '+esc(bgm) : '')+'</div>' +
-    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div></div>' +
+    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div><div class="expand-hint" aria-hidden="true">👁 点击查看全文</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
     '<button type="button" class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
@@ -1138,7 +1153,7 @@ function renderLiveCard(s, idx) {
     '<div class="sc-hook"><span class="hook-label">钩子:</span>'+s.hook+'</div>' +
     '<div class="sc-title">'+s.topic+'</div>' +
     '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+' · 🎤 直播话术</div>' +
-    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
+    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div><div class="expand-hint" aria-hidden="true">👁 点击查看全文</div></div>' +
     sbHtml +
     '<div class="sc-actions">' +
     '<button class="sc-copy" onclick="event.stopPropagation();copyLiveText('+idx+')">📋 复制话术</button>' +
