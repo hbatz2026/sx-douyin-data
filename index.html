@@ -2,1036 +2,1182 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0052CC">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>山西电信抖本内容工坊 · 精选脚本</title>
-  <link rel="stylesheet" href="styles.css?v=2.9.65&t=1787023823612&t=1787017771223&t=1787017580580&t=1786934561296&t=1786084161388&t=1785923072876&t=1785901466633&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>山西电信抖本内容工坊 · 3.0</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  --blue:#004098; --blue-light:#E8F0FE; --blue-mid:#1A6ED8;
+  --orange:#FF6B00; --orange-light:#FFF3E8;
+  --green:#0D904F; --green-light:#E6F4EA;
+  --red:#D93025; --red-light:#FCE8E6;
+  --gray:#F5F7FA; --gray-border:#E0E4EA;
+  --text:#1A1D26; --text-light:#6B7280; --white:#fff;
+  --shadow:0 2px 10px rgba(0,64,152,.07);
+  --shadow-card:0 4px 16px rgba(0,64,152,.1);
+  --radius:12px; --radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--gray);color:var(--text);line-height:1.6;min-height:100vh;}
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230052CC'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23fff'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
-  <!-- P1 性能：预连接 SCF 数据端点，减少首屏 /data 请求的连接建立延迟 -->
-  <link rel="preconnect" href="https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com" crossorigin>
-  <link rel="dns-prefetch" href="https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com">
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--gray);position:relative;padding-bottom:56px;}
 
-  <!-- External data files — core bundle (首页必需) -->
-  <script src="data/bundle.js?v=2.9.65&t=1787023823612&t=1787017771223&t=1787017580580&t=1786934561296&t=1786084161388&t=1785923072876&t=1785901466633&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
-  <!-- bundle-extended.js 已合并入 bundle.js，原懒加载包装已移除（曾因执行顺序报 ReferenceError） -->
+/* ===== Header ===== */
+.app-header{background:linear-gradient(135deg,var(--blue) 0%,#002B66 100%);color:var(--white);padding:14px 16px 12px;position:relative;}
+.app-header .top{display:flex;align-items:center;justify-content:space-between;}
+.app-header .title{font-size:17px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.app-header .date{font-size:11px;opacity:.7;margin-top:2px;}
+.app-header .h-badge{background:rgba(255,255,255,.15);font-size:10px;padding:2px 10px;border-radius:10px;}
 
+/* Store bar */
+.store-bar{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:rgba(255,255,255,.8);}
+.store-bar input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;font-size:11px;color:#fff;outline:none;width:140px;}
+.store-bar input::placeholder{color:rgba(255,255,255,.4);}
+
+/* ===== Bottom Tab ===== */
+.tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:var(--white);border-top:1px solid var(--gray-border);display:flex;z-index:50;padding:4px 0;box-shadow:0 -2px 8px rgba(0,0,0,.04);}
+.tab-bar .tab{flex:1;text-align:center;padding:4px 0;cursor:pointer;color:var(--text-light);transition:all .15s;border-top:2px solid transparent;}
+.tab-bar .tab.active{color:var(--blue);border-top-color:var(--blue);background:var(--blue-light);}
+.tab-bar .tab .icon{font-size:18px;display:block;}
+.tab-bar .tab .label{font-size:10px;display:block;margin-top:-2px;}
+
+/* ===== Content ===== */
+.content{padding:10px 14px 12px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== 今日推荐 ===== */
+.persona-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.persona-strip::-webkit-scrollbar{display:none;}
+.p-chip{flex-shrink:0;padding:4px 10px;border-radius:14px;font-size:11px;border:1.5px solid var(--gray-border);background:var(--white);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.p-chip.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue);font-weight:600;}
+.p-chip:active{transform:scale(.96);}
+
+.daily-cards{display:flex;flex-direction:column;gap:10px;}
+.script-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-card);overflow:hidden;transition:all .15s;cursor:pointer;}
+.script-card:active{transform:scale(.99);}
+
+.sc-head{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;}
+.sc-head .type-icon{font-size:18px;}
+.sc-head .type-name{font-size:13px;font-weight:600;color:var(--blue);}
+.sc-head .sc-badge{font-size:10px;padding:2px 8px;border-radius:8px;margin-left:auto;}
+.sc-badge.passed{background:var(--green-light);color:#0B6B34;}
+.sc-badge.fixed{background:#FFF3CD;color:#856404;}
+.sc-badge.blocked{background:var(--red-light);color:#B3261E;}
+.sc-badge.draft{background:#B45309;color:#fff;}
+
+.sc-hook{font-size:12px;padding:0 14px;color:var(--text-light);margin-bottom:2px;}
+.sc-hook .hook-label{font-size:10px;color:#6b7280;margin-right:4px;}
+.sc-title{font-size:14px;font-weight:500;padding:0 14px;line-height:1.4;}
+
+.sc-preview{padding:8px 14px;}
+.sc-preview .preview-text{font-size:12px;color:#555;line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.sc-actions{display:flex;gap:4px;padding:0 14px 10px;}
+.sc-actions button{flex:1;padding:6px;border:none;border-radius:6px;font-size:11px;cursor:pointer;}
+.sc-copy{background:var(--blue);color:var(--white);}
+.sc-switch{background:var(--gray);color:var(--text);}
+
+/* Expanded state */
+.script-card.expanded .preview-text{-webkit-line-clamp:unset;max-height:none;}
+.script-card.expanded .storyboard{display:block;}
+.storyboard{display:none;padding:0 14px 12px;}
+.storyboard table{width:100%;border-collapse:collapse;font-size:11px;}
+.storyboard td{padding:6px 4px;border-bottom:1px solid var(--gray-border);vertical-align:top;}
+.storyboard td.sec{color:var(--text-light);white-space:nowrap;width:36px;font-weight:600;}
+.storyboard td.cam{color:var(--text-light);font-size:10px;width:60px;}
+
+.sc-persona-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;background:var(--blue-light);color:var(--blue);margin:0 14px 6px;}
+
+/* ===== 排期 ===== */
+.week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;}
+.week-day{background:var(--white);border-radius:10px;padding:10px 4px;text-align:center;box-shadow:var(--shadow);}
+.week-day.today{border:2px solid var(--blue);background:var(--blue-light);}
+.week-day .wd-label{font-size:10px;color:#4B5563;}
+.week-day .wd-icon{font-size:18px;margin:4px 0;}
+.week-day .wd-topic{font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.week-day .wd-status{font-size:9px;margin-top:2px;}
+.wd-done{color:#0B6B34;} .wd-today{color:var(--blue);font-weight:600;}
+
+/* ===== 热点 ===== */
+.hot-list{display:flex;flex-direction:column;gap:8px;}
+.hot-item{background:var(--white);border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow);border-left:3px solid var(--orange);}
+.hot-item .h-rank{font-size:10px;color:var(--orange);font-weight:600;}
+.hot-item .h-title{font-size:13px;font-weight:500;margin:2px 0;}
+.hot-item .h-why{font-size:11px;color:var(--text-light);line-height:1.5;}
+.hot-item .h-why .label{color:#aaa;}
+
+/* ===== 直播 ===== */
+.live-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.live-card{background:var(--white);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;border:1.5px solid var(--gray-border);}
+.live-card:active{transform:scale(.97);border-color:var(--blue);}
+.live-card .live-icon{font-size:28px;}
+.live-card .live-name{font-size:13px;font-weight:600;margin:4px 0 2px;}
+.live-card .live-desc{font-size:11px;color:var(--text-light);}
+
+/* ===== 我的 ===== */
+.my-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px;}
+.my-section h3{font-size:14px;margin-bottom:8px;color:var(--text);}
+.my-btn{display:flex;align-items:center;gap:8px;padding:10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .1s;}
+.my-btn:active{background:var(--gray);}
+.my-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+.my-btn .m-icon{font-size:18px;width:28px;text-align:center;}
+.my-btn .m-label{font-size:13px;flex:1;}
+.my-btn .m-arrow{color:var(--text-light);font-size:12px;}
+
+/* ===== Toast ===== */
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ===== Modal ===== */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:100;justify-content:center;align-items:flex-end;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:20px 16px 36px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;}
+.modal-sheet h3{font-size:15px;margin-bottom:12px;}
+.modal-close{width:100%;padding:10px;border:none;border-radius:var(--radius-sm);font-size:13px;background:var(--gray);color:var(--text);cursor:pointer;margin-top:12px;}
+
+/* ===== v3.0 池状态条（§7.6.2 四级回退可视化） ===== */
+.pool-bar{display:flex;align-items:center;gap:6px;font-size:10px;padding:4px 8px;border-radius:8px;margin-bottom:8px;}
+.pool-bar.lv-day{background:var(--green-light);color:#0B6B34;}
+.pool-bar.lv-week{background:var(--blue-light);color:var(--blue);}
+.pool-bar.lv-cache{background:#FFF3CD;color:#7A5B03;}
+.pool-bar.lv-empty{background:var(--red-light);color:#B3261E;}
+.pool-bar .pb-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.pool-bar .pb-mode{margin-left:auto;font-weight:400;}
+
+/* ===== v3.0 骨架屏（四级回退的第 ④ 级空态） ===== */
+.skeleton-wrap{display:flex;flex-direction:column;gap:10px;}
+.sk-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+.sk-line{height:10px;border-radius:5px;background:linear-gradient(90deg,#EEF1F5 25%,#E2E7EE 37%,#EEF1F5 63%);background-size:400% 100%;animation:skshine 1.4s ease infinite;margin-bottom:8px;}
+.sk-line.w40{width:40%;} .sk-line.w70{width:70%;} .sk-line.w90{width:90%;}
+@keyframes skshine{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+@media (prefers-reduced-motion: reduce){.sk-line{animation:none;}}
+.empty-note{text-align:center;padding:14px 10px;font-size:12px;color:#55606e;}
+.empty-note .en-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.empty-note button{margin-top:10px;padding:7px 16px;border:1px solid var(--gray-border);border-radius:16px;background:var(--white);color:var(--blue);font-size:12px;cursor:pointer;}
+
+/* ===== v3.0 本周新增角标 ===== */
+.badge-new{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;background:var(--orange-light);color:#9A3F00;font-weight:600;margin-left:4px;}
+
+/* ===== v3.0 排期季节条 ===== */
+.season-bar{background:var(--white);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);margin-bottom:10px;}
+.season-bar .sb-top{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin-bottom:6px;}
+.season-bar .sb-tag{font-size:10px;padding:1px 7px;border-radius:8px;background:var(--orange-light);color:#9A3F00;}
+.ratio-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:6px 0 4px;}
+.ratio-bar i{display:block;height:100%;}
+.ratio-legend{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:#55606e;}
+.ratio-legend span{display:flex;align-items:center;gap:3px;}
+.ratio-legend em{width:7px;height:7px;border-radius:2px;font-style:normal;}
+
+/* ===== v3.0 我的页 · 信号面板 ===== */
+.sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
+.sig-cell{background:var(--gray);border-radius:8px;padding:8px 4px;text-align:center;}
+.sig-cell .sg-n{font-size:15px;font-weight:600;color:var(--blue);}
+.sig-cell .sg-l{font-size:9px;color:#55606e;}
+.flag-row{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--gray-border);}
+.flag-row:last-child{border-bottom:none;}
+.flag-row .fr-label{flex:1;font-size:12px;}
+.flag-row .fr-desc{font-size:10px;color:#55606e;display:block;margin-top:1px;}
+.flag-row button{border:1px solid var(--gray-border);background:var(--white);border-radius:12px;font-size:10px;padding:3px 10px;cursor:pointer;color:var(--text);}
+.flag-row button.on{background:var(--green-light);color:#0B6B34;border-color:#9BD3B3;}
+</style>
 </head>
 <body>
-
-<!-- Toast notification container -->
-<div id="toast" class="toast"></div>
-  <!-- 快捷键说明弹窗 -->
-  <div id="shortcutHelp" class="sc-modal" role="dialog" aria-modal="true" aria-labelledby="scTitle" style="display:none;">
-    <div class="sc-backdrop" onclick="closeShortcutHelp()"></div>
-    <div class="sc-panel">
-      <div class="sc-head"><h3 id="scTitle">⌨️ 快捷键说明</h3><button class="sc-close" onclick="closeShortcutHelp()" aria-label="关闭">✕</button></div>
-      <div class="sc-body" id="scBody"></div>
-      <div class="sc-foot">按 <span class="kbd">?</span> 或 <span class="kbd">F1</span> 随时打开 · <span class="kbd">Esc</span> 关闭</div>
+<div class="app">
+  <div class="app-header">
+    <div class="top">
+      <div class="title">🎬 山西电信 · 抖本内容工坊</div>
+      <a class="h-badge" href="index-legacy.html" title="回到旧版（2.x 经典版）" style="cursor:pointer;background:rgba(255,107,0,.25);text-decoration:none;color:#fff;">返回旧版 →</a>
     </div>
+    <div class="date" id="dateDisplay"></div>
+    <div class="store-bar">📍 <input id="storeInput" placeholder="输入营业厅名称" value="太原柳巷营业厅"></div>
   </div>
-<!-- Back to top button -->
-<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
 
-<div class="container">
-  <!-- Header -->
-  <header class="header" role="banner">
-    <h1>🎬 山西电信 · 抖本内容工坊</h1>
-    <div class="sub">精选脚本即开即用 — 选选题 → 点预览 → 复制发布 <span style="opacity:0.6;font-size:11px;">v2.9.65</span> <span id="data-sync-status" style="margin-left:8px;font-size:11px;color:#e6a23c;">⏳ 选题同步中…</span></div>
-    <div id="leftEntryBar">
-      <a href="trial.html" class="entry-btn entry-trial">🧪 尝鲜版 →</a>
-      <a href="docs/score-guide.html" class="entry-btn entry-biz">📊 经营分指南 →</a>
+  <div class="content">
+    <!-- PAGE: 今日 -->
+    <div class="page active" id="page-today">
+      <div class="persona-strip" id="personaStrip"></div>
+      <div id="poolBar" role="status" aria-live="polite"></div>
+      <div class="daily-cards" id="dailyCards"></div>
     </div>
-    <div id="storeBar" style="margin-top:8px;">
-      <span id="storeBadge" class="store-badge" style="display:none;" onclick="changeStore()">📍 <span id="storeNameDisplay"></span> <span style="font-size:10px;opacity:0.6;">▾ 更换</span></span>
-      <span id="storePrompt">
-        <input id="storeInput" placeholder="输入你的营业厅名称（如：太原迎泽区柳巷电信营业厅）" style="padding:6px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;width:260px;max-width:70%;">
-        <div id="personaPicker" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-          <span style="font-size:11px;color:#55606e;width:100%;margin-bottom:2px;">🎭 选最像你的风格（影响脚本语气，一次选好不用改）：</span>
-          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
-            <input type="radio" name="persona" value="sweet" onclick="setPersona('sweet')" style="display:none;"><span style="font-size:13px;">🌸</span><span>甜美学姐</span>
-          </label>
-          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
-            <input type="radio" name="persona" value="tech" onclick="setPersona('tech')" style="display:none;"><span style="font-size:13px;">🔧</span><span>技术专家</span>
-          </label>
-          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
-            <input type="radio" name="persona" value="biz" onclick="setPersona('biz')" style="display:none;"><span style="font-size:13px;">💼</span><span>商务精英</span>
-          </label>
-          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
-            <input type="radio" name="persona" value="young" onclick="setPersona('young')" style="display:none;"><span style="font-size:13px;">😎</span><span>活力小哥</span>
-          </label>
-          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;">
-            <input type="radio" name="persona" value="master" onclick="setPersona('master')" style="display:none;"><span style="font-size:13px;">👔</span><span>资深师傅</span>
-          </label>
-          <label class="persona-opt" style="cursor:pointer;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;display:flex;align-items:center;gap:3px;transition:all 0.2s;min-width:75px;border-color:var(--blue);background:#E8F0FE;">
-            <input type="radio" name="persona" value="sister" onclick="setPersona('sister')" checked style="display:none;"><span style="font-size:13px;">💝</span><span>暖心姐姐</span>
-          </label>
-        </div>
-        <button onclick="bindStore()" style="margin-top:8px;padding:6px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">✓ 绑定</button>
-        <span style="font-size:11px;color:#55606e;margin-left:8px;">填一次，以后自动带出</span>
-      </span>
-    </div>
-    <div class="week" id="weekLabel">📅 加载中...</div>
-    <span id="helpBtn" class="help-btn" title="快捷键说明（按 ? 或 F1）" onclick="toggleShortcutHelp()">⌨️ 快捷键</span>
-    <span id="adminLock" style="position:absolute;top:8px;right:16px;cursor:pointer;font-size:16px;opacity:0.4;transition:opacity 0.2s;" title="管理员入口" onclick="unlockAdmin()">🔒</span>
-  </header>
 
-  <!-- Navigation -->
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleHamburger()">✕ 收起菜单</button>
-  <div id="navCollapseHint" style="display:none;font-size:11px;color:#55606e;margin-bottom:8px;text-align:center;">👆 点击「展开全部菜单」查看更多模板</div>
-  
-  <!-- v2.8: 快捷搜索 + 收藏入口 -->
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;" id="quickBar">
-    <input id="scriptSearch" placeholder="🔍 搜索脚本（关键词/厅店/选题）" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;" oninput="searchScripts(this.value)">
-    <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="document.getElementById('scriptSearch').value=''; searchScripts('')">✕ 清除</button>
-    <span style="font-size:11px;color:var(--muted)" id="freshnessBadge"></span>
-  </div>
-  
-  <nav class="nav-tabs" role="navigation" aria-label="主导航">
-    <button class="nav-tab active"  data-page="schedule" onclick="switchPage('schedule', this)">📋 每周排期<small>一周5条内容排期</small></button>
-    
-    <div class="nav-group" data-group="video">
-      <span class="nav-group-label" onclick="toggleNavGroup('video')"><span class="nav-group-arrow">▶</span> 📱 短视频 <span class="nav-group-hint">点击展开</span></span>
-      <div class="nav-group-items">
-        <button class="nav-tab"  data-page="template1" onclick="switchPage('template1', this)">📊 对比推荐<small>帮用户做选择题，拉收藏率</small></button>
-        <button class="nav-tab"  data-page="template2" onclick="switchPage('template2', this)">🎬 服务故事<small>真实服务故事替代广告</small></button>
-        <button class="nav-tab"  data-page="template3" onclick="switchPage('template3', this)">🔍 开箱实测<small>产品知识截搜索流量</small></button>
-        <button class="nav-tab"  data-page="template4" onclick="switchPage('template4', this)">📍 本地福利<small>绑定地点打同城推荐</small></button>
-        <button class="nav-tab"  data-page="hotspot" onclick="switchPage('hotspot', this)">🔥 热点跟拍<small>实时热点+我的选题库</small></button>
+    <!-- PAGE: 排期 -->
+    <div class="page" id="page-week">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">📅 本周排期</div>
+      <div class="season-bar" id="seasonBar"></div>
+      <div class="week-grid" id="weekGrid"></div>
+      <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">💡 排期说明</div>
+        <div style="font-size:11px;color:#55606e;line-height:1.6;">每天一个内容类型，脚本随当日热搜刷新。<br>类型配比由<strong>季节系数</strong>自动计算（春节偏本地、开学偏决策、双11偏测评），无需手动规划。<br>配比为确定性纯函数输出，同一天打开结果恒定，可复核。</div>
       </div>
     </div>
 
-    <div class="nav-group" data-group="live">
-      <span class="nav-group-label" onclick="toggleNavGroup('live')"><span class="nav-group-arrow">▶</span> 📺 直播 <span class="nav-group-hint">点击展开</span></span>
-      <div class="nav-group-items">
-        <button class="nav-tab"  data-page="live" onclick="switchPage('live', this)">📺 直播脚本<small>10分钟循环话术，防冷场</small></button>
+    <!-- PAGE: 热点 -->
+    <div class="page" id="page-hot">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:18px;">🔥</span>
+        <span style="font-size:14px;font-weight:600;">当日热搜精选（来源: 60s.viki.moe）</span>
       </div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">以下为今日抖音热搜TOP 8，AI 已筛选出 4 条可以转化为营业厅脚本</div>
+      <div class="hot-list" id="hotList"></div>
     </div>
 
-    <div class="nav-group" data-group="resource">
-      <span class="nav-group-label" onclick="toggleNavGroup('resource')"><span class="nav-group-arrow">▶</span> 创作资源 <span class="nav-group-hint">点击展开</span></span>
-      <div class="nav-group-items">
-        <button class="nav-tab"  data-page="bank" onclick="switchPage('bank', this)">📚 选题库<small>96个选题轮转，不怕没内容</small></button>
-        <button class="nav-tab"  data-page="benchmark" onclick="switchPage('benchmark', this)">⭐ 标杆库<small>高分脚本，即抄即用</small></button>
-        <button class="nav-tab"  data-page="favorites" onclick="switchPage('favorites', this)">💾 我的收藏<span id="favCount" style="color:var(--red)"></span></button>
-        <button class="nav-tab" id="nav-stats" style="display:none;"  data-page="stats" onclick="switchPage('stats', this)">📊 统计<small>页面访问数据分析</small></button>
+    <!-- PAGE: 直播 -->
+    <div class="page" id="page-live">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">📺 直播话术</div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;">4 大场景 · 10 分钟循环 · 点击展开完整话术</div>
+      <div class="persona-strip" id="livePersonaStrip"></div>
+      <div class="daily-cards" id="liveCards"></div>
+    </div>
+
+    <!-- PAGE: 我的 -->
+    <div class="page" id="page-mine">
+      <div class="my-section">
+        <h3>📊 使用信号（本机采集）</h3>
+        <div class="sig-grid" id="sigGrid"></div>
+        <div style="font-size:10px;color:#55606e;line-height:1.5;">信号只记「3 语气」维度，不记内部人设。默认仅本机留存，用于离线重算内容配比权重；未开启上报前不出本机。</div>
+        <div class="my-btn" role="button" tabindex="0" data-testid="recompute-weights" onclick="recomputeWeights()">
+          <span class="m-icon" aria-hidden="true">🧮</span>
+          <span class="m-label">离线权重重算（N-6）</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
+        </div>
+        <div id="weightsBox" style="font-size:11px;color:#55606e;line-height:1.7;margin-top:8px;word-break:break-all;">未重算（信号样本 0）</div>
       </div>
-    </div>
-  </nav>
-
-  <main role="main">
-
-  <!-- ==================== PAGE 0: Weekly Schedule ==================== -->
-  <div class="page active" id="page-schedule">
-    <h2 style="margin-bottom:12px;">📅 本周（<span id="weekRange">---</span>）排期</h2>
-    <!-- v2.0 Today Hero Card -->
-    <div id="todayHero"></div>
-    <div class="schedule-toggle" onclick="toggleSchedule()" id="scheduleToggle" tabindex="0" role="button" aria-expanded="true" style="display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer;font-size:13px;color:var(--blue);font-weight:600;margin-bottom:8px;">
-      <span id="scheduleToggleIcon">▼</span> <span>查看本周完整排期</span>
-    </div>
-    <div class="schedule-grid" id="scheduleGrid"></div>
-    <div class="tips-bar" style="margin-top:20px;">
-      <strong>💡 快速上手：</strong>点击上方排期卡片 → 选本周选题 → 点「预览脚本」→ 复制发布。<br>
-      <span style="font-size:11px;color:#55606e;margin-top:4px;display:inline-block;">⌨ 快捷键：Ctrl+1~6 切换页面 · 模板页 Ctrl+Enter 生成预览 · 已绑定营业厅自动匹配人设</span>
-    </div>
-    <div class="btn-group" style="margin-top:12px;" id="scheduleActions"></div>
-    <div class="card" style="margin-top:16px;">
-      <h3>🎵 本周抖音热门BGM（含实时热点榜 · 蹭抖音热点用）<span style="font-size:11px;color:#55606e;font-weight:400;"> — 点击歌名直达抖音搜索</span>
-      <button style="float:right;font-size:12px;background:#0052CC;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;" onclick="manualRefreshBGM()">🤖 AI 刷新BGM</button>
-      </h3>
-      <div style="font-size:12px;color:var(--orange);margin-bottom:8px;" id="weekDevice">📱 本周评测设备：加载中...</div>
-      <div id="bgmRecommendGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; font-size:13px;">加载中...</div>
-    </div>
-
-    <!-- v2.9.40: 热点跟拍中心入口（热门话题 + 搜索截流） -->
-    <div class="card" id="hotspotCenterEntry" style="margin-top:16px;">
-      <h3 style="margin-bottom:10px;">🔥 热点跟拍中心 <span style="font-size:11px;color:#55606e;font-weight:400;">— 热门话题 + 搜索截流</span></h3>
-      <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;">
-        <div class="hot-pick-col pick-fire" onclick="enterHotspotLane('hot')" style="cursor:pointer;transition:all .2s;">
-          <div class="hot-pick-col-head" style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:22px;">🔥</span>
-            <div>
-              <div style="font-weight:700;font-size:15px;color:#C2410C;">热门话题</div>
-              <div style="font-size:11px;color:#55606e;">抖音/微博/百度/知乎/头条/小红书热搜</div>
-            </div>
-          </div>
-          <div id="homeHotCount" style="font-size:12px;color:#666;margin-top:10px;">点击加载今日热点脚本</div>
-          <div style="margin-top:10px;font-size:12px;color:#C2410C;font-weight:600;">查看全部 →</div>
+      <div class="my-section">
+        <h3>🧪 功能开关（灰度）</h3>
+        <div id="flagList"></div>
+      </div>
+      <div class="my-section">
+        <h3>📜 最近 7 天脚本记录</h3>
+        <div id="historyList" style="font-size:12px;color:#55606e;">暂无历史记录</div>
+      </div>
+      <div class="my-section">
+        <h3>⚙️ 设置</h3>
+        <div class="my-btn" role="button" tabindex="0" data-testid="bind-store" onclick="document.getElementById('storeInput').focus()">
+          <span class="m-icon" aria-hidden="true">📍</span>
+          <span class="m-label">绑定营业厅</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
         </div>
-        <div class="hot-pick-col pick-copy" onclick="enterHotspotLane('search')" style="cursor:pointer;transition:all .2s;">
-          <div class="hot-pick-col-head" style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:22px;">🔍</span>
-            <div>
-              <div style="font-weight:700;font-size:15px;color:#2E7D32;">搜索截流</div>
-              <div style="font-size:11px;color:#55606e;">把用户搜索词变成营业厅内容</div>
-            </div>
-          </div>
-          <div id="homeSearchCount" style="font-size:12px;color:#666;margin-top:10px;">点击加载搜索截流脚本</div>
-          <div style="margin-top:10px;font-size:12px;color:#2E7D32;font-weight:600;">查看全部 →</div>
+        <div class="my-btn" role="button" tabindex="0" data-testid="reset-store" onclick="resetStore()">
+          <span class="m-icon" aria-hidden="true">🔄</span>
+          <span class="m-label">重置门店信息</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
         </div>
+        <div class="my-btn" role="button" tabindex="0" data-testid="clear-cache" onclick="clearLocalCache()">
+          <span class="m-icon" aria-hidden="true">🗑️</span>
+          <span class="m-label">清除本机信号并重新拉取脚本</span>
+          <span class="m-arrow" aria-hidden="true">›</span>
+        </div>
+      </div>
+      <div class="my-section">
+        <h3>📋 合规记录</h3>
+        <div id="complianceBox" style="font-size:11px;color:#55606e;line-height:1.6;">统计中…</div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== PAGE 1: 对比推荐型（双模式） ==================== -->
-  <div class="page" id="page-template1">
-    <div class="card">
-      <h3><span class="icon">📊</span> 对比推荐型 — 双模式（拉收藏率）</h3>
-      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">帮用户做选择 | 三种拍摄方式，厅店按自身情况选</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:8px;">💡 对比数据是天然收藏内容 — 别人念给你听的你划走，一张对比图你肯定截图保存</p>
-
-      <div class="price-warning">
-        <span class="pw-icon">⚠️</span>
-        <div><strong>重要提醒：</strong>脚本中的套餐价格/资费仅为示例模板，<strong style="color:#B91C1C;">发布前务必根据本厅店实际资费修改！</strong>各地市套餐政策不同，擅自使用不实价格可能引发客诉。标题和标签中涉及的品牌/价格也需核对。</div>
-      </div>
-
-      <!-- Mode Selector 已隐藏（2026-07-20：对比图卡/场景化算账模式整合进口播脚本，保留唯一预览入口） -->
-      <div class="mode-selector field-hidden">
-        <button class="mode-tab active" onclick="switchT1Mode('talk')" id="t1-mtab-talk">🗣 口播对比 · 一镜到底</button>
-        <button class="mode-tab" onclick="switchT1Mode('card')" id="t1-mtab-card">🖼 对比图卡 + BGM</button>
-        <button class="mode-tab" onclick="switchT1Mode('calc')" id="t1-mtab-calc">🧮 场景化算账</button>
-      </div>
-
-      <!-- Shared fields -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>地名 <span class="hint">（如：太原、临汾、榆次）</span></label>
-          <input id="t1_city" placeholder="太原">
-        </div>
-        <div class="form-group">
-          <label>本周选题 <span class="hint">（从选题库选一个）</span></label>
-          <select id="t1_topic" aria-label="选择选题" onchange="fillT1Presets()"></select>
-        </div>
-      </div>
-
-      <!-- T1 脚本覆盖提示（字段已精简，无需填空） -->
-      <div class="cover-hint" id="t1-cover-hint">
-        <strong>💡 本脚本覆盖：</strong>三种宽带场景对比（单人/家庭/多人多设备）· 月租价格区间与适用人群 · 评论互动引导。选题选定后直接预览。<span style="opacity:0.6;">对比图卡/场景化算账模式已整合进口播脚本。</span>
-      </div>
-
-      <!-- Hidden: scene presets and A/B/C fields (no longer user-editable) -->
-      <div class="field-hidden">
-      <div class="form-group">
-        <label>⚡ 快速选场景</label>
-        <div class="scene-preset-grid" id="t1-scene-presets">
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('family')">👨‍👩‍👧 家庭用户</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('student')">🎓 学生党</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('senior')">👴 银发族</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('rent')">🏠 租房族</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('gamer')">🎮 游戏玩家</button>
-          <button class="scene-preset-btn" onclick="fillT1ScenePreset('streamer')">📺 追剧达人</button>
-        </div>
-      </div>
-      <div class="form-row form-row-3">
-        <div class="form-group">
-          <label>场景A</label>
-          <input id="t1_a" placeholder="一个人住，刷抖音看视频，100兆够用，月租59元" onchange="this.dataset.userEdited='1'">
-        </div>
-        <div class="form-group">
-          <label>场景B</label>
-          <input id="t1_b" placeholder="三口之家，手机+平板+电视，300兆起步，月租99元" onchange="this.dataset.userEdited='1'">
-        </div>
-        <div class="form-group">
-          <label>场景C</label>
-          <input id="t1_c" placeholder="重度游戏/直播/4K，直接上1000兆，月租169元" onchange="this.dataset.userEdited='1'">
-        </div>
-      </div>
-      </div>
-
-      <div class="form-group">
-        <label>🎵 BGM <span class="hint">（已推荐近期热门，抖音App内可直接搜到）</span></label>
-        <select id="t1_bgm" aria-label="选择BGM"></select>
-      </div>
-
-      <div class="form-group">
-        <label>话题标签 <span class="hint">（空格分隔，至少含一个精准关键词）</span></label>
-        <input id="t1_tags" placeholder="#太原宽带 #宽带对比 #省钱攻略" value="">
-      </div>
-
-      <!-- Mode 1: 口播对比 -->
-      <div class="mode-content active" id="t1-mode-talk">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🎬 一镜到底要点：</strong>镜头对着自己脸，<span style="color:var(--blue);">钩子→主体→CTA 讲完别停</span>。脚本是预写好的，按节奏念就行。手势配合强调"省/月"等关键词，让观众感受到真实在算账。<span style="color:var(--blue);">结尾必须让观众截图保存。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT1Talk()">👁 预览口播脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview1-talk')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview1-talk" style="display:none;"></div>
-      </div>
-
-      <!-- Mode 2: 对比图卡 -->
-      <div class="mode-content" id="t1-mode-card">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🖼 图卡模式要点：</strong>不需要真人出镜。三种方案做成对比卡片，用剪映加BGM和转场。用户看到对比表会本能截图收藏——<span style="color:var(--blue);">这是这个形态收藏率最高的拍法。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT1Card()">👁 预览图卡指令</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview1-card')">📥 下载图卡指令</button>
-        </div>
-        <div class="talk-script" id="preview1-card" style="display:none;"></div>
-      </div>
-
-      <!-- Mode 3: 场景化算账 -->
-      <div class="mode-content" id="t1-mode-calc">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🧮 算账模式要点：</strong>模拟一个具体用户，从头到尾算一笔账。适合一个人拍——打开手机计算器录屏，边说边按数字。<span style="color:var(--blue);">观众看完会转发给"正在纠结办宽带的朋友"。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT1Calc()">👁 预览算账脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview1-calc')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview1-calc" style="display:none;"></div>
-      </div>
-
-      <div style="margin-top:16px;">
-        <button class="btn btn-outline btn-sm" onclick="clearT1()">🔄 清空重填</button>
-      </div>
-    </div>
-
-    <!-- Publishing Checklist -->
-    <div class="checklist" id="template1-checklist"></div>
-    <div class="fw-warn-bar" id="template1-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
-    <div class="fw-clean" id="template1-fw-clean">✅ 未检测到违禁词</div>
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab active" data-tab="today" onclick="switchTab('today')"><span class="icon">🧠</span><span class="label">今日</span></div>
+    <div class="tab" data-tab="week" onclick="switchTab('week')"><span class="icon">📅</span><span class="label">排期</span></div>
+    <div class="tab" data-tab="hot" onclick="switchTab('hot')"><span class="icon">🔥</span><span class="label">热点</span></div>
+    <div class="tab" data-tab="live" onclick="switchTab('live')"><span class="icon">📺</span><span class="label">直播</span></div>
+    <div class="tab" data-tab="mine" onclick="switchTab('mine')"><span class="icon">👤</span><span class="label">我的</span></div>
   </div>
-
-  <!-- ==================== PAGE 2: 服务故事型（双模式） ==================== -->
-  <div class="page" id="page-template2">
-    <div class="card">
-      <h3><span class="icon">🎬</span> 服务故事型 — 双模式（拉完播+信任）</h3>
-      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">真实故事最能留住人 | 三种拍法，越自然越好</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 场景型的核心是真实感——脚本越详细拍出来越假。选个拍法，讲真事就行。</p>
-
-      <!-- Mode Selector -->
-      <div class="mode-selector">
-        <button class="mode-tab active" onclick="switchT2Mode('tell')" id="t2-mtab-tell">🗣 单人讲述 · 一镜到底</button>
-        <button class="mode-tab" onclick="switchT2Mode('doc')" id="t2-mtab-doc">🎥 微纪录 · 跟拍</button>
-        <button class="mode-tab" onclick="switchT2Mode('short')" id="t2-mtab-short">⚡ 一句话故事</button>
-      </div>
-
-      <div class="form-group">
-        <label>🎵 BGM <span class="hint">（强烈建议不加，用现场原声；如需可选用温情感）</span></label>
-        <select id="t2_bgm" aria-label="选择BGM"></select>
-      </div>
-
-      <div class="form-group">
-        <label>📋 故事模板 <span class="hint">（选模板自动填好全部7个字段，只需改关键信息）</span></label>
-        <select id="t2_preset" aria-label="选择预设模板" onchange="fillT2Presets();applyHook('t2');expandT2Detail()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);"></select>
-        <div id="t2-autofill-hint" style="margin-top:4px;font-size:11px;color:#55606e;">⬆ 选一个场景模板，下面自动填好所有内容。你只需要改时间/地名等关键信息。</div>
-      </div>
-
-      <!-- T2 覆盖提示（字段已精简） -->
-      <div class="cover-hint">
-        <strong>💡 本故事覆盖：</strong>真实服务案例的全流程叙事（时间·客户·问题排查·解决方案·客户反应·总结）。选题选定后直接预览。
-      </div>
-
-      <!-- T2 隐藏字段（保留DOM供内部使用） -->
-      <div class="field-hidden" id="t2-detail-area">
-        <input id="t2_time"><input id="t2_customer"><input id="t2_problem">
-        <input id="t2_finding"><textarea id="t2_steps"></textarea>
-        <input id="t2_reaction"><input id="t2_summary">
-      </div>
-
-      <div class="form-group">
-        <label>话题标签</label>
-        <input id="t2_tags" placeholder="#真实故事 #装维日常 #宽带小知识" value="">
-      </div>
-
-      <!-- Mode 1: 单人讲述 -->
-      <div class="mode-content active" id="t2-mode-tell">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🎬 一镜到底要点：</strong>镜头对着自己，<span style="color:var(--blue);">按脚本自然讲就行</span>——开头用钩子钩人，中间讲"现场+发现+客户反应"，结尾回到营业员价值。语气像跟朋友分享今天遇到的事。<span style="color:var(--blue);">关键：必须留出"客户真实反应"的镜头。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT2Tell()">👁 预览口播脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview2-tell')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview2-tell" style="display:none;"></div>
-      </div>
-
-      <!-- Mode 2: 微纪录 -->
-      <div class="mode-content" id="t2-mode-doc">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🎥 微纪录要点：</strong>零口播或极少口播。用镜头跟拍过程——从上门敲门开始，拍到问题、操作、客户表情变化。字幕补充你不敢说的细节。<span style="color:var(--blue);">镜头是旁观者视角，不要对着镜头说话。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT2Doc()">👁 预览拍摄指令</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview2-doc')">📥 下载指令卡</button>
-        </div>
-        <div class="talk-script" id="preview2-doc" style="display:none;"></div>
-      </div>
-
-      <!-- Mode 3: 一句话故事 -->
-      <div class="mode-content" id="t2-mode-short">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>⚡ 一句话故事要点：</strong>1个画面+1行字幕+1段BGM=15秒。不叙事，只传递情绪。适合没时间精心准备的场景，完播率极高。<span style="color:var(--blue);">画面选最有冲击力的那个瞬间。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT2Short()">👁 预览一句话脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview2-short')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview2-short" style="display:none;"></div>
-      </div>
-
-      <div style="margin-top:16px;">
-        <button class="btn btn-outline btn-sm" onclick="clearT2()">🔄 清空重填</button>
-      </div>
-    </div>
-
-    <div class="checklist" id="template2-checklist"></div>
-    <div class="fw-warn-bar" id="template2-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
-    <div class="fw-clean" id="template2-fw-clean">✅ 未检测到违禁词</div>
-  </div>
-
-  <!-- ==================== PAGE 3: 开箱实测型（双模式） ==================== -->
-  <div class="page" id="page-template3">
-    <div class="card">
-      <h3><span class="icon">🔍</span> 开箱实测型 — 双模式智能生成器（截搜索流量）</h3>
-      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">两种拍摄方式，厅店按自身情况选择 — 都能出片</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 选设备+选题 → 自动填入技术内容 → 选模式 → 获取脚本/拍摄指令</p>
-
-      <!-- Mode Selector -->
-      <div class="mode-selector">
-        <button class="mode-tab active" onclick="switchT3Mode('talk')" id="t3-mtab-talk">🗣 真人出镜 · 一镜到底</button>
-        <button class="mode-tab" onclick="switchT3Mode('silent')" id="t3-mtab-silent">🤫 无声演示 · 字幕卡</button>
-      </div>
-
-      <!-- === Shared Fields (both modes) === -->
-      <div class="form-group">
-        <label>🎵 BGM <span class="hint">（轻声纯音乐·口播不压人声；无声模式当背景）</span></label>
-        <select id="t3_bgm" aria-label="选择BGM"></select>
-      </div>
-
-      <div class="form-group">
-        <label>📱 选择设备 <span class="hint">（选完设备，选题自动加载）</span></label>
-        <select id="t3_device" aria-label="选择设备" onchange="loadTopicsByDevice()">
-          <option value="">-- 请先选择设备 --</option>
-          <optgroup label="📡 电信设备">
-            <option value="光猫">🖥 光猫</option>
-            <option value="路由器">📡 路由器</option>
-            <option value="机顶盒">📺 IPTV机顶盒</option>
-            <option value="宽带">🌐 宽带/WiFi</option>
-          </optgroup>
-          <optgroup label="📱 手机评测" id="t3_phone_optgroup">
-            <!-- 动态从 phonePool.js 填充，见 initT3DeviceOptions() -->
-          </optgroup>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>📋 选择选题 <span class="hint">（选完自动填好所有技术内容）</span></label>
-        <select id="t3_topic" aria-label="选择选题" onchange="autoFillTech()">
-          <option value="">-- 请先选设备，再选选题 --</option>
-        </select>
-      </div>
-
-      <div id="t3_autofill_info" style="display:none;margin-top:12px;">
-        <div class="card" style="background:#F0FFF4; border:1px solid #81C784; margin-bottom:8px;">
-          <div style="font-size:12px;color:#2E7D32;">
-            ✅ 以下内容已自动填充（无需手动填）：<br>
-            <span id="t3_fill_summary" style="font-weight:700;"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hidden fields for autofill -->
-      <input type="hidden" id="t3_item" value="光猫">
-      <input type="hidden" id="t3_func" value="指示灯">
-      <input type="hidden" id="t3_p1" value="">
-      <input type="hidden" id="t3_p2" value="">
-      <input type="hidden" id="t3_p3" value="">
-      <input type="hidden" id="t3_title" value="">
-
-      <!-- v2.7: 卖点展示区（选完设备+选题后自动显示） -->
-      <div id="t3_slogan_area" style="display:none;"></div>
-
-      <!-- v2.7: 自动生成三大区（卖点+脚本提示词+图片提示词） -->
-      <div id="t3_auto_section" style="display:none;"></div>
-
-      <div class="form-group">
-        <label>🏙 地名（填本地地名，用于标题和话题）</label>
-        <input id="t3_city" placeholder="太原">
-      </div>
-
-      <div class="form-group">
-        <label>话题标签 <span class="hint">（自动生成，可修改）</span></label>
-        <input id="t3_tags" value="">
-      </div>
-
-      <!-- ===== MODE 1: 口播 一镜到底 ===== -->
-      <div class="mode-content active" id="t3-mode-talk">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🎬 一镜到底要点：</strong>全程一个镜头不剪辑，手持设备边走边聊。按 <span style="color:var(--blue);">"开场钩子→卖点1→卖点2→CTA"</span> 四段节奏念稿，每段7-15字。像给朋友介绍手机一样自然，<span style="color:var(--blue);">身体语言+实物展示</span>，不要念播音腔。
-        </div>
-        <!-- v2.7: 脚本和海报提示词已自动生成在下方，无需手动预览 -->
-      </div>
-
-      <!-- ===== MODE 2: 无声演示 四选一 ===== -->
-      <div class="mode-content" id="t3-mode-silent">
-        <p style="font-size:13px;color:var(--body);margin-bottom:8px;">▶ 选好设备和选题后，从以下四种拍摄方案中选一种最适合你厅店的：</p>
-        <div class="silent-options" id="silentOptions">
-          <!-- Card A -->
-          <div class="silent-option-card" tabindex="0" role="button" aria-label="方案A：实操演示+字幕卡" onclick="previewT3Silent('A')">
-            <span class="option-badge badge-A">方案A · 零难度</span>
-            <h4>📱 实操演示 + 字幕卡</h4>
-            <div class="option-desc">手机固定桌面，按步骤展示设备功能。画面上方弹出字幕解释，全程BGM。不出镜不说话。</div>
-            <div class="option-difficulty">难度：★☆☆☆☆ | 需真人：❌ | 拍摄时间：10分钟</div>
-          </div>
-          <!-- Card B -->
-          <div class="silent-option-card" tabindex="0" role="button" aria-label="方案B：一图流+BGM" onclick="previewT3Silent('B')">
-            <span class="option-badge badge-B">方案B · 最省事</span>
-            <h4>🖼 一图流 + BGM</h4>
-            <div class="option-desc">零拍摄！用下方「💎 生成卖点卡」导出PNG，剪映导入+BGM渲染成15-20秒视频即可。</div>
-            <div class="option-difficulty">难度：★☆☆☆☆ | 需真人：❌ | 拍摄时间：0分钟</div>
-          </div>
-          <!-- Card C -->
-          <div class="silent-option-card" tabindex="0" role="button" aria-label="方案C：对比画面+字幕" onclick="previewT3Silent('C')">
-            <span class="option-badge badge-C">方案C · 收藏最强</span>
-            <h4>⚖ 对比画面 + 字幕</h4>
-            <div class="option-desc">两台手机并排，同一个操作同时展示。通过对比直接展示差异，天然收藏属性。</div>
-            <div class="option-difficulty">难度：★★★☆☆ | 需真人：❌ | 拍摄时间：15分钟</div>
-          </div>
-          <!-- Card D -->
-          <div class="silent-option-card" tabindex="0" role="button" aria-label="方案D：场景化微对话" onclick="previewT3Silent('D')">
-            <span class="option-badge badge-D">方案D · 最生动</span>
-            <h4>🎭 场景化微对话</h4>
-            <div class="option-desc">两个员工15-20秒。A问问题，B不回答——用手机画面+字幕展示答案。全程自然不尴尬。</div>
-            <div class="option-difficulty">难度：★★☆☆☆ | 需真人：👥 2人 | 拍摄时间：10分钟</div>
-          </div>
-        </div>
-        <!-- v2.7: 海报提示词已自动生成在下方 -->
-        <div class="silent-preview" id="preview3-silent" style="display:none;margin-top:12px;"></div>
-        <div class="btn-group" id="silentDownloadBtns" style="display:none;margin-top:8px;">
-          <button class="btn btn-orange btn-sm" onclick="downloadAsImage('preview3-silent')">📥 下载拍摄指令卡</button>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;">
-        <button class="btn btn-outline btn-sm" onclick="clearTemplate3()">🔄 重新选择</button>
-      </div>
-
-      <div id="infographicPanel" style="display:none; margin-top:16px;"></div>
-    </div>
-
-    <div class="checklist" id="template3-checklist"></div>
-    <div class="fw-warn-bar" id="template3-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
-    <div class="fw-clean" id="template3-fw-clean">✅ 未检测到违禁词</div>
-  </div>
-
-  <!-- ==================== PAGE 4: 本地化福利型（双模式） ==================== -->
-  <div class="page" id="page-template4">
-    <div class="card">
-      <h3><span class="icon">📍</span> 本地化福利型 — 双模式（打同城流量）</h3>
-      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">把同城的人拉到店里 | 三种拍法，搜本地的人都能看到</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:12px;">💡 地标+POI定位是本地福利型的核心武器——一定要拍到地标、一定要加位置。</p>
-
-      <!-- Mode Selector -->
-      <div class="mode-selector">
-        <button class="mode-tab active" onclick="switchT4Mode('walk')" id="t4-mtab-walk">🚶 探店口播 · 边走边说</button>
-        <button class="mode-tab" onclick="switchT4Mode('mix')" id="t4-mtab-mix">🎬 海报+实拍混剪</button>
-        <button class="mode-tab" onclick="switchT4Mode('countdown')" id="t4-mtab-countdown">⏰ 倒计时福利卡</button>
-      </div>
-
-      <div class="form-group">
-        <label>🎵 BGM <span class="hint">（本地生活/探店类热门，轻松愉快）</span></label>
-        <select id="t4_bgm" aria-label="选择BGM"></select>
-      </div>
-
-      <div class="form-group">
-        <label>🎁 活动类型 <span class="hint">（选活动自动填福利+标签，地名地址自己填）</span></label>
-        <select id="t4_preset" aria-label="选择预设模板" onchange="fillT4Presets()"></select>
-      </div>
-      
-      <div class="form-row form-row-3">
-        <div class="form-group">
-          <label>地名 <span class="hint">（必填，用于同城搜索）</span></label>
-          <input id="t4_city" placeholder="太原">
-        </div>
-        <div class="form-group">
-          <label>地标/街道名</label>
-          <input id="t4_landmark" placeholder="柳巷">
-        </div>
-        <div class="form-group">
-          <label>营业厅名</label>
-          <input id="t4_shop" placeholder="柳巷电信营业厅">
-        </div>
-      </div>
-
-      <!-- T4 覆盖提示 -->
-      <div class="cover-hint">
-        <strong>💡 本活动脚本覆盖：</strong>具体福利介绍、到店引导、同城引流话术。选择活动后直接预览。
-      </div>
-
-      <div class="form-row field-hidden">
-        <div class="form-group">
-          <label>意外福利/亮点</label>
-          <input id="t4_benefit" value="免费贴膜">
-        </div>
-        <div class="form-group">
-          <label>福利说明</label>
-          <input id="t4_desc" value="">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>详细地址</label>
-          <input id="t4_addr" placeholder="柳巷南路128号">
-        </div>
-        <div class="form-group">
-          <label>营业时间</label>
-          <input id="t4_hours" placeholder="早9点到晚8点" value="早9点到晚8点">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>话题标签 <span class="hint">（必加#地名 和 #地标，确保同城搜索命中）</span></label>
-        <input id="t4_tags" placeholder="#太原 #柳巷 #免费贴膜 #同城发现" value="">
-      </div>
-
-      <!-- Mode 1: 探店口播 -->
-      <div class="mode-content active" id="t4-mode-walk">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🚶 探店要点：</strong>从店门外开始拍——先拍地标，再推到店门口。边走边介绍福利，像带朋友逛店。<span style="color:var(--blue);">一定要在发布时加POI位置标签。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT4Walk()">👁 预览口播脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview4-walk')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview4-walk" style="display:none;"></div>
-      </div>
-
-      <!-- Mode 2: 海报混剪 -->
-      <div class="mode-content" id="t4-mode-mix">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>🎬 混剪要点：</strong>零口播。几张活动海报+店门口实拍+店内环境+BGM。剪映5分钟搞定。<span style="color:var(--blue);">字幕突出福利和时间，让人一眼看到重点。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT4Mix()">👁 预览混剪指令</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview4-mix')">📥 下载指令卡</button>
-        </div>
-        <div class="talk-script" id="preview4-mix" style="display:none;"></div>
-      </div>
-
-      <!-- Mode 3: 倒计时 -->
-      <div class="mode-content" id="t4-mode-countdown">
-        <div class="tips-bar" style="margin-bottom:12px;">
-          <strong>⏰ 倒计时要点：</strong>适合有限期活动。"最后3天""仅限周末"。紧迫感让用户立刻行动。<span style="color:var(--blue);">数字大字+福利信息+地址，三段式信息卡轮播。</span>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="previewT4Countdown()">👁 预览倒计时脚本</button>
-          <button class="btn btn-orange" onclick="downloadAsImage('preview4-countdown')">📥 下载脚本卡</button>
-        </div>
-        <div class="talk-script" id="preview4-countdown" style="display:none;"></div>
-      </div>
-
-      <div style="margin-top:16px;">
-        <button class="btn btn-outline btn-sm" onclick="clearT4()">🔄 清空重填</button>
-      </div>
-    </div>
-
-    <div class="checklist" id="template4-checklist"></div>
-    <div class="fw-warn-bar" id="template4-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或下架。</div>
-    <div class="fw-clean" id="template4-fw-clean">✅ 未检测到违禁词</div>
-  </div>
-
-  <!-- ==================== PAGE LIVE: Live Streaming Scripts ==================== -->
-  <div class="page" id="page-live">
-    <div class="card">
-      <h3><span class="icon">📺</span> 直播脚本 v1.4.1 — 填空即播（抖音本地生活·小房子）</h3>
-      <p style="color:var(--body);font-size:13px;margin-bottom:4px;">四大直播场景 × 每场景5分钟话术 √ 防冷场应急包 √ 真实货盘数据</p>
-      <p style="color:var(--orange);font-size:12px;margin-bottom:8px;">⚠️ 直播使用抖音本地生活「小房子」挂载商品，不是小黄车。禁止挂载号卡类商品，禁止提及月租/套餐。</p>
-
-      <div class="price-warning">
-        <span class="pw-icon">⚠️</span>
-        <div>
-          <strong>合规红线（必须遵守）：</strong><br>
-          1. 仅使用抖音本地生活「小房子」挂载商品，不使用小黄车<br>
-          2. <strong style="color:#B91C1C;">禁止直播号卡类商品</strong>（号卡服务、合约服务全类目禁止）<br>
-          3. <strong style="color:#B91C1C;">禁止提及月租、套餐、话费</strong>等号卡相关表述<br>
-          4. 可播内容：纯宽带业务、终端购机补贴、便民服务、福利品<br>
-          5. 直播间必须挂出门店标识牌
-        </div>
-      </div>
-
-      <!-- Scene Mode Selector -->
-      <div class="mode-selector">
-        <button class="mode-tab active" onclick="switchLiveMode('store')" id="lv-mtab-store">🏪 厅店带货</button>
-        <button class="mode-tab" onclick="switchLiveMode('community')" id="lv-mtab-community">🏘 小区活动</button>
-        <button class="mode-tab" onclick="switchLiveMode('outdoor')" id="lv-mtab-outdoor">🚶 户外探店</button>
-        <button class="mode-tab" onclick="switchLiveMode('home')" id="lv-mtab-home">🔧 入户服务</button>
-      </div>
-
-      <!-- Shared fields -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>门店名称 <span class="hint">（必填，直播间标题使用）</span></label>
-          <input id="lv_store" placeholder="太原市XX路电信营业厅">
-        </div>
-        <div class="form-group">
-          <label>主打产品 <span class="hint">（从下方产品清单中选择）</span></label>
-          <select id="lv_product" aria-label="选择直播商品" onchange="updateLiveProductDesc()">
-            <option value="" disabled selected>-- 请选择主打产品 --</option>
-            <option value="__custom__">✏️ 自定义产品（手动输入）</option>
-            <optgroup label="宽带类">
-              <option value="1元宽带提速礼包">1元宽带提速礼包</option>
-              <option value="30元宽带提速礼包">30元宽带提速礼包</option>
-              <option value="618福利宽带礼包">618福利宽带礼包</option>
-              <option value="千兆宽带礼包预约">千兆宽带礼包预约</option>
-              <option value="FTTR全光礼包(老用户专享)">FTTR全光礼包(老用户专享)</option>
-            </optgroup>
-            <optgroup label="终端类">
-              <option value="华为畅享90m Plus购机补贴">华为畅享90m Plus购机补贴</option>
-              <option value="荣耀畅玩80Plus购机补贴">荣耀畅玩80Plus购机补贴</option>
-              <option value="荣耀600元气版购机补贴">荣耀600元气版购机补贴</option>
-              <option value="华为nova16购机补贴">华为nova16购机补贴</option>
-            </optgroup>
-            <optgroup label="服务类">
-              <option value="宽带网络优化服务">宽带网络优化服务</option>
-              <option value="免费贴膜">免费贴膜</option>
-              <option value="免费WiFi测速">免费WiFi测速</option>
-            </optgroup>
-            <optgroup label="福利品">
-              <option value="小度智能屏">小度智能屏</option>
-              <option value="数据线/手机支架">数据线/手机支架</option>
-            </optgroup>
-          </select>
-          <input id="lv_product_custom" placeholder="输入自定义产品名称" style="display:none;margin-top:8px;width:100%;">
-        </div>
-      </div>
-
-      <div class="form-row form-row-3">
-        <div class="form-group">
-          <label>产品价格 <span class="hint">（显示在直播间）</span></label>
-          <input id="lv_price" placeholder="1元/30元/50元">
-        </div>
-        <div class="form-group">
-          <label>直播日期 <span class="hint">（自动填入今天）</span></label>
-          <input id="lv_date" placeholder="6月12日">
-        </div>
-        <div class="form-group">
-          <label style="display:flex;align-items:center;gap:6px;">
-            <input type="checkbox" id="lv_use_deadline" onchange="toggleDeadline()" style="width:auto;"> 
-            启用「限时福利倒计时」
-            <span class="hint">（勾选后显示倒计时字段，不勾选则生成长期在售话术）</span>
-          </label>
-          <div id="lv-deadline-row" style="display:none;">
-            <input id="lv_deadline" placeholder="今晚24点截止">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row form-row-3" id="lv-extra-fields" style="display:none;">
-        <div class="form-group">
-          <label>活动/探店地名</label>
-          <input id="lv_location" placeholder="XX小区/XX商圈">
-        </div>
-        <div class="form-group">
-          <label>活动亮点/特色服务</label>
-          <input id="lv_highlight" placeholder="免费网络检测/贴膜">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>🎵 直播间BGM <span class="hint">（推荐背景音乐）</span></label>
-        <select id="lv_bgm" aria-label="选择BGM">
-          <optgroup label="🏆 直播带货首选">
-            <option value="好运来 - 祖海" selected>🎊 好运来 (直播间热场经典)</option>
-            <option value="恭喜发财 - 刘德华">🧧 恭喜发财 (带货氛围)</option>
-            <option value="奔腾 - 周深">⚡ 奔腾 (节奏热场·正能量)</option>
-          </optgroup>
-          <optgroup label="🎵 轻快节奏">
-            <option value="我会一直顺 - 黄子弘凡">我会一直顺 (轻松正能量)</option>
-            <option value="小美满 - 周深">小美满 (温暖亲切)</option>
-            <option value="记忆点 - 陈卓璇">记忆点 (带货快节奏)</option>
-          </optgroup>
-          <optgroup label="🏮 国风品质">
-            <option value="龙耀华夏 - 龙友林">龙耀华夏 (国风大气)</option>
-            <option value="非凡 - 刘德华">非凡 (品质直播·高端感)</option>
-          </optgroup>
-        </select>
-      </div>
-      <div class="form-group">
-        <label># 直播标签 <span class="hint">（抖音话题标签，多个用空格分隔）</span></label>
-        <input id="lv_tags" placeholder="#同城 #电信宽带 #宽带办理 #直播福利">
-      </div>
-
-      <!-- Product list checklist (from Tencent Docs) -->
-      <div class="form-group">
-        <label>🛒 今日可上架商品清单 <span class="hint">（开播前5分钟核对）</span></label>
-        <div id="lv-product-list" style="background:#FAFBFC;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;color:var(--body);">
-          ☐ 宽带体验券（1元抵用）<br>
-          ☐ 宽带提速礼包<br>
-          ☐ 融合套餐福利（宽带+手机+电视打包优惠）<br>
-          ☐ FTTR全光礼包（老用户专享）<br>
-          ☐ 免费贴膜/网检（到店礼）<br>
-          ☐ 合约机直降补贴（华为/荣耀/vivo/OPPO）<br>
-          <span style="font-size:11px;color:#B91C1C;">⚠️ 小房子上架确认：以上商品需提前在抖音来客后台创建团购券</span>
-        </div>
-      </div>
-
-      <!-- Compliance quick-check -->
-      <div style="background:#FFF8E1;border:1px solid #FFCC02;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;">
-        <strong>🚫 直播话术避雷：</strong>全程不能说「月租」「套餐」「话费」「靓号」「办卡」「号卡」。
-        可以说「宽带」「网速」「购机」「补贴」「福利」「到店礼」「限时活动」。
-      </div>
-
-      <!-- Mode-specific tips -->
-      <div class="tips-bar" id="lv-tips" style="margin-bottom:12px;">
-        <strong>🏪 厅店带货要点：</strong>开播先做福利预告，展示实物或价签，引导点击小房子查看商品。话术结构：福利钩子→产品介绍→引导下单→限时逼单。<br>
-        <span style="font-size:11px;color:#55606e;">💡 数据验证：78%的一线认为「福利促销」是最吸引人的直播内容（临汾问卷）</span>
-      </div>
-
-      <!-- Buttons -->
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="previewLiveScript()">👁 预览直播脚本</button>
-        <button class="btn btn-green" onclick="showEmergencyScripts()">🆘 防冷场应急包</button>
-        <button class="btn btn-orange" onclick="downloadLiveScript()">📥 下载脚本卡</button>
-      </div>
-
-      <!-- Preview Area -->
-      <div class="preview-panel" id="live-preview" style="display:none;"></div>
-
-      <!-- Checklist -->
-      <div class="checklist" id="live-checklist"></div>
-      <div class="fw-warn-bar" id="live-fw-warn"><b>⚠️ 检测到违禁词：</b><ul></ul>请替换后重新检查，避免限流或封禁。</div>
-      <div class="fw-clean" id="live-fw-clean">✅ 未检测到违禁词</div>
-    </div>
-
-    <!-- Emergency Scripts Card -->
-    <div class="card" id="live-emergency-card" style="display:none;">
-      <h3>🆘 防冷场应急话术包（源自6月真实直播话术）</h3>
-      <p style="color:var(--body);font-size:12px;margin-bottom:12px;">当直播间在线人数<5人或长时间没人评论时使用。每条话术说完保持3-5秒微笑等待。</p>
-      <div id="live-emergency-content"></div>
-    </div>
-
-    <!-- Best Time Recommendation -->
-    <div class="card">
-      <h3>⏰ 最佳开播时段参考（基于1-6月15238场直播数据）</h3>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">
-        <div style="background:#E8F5E9;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:24px;font-weight:700;color:#2E7D32;">12-14点</div>
-          <div style="font-size:12px;color:#666;margin-top:4px;">午休时段 🥇 县城推荐</div>
-          <div style="font-size:11px;color:#55606e;margin-top:2px;">竞争少，用户有空刷直播</div>
-        </div>
-        <div style="background:#FFF3E0;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:24px;font-weight:700;color:#C2410C;">15-16点</div>
-          <div style="font-size:12px;color:#666;margin-top:4px;">下午茶时段 🥈 太原推荐</div>
-          <div style="font-size:11px;color:#55606e;margin-top:2px;">避开17-19点踩踏高峰</div>
-        </div>
-        <div style="background:#E3F2FD;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:24px;font-weight:700;color:#1565C0;">19-21点</div>
-          <div style="font-size:12px;color:#666;margin-top:4px;">晚间黄金档 🥉</div>
-          <div style="font-size:11px;color:#55606e;margin-top:2px;">流量大但竞争也大</div>
-        </div>
-      </div>
-      <p style="font-size:11px;color:#55606e;margin-top:12px;">💡 1-6月数据：17-18点两小时集中了全天20%的直播场次，内部互相抢流量。15-16点是太原最佳避开高峰时段。</p>
-    </div>
-  </div>
-
-  <!-- ==================== PAGE 5: Topic Bank ==================== -->
-  <div class="page" id="page-bank">
-    <h2 style="margin-bottom:8px;">📚 选题库（96个选题 · 24周不重复）</h2>
-    <p style="color:var(--body);font-size:12px;margin-bottom:12px;">按你的情况筛选，找到最适合的选题。⭐ 标记为本周轮转选题。</p>
-
-    <!-- Filter Pills -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;" id="bankFilters">
-      <button class="bank-filter active" onclick="filterBank('all', this)">全部选题</button>
-      <button class="bank-filter" onclick="filterBank('solo', this)">👤 一个人能拍</button>
-      <button class="bank-filter" onclick="filterBank('noface', this)">🙈 不用露脸</button>
-      <button class="bank-filter" onclick="filterBank('quick', this)">⚡ 10分钟搞定</button>
-      <button class="bank-filter" onclick="filterBank('thisweek', this)">⭐ 只看本周</button>
-    </div>
-    <div id="bankContextHint" style="display:none;background:#E3F2FD;border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#1565C0;">
-      🔍 已自动筛选为当前页面匹配的选题类型 · <a href="#" onclick="filterBank('all', document.querySelector('.bank-filter[onclick*=all]'));return false;" style="color:var(--blue);font-weight:700;text-decoration:underline;">点击查看全部选题</a>
-    </div>
-    <input type="text" id="bankSearch" placeholder="🔍 搜索选题关键词..." oninput="filterBank(bankFilter||'all', document.querySelector('.bank-filter.active'))" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;margin-bottom:12px;">
-
-
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
-      <div class="card">
-        <h3>📊 对比推荐型 ×24</h3>
-        <div class="topic-list" id="bank1"></div>
-      </div>
-      <div class="card">
-        <h3>🎬 服务故事型 ×24</h3>
-        <div class="topic-list" id="bank2"></div>
-      </div>
-      <div class="card">
-        <h3>🔍 开箱实测型 ×24</h3>
-        <div class="topic-list" id="bank3"></div>
-      </div>
-      <div class="card">
-        <h3>📍 本地化福利型 ×24</h3>
-        <div class="topic-list" id="bank4"></div>
-      </div>
-    </div>
-    <!-- 历史周卡（折叠区） -->
-    <details style="margin-top:24px;">
-      <summary style="cursor:pointer;font-size:15px;font-weight:700;color:#1E293B;padding:8px 0;">📜 历史排期（近8周选题追溯）</summary>
-      <div id="historyInline" style="margin-top:12px;"></div>
-    </details>
-  </div>
-
-  <!-- ==================== PAGE 5.5: 热点跟拍中心 ==================== -->
-  <div class="page" id="page-hotspot">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:6px;">
-      <div>
-        <h2 style="margin-bottom:4px;">🔥 热点跟拍中心</h2>
-        <p style="color:var(--body);font-size:12px;margin:0;">热门话题 + 搜索截流，AI 匹配营业厅脚本。</p>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-sm" style="background:#C2410C;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
-        <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;min-height:18px;" id="hotspotRefreshStatus"></div>
-
-    <!-- 热门话题 + 搜索截流 + 难度筛选 -->
-    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div class="hs-tabs" style="flex-wrap:wrap;">
-        <button class="hs-tab active lane-filter" id="hs-lane-all-btn" onclick="filterHotspotLane('', this)">🌐 全部</button>
-        <button class="hs-tab lane-filter" id="hs-lane-hot-btn" onclick="filterHotspotLane('hot', this)">🔥 热门话题</button>
-        <button class="hs-tab lane-filter" id="hs-lane-search-btn" onclick="filterHotspotLane('search', this)">🔍 搜索截流</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:11px;color:#55606e;">难度</span>
-        <select id="hsDifficulty" aria-label="筛选难度" onchange="filterHotspot(this.value, null)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#fff;color:var(--body);cursor:pointer;">
-          <option value="all">全部难度</option>
-          <option value="tier1">🥇 专业翻拍</option>
-          <option value="tier2">🥈 行业套用</option>
-          <option value="tier3">🥉 纯跟拍</option>
-          <option value="easy">⭐ 零基础</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 主列表 -->
-    <div class="hotspot-grid" id="hotspotGrid"></div>
-
-    <!-- 我的选题库浮层面板 -->
-    <div id="lane-lib" style="display:none;">
-      <div class="card" style="margin-top:16px;">
-        <h3 style="display:flex;justify-content:space-between;align-items:center;">📚 我的选题库 <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">✕ 关闭</button></h3>
-        <div style="margin-bottom:10px;font-size:12px;color:var(--muted);">
-          收藏的脚本保存在本机浏览器（换设备不互通）。可一键复制全文 / 移除。
-        </div>
-        <div class="hotspot-grid" id="myLibraryGrid"></div>
-        <div id="myLibraryEmpty" style="text-align:center;padding:40px;color:#55606e;">
-          📚 选题库还是空的<br><span style="font-size:12px;">去热点卡片点 ⭐ 收进选题库</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== PAGE 8: 标杆案例库 ==================== -->
-  <div class="page" id="page-benchmark">
-    <h2 style="margin-bottom:4px;">⭐ 标杆脚本库</h2>
-    <p style="color:var(--blue);font-size:12px;margin-bottom:12px;">
-      抖音2026新算法标准（收藏30% › 复访22% › 互动20% › 留存18% › 转化10%）。以下脚本综合评分 ≥ 80 且五维达标，可直接抄作业。
-    </p>
-    <div id="benchmarkContent"></div>
-  </div>
-
-  <!-- ==================== PAGE 10: Admin Stats ==================== -->
-  <div class="page" id="page-stats">
-    <h2 style="margin-bottom:4px;">📊 使用统计（管理员可见）</h2>
-    <p style="color:var(--body);font-size:12px;margin-bottom:16px;">数据存储在本机浏览器 · <span id="statsLastUpdate" style="color:#55606e;">加载中...</span></p>
-    <p id="statsMeta" style="font-size:11px;color:#55606e;margin-bottom:12px;"></p>
-
-    <!-- 全局真实数据（跨店聚合，来自 SCF 后端统计） -->
-    <div id="globalStatsBox" style="background:linear-gradient(135deg,#1A3A6B,#2E6FB8);border-radius:12px;padding:16px 18px;margin-bottom:18px;color:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <span style="font-size:13px;font-weight:600;">🌐 全局真实数据（全厅店累计）</span>
-        <span id="globalStatsUpdated" style="font-size:11px;opacity:0.7;">加载中…</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
-        <div style="text-align:center;"><div id="gTotalStores" style="font-size:28px;font-weight:700;">—</div><div style="font-size:11px;opacity:0.85;">累计绑定厅店</div></div>
-        <div style="text-align:center;"><div id="gTodayActive" style="font-size:28px;font-weight:700;">—</div><div style="font-size:11px;opacity:0.85;">今日活跃厅店</div></div>
-        <div style="text-align:center;"><div id="gTotalExport" style="font-size:28px;font-weight:700;">—</div><div style="font-size:11px;opacity:0.85;">累计产出视频</div></div>
-        <div style="text-align:center;"><div id="gTodayExport" style="font-size:28px;font-weight:700;">—</div><div style="font-size:11px;opacity:0.85;">今日产出视频</div></div>
-      </div>
-      <div id="globalStatsErr" style="display:none;font-size:11px;opacity:0.8;margin-top:8px;color:#FFCDD2;"></div>
-    </div>
-    
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="bank-filter active" onclick="switchStatsPeriod('week', this)">本周</button>
-      <button class="bank-filter" onclick="switchStatsPeriod('month', this)">本月</button>
-      <button class="bank-filter" onclick="switchStatsPeriod('all', this)">累计</button>
-      <button class="bank-filter" onclick="switchStatsPeriod('daily', this)" style="background:#FFF3E0;border-color:#FF9800;color:#C2410C;">📈 近30天趋势</button>
-    </div>
-
-    <!-- Summary Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;" id="statsCards"></div>
-
-    <!-- Charts row 1 -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="card">
-        <h3>📋 模块使用排行</h3>
-        <div id="statsModuleChart" style="margin-top:8px;"></div>
-      </div>
-      <div class="card">
-        <h3>🎯 操作类型分布</h3>
-        <div id="statsActionChart" style="margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <!-- Charts row 2: Store usage + Weekly compare -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
-      <div class="card">
-        <h3>🏪 厅店使用排行 <span style="font-size:11px;color:#55606e;font-weight:400;">（需绑定门店）</span></h3>
-        <div id="statsStoreChart" style="margin-top:8px;"></div>
-      </div>
-      <div class="card">
-        <h3>📊 本周 vs 上周</h3>
-        <div id="statsWeekCompare" style="margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <!-- Daily Trend -->
-    <div class="card" id="statsDailyCard" style="margin-top:16px;display:none;">
-      <h3>📈 近30天使用趋势</h3>
-      <div id="statsDailyChart" style="margin-top:8px;"></div>
-    </div>
-
-    <!-- Top Topics -->
-    <div class="card" style="margin-top:16px;">
-      <h3>🔥 热门选题 TOP15</h3>
-      <div id="statsTopics" style="margin-top:8px;"></div>
-    </div>
-
-    <!-- Raw data export -->
-    <div style="margin-top:16px;display:flex;gap:8px;">
-      <button class="btn btn-outline btn-sm" onclick="exportStats()">📥 导出 JSON</button>
-      <button class="btn btn-outline btn-sm" onclick="exportStatsCSV()">📊 导出 CSV</button>
-      <button class="btn btn-outline btn-sm" style="color:#C62828;border-color:#C62828;" onclick="clearStats()">🗑 清除数据</button>
-    </div>
-  </div>
-  <!-- ==================== PAGE: 我的收藏 ==================== -->
-  <div class="page" id="page-favorites">
-    <h2 style="margin-bottom:4px;">💾 我的收藏</h2>
-    <p style="color:var(--body);font-size:12px;margin-bottom:12px;">点击模板预览区的 ⭐ 按钮收藏脚本，收藏的内容会出现在这里。</p>
-    <div id="favoritesContent"><div class="card" style="text-align:center;padding:40px;color:#64748B;">暂无收藏。去模板页点击 ⭐ 收藏喜欢的脚本吧。</div></div>
-  </div>
-
-  </main>
 </div>
 
-<!-- v2.8: 移动端底部导航 -->
-<div class="mobile-nav" id="mobileNav">
-  <button onclick="switchPage('schedule')" class="mn-item active">📋<span>排期</span></button>
-  <button onclick="switchPage('template1')" class="mn-item">📊<span>推荐</span></button>
-  <button onclick="switchPage('template2')" class="mn-item">🎬<span>故事</span></button>
-  <button onclick="switchPage('template4')" class="mn-item">📍<span>同城</span></button>
-  <button onclick="switchPage('favorites')" class="mn-item">💾<span>收藏</span></button>
-</div>
+<div class="toast" id="toast"></div>
 
-<!-- ==================== SCRIPTS ==================== -->
-  <script src="app.js?v=2.9.65&t=1787023823612&t=1787017771223&t=1787017580580&t=1786934561296&t=1786084161388&t=1785923072876&t=1785901466633&t=1785891040129&t=1785835737070&t=1785834577624&t=1785833836534&t=1785833182912&t=1785825145018&t=1785809725139&t=1785808558761&t=1785807039859&t=1785600945833&t=1785600860743&t=1785572347278" defer></script>
+<!-- Data -->
+<script src="data/bundle.js?v=2.9.66&t=1787041885133"></script>
+  <script src="data/dailyScripts.js?v=2.9.66&t=1787041885133"></script>
+  <script src="data/v3-seedpool.js?v=2.9.66&t=1787041885133"></script>
+  <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
+  <script src="src/v3/personas.js?v=2.9.66&t=1787041885133"></script>
+  <script src="src/v3/core3.js?v=2.9.66&t=1787041885133"></script>
+  <script src="src/v3/track.js?v=2.9.66&t=1787041885133"></script>
+  <script src="src/v3/gate.js?v=2.9.66&t=1787041885133"></script>
+  <script src="src/v3/pool.js?v=2.9.66&t=1787041885133"></script>
+
+<script>
+// ==================== Config ====================
+// 3 语气内隐（用户可见）；6 人设仅作生成端 _persona 元数据（见 §7.6.1）
+var MOODS = [
+  { id:'affinity', emoji:'💝', name:'亲和' },
+  { id:'professional', emoji:'🔧', name:'专业' },
+  { id:'young', emoji:'😎', name:'年轻' }
+];
+// mood → 直播页 6 人设数据的桥接（原型过渡，正式版直播数据也改 mood）
+var MOOD_TO_PERSONA = { affinity:'warm', professional:'tech', young:'vibe' };
+var WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
+var TAB_NAMES = { today:'今日', week:'排期', hot:'热点', live:'直播', mine:'我的' };
+
+var curMood = localStorage.getItem('douyin_mood') || 'affinity';
+var curScriptIdx = 0;
+// 换一条：每卡片当前变体下标 + 跳过历史（按 ISOWeek 隔离，见 §7.7.1）
+var cardVid = {};
+var cardSkip = {};
+
+// ==================== v3 运行时上下文 ====================
+var V3 = window.V3Core, TRK = window.V3Track, POOL = window.V3Pool;
+var todayPool = { level:'empty', scripts:[], label:'', mode:'' };  // 四级回退结果
+var lastISOWeek = '';
+
+function operatorId() {
+  try { return localStorage.getItem('douyin_store') || 'default'; } catch(e) { return 'default'; }
+}
+function ctx() {
+  return { operatorId: operatorId(), isoWeek: lastISOWeek || V3.getISOWeek(new Date()), now: Date.now() };
+}
+/** 确定性 PRNG：同营业员 + 同周 → 同一随机序列，保证 E2E 可回归（§7.5.2 修正②） */
+function detRnd(salt) { return V3.seededRandom(operatorId() + '|' + (lastISOWeek || '') + '|' + (salt || '')); }
+function flagOn(name) { return !!(TRK && TRK.flags && TRK.flags[name]); }
+function track(ev, payload) {
+  if (!TRK) return;
+  payload = payload || {};
+  payload.store = operatorId();
+  payload.week = lastISOWeek;
+  TRK.track(ev, payload);
+}
+
+// ==================== Init ====================
+document.addEventListener('DOMContentLoaded', function() {
+  var now = new Date();
+  lastISOWeek = V3.getISOWeek(now);
+  document.getElementById('dateDisplay').textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+WEEKDAYS[now.getDay()]+' · '+lastISOWeek;
+
+  // Load store from localStorage
+  var savedStore = localStorage.getItem('douyin_store');
+  if (savedStore) {
+    document.getElementById('storeInput').value = savedStore;
+  }
+  document.getElementById('storeInput').addEventListener('change', function(){
+    localStorage.setItem('douyin_store', this.value);
+    resolvePool();          // 换营业厅 → 重新走四级回退与确定性钉选
+    renderDailyCards();
+  });
+
+  // 键盘可达：div[role=button] 支持 Enter / Space 触发（a11y 必测项）
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var t = e.target;
+    if (!t || t.getAttribute('role') !== 'button' || t.tagName === 'BUTTON') return;
+    e.preventDefault();
+    t.click();
+  });
+
+  resolvePool();            // ① 四级显式回退（§7.6.2），先解析池再渲染
+  renderMoodStrip();
+  renderDailyCards();
+  renderWeekGrid();
+  renderHotList();
+  renderMinePage();
+  
+  // Hash-based tab routing for browser back/forward
+  var hash = window.location.hash.replace('#','');
+  if (hash && TAB_NAMES[hash]) {
+    switchTab(hash);
+  }
+  window.addEventListener('popstate', function(e){
+    var h = window.location.hash.replace('#','');
+    if (h && TAB_NAMES[h]) switchTab(h, true);
+  });
+});
+
+// ==================== Mood ====================
+function renderMoodStrip() {
+  var html = '';
+  for (var i = 0; i < MOODS.length; i++) {
+    var m = MOODS[i];
+    html += '<div class="p-chip' + (m.id === curMood ? ' active' : '') + '" onclick="selectMood(\''+m.id+'\',this)">'+m.emoji+' '+m.name+'</div>';
+  }
+  document.getElementById('personaStrip').innerHTML = html;
+}
+
+function selectMood(id, el) {
+  curMood = id;
+  localStorage.setItem('douyin_mood', curMood);
+  document.querySelectorAll('.p-chip').forEach(function(e){e.classList.remove('active');});
+  if (el) el.classList.add('active');
+  renderDailyCards();
+  if (document.getElementById('page-live').classList.contains('active')) {
+    renderLiveCards();
+  }
+}
+
+function getMood(id) {
+  for (var i = 0; i < MOODS.length; i++) { if (MOODS[i].id === id) return MOODS[i]; }
+  return MOODS[0];
+}
+
+// 哈希/周号统一走 v3 内核（单一实现，避免前端与单测两套逻辑漂移）
+function stableHash(str) { return V3.stableHash(str); }
+function getISOWeek(d) { return V3.getISOWeek(d); }
+function moodPersona(m) { return MOOD_TO_PERSONA[m] || 'vibe'; }
+
+// ==================== ① 四级显式回退（§7.6.2） ====================
+function resolvePool() {
+  lastISOWeek = V3.getISOWeek(new Date());
+  todayPool = POOL.resolveToday(ctx());
+  cardVid = {}; cardSkip = {};      // 换池即重置变体态，避免下标错位
+  renderPoolBar();
+  return todayPool;
+}
+
+function renderPoolBar() {
+  var bar = document.getElementById('poolBar');
+  if (!bar) return;
+  var lv = todayPool.level;
+  var txt = {
+    day:   '今日预热已就绪 · ' + todayPool.scripts.length + ' 条',
+    week:  '日预热池未就绪，已回退周备池 · ' + todayPool.scripts.length + ' 条',
+    cache: '云端池暂不可用，已回退本机缓存 · ' + todayPool.scripts.length + ' 条',
+    empty: '三级池均未命中'
+  }[lv];
+  var modeTxt = todayPool.mode === 'pref' ? '偏好路由' : (lv === 'empty' ? '' : '确定性排序');
+  bar.className = 'pool-bar lv-' + lv;
+  bar.innerHTML = '<span class="pb-dot" aria-hidden="true"></span><span>' + txt + '</span>' +
+    (modeTxt ? '<span class="pb-mode">' + modeTxt + '</span>' : '');
+}
+
+// ==================== Daily Cards ====================
+function renderDailyCards() {
+  var box = document.getElementById('dailyCards');
+  if (!box) return;
+  if (!todayPool || !todayPool.scripts || !todayPool.scripts.length) {
+    box.innerHTML = renderSkeleton();
+    renderPoolBar();
+    return;
+  }
+  // ④ 偏好向量路由（§7.5 dim5）：池 ≥30 走偏好过滤，否则确定性随机去重
+  var pref = flagOn('prefRouting') ? V3.prefVectorFrom(TRK.allEvents()) : null;
+  var routed = V3.routePool(todayPool.scripts, pref, { rnd: detRnd('pool'), limit: 12 });
+  todayPool.mode = routed.mode;
+  todayPool.routed = routed.items;
+  renderPoolBar();
+
+  var html = '';
+  for (var i = 0; i < routed.items.length; i++) html += renderScriptCard(routed.items[i], i);
+  box.innerHTML = html;
+  observeCardViews();
+}
+
+function renderSkeleton() {
+  var sk = '';
+  for (var i = 0; i < 2; i++) {
+    sk += '<div class="sk-card" aria-hidden="true"><div class="sk-line w40"></div><div class="sk-line w90"></div><div class="sk-line w70"></div></div>';
+  }
+  return '<div class="skeleton-wrap">' + sk +
+    '<div class="empty-note"><div class="en-title">暂无今日推荐</div>' +
+    '日预热池、周备池、本机缓存均未命中。<br>可稍后重试，或先去「热点」「直播」页取用现成内容。' +
+    '<br><button type="button" onclick="retryPool()">重新获取</button></div></div>';
+}
+
+function retryPool() {
+  if (window.__V3_FORCE_EMPTY) window.__V3_FORCE_EMPTY = [];
+  resolvePool();
+  renderDailyCards();
+  showToast(todayPool.level === 'empty' ? '仍未获取到脚本，请稍后再试' : '✅ 已获取到脚本');
+}
+
+/** 当前卡片所在的语气变体组（含跨语气兜底） */
+function variantGroup(script) {
+  var group = (script && script.variants && script.variants[curMood]) || [];
+  if (!group.length && script && script.variants) {
+    var keys = Object.keys(script.variants);
+    for (var i = 0; i < keys.length; i++) {
+      if (script.variants[keys[i]] && script.variants[keys[i]].length) { group = script.variants[keys[i]]; break; }
+    }
+  }
+  return group || [];
+}
+function scriptAt(idx) {
+  var list = (todayPool.routed && todayPool.routed.length) ? todayPool.routed : todayPool.scripts;
+  return list ? list[idx] : null;
+}
+
+function renderScriptCard(script, idx, vidOverride) {
+  var group = variantGroup(script);
+  // ② 确定性钉选：同营业员 + 同选题 + 同周 → 稳定同一条（§7.6.1）
+  var seed = script.seedId || ('seed_' + idx);
+  var pinned = V3.pinnedIndex(operatorId(), seed, lastISOWeek, group.length);
+  var vid = (vidOverride != null) ? vidOverride : (cardVid[idx] != null ? cardVid[idx] : pinned);
+  cardVid[idx] = vid;
+  var v = (group[vid] || group[0] || {});
+  var isDraft = !!v.draft || !!script.draft;               // 门禁下沉：未达口播稿标准 → 草稿态角标
+
+  var compliance = script.compliance || {};
+  var badgeClass = isDraft ? 'draft' : (compliance.status || 'passed');
+  var badgeText = isDraft ? '⚠️ 草稿态·未达口播稿标准' : (badgeClass === 'passed' ? '✅ 合规' : (badgeClass === 'fixed' ? '🔧 已修正' : '⚠️ 拦截'));
+  var fixedNote = (badgeClass === 'fixed' && compliance.autoFixed > 0) ? ' (修正'+compliance.autoFixed+'处)' : '';
+
+  var scriptText = v.script || script.coreOffer || '';
+  // 红线兜底：任何入前端的文本都过一次立场扫描，命中即降级为安全提示
+  if (V3.scanStance(scriptText).length) scriptText = '（该变体未通过立场校验，已自动隐藏，请点「换一条」）';
+  var previewText = scriptText.slice(0, 120) + (scriptText.length > 120 ? '...' : '');
+  var bgm = v.bgm || '';
+
+  var sbHtml = '';
+  var sb = v.storyboard || [];
+  if (sb.length > 0) {
+    sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
+    for (var s = 0; s < sb.length; s++) {
+      sbHtml += '<tr><td class="sec">'+sb[s].sec+'</td><td>'+sb[s].speaker+'<br><span style="color:#55606e;font-size:10px;">'+sb[s].text+'</span></td><td class="cam">'+sb[s].camera+'</td></tr>';
+    }
+    sbHtml += '</table></div>';
+  }
+
+  var mood = getMood(curMood);
+  // ⑤ 本周新增角标（weeklyNew.js）
+  var newBadge = (flagOn('weeklyBadge') && isWeeklyNew(script)) ? '<span class="badge-new">🆕 本周新增</span>' : '';
+  // 注意：不展示 _persona（生成端嗓音库），用户只感知 3 语气（见 §7.6.1）
+  return '<div class="script-card" id="card-'+idx+'" data-vid="'+vid+'" data-seed="'+esc(script.seedId||'')+'" data-type="'+esc(script.type||'')+'" data-level="'+esc(script.poolLevel||todayPool.level)+'" onclick="toggleCard('+idx+')">' +
+    '<div class="sc-head">' +
+    '<span class="type-icon" aria-hidden="true">'+(script.typeIcon || '📄')+'</span>' +
+    '<span class="type-name">'+ (script.typeName || '脚本') +'</span>' + newBadge +
+    '<span class="sc-badge '+badgeClass+'">'+badgeText+fixedNote+'</span>' +
+    '</div>' +
+    '<div class="sc-hook"><span class="hook-label">钩子'+(script.hookType ? '('+script.hookType+')' : '')+':</span>'+esc(script.hook || '')+'</div>' +
+    '<div class="sc-title">'+ esc(script.topic || '') +'</div>' +
+    '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+(bgm ? ' · 🎵 '+esc(bgm) : '')+'</div>' +
+    '<div class="sc-preview"><div class="preview-text" id="pv-'+idx+'">'+esc(previewText)+'</div></div>' +
+    sbHtml +
+    '<div class="sc-actions">' +
+    '<button type="button" class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
+    '<button type="button" class="sc-switch" onclick="event.stopPropagation();cycleCard('+idx+')">🔄 换一条</button>' +
+    '<button type="button" class="sc-switch" onclick="event.stopPropagation();shareCard('+idx+')">📤 分享</button>' +
+    '<button type="button" class="sc-switch fb-up" title="这条对我有用" aria-label="好评" onclick="event.stopPropagation();feedbackCard('+idx+',1)">👍</button>' +
+    '<button type="button" class="sc-switch fb-down" title="这条没帮助" aria-label="差评" onclick="event.stopPropagation();feedbackCard('+idx+',-1)">👎</button>' +
+    '</div></div>';
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c];
+  });
+}
+
+/** 本周新增判定：weeklyNew 的 t1/t2/t4 选题命中，或池构造时已标记 */
+function isWeeklyNew(script) {
+  if (!script) return false;
+  if (script.isWeeklyNew) return true;
+  var wn = window.___weeklyNew;
+  if (!wn || !script.topic) return false;
+  var tiers = ['t1','t2','t4'];
+  for (var i = 0; i < tiers.length; i++) {
+    var arr = wn[tiers[i]] || [];
+    for (var j = 0; j < arr.length; j++) if (arr[j] === script.topic) return true;
+  }
+  return false;
+}
+
+// ③ seed_view：卡片真正进入视口才记曝光（IO 不可用时降级为渲染即记）
+var viewObserver = null;
+function observeCardViews() {
+  var cards = document.querySelectorAll('#dailyCards .script-card');
+  if (!('IntersectionObserver' in window)) {
+    for (var i = 0; i < cards.length; i++) emitView(cards[i]);
+    return;
+  }
+  if (viewObserver) viewObserver.disconnect();
+  viewObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting) { emitView(en.target); viewObserver.unobserve(en.target); }
+    });
+  }, { threshold: 0.35 });
+  for (var j = 0; j < cards.length; j++) viewObserver.observe(cards[j]);
+}
+function emitView(el) {
+  if (!el || el.getAttribute('data-viewed')) return;
+  el.setAttribute('data-viewed','1');
+  track('seed_view', { seedId: el.getAttribute('data-seed'), type: el.getAttribute('data-type'), mood: curMood });
+}
+
+function toggleCard(idx) {
+  var el = document.getElementById('card-'+idx);
+  if (!el) return;
+  el.classList.toggle('expanded');
+  // ⑥ 展开时按需加载 6 人设完整口播稿（227KB 懒加载，折叠回当前语气）
+  if (el.classList.contains('expanded')) enrichFullScript(idx);
+}
+
+function enrichFullScript(idx) {
+  var script = scriptAt(idx);
+  if (!script || !script.topic) return;
+  var pv = document.getElementById('pv-'+idx);
+  if (!pv || pv.getAttribute('data-full')) return;
+  POOL.ensurePersonaScripts(function(ok){
+    if (!ok) return;                                   // 加载失败 → 静默保留模板稿
+    var full = POOL.fullScriptFor(script.topic, curMood, operatorId(), lastISOWeek);
+    var node = document.getElementById('pv-'+idx);
+    if (!full || !node) return;
+    node.setAttribute('data-full','1');
+    node.textContent = full.script;                     // 只注入文本，不解析 HTML
+    script.__fullText = full.script;
+  });
+}
+
+// 「换一条」：确定性钉选保稳定；点换一条 → 排除当前 + 组内随机 + 记录跳过史（见 §7.7.1）
+function cycleCard(idx) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var grp = variantGroup(script);
+  var cur = (cardVid[idx] != null) ? cardVid[idx] : 0;
+  if (!cardSkip[idx]) cardSkip[idx] = [];
+  var r = V3.routeNext(grp.length, cur, cardSkip[idx], detRnd('skip|' + idx + '|' + cardSkip[idx].length));
+  if (r.index < 0) { showToast('该选题此语气暂仅 1 条，换选题试试'); return; }
+  if (r.reset) cardSkip[idx] = [];
+  cardSkip[idx].push(r.index);
+  cardVid[idx] = r.index;
+  var el = document.getElementById('card-' + idx);
+  if (el) el.outerHTML = renderScriptCard(script, idx, r.index);
+  var neo = document.getElementById('card-' + idx);
+  if (neo) { neo.setAttribute('data-viewed','1'); }   // 换一条不重复计曝光
+  track('seed_skip', { seedId: script.seedId, type: script.type, mood: curMood, vid: r.index });
+}
+
+function currentText(idx) {
+  var script = scriptAt(idx);
+  if (!script) return '';
+  if (script.__fullText) return script.__fullText;
+  var grp = variantGroup(script);
+  var vid = (cardVid[idx] != null) ? cardVid[idx] : 0;
+  var v = grp[vid] || grp[0] || {};
+  return v.script || script.coreOffer || '';
+}
+
+function copyCardText(idx) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var text = currentText(idx);
+  if (V3.scanStance(text).length) { showToast('该变体未通过立场校验，已拦截复制'); return; }
+  copyToClipboard(text, '脚本已复制');
+  track('seed_copy', { seedId: script.seedId, type: script.type, mood: curMood, vid: cardVid[idx] });
+}
+
+function shareCard(idx) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var text = currentText(idx);
+  if (V3.scanStance(text).length) { showToast('该变体未通过立场校验，已拦截分享'); return; }
+  var payload = '【' + (script.typeName || '脚本') + '】' + (script.topic || '') + '\n' + text + '\n—— 抖本内容工坊 · ' + operatorId();
+  var channel = 'clipboard';
+  if (navigator.share) {
+    channel = 'system';
+    navigator.share({ title: script.topic || '抖本脚本', text: payload }).catch(function(){});
+    showToast('已唤起分享');
+  } else {
+    copyToClipboard(payload, '分享文案已复制，去粘贴给同事');
+  }
+  track('seed_share', { seedId: script.seedId, type: script.type, mood: curMood, channel: channel });
+}
+
+function copyToClipboard(text, okMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('✅ ' + okMsg);
+    }).catch(function() {
+      fallbackCopy(text, okMsg);
+    });
+  } else {
+    fallbackCopy(text, okMsg);
+  }
+}
+
+function fallbackCopy(text, okMsg) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('✅ ' + okMsg);
+  } catch(e) {
+    showToast('复制失败，请手动选择文字');
+  }
+  document.body.removeChild(ta);
+}
+
+// ==================== 排期（季节动态配比替代 60/25/15 固定，§7.5 dim6） ====================
+var TYPE_COLOR = { decision:'#1A6ED8', scene:'#0D904F', review:'#7A4FD8', local:'#FF6B00', hotspot:'#D93025' };
+
+/** 当前生效配比：确定性兜底常驻；signalRatio flag 开启后才混入使用信号且硬限幅 */
+function currentRatio(now) {
+  var s = V3.seasonOf(now || new Date());
+  var sig = flagOn('signalRatio') ? V3.signalDistFrom(TRK.allEvents()) : null;
+  var r = V3.ratio(s.tag, sig, { enableSignal: flagOn('signalRatio'), signalWeight: 0.2, maxDrift: 0.10 });
+  return { season: s, ratio: r, usedSignal: !!(sig && flagOn('signalRatio')) };
+}
+
+function renderSeasonBar() {
+  var box = document.getElementById('seasonBar');
+  if (!box) return;
+  var cur = currentRatio(new Date());
+  var r = cur.ratio, meta = POOL.TYPE_META;
+  var bars = '', legend = '';
+  V3.CONTENT_TYPES.forEach(function(t){
+    var pct = Math.round((r[t] || 0) * 100);
+    bars += '<i style="width:'+pct+'%;background:'+TYPE_COLOR[t]+';"></i>';
+    legend += '<span><em style="background:'+TYPE_COLOR[t]+';"></em>'+(meta[t]||{}).name+' '+pct+'%</span>';
+  });
+  var b = V3.toBuckets(r);
+  box.innerHTML =
+    '<div class="sb-top">🌤️ 本周内容配比 <span class="sb-tag">'+esc(cur.season.label)+'</span>' +
+      '<span style="margin-left:auto;font-weight:400;font-size:10px;color:#55606e;">'+(cur.usedSignal ? '季节+使用信号' : '季节系数（确定性）')+'</span></div>' +
+    '<div class="ratio-bar" role="img" aria-label="内容配比：常规'+Math.round(b.evergreen*100)+'% 本地'+Math.round(b.local*100)+'% 热点'+Math.round(b.hotspot*100)+'%">'+bars+'</div>' +
+    '<div class="ratio-legend">'+legend+'</div>';
+}
+
+function renderWeekGrid() {
+  renderSeasonBar();
+  var now = new Date();
+  var dayOfWeek = now.getDay();
+  var monday = new Date(now);
+  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+
+  var cur = currentRatio(now);
+  var slots = V3.allocateSlots(cur.ratio, 5);   // 配比 → 5 天类型（最大余数法，确定性）
+  var meta = POOL.TYPE_META;
+
+  var html = '';
+  for (var i = 0; i < 5; i++) {
+    var d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    var isToday = (d.getDate() === now.getDate() && d.getMonth() === now.getMonth());
+    var isPast = d < now && !isToday;
+    var t = slots[i], m = meta[t] || { name:'脚本', icon:'📄' };
+    html += '<div class="week-day' + (isToday ? ' today' : '') + '" data-type="'+esc(t)+'">' +
+      '<div class="wd-label">' + (isToday ? '今天' : WEEKDAYS[d.getDay()]) + '</div>' +
+      '<div class="wd-icon" aria-hidden="true">' + m.icon + '</div>' +
+      '<div class="wd-topic">' + m.name + '</div>' +
+      '<div class="wd-status ' + (isPast ? 'wd-done' : (isToday ? 'wd-today' : '')) + '">' +
+      (isPast ? '✅ 已生成' : (isToday ? '📌今日' : '⏳待更新')) + '</div></div>';
+  }
+  document.getElementById('weekGrid').innerHTML = html;
+}
+
+// ==================== 我的：信号面板 + 灰度开关 ====================
+var FLAG_META = [
+  { key:'prefRouting', label:'偏好路由', desc:'按本机使用偏好排序；池<30 条自动回退确定性随机去重' },
+  { key:'signalRatio', label:'信号影响配比', desc:'把使用信号混入内容配比（偏移硬限幅 ±10%，可回滚）' },
+  { key:'trackRemote', label:'信号上报云端', desc:'关闭时信号仅留本机；开启后经现有 SCF 端点上报' },
+  { key:'weeklyBadge', label:'本周新增角标', desc:'为 weeklyNew 选题标注 🆕' }
+];
+
+function renderMinePage() {
+  var s = TRK.summary();
+  var cells = [
+    { k:'seed_view', l:'曝光' }, { k:'seed_copy', l:'复制' }, { k:'seed_skip', l:'换一条' },
+    { k:'seed_share', l:'分享' }, { k:'seed_feedback', l:'反馈' }, { k:'seed_fallback', l:'池回退' }
+  ];
+  var grid = '';
+  cells.forEach(function(c){
+    grid += '<div class="sig-cell"><div class="sg-n">'+(s[c.k]||0)+'</div><div class="sg-l">'+c.l+'</div></div>';
+  });
+  var pref = V3.prefVectorFrom(TRK.allEvents());
+  grid += '<div class="sig-cell"><div class="sg-n">'+pref.sample+'</div><div class="sg-l">样本量</div></div>';
+  document.getElementById('sigGrid').innerHTML = grid;
+
+  // N-6：离线权重快照展示（上次重算结果；未重算给提示）
+  var w = TRK.lastWeights();
+  var wBox = document.getElementById('weightsBox');
+  if (w && w.sample > 0) {
+    var fmt = function(o){ if (!o) return '—'; return Object.keys(o).map(function(k){ return k+':'+o[k]; }).join(' '); };
+    var buck = w.buckets ? ('常规:' + w.buckets.evergreen + ' 本地:' + w.buckets.local + ' 热点:' + w.buckets.hotspot) : '—';
+    wBox.innerHTML = '⏱ ' + new Date(w.generatedAt).toLocaleString() + ' · 样本 ' + w.sample +
+      '<br>语气权重：' + fmt(w.mood) +
+      '<br>类型权重：' + fmt(w.type) +
+      '<br>70/20/10 桶（由信号推导）：' + buck +
+      '<br><span style="color:#8a93a3;">（确定性兜底常驻，此表仅离线重算产物，不实时改线上配比）</span>';
+  } else {
+    wBox.innerHTML = '未重算（信号样本 0）——点上方按钮生成离线权重快照';
+  }
+
+  var flags = '';
+  FLAG_META.forEach(function(f){
+    var on = flagOn(f.key);
+    flags += '<div class="flag-row"><span class="fr-label">'+f.label+'<span class="fr-desc">'+f.desc+'</span></span>' +
+      '<button type="button" class="'+(on?'on':'')+'" aria-pressed="'+on+'" onclick="toggleFlag(\''+f.key+'\')">'+(on?'已开启':'已关闭')+'</button></div>';
+  });
+  document.getElementById('flagList').innerHTML = flags;
+
+  // 历史：最近 7 天被复制/分享过的脚本
+  var all = TRK.allEvents(), cutoff = Date.now() - 7*24*3600*1000, hist = [], seen = {};
+  for (var i = all.length - 1; i >= 0 && hist.length < 8; i--) {
+    var e = all[i];
+    if (!e || e.t < cutoff) continue;
+    if (e.ev !== 'seed_copy' && e.ev !== 'seed_share') continue;
+    if (!e.seedId || seen[e.seedId]) continue;
+    seen[e.seedId] = 1;
+    hist.push('· ' + (e.ev === 'seed_copy' ? '复制' : '分享') + ' ' + e.seedId + '（' + (getMood(e.mood).name) + '）');
+  }
+  document.getElementById('historyList').innerHTML = hist.length ? hist.join('<br>') : '暂无历史记录（复制或分享后出现在这里）';
+
+  // 合规记录：对当前池实时扫描
+  var list = todayPool.routed || todayPool.scripts || [], total = 0, blocked = 0;
+  for (var j = 0; j < list.length; j++) {
+    var grp = variantGroup(list[j]);
+    for (var k = 0; k < grp.length; k++) {
+      total++;
+      if (V3.scanStance(grp[k].script || '').length) blocked++;
+    }
+  }
+  document.getElementById('complianceBox').innerHTML =
+    '当前池：' + list.length + ' 个选题 / ' + total + ' 条变体（来源：' + (todayPool.label || '—') + '）<br>' +
+    '✅ 立场校验通过 ' + (total - blocked) + ' 条<br>' +
+    '⚠️ 命中红线自动隐藏 ' + blocked + ' 条<br>' +
+    '扫描规则：营业员视角，禁止攻击运营商类表述';
+}
+
+// N-8 Phase5 反馈闭环：卡片 👍/👎 显式反馈 → 本地信号池（离线重算消费，不实时改线上）
+function feedbackCard(idx, rating) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var grp = variantGroup(script);
+  var vid = (cardVid[idx] != null) ? cardVid[idx] : V3.pinnedIndex(operatorId(), script.seedId || ('seed_'+idx), lastISOWeek, grp.length);
+  TRK.feedback(script.seedId || ('seed_'+idx), curMood, script.type || 'decision', rating);
+  showToast(rating > 0 ? '👍 已记好评，这类选题会多推' : '👎 已记差评，这类选题会少推');
+}
+
+// N-6 信号离线权重重算：聚合本机全部事件 → 权重快照（确定性兜底常驻，本产物仅供巡检）
+function recomputeWeights() {
+  if (!TRK || typeof TRK.recompute !== 'function') { showToast('信号模块未就绪'); return; }
+  var out = TRK.recompute();
+  renderMinePage();
+  showToast('离线权重已重算：样本 ' + out.sample);
+}
+
+function toggleFlag(key) {
+  TRK.setFlag(key, !flagOn(key));
+  renderMinePage();
+  renderDailyCards();
+  renderWeekGrid();
+  showToast((flagOn(key) ? '已开启：' : '已关闭：') + key);
+}
+
+function resetStore() {
+  try { localStorage.removeItem('douyin_store'); } catch(e) {}
+  document.getElementById('storeInput').value = '';
+  resolvePool();
+  renderDailyCards();
+  showToast('已重置门店信息');
+}
+
+/**
+ * 清除本机信号 + 丢弃旧脚本缓存，然后重新走四级回退。
+ * 注意：若重新解析命中日/周池，会立刻用**最新数据**重建缓存（离线兜底不能断），
+ * 所以用户看到的是「旧缓存被换掉」，而不是「缓存永久消失」——文案按这个语义写。
+ */
+function clearLocalCache() {
+  POOL.cacheClear();
+  TRK.clearEvents();
+  resolvePool();
+  renderDailyCards();
+  renderMinePage();
+  var rebuilt = todayPool.level === 'day' || todayPool.level === 'week';
+  showToast(rebuilt ? '✅ 信号已清空，脚本已重新拉取' : '✅ 信号与缓存已清空（当前无可用池）');
+}
+
+// ==================== 热点 ====================
+function renderHotList() {
+  var data = window.___dailyScripts;
+  if (!data || !data.todayHots) return;
+  var hots = data.todayHots;
+  var html = '';
+  for (var i = 0; i < hots.length; i++) {
+    var isMatched = data.scripts.some(function(s){return s.hotTopic === hots[i];});
+    html += '<div class="hot-item" style="border-left-color:'+(isMatched?'var(--orange)':'var(--gray-border)')+'">' +
+      '<div class="h-rank">#' + (i+1) + (isMatched ? ' · 已匹配脚本' : ' · 未匹配') + '</div>' +
+      '<div class="h-title">' + hots[i] + '</div>' +
+      (isMatched ? '<div class="h-why">' + data.scripts.filter(function(s){return s.hotTopic===hots[i];})[0].hook + '</div>' : '') +
+      '</div>';
+  }
+  document.getElementById('hotList').innerHTML = html;
+}
+
+// ==================== 直播话术 ====================
+var LIVE_SCRIPTS = [
+  {
+    typeName: '厅店直播', typeIcon: '🏪',
+    hook: '想换手机、办宽带的，今天在营业厅就能一站搞定',
+    topic: '厅店直播：10分钟循环话术',
+    coreOffer: '店内柜台实景，产品展示+互动，引导到店转化',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: {
+        persona: '活力小哥',
+        script: '【暖场 2min】\n家人们下午好！我在太原柳巷电信营业厅给你们直播！今天特意挑了几款暑期爆款，给大家炸一波福利！\n\n【产品讲解 4min】\n第一款：千兆宽带暑期特惠！原本199一个月，现在新装只要99！还送千兆路由器一个！\n家人们，1000M宽带是什么概念？下载一部4K电影只要10秒钟！\n\n【互动 2min】\n想办的评论区扣「1」，我再给你额外争取个赠品！之前在我这办过的老铁们评论区聊两句？\n\n【逼单 2min】\n这个优惠只限今天！现在下单还送路由器+6个月会员。错过等明年！点击小风车直接预约！',
+        storyboard: [
+          { sec: '0-2', speaker: '热情打招呼', text: '「千兆暑期特惠99元起」', camera: '柜台实景口播' },
+          { sec: '2-6', speaker: '展品介绍', text: '「原199→现99 送路由器」', camera: '手持路由器+宽带套餐卡' },
+          { sec: '6-8', speaker: '互动引导', text: '「扣1拿赠品」', camera: '互动口播' },
+          { sec: '8-10', speaker: '限时逼单', text: '「限今天+送6个月会员」', camera: '指屏幕 紧迫感' }
+        ]
+      },
+      warm: {
+        persona: '暖心姐姐',
+        script: '【暖场 2min】\n大家好，欢迎来到山西电信直播间。今天来给大家讲讲家里宽带的事。\n\n【产品讲解 4min】\n很多大姐问我说：家里网速怎么越来越慢了？其实很可能是宽带用了好几年没升级了。\n现在有个活动，旧套餐升新套餐，网速翻倍，价格反而降了。\n\n【互动 2min】\n家里网速慢的，评论区留「测速」，我教你自己查一下。或者直接来店里找我，免费帮你测。\n\n【逼单 2min】\n这个升级活动名额有限，今天在我们直播间预约的，额外送6个月提速包。',
+        storyboard: [
+          { sec: '0-2', speaker: '微笑问好', text: '「家里网速慢？今天讲清楚」', camera: '营业厅背景口播' },
+          { sec: '2-6', speaker: '讲解方案', text: '「旧→新不涨价反降价」', camera: '套餐单页展示' },
+          { sec: '6-8', speaker: '互动提问', text: '「留测速帮你查」', camera: '贴心口播' },
+          { sec: '8-10', speaker: '限时引导', text: '「预约送6个月提速」', camera: '展示赠品' }
+        ]
+      },
+      tech: {
+        persona: '技术专家',
+        script: '【暖场 2min】\n欢迎来到专业直播间。今天不讲废话，直接上数据。\n\n【产品讲解 4min】\n很多人问千兆宽带到底值不值得。我测给你们看：100M下载速度12.5MB/s，300M是37.5MB/s，1000M是125MB/s。\n现在99元/月的千兆套餐，比隔壁运营商同规格便宜30%。\n\n【互动 2min】\n有技术问题的直接问，在线解答。测速不会的也可以问我。\n\n【逼单 2min】\n今天下单额外送千兆路由器一个，实测穿墙能力不错。数量不多，先到先得。',
+        storyboard: [
+          { sec: '0-2', speaker: '开场白', text: '「不讲废话只上数据」', camera: '设备墙背景' },
+          { sec: '2-6', speaker: '数据展示', text: '「100M→300M→1000M 数据对比」', camera: '测速屏幕展示' },
+          { sec: '6-8', speaker: 'Q&A', text: '「技术问题在线解答」', camera: '口播面对镜头' },
+          { sec: '8-10', speaker: '产品推荐', text: '「千兆路由器赠品实测」', camera: '产品特写' }
+        ]
+      },
+      sweet: {
+        persona: '甜美学姐',
+        script: '【暖场 2min】\n宝子们下午好！学姐在营业厅给你们直播啦！\n\n【产品讲解 4min】\n今天给你们争取到了一个暑期福利：千兆宽带直接半价！原价199、今天只要99！还送路由器！\n一个人或情侣住的选300M就够了，一家人的话千兆一步到位。\n\n【互动 2min】\n想要详细方案的，评论区留「城市+人数」，学姐帮你推荐最划算的方案！\n\n【逼单 2min】\n这个活动限时3天！今天下单还送6个月会员。错过要等明年暑假了！',
+        storyboard: [
+          { sec: '0-2', speaker: '甜美开场', text: '「暑期半价福利来了」', camera: '甜美口播' },
+          { sec: '2-6', speaker: '产品推荐', text: '「千兆半价99元+送路由器」', camera: '产品展示' },
+          { sec: '6-8', speaker: '引导互动', text: '「留城市+人数推荐方案」', camera: '互动口播' },
+          { sec: '8-10', speaker: '限时紧迫', text: '「限3天+送会员」', camera: 'wink比心' }
+        ]
+      },
+      pro: {
+        persona: '商务精英',
+        script: '【暖场 2min】\n各位好，今天介绍一个提升家庭办公效率的方案。\n\n【产品讲解 4min】\n居家办公最怕什么？视频会议卡、文件传不动、客户等半天。\n千兆宽带99元/月，一天3块3。一台手机的话费都不止这个数，但换来的是全家全年不卡。\n\n【互动 2min】\n有办公网络需求的，评论区说说你的情况，我帮你定制方案。\n\n【逼单 2min】\n今天预约可免费上门测速+调试路由器。评论区留「上门」立即安排。',
+        storyboard: [
+          { sec: '0-2', speaker: '专业开场', text: '「提升居家办公效率」', camera: '办公桌面背景' },
+          { sec: '2-6', speaker: '需求分析', text: '「一天3块3 全年不卡」', camera: '白板写数字' },
+          { sec: '6-8', speaker: '互动邀请', text: '「留需求定制方案」', camera: '专业口播' },
+          { sec: '8-10', speaker: '服务承诺', text: '「留上门免费调」', camera: '商务姿态收尾' }
+        ]
+      },
+      master: {
+        persona: '资深师傅',
+        script: '【暖场 2min】\n大家好，干了十几年电信，今天跟你聊点干货。\n\n【产品讲解 4min】\n现在很多人觉得宽带太贵了，其实真不贵。我算给你看：100M宽带每月39，300M每月59，1000M才99。\n一家人平摊下来，每人每天一块钱不到。\n\n【互动 2min】\n有啥不懂的评论区问，师傅在线答。宽带/手机/套餐都行，我懂的都告诉你。\n\n【逼单 2min】\n今天找我办，我免费上门给你装好、调好、测好再走。不是谁都有这待遇的。',
+        storyboard: [
+          { sec: '0-2', speaker: '师傅开场', text: '「跟你说点干货」', camera: '工装口播' },
+          { sec: '2-6', speaker: '成本分析', text: '「每人一天不到1块钱」', camera: '掰手指算账' },
+          { sec: '6-8', speaker: '在线答疑', text: '「随便问 师傅在线答」', camera: '真诚口播' },
+          { sec: '8-10', speaker: '服务承诺', text: '「办完上门调好再走」', camera: '展示工具箱' }
+        ]
+      }
+    }
+  },
+  {
+    typeName: '小区地推', typeIcon: '🏘️',
+    hook: '小区门口的电信服务点，比你还了解你家的网',
+    topic: '小区地推：社区便民直播脚本',
+    coreOffer: '社区摆摊，便民服务+业务推广+进群维护',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: { persona: '活力小哥', script: '【暖场 2min】各位邻居好！今天我们在XX小区门口做便民服务！免费贴膜免费测速！路过不要错过啊！\n\n【服务 4min】阿姨手机慢的、家里WiFi卡的、想换套餐的，统统过来我帮你看看！不收一分钱！\n\n【互动 2min】家人们帮我点点赞，我多给大家贴几张膜！\n\n【转化 2min】觉得服务满意的，加个群，以后有问题直接在群里问我，24小时在线！', storyboard: [
+        { sec: '0-2', speaker: '小区门口热情招呼', text: '「免费贴膜测速啦」', camera: '小区门口实景口播' },
+        { sec: '2-6', speaker: '服务展示', text: '「免费服务不花一分钱」', camera: '贴膜操作+测速展示' },
+        { sec: '6-8', speaker: '互动求赞', text: '「点赞多贴几张」', camera: '互动口播' },
+        { sec: '8-10', speaker: '引导入群', text: '「加群24小时有问必答」', camera: '展示群二维码' }
+      ]},
+      warm: { persona: '暖心姐姐', script: '【暖场 2min】邻居们好，电信进社区搞便民服务，今天一天都在小区门口。\n\n【服务 4min】家里有网络问题的、手机不会用的，都过来我帮你看看。特别是家里有老人的，出门不方便，告诉我你住哪栋，我上门服务。\n\n【互动 2min】大家互相转告一下，今天到下午6点，过了今天就回营业厅了。\n\n【转化 2min】加我个微信，以后家里网络有问题直接找我，不用跑营业厅。', storyboard: [
+        { sec: '0-2', speaker: '亲切招呼', text: '「电信便民服务进社区」', camera: '便民摊位实景' },
+        { sec: '2-6', speaker: '服务内容', text: '「老人行动不便可上门」', camera: '温馨服务画面' },
+        { sec: '6-8', speaker: '互动提醒', text: '「今天到6点 互相转告」', camera: '面对小区口播' },
+        { sec: '8-10', speaker: '留存转化', text: '「加联系方式以后不用跑厅」', camera: '展示联系方式' }
+      ]},
+      tech: { persona: '技术专家', script: '【暖场 2min】大家好，我是电信工程师，今天在XX小区做免费网络义诊。\n\n【服务 4min】免费三项：测真实网速、检查路由器位置是否合理、查套餐是否还有优化空间。我带了专业设备，当场出检测报告。\n\n【互动 2min】有问题的现场排队，一家一家来。\n\n【转化 2min】测完加群，群里发你的检测报告电子版，以后有问题群里@我。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「免费网络义诊+专业设备」', camera: '展示检测设备' },
+        { sec: '2-6', speaker: '服务列表', text: '「测速+路由器+套餐检查」', camera: '设备操作演示' },
+        { sec: '6-8', speaker: '现场组织', text: '「一家一家来 都检测完」', camera: '服务现场' },
+        { sec: '8-10', speaker: '后续服务', text: '「加群发你检测报告」', camera: '群二维码展示' }
+      ]},
+      sweet: { persona: '甜美学姐', script: '【暖场 2min】宝子们！我带着贴膜工具来你们小区了！\n\n【服务 4min】免费贴膜、免费手机清洁、免费测宽带！还有一个小小的见面礼！\n\n【互动 2min】宝子们帮我转发到业主群，我多送10个贴膜名额！\n\n【转化 2min】加我个联系方式，以后手机出问题了不用跑厅，直接问我！', storyboard: [
+        { sec: '0-2', speaker: '活泼开场', text: '「带工具来你们小区了」', camera: '甜美笑容+工具包' },
+        { sec: '2-6', speaker: '服务福利', text: '「贴膜+清洁+测速+小礼物」', camera: '服务展示' },
+        { sec: '6-8', speaker: '请求转发', text: '「转发多送10个名额」', camera: '互动口播' },
+        { sec: '8-10', speaker: '留存转化', text: '「加联系方式随时问」', camera: '联系方式展示' }
+      ]},
+      pro: { persona: '商务精英', script: '【暖场 2min】各位邻居，为提升社区网络品质，今天在此设点提供免费网络诊断。\n\n【服务 4min】包含：宽带速率实测、路由器性能评估、套餐方案对比。同时可办理业务升级。\n\n【互动 2min】每户大概5分钟，检测完会出一份简单的网络现状报告。\n\n【转化 2min】加企业微信，有问题随时咨询。如果检测发现问题，可预约免费上门调试。', storyboard: [
+        { sec: '0-2', speaker: '干练开场', text: '「社区网络品质提升服务」', camera: '统一着装摊位' },
+        { sec: '2-6', speaker: '服务说明', text: '「测速+评估+方案对比」', camera: '专业服务画面' },
+        { sec: '6-8', speaker: '流程说明', text: '「5分钟出检测报告」', camera: '检测流程演示' },
+        { sec: '8-10', speaker: '长期留存', text: '「加企微24小时在线」', camera: '企微二维码' }
+      ]},
+      master: { persona: '资深师傅', script: '【暖场 2min】邻居们好！今天我来你们小区做服务了，免费的！\n\n【服务 4min】干了十几年装维，谁家网速有问题我一眼就看出来。路由器放错了、光猫老化了、套餐该升了——来我帮你检查。\n\n【互动 2min】一个一个来，别急。排队的时候跟邻居聊聊天也行。\n\n【转化 2min】加个联系方式，以后网络有故障先找我，省得打10000号等半天。', storyboard: [
+        { sec: '0-2', speaker: '亲切开场', text: '「免费网络义诊今天一天」', camera: '师傅穿上工装' },
+        { sec: '2-6', speaker: '自信承诺', text: '「一看就知道问题在哪」', camera: '工具箱展示' },
+        { sec: '6-8', speaker: '现场组织', text: '「排队别急 一个个来」', camera: '服务现场' },
+        { sec: '8-10', speaker: '长期留存', text: '「加我直接找 不打10000」', camera: '展示联系方式' }
+      ]}
+    }
+  },
+  {
+    typeName: '户外活动', typeIcon: '🎪',
+    hook: '广场上搞活动，今天来的都有礼品',
+    topic: '户外活动：商圈广场引流直播脚本',
+    coreOffer: '广场/商圈活动，吸粉拉新+现场办理+抽奖互动',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: { persona: '活力小哥', script: '【暖场 2min】家人们！我现在在XX广场，电信搞活动！现场人山人海！\n\n【活动 4min】现场办宽带送路由器、签合约抽大奖、还有免费贴膜！走过路过不要错过！\n\n【互动 2min】人太多了，小哥哥小姐姐们帮我维持一下秩序！\n\n【转化 2min】想办的来这边排队，今天办额外送3个月会员！先到先得！', storyboard: [
+        { sec: '0-2', speaker: '热情开场', text: '「XX广场搞活动啦」', camera: '广场全景' },
+        { sec: '2-6', speaker: '活动内容', text: '「送路由器/抽奖/免费贴膜」', camera: '活动现场' },
+        { sec: '6-8', speaker: '互动', text: '「人太多帮忙维持」', camera: '人群镜头' },
+        { sec: '8-10', speaker: '紧迫感', text: '「今天办送3个月会员」', camera: '排队实拍' }
+      ]},
+      warm: { persona: '暖心姐姐', script: '【暖场 2min】各位朋友好！今天我们在XX广场搞活动，天气热，过来歇歇脚喝杯水。\n\n【活动 4min】免费贴膜、免费测速、办业务送好礼。活动一直到晚上8点。\n\n【互动 2min】大家互相叫一下，有邻居朋友在附近的都过来看看。\n\n【转化 2min】今天办的送一整年的流量包，这个平时没有的。', storyboard: [
+        { sec: '0-2', speaker: '亲切开场', text: '「进来歇歇脚喝杯水」', camera: '活动帐篷' },
+        { sec: '2-6', speaker: '活动内容', text: '「免费服务+办业务送礼」', camera: '活动展台' },
+        { sec: '6-8', speaker: '号召', text: '「叫朋友过来看看」', camera: '互动口播' },
+        { sec: '8-10', speaker: '限时福利', text: '「送一年流量包限今天」', camera: '福利展示' }
+      ]},
+      tech: { persona: '技术专家', script: '【暖场 2min】各位好，今天XX广场电信做现场活动。\n\n【活动 4min】带了专业设备，当场测网速、测手机信号。同时也带来了暑期优惠套餐。\n\n【互动 2min】测完网速的可以拿一份检测报告，现场对比运营商。\n\n【转化 2min】觉得好的现场办理，今天有专属工程师档期，可以预约上门调网。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「专业设备现场测速」', camera: '展示设备' },
+        { sec: '2-6', speaker: '服务说明', text: '「测速+对比+优惠套餐」', camera: '设备操作' },
+        { sec: '6-8', speaker: '互动', text: '「拿检测报告现场对比」', camera: '打印报告' },
+        { sec: '8-10', speaker: '转化', text: '「预约工程师上门调」', camera: '预约登记' }
+      ]},
+      sweet: { persona: '甜美学姐', script: '【暖场 2min】宝子们！我在XX广场摆摊！现场好多好礼！\n\n【活动 4min】贴膜免费！测速免费！办套餐送大礼包！现场抽奖100%中奖！\n\n【互动 2min】宝子们过来打卡拍照，发朋友圈送小风扇一个！\n\n【转化 2min】今天办套餐还加送视频会员！这羊毛不薅白不薅！', storyboard: [
+        { sec: '0-2', speaker: '甜美开场', text: '「在XX广场摆摊等你」', camera: '可爱挥手' },
+        { sec: '2-6', speaker: '福利内容', text: '「免费贴膜/测速/100%抽奖」', camera: '展示礼品' },
+        { sec: '6-8', speaker: '互动', text: '「发朋友圈送小风扇」', camera: '小风扇展示' },
+        { sec: '8-10', speaker: '紧迫感', text: '「送视频会员限今天」', camera: '可爱比心' }
+      ]},
+      pro: { persona: '商务精英', script: '【暖场 2min】各位好，电信XX广场活动现场，为您提供一站式通信服务。\n\n【活动 4min】可办理：宽带新装/套餐升级/以旧换新/携号转网。另有工程师现场解答技术问题。\n\n【互动 2min】现场咨询免排队，一对一服务。\n\n【转化 2min】今天签约额外赠送6个月流量包。可现场预约工程师上门调试时间。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「一站式通信服务」', camera: '活动全景' },
+        { sec: '2-6', speaker: '服务清单', text: '「新装/升级/换新/转网」', camera: '服务台展示' },
+        { sec: '6-8', speaker: '服务承诺', text: '「一对一免排队」', camera: '服务现场' },
+        { sec: '8-10', speaker: '转化', text: '「签约送6个月+预约上门」', camera: '签约画面' }
+      ]},
+      master: { persona: '资深师傅', script: '【暖场 2min】大家好！今天电信在XX广场，师傅我亲自坐镇！\n\n【活动 4min】有啥网络问题尽管过来问。宽带慢的、手机卡的、信号差的，师傅现场帮你解决。今天办业务还有额外好礼。\n\n【互动 2min】都别客气，有问题就问，不收一分钱。\n\n【转化 2min】今天办业务的，师傅我亲自上门帮你调好、测好再走。这机会平时没有。', storyboard: [
+        { sec: '0-2', speaker: '师傅坐镇', text: '「师傅亲自坐镇XX广场」', camera: '师傅工装' },
+        { sec: '2-6', speaker: '服务内容', text: '「有问题过来问 免费」', camera: '服务台实拍' },
+        { sec: '6-8', speaker: '互动邀请', text: '「别客气直接问」', camera: '师傅招牌微笑' },
+        { sec: '8-10', speaker: '转化', text: '「今天办我亲自上门调」', camera: '工具箱展示' }
+      ]}
+    }
+  },
+  {
+    typeName: '入户直播', typeIcon: '🚪',
+    hook: '装维师傅的一天：上门测速、排查故障、优化网络',
+    topic: '入户直播：跟拍上门服务全流程',
+    coreOffer: '跟拍上门服务全流程，真实可信+展现专业度',
+    compliance: { status: 'passed', autoFixed: 0, warnings: [] },
+    variants: {
+      vibe: { persona: '活力小哥', script: '【暖场 2min】家人们！今天不坐办公室了，跟着师傅上门干活去！\n\n【服务 4min】第一站：王姐家，说网速慢了好几天。师傅查了一圈，光猫位置太偏、路由器还是老款。换光猫位置+升级千兆路由，一测直接翻倍！\n\n【互动 2min】师傅干活的时候嘴巴没停，边干边教用户怎么自查。用户说师傅你真的比10000号有用多了。\n\n【转化 2min】你要也有网络问题，评论区留「上门」，师傅顺路过去帮你看看！不收上门费。', storyboard: [
+        { sec: '0-2', speaker: '跟拍进门', text: '「跟师傅上门去」', camera: '跟拍上楼画面' },
+        { sec: '2-6', speaker: '检修过程', text: '「光猫位置偏+路由器老→翻倍」', camera: '检修操作特写' },
+        { sec: '6-8', speaker: '用户反馈', text: '「比10000号有用」', camera: '用户满意画面' },
+        { sec: '8-10', speaker: '转化', text: '「留上门顺路去」', camera: '师傅工装收尾' }
+      ]},
+      warm: { persona: '暖心姐姐', script: '【暖场 2min】今天跟着师傅上门，感受一下真实的装维工作。\n\n【服务 4min】李阿姨家，儿子在国外，每周就靠家里网络视频通话。但最近老是断断续续的，阿姨急得不行。师傅检查发现是老光猫该换了。换了设备，视频通话再也不卡了。阿姨眼眶都红了，说终于能跟儿子说上话了。\n\n【互动 2min】做这一行最有成就感的时候就是看到客户满意的笑容。\n\n【转化 2min】家里有老人的，需要上门服务的，评论区留「上门」+地址，师傅顺路也去帮你看看。', storyboard: [
+        { sec: '0-2', speaker: '温暖开场', text: '「跟着师傅上门去」', camera: '师傅上门镜头' },
+        { sec: '2-6', speaker: '服务故事', text: '「阿姨想跟儿子视频→换光猫」', camera: '温馨服务画面' },
+        { sec: '6-8', speaker: '感悟时刻', text: '「最有成就感的时候」', camera: '师傅微笑' },
+        { sec: '8-10', speaker: '转化', text: '「留上门+地址去帮你看」', camera: '阿姨感谢画面' }
+      ]},
+      tech: { persona: '技术专家', script: '【暖场 2min】今天做一次上门服务实拍，看看宽带故障是怎么排查的。\n\n【服务 4min】用户报修说是千兆宽带但网速只有50M。现场测速：入户光功率-22dBm正常。查路由器是WAN口速率协商成100M。重新插拔网线后协商到1000M，测速恢复到920M。\n\n【互动 2min】故障排查逻辑：先测入户光功率→再查路由器协商速率→最后查WiFi信道干扰。按顺序排查不走弯路。\n\n【转化 2min】你遇到类似问题吗？留「测速」我帮你远程诊断。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「上门实拍故障排查流程」', camera: '专业设备展示' },
+        { sec: '2-6', speaker: '故障排查', text: '「光功率正常→协商速度→测速恢复」', camera: '测速数据展示' },
+        { sec: '6-8', speaker: '技术科普', text: '「按顺序排查不走弯路」', camera: '技术讲解口播' },
+        { sec: '8-10', speaker: '转化', text: '「留测速远程诊断」', camera: '屏幕显示数据' }
+      ]},
+      sweet: { persona: '甜美学姐', script: '【暖场 2min】宝子们！今天学姐跟着师傅出门干活了！\n\n【服务 4min】小姐姐家里刚装修完，宽带不通急得不行。师傅查了一圈，发现是装修的时候光纤被压断了。重新熔接了一下，20分钟搞定！小姐姐高兴得非要请师傅喝奶茶。\n\n【互动 2min】你们家装修的时候有没有发生过被师傅压断网线的经历？评论区聊聊。\n\n【转化 2min】新装修没布宽带、刚搬家要装网的，评论区留「装网」，学姐帮你加急安排！', storyboard: [
+        { sec: '0-2', speaker: '活泼开场', text: '「跟着师兄出门干活」', camera: '跟拍工具包' },
+        { sec: '2-6', speaker: '展示维修', text: '「光纤被压断→20分钟搞定」', camera: '熔纤操作特写' },
+        { sec: '6-8', speaker: '互动提问', text: '「你家装修有压断吗？」', camera: '互动口播' },
+        { sec: '8-10', speaker: '转化', text: '「留装网加急安排」', camera: '甜美wink' }
+      ]},
+      pro: { persona: '商务精英', script: '【暖场 2min】今天以旁观视角记录一次标准的上门网络服务流程。\n\n【服务 4min】完整流程：预约沟通→准时上门→着装规范→检查全屋网络→出具优化方案→现场实施→验收测试→客户签字。全程约30分钟。\n\n【互动 2min】这就是为什么推荐电信服务——不是只解决眼前问题，还帮你规划未来3年的网络布局。\n\n【转化 2min】需要上门网络优化的，评论区留「评测」，免费上门出方案。', storyboard: [
+        { sec: '0-2', speaker: '专业开场', text: '「记录一次标准上门服务」', camera: '出发前准备' },
+        { sec: '2-6', speaker: '流程展示', text: '「预约→上门→检查→实施→验收」', camera: '流程多画面拼接' },
+        { sec: '6-8', speaker: '品牌价值', text: '「不只是解决问题 还规划未来」', camera: '验收签字画面' },
+        { sec: '8-10', speaker: '转化', text: '「留评测免费上门出方案」', camera: '专业收尾' }
+      ]},
+      master: { persona: '资深师傅', script: '【暖场 2min】今天带你去看看一个真实的维修案例。\n\n【服务 4min】小张家的宽带装了大半年，从来没跑满过。他以为电信在骗他。我一查，原来是装的时候网线接错了。换了水晶头，重做一遍，测速直接飞起。\n\n【互动 2min】你看，有时候不是套餐不够、不是电信坑你，就是一些安装上的小问题。\n\n【转化 2min】你家宽带也有问题？留地址，我顺路过去帮你看看。不收一分钱。', storyboard: [
+        { sec: '0-2', speaker: '师傅开场', text: '「真实维修案例跟拍」', camera: '师傅上车镜头' },
+        { sec: '2-6', speaker: '诊断过程', text: '「网线接错→换水晶头→飞起」', camera: '操作特写' },
+        { sec: '6-8', speaker: '总结点', text: '「不是电信坑你 是安装问题」', camera: '师傅对着镜头说' },
+        { sec: '8-10', speaker: '转化', text: '「留地址顺路去不收钱」', camera: '师傅微笑' }
+      ]}
+    }
+  }
+];
+
+function renderLiveCards() {
+  var ls = document.getElementById('livePersonaStrip');
+  if (ls) ls.innerHTML = document.getElementById('personaStrip').innerHTML || '';
+  var container = document.getElementById('liveCards');
+  if (!container) return;
+  var html = '';
+  for (var i = 0; i < LIVE_SCRIPTS.length; i++) {
+    html += renderLiveCard(LIVE_SCRIPTS[i], i);
+  }
+  container.innerHTML = html;
+}
+
+function renderLiveCard(s, idx) {
+  var pk = moodPersona(curMood);
+  var v = s.variants[pk] || s.variants.vibe || {};
+  var mood = getMood(curMood);
+  var previewText = (v.script || '').slice(0, 100) + '…';
+  var sbHtml = '';
+  var sb = v.storyboard || [];
+  if (sb.length > 0) {
+    sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
+    for (var i = 0; i < sb.length; i++) {
+      sbHtml += '<tr><td class="sec">'+sb[i].sec+'</td><td>'+sb[i].speaker+'<br><span style="color:#666;font-size:10px;">'+sb[i].text+'</span></td><td class="cam">'+sb[i].camera+'</td></tr>';
+    }
+    sbHtml += '</table></div>';
+  }
+  return '<div class="script-card" onclick="var e=document.getElementById(\'lc-'+idx+'\');if(e)e.classList.toggle(\'expanded\')" id="lc-'+idx+'">' +
+    '<div class="sc-head">' +
+    '<span class="type-icon">'+s.typeIcon+'</span>' +
+    '<span class="type-name">'+s.typeName+'</span>' +
+    '<span class="sc-badge passed">✅ 合规</span>' +
+    '</div>' +
+    '<div class="sc-hook"><span class="hook-label">钩子:</span>'+s.hook+'</div>' +
+    '<div class="sc-title">'+s.topic+'</div>' +
+    '<div class="sc-persona-tag">'+mood.emoji+' '+mood.name+' · 🎤 直播话术</div>' +
+    '<div class="sc-preview"><div class="preview-text">'+previewText+'</div></div>' +
+    sbHtml +
+    '<div class="sc-actions">' +
+    '<button class="sc-copy" onclick="event.stopPropagation();copyLiveText('+idx+')">📋 复制话术</button>' +
+    '</div></div>';
+}
+
+function copyLiveText(idx) {
+  var s = LIVE_SCRIPTS[idx];
+  if (!s) return;
+  var v = s.variants[moodPersona(curMood)] || s.variants.vibe || {};
+  copyToClipboard(v.script || '', '直播话术已复制');
+}
+
+// ==================== Tab ====================
+function switchTab(name, fromPop) {
+  document.querySelectorAll('.tab-bar .tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelector('.tab-bar .tab[data-tab="'+name+'"]').classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  
+  // Update hash for browser back/forward
+  if (!fromPop) {
+    history.pushState({tab: name}, '', '#'+name);
+  }
+  
+  // Render content on tab switch
+  if (name === 'live') renderLiveCards();
+  if (name === 'today') { renderMoodStrip(); renderDailyCards(); }
+  if (name === 'week') renderWeekGrid();
+  if (name === 'hot') renderHotList();
+}
+
+// ==================== Toast ====================
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');}, 2000);
+}
+</script>
 </body>
 </html>
