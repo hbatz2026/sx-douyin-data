@@ -872,7 +872,7 @@ http.createServer(async (req, res) => {
         const raw = await callSiliconFlow(msgs.system, msgs.user, apiKey, {
           endpoint: cfg.endpoint,
           model: cfg.model || params.model || 'MiniMax-M3',
-          fallbackModel: cfg.fallbackModel || 'MiniMax-M3',
+          fallbackModel: cfg.fallbackModel || 'MiniMax-M2.7',
           temperature: 0.9,
           maxTokens: 10000,
           timeoutMs: 180000
@@ -1080,7 +1080,7 @@ http.createServer(async (req, res) => {
         const raw = await callSiliconFlow(system, userMsg, apiKey, {
           endpoint: cfg.endpoint,
           model: params.model || cfg.model || 'MiniMax-M3',
-          fallbackModel: cfg.fallbackModel || 'MiniMax-M3',
+          fallbackModel: cfg.fallbackModel || 'MiniMax-M2.7',
           temperature: params.temperature || cfg.temperature || 0.8,
           maxTokens: params.max_tokens || cfg.maxTokens || 2000,
           // 2026-07-31: tbnx MiniMax-M3 实测首响 ~82s，45s 太短必超时；提到 180s
@@ -1883,7 +1883,7 @@ const BUNDLED_AI_CONFIG = {
   temperature: 0.8,
   maxTokens: 2000,
   timeoutMs: 180000,
-  fallbackModel: 'MiniMax-M3'
+  fallbackModel: 'MiniMax-M2.7'
 };
 
 async function loadAIConfig(token, user) {
@@ -2011,6 +2011,9 @@ async function callSiliconFlow(system, user, apiKey, cfg) {
               { role: 'system', content: system },
               { role: 'user', content: user }
             ],
+            // R2（2026-08-19 QA 实证）：MiniMax-M3 默认开思考会吃光 token 预算、吐不出 JSON（generated=0）→ 热点池清空。
+            // 关闭思考后 M3 4/4 满分、26s；M2.7 等忽略该字段无副作用。
+            thinking: { type: 'disabled' },
             temperature: cfg.temperature || 0.8,
             max_tokens: cfg.maxTokens || 2000
           }),
