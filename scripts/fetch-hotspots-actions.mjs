@@ -39,11 +39,16 @@ const SOURCES = [
       const j2 = await get('https://60s.viki.moe/v2/toutiao');
       return (j2 && j2.data || []).map(x => ({ word: x.title, heat: String(x.hot_value || ''), url: x.link || '' }));
   }},
-  { platform: '小红书', fn: async () => { const j = await get('https://60s.viki.moe/v2/rednote'); return (j && j.data || []).map(x => ({ word: x.title, heat: String(x.score || ''), url: x.link || 'https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(x.title) })); }},
-  { platform: 'B站', fn: async () => { const j = await get('https://60s.viki.moe/v2/bili'); return (j && j.data || []).map(x => ({ word: x.title, heat: String(x.hot_value || x.score || ''), url: x.link || '' })); }},
+  { platform: '小红书', fn: async () => { const j = await get('https://60s.viki.moe/v2/rednote', { timeout: 15000 }); return (j && j.data || []).map(x => ({ word: x.title, heat: String(x.score || ''), url: x.link || 'https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(x.title) })); }},
+  { platform: 'B站', fn: async () => {
+      let j = await get('https://60s.viki.moe/v2/bili', { timeout: 15000 });
+      if (!j) j = await get('https://60s.viki.moe/v2/bili', { timeout: 15000 }); // 重试一次（viki 偶发）
+      return (j && j.data || []).map(x => ({ word: x.title, heat: String(x.hot_value || x.score || ''), url: x.link || '' }));
+  }},
   { platform: '快手', fn: async () => {
       // 首选开源 DailyHotApi（imsyy）
-      let j = await get('https://api-hot.imsyy.top/kuaishou');
+      let j = await get('https://api-hot.imsyy.top/kuaishou', { timeout: 15000 });
+      if (!j) j = await get('https://api-hot.imsyy.top/kuaishou', { timeout: 15000 }); // 重试一次
       if (j && j.data) return j.data.map(x => ({ word: x.title, heat: String(x.hot || x.heat || ''), url: x.url || 'https://www.kuaishou.com/search/video?searchKey=' + encodeURIComponent(x.title) }));
       // 兜底：快手官方 GraphQL
       const r = await get('https://www.kuaishou.com/graphql', { headers: { 'Content-Type': 'application/json', 'Referer': 'https://www.kuaishou.com/hot-list' } });
