@@ -1875,15 +1875,15 @@ async function searchT2({ preset, topic }) {
 // ============================================================
 
 // 2026-08-06: bundled AI 配置兜底。Gitee 不可达（如 token 失效）时，loadAIConfig 回退到此，
-// 确保函数仍走 MiniMax 网关 + MiniMax-M3（2026-08-19 切换），不回退写死的旧 tbnx 网关。
+// 确保函数仍走 MiniMax 网关 + MiniMax-M2.7 主 / M3 兜底（2026-08-19 切换），不回退写死的旧 tbnx 网关。
 const BUNDLED_AI_CONFIG = {
   enabled: true,
   endpoint: 'https://api.minimaxi.com/v1/chat/completions',
-  model: 'MiniMax-M3',
+  model: 'MiniMax-M2.7',
   temperature: 0.8,
   maxTokens: 2000,
   timeoutMs: 180000,
-  fallbackModel: 'MiniMax-M2.7'
+  fallbackModel: 'MiniMax-M3'
 };
 
 async function loadAIConfig(token, user) {
