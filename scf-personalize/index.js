@@ -898,7 +898,20 @@ http.createServer(async (req, res) => {
       const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
       if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'SILICONFLOW_API_KEY not configured' })); return; }
       try {
-        const cands = await fetchAllHotspotsSCF();
+        // v2.9.79d: 优先读 Actions 写入的全平台候选缓存（data/hotspot-raw.json，<12h），
+        // 解决 SCF 数据中心出口被 viki/imsyy/快手 WAF 风控导致小红书/快手/B站缺失；陈旧/缺失回退 SCF 直连。
+        let cands = null;
+        try {
+          const rawCache = JSON.parse(await readGiteeFile('data/hotspot-raw.json', token, user));
+          if (rawCache && Array.isArray(rawCache.hot) && rawCache.hot.length) {
+            const ageMs = Date.now() - new Date(rawCache.fetchedAt || 0).getTime();
+            if (ageMs < 12 * 3600 * 1000 && ageMs >= 0) {
+              cands = { hot: rawCache.hot, music: rawCache.music || [], form: rawCache.form || [], search: rawCache.search || [], fetchedAt: rawCache.fetchedAt, from: 'actions-cache' };
+              console.log('[hotspot-fetch] 使用 Actions 全平台候选缓存（' + rawCache.hot.length + ' 条，age ' + Math.round(ageMs / 60000) + 'min）');
+            }
+          }
+        } catch (e) { console.warn('[hotspot-fetch] raw cache 不可用，回退 SCF 直连:', e.message); }
+        if (!cands) cands = await fetchAllHotspotsSCF();
         const cfg = await loadAIConfig(token, user);
         const msgs = buildHotspotMessages(cands);
         const raw = await callSiliconFlow(msgs.system, msgs.user, apiKey, {
