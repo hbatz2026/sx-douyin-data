@@ -142,6 +142,7 @@
     grid.innerHTML = html;
     var ut = document.getElementById('hotspotUpdateTime');
     if (ut) ut.textContent = '· 更新：' + new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+    updateHomeHotspotCounts();
   }
 
   function toggleHotspot(id) {
@@ -352,6 +353,26 @@
     }
   }
 
+  // ── 首页双车道入口（2.x 移植）：计数 + 跳转 hot tab 并预置 lane 过滤 ──
+  function updateHomeHotspotCounts() {
+    var all = getHotspotData();
+    var hot = all.filter(function (h) { return h.lane === 'hot'; }).length;
+    var search = all.filter(function (h) { return h.lane === 'search'; }).length;
+    var hc = document.getElementById('homeHotCount');
+    var sc = document.getElementById('homeSearchCount');
+    if (hc) hc.textContent = hot > 0 ? '今日已生成 ' + hot + ' 条' : '点击查看今日热点';
+    if (sc) sc.textContent = search > 0 ? '今日已生成 ' + search + ' 条' : '点击查看搜索截流';
+  }
+  function enterHotspotLane(lane) {
+    var tab = document.querySelector('.tab-bar .tab[data-tab="hot"]');
+    if (typeof switchTab === 'function') switchTab('hot', tab);
+    setTimeout(function () {
+      var btnId = lane === 'hot' ? 'hs-lane-hot-btn' : lane === 'search' ? 'hs-lane-search-btn' : 'hs-lane-all-btn';
+      var btn = document.getElementById(btnId);
+      filterHotspotLane(lane || '', btn);
+    }, 150);
+  }
+
   // ── 导出全局（供 index.html onclick / switchTab 调用）──
   window.renderHotspots = renderHotspots;
   window.toggleHotspot = toggleHotspot;
@@ -364,4 +385,6 @@
   window.manualRefreshHotspot = manualRefreshHotspot;
   window.autoRefreshHotspotIfStale = autoRefreshHotspotIfStale;
   window.updateLibBadge = updateLibBadge;
+  window.updateHomeHotspotCounts = updateHomeHotspotCounts;
+  window.enterHotspotLane = enterHotspotLane;
 })();
