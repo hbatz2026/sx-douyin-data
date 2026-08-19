@@ -314,6 +314,10 @@ const HS_TREND_SOURCES = [
   ]},
   // v2.9.79: 快手官方热榜（GraphQL POST；hsFetch 已支持 method/body。需浏览器 UA+Origin 规避 WAF）
   { platform: '快手', candidates: [
+    // 首选：开源 DailyHotApi 聚合（api-hot.imsyy.top，GET，缓存30-60min，SCF 实测可达性）
+    { url: 'https://api-hot.imsyy.top/kuaishou',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.hot||x.heat||''), url: x.url||'https://www.kuaishou.com/search/video?searchKey='+encodeURIComponent(x.title) })) },
+    // 兜底：快手官方 GraphQL（数据中心 IP 常被 WAF 拒，保留作候选）
     { url: 'https://www.kuaishou.com/graphql',
       method: 'POST',
       body: JSON.stringify({ operationName:'hotListBoard', variables:{}, query:'query hotListBoard { hotListBoard { list { id title hotValue hotType url } } }' }),
@@ -448,6 +452,9 @@ Strict rules:
 3. Each script must include a clear on-screen CTA driving to the store. No hard-sell.
 4. Every script MUST set "form" to ONE short-video form from the form library, and "bgm" to a concrete hot song (prefer from the 抖音热门BGM list, format "歌名 - 作者"; if none fits, suggest a fitting style).
 5. Output ONLY a JSON array. No markdown, no commentary.
+6. NATURAL adaptation (critical): never hard-force a trending topic onto telecom. Pick only topics with a REAL connection (broadband/WiFi/phone/5G/FTTR/upgrade/service/cheap-plan/anti-fraud) or an obvious contrasting angle. In "why", state the ACTUAL reason this topic fits a telecom store (real pain point / data / scene / contrast) — not generic praise like "全民关注".
+7. RIDE-THE-TREND KIT: every script must surface what the clerk copies to Douyin — "sourceWord" = the ORIGINAL trending topic text (exact wording), "tags" = 1-3 hashtags built from that topic (e.g. "#宇树科技 #机器狗 #宽带升级"), "bgm" = the hot song. These three (原热点标题 / 话题标签 / BGM) are the essential ride-the-trend kit and must echo the topic, not generic tags.
+8. "title" must echo the trending topic (click-worthy), not a generic telecom pitch.
 
 JSON schema (one object per script):
 {
