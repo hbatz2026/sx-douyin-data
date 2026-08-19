@@ -118,7 +118,7 @@
   // 说明：不复用 2.x 前端 auditScript 作硬门禁——其 retention/cta 为软互动评分，实测会误伤 60-70% 已达标稿
   //       （seed-pool 在字数/beats/档位/红线全 100% 达标，却被 auditScript 卡掉 60-70%）。故门禁对齐 SCF
   //       构建门禁 checkScriptQuality.cjs 口径（beats/字数/红线/档位），并补广告法一维（构建门禁漏检项）。
-  function gateText(text) {
+  function gateText(text, topic) {
     var reasons = [];
     if (typeof root.isFullScript === 'function' && !root.isFullScript(text)) {
       reasons.push('非完整口播稿（字数/五段式结构不足）');
@@ -132,8 +132,16 @@
       if (st.length) reasons.push('立场红线：' + st.join('、'));
     }
     // 档位检查：仅宽带语境强制（话费/手机/其他选题不误伤）；核心红线仍是"禁 100M/100兆"（BAD_TIER 见 compliance-rules）
-    var TIER_CONTEXT_RE = /(宽带|兆|Mbps|千兆|FTTR|光猫|路由器|网速|WIFI|wifi|5G)/;
-    if (TIER_CONTEXT_RE.test(text || '') && !VALID_TIER_RE.test(text || '')) {
+    // v2.9.74 口径修正（根因：原 TIER_CONTEXT_RE 含 5G/路由器 等非宽带词 + 纯文本级触发 → 话费稿误伤）：
+    //   ① 删 5G（文本中多为"5G流量/5G手机网络"，非宽带语境）；
+    //   ② 选题级判断为主（对齐 2.x core.js isBroadband 语义）：宽带类选题强制档位，话费/手机类选题不强制；
+    //   ③ 中性选题以文本明确宽带产品词（宽带/千兆/FTTR/Mbps/光猫/网速）为辅触发。
+    var t = topic || '';
+    var isBroadbandTopic = /宽带|兆|网速|路由|WiFi|wifi|光猫|网线|mesh|Mbps|千兆|FTTR/i.test(t);
+    var isPhoneTopic = /手机卡|副卡|号卡|流量卡|电话卡|套餐|资费|月租|话费|手机|5G/i.test(t);
+    var TIER_TEXT_RE = /(宽带|千兆|FTTR|Mbps|光猫|网速)/i;
+    var needTier = isBroadbandTopic || (!isPhoneTopic && TIER_TEXT_RE.test(text || ''));
+    if (needTier && !VALID_TIER_RE.test(text || '')) {
       reasons.push('缺山西电信在售档位(300/500/1000/FTTR)');
     }
     return { ok: reasons.length === 0, reasons: reasons };
@@ -149,7 +157,7 @@
       for (var i = 0; i < tpl.length; i++) {
         var text = tpl[i].f(topic, pointOf(topic));
         if (C.scanStance(text).length) continue;          // 合规最后一道闸：命中红线直接不入池
-        var g = gateText(text);                            // 质量门禁下沉：与 2.x auditScript 同标准
+        var g = gateText(text, topic);                       // 质量门禁下沉：与 2.x auditScript 同标准
         if (g.ok) anyOk = true;
         arr.push({ _vid: mood.charAt(0) + (i + 1), _persona: tpl[i].p, bgm: ['温馨轻快', '沉稳专业', '动感'][m],
                    title: topic, script: text, tags: [ (TYPE_META[type] || {}).name || type ],
@@ -304,7 +312,7 @@
         if (C.moodOfPersona(persona) !== mood) continue;
         var text = byPersona[persona];
         if (!text || C.scanStance(text).length) continue;   // 存量 2.x 文本入前端前必须过红线扫描
-        var g = gateText(text);                              // 质量门禁下沉：未过 audit 的人设稿不入前端
+        var g = gateText(text, topic);                       // 质量门禁下沉：未过 audit 的人设稿不入前端
         if (!g.ok) continue;
         candidates.push({ script: text, _persona: persona });
       }
@@ -332,6 +340,7 @@
     ensurePersonaScripts: ensurePersonaScripts,
     personaReady: personaReady,
     fullScriptFor: fullScriptFor,
+    gateText: gateText,
     TYPE_META: TYPE_META,
     CACHE_KEY: CACHE_KEY,
     // G2 偏好向量：localStorage 使用信号 → 权重（无事件=全 1 不歪，冷启动安全；core3.prefVectorFrom）
