@@ -99,12 +99,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .wd-done{color:#0B6B34;} .wd-today{color:var(--blue);font-weight:600;}
 
 /* ===== 热点 ===== */
-.hot-list{display:flex;flex-direction:column;gap:8px;}
-.hot-item{background:var(--white);border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow);border-left:3px solid var(--orange);}
-.hot-item .h-rank{font-size:10px;color:var(--orange);font-weight:600;}
-.hot-item .h-title{font-size:13px;font-weight:500;margin:2px 0;}
-.hot-item .h-why{font-size:11px;color:var(--text-light);line-height:1.5;}
-.hot-item .h-why .label{color:#aaa;}
+.hotspot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+.hotspot-card{background:var(--white);border:1.5px solid var(--gray-border);border-radius:var(--radius);overflow:hidden;transition:all .2s;}
+.hotspot-card:hover{border-color:var(--blue);box-shadow:var(--shadow-card);}
+.hotspot-card .hs-header{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.hotspot-card .hs-tier{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.tier-1{background:#FFEBEE;color:#C62828;}
+.tier-2{background:#FFF3E0;color:#C2410C;}
+.tier-3{background:#E8F5E9;color:#2E7D32;}
+.hotspot-card .hs-title{font-size:14px;font-weight:600;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
+.hotspot-card .hs-meta{font-size:11px;color:var(--text-light);margin-top:2px;}
+.hotspot-card .hs-body{display:none;padding:0 14px 14px;border-top:1px solid var(--gray-border);}
+.hotspot-card.open .hs-body{display:block;}
+.hotspot-card .hs-step{margin-bottom:10px;padding:8px 12px;background:#FAFBFC;border-radius:8px;border-left:3px solid var(--blue);}
+.hotspot-card .hs-step-num{font-size:11px;color:var(--blue);font-weight:700;margin-bottom:3px;}
+.hotspot-card .hs-step-shot{font-size:12px;color:var(--text);}
+.hotspot-card .hs-step-sub{font-size:12px;color:#1565C0;margin-top:4px;padding:4px 8px;background:#E3F2FD;border-radius:4px;}
+.hotspot-card .hs-step-voice{font-size:12px;color:#5D4037;margin-top:6px;padding:6px 10px;background:#FFF8E1;border-radius:4px;border-left:3px solid #FFB300;}
+.hotspot-card .hs-footer{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;padding-top:10px;border-top:1px dashed var(--gray-border);}
+.hotspot-card .hs-tag{padding:2px 8px;border-radius:10px;background:#F5F5F5;color:#666;}
+.hotspot-card .hs-tab-badge{font-size:11px;color:var(--orange);}
+.hs-tabs{display:flex;gap:6px;}
+.hs-tab{padding:5px 12px;border-radius:14px;font-size:11px;background:#F5F7FA;color:var(--text-light);border:1px solid var(--gray-border);cursor:pointer;}
+.hs-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.skeleton-card .sk{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200% 100%;animation:sk 1.2s infinite;}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-card .sk-title{height:14px;width:70%;border-radius:4px;}
+.skeleton-card .sk-meta{height:10px;width:45%;border-radius:4px;margin-top:6px;}
 
 /* ===== 直播 ===== */
 .live-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
@@ -230,10 +251,49 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="page" id="page-hot">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:18px;">🔥</span>
-        <span style="font-size:14px;font-weight:600;">当日热搜精选（来源: 60s.viki.moe）</span>
+        <span style="font-size:14px;font-weight:600;">热点跟拍中心</span>
+        <span style="font-size:11px;color:var(--text-light);" id="hotspotUpdateTime"></span>
       </div>
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">以下为今日抖音热搜TOP 8，AI 已筛选出 4 条可以转化为营业厅脚本</div>
-      <div class="hot-list" id="hotList"></div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">热门话题 + 搜索截流，AI 匹配营业厅脚本。点击卡片展开完整分镜。</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        <button class="btn btn-sm" style="background:#C2410C;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
+        <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
+      </div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;min-height:16px;" id="hotspotRefreshStatus"></div>
+
+      <!-- 热门话题 + 搜索截流 + 难度筛选 -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="hs-tabs" style="flex-wrap:wrap;">
+          <button class="hs-tab active lane-filter" id="hs-lane-all-btn" onclick="filterHotspotLane('', this)">🌐 全部</button>
+          <button class="hs-tab lane-filter" id="hs-lane-hot-btn" onclick="filterHotspotLane('hot', this)">🔥 热门话题</button>
+          <button class="hs-tab lane-filter" id="hs-lane-search-btn" onclick="filterHotspotLane('search', this)">🔍 搜索截流</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:var(--text-light);">难度</span>
+          <select id="hsDifficulty" aria-label="筛选难度" onchange="filterHotspot(this.value, null)" style="padding:6px 10px;border-radius:8px;border:1px solid var(--gray-border);font-size:12px;background:#fff;color:var(--text);cursor:pointer;">
+            <option value="all">全部难度</option>
+            <option value="tier1">🥇 专业翻拍</option>
+            <option value="tier2">🥈 行业套用</option>
+            <option value="tier3">🥉 纯跟拍</option>
+            <option value="easy">⭐ 零基础</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 主列表 -->
+      <div class="hotspot-grid" id="hotspotGrid"></div>
+
+      <!-- 我的选题库浮层面板 -->
+      <div id="lane-lib" style="display:none;">
+        <div class="card" style="margin-top:16px;">
+          <h3 style="display:flex;justify-content:space-between;align-items:center;font-size:14px;">📚 我的选题库 <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">✕ 关闭</button></h3>
+          <div style="margin-bottom:10px;font-size:12px;color:var(--text-light);">收藏的脚本保存在本机浏览器（换设备不互通）。可一键复制全文 / 移除。</div>
+          <div class="hotspot-grid" id="myLibraryGrid"></div>
+          <div id="myLibraryEmpty" style="text-align:center;padding:40px;color:var(--text-light);">
+            📚 选题库还是空的<br><span style="font-size:12px;">去热点卡片点 ⭐ 收进选题库</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- PAGE: 直播 -->
@@ -303,15 +363,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="toast" id="toast"></div>
 
 <!-- Data -->
-<script src="data/bundle.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="data/dailyScripts.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="data/v3-seedpool.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+<script src="data/bundle.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/dailyScripts.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/v3-seedpool.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/core3.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/track.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/gate.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/pool.js?v=2.9.74&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/personas.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/core3.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/track.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/gate.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/pool.js?v=2.9.75&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
+  <script src="src/hotspot.js?v=2.9.75&t=1787125077001"></script>
 
 <script>
 // ==================== Config ====================
@@ -384,7 +446,9 @@ document.addEventListener('DOMContentLoaded', function() {
   renderMoodStrip();
   renderDailyCards();
   renderWeekGrid();
-  renderHotList();
+  renderHotspots();
+  updateLibBadge();
+  autoRefreshHotspotIfStale(); // 热点跟拍：缓存→共享→实时 三级加载
   renderMinePage();
   
   // Hash-based tab routing for browser back/forward
@@ -905,21 +969,8 @@ function clearLocalCache() {
 }
 
 // ==================== 热点 ====================
-function renderHotList() {
-  var data = window.___dailyScripts;
-  if (!data || !data.todayHots) return;
-  var hots = data.todayHots;
-  var html = '';
-  for (var i = 0; i < hots.length; i++) {
-    var isMatched = data.scripts.some(function(s){return s.hotTopic === hots[i];});
-    html += '<div class="hot-item" style="border-left-color:'+(isMatched?'var(--orange)':'var(--gray-border)')+'">' +
-      '<div class="h-rank">#' + (i+1) + (isMatched ? ' · 已匹配脚本' : ' · 未匹配') + '</div>' +
-      '<div class="h-title">' + hots[i] + '</div>' +
-      (isMatched ? '<div class="h-why">' + data.scripts.filter(function(s){return s.hotTopic===hots[i];})[0].hook + '</div>' : '') +
-      '</div>';
-  }
-  document.getElementById('hotList').innerHTML = html;
-}
+// 2.x 热点跟拍中心已完整移植至 src/hotspot.js（renderHotspots/toggleHotspot/filterHotspot/
+// 收藏选题库/手动+自动刷新/骨架屏）。renderHotList(旧热搜榜单) 已移除。
 
 // ==================== 直播话术 ====================
 var LIVE_SCRIPTS = [
@@ -1194,7 +1245,7 @@ function switchTab(name, fromPop) {
   if (name === 'live') renderLiveCards();
   if (name === 'today') { renderMoodStrip(); renderDailyCards(); }
   if (name === 'week') renderWeekGrid();
-  if (name === 'hot') renderHotList();
+  if (name === 'hot') { renderHotspots(); updateLibBadge(); autoRefreshHotspotIfStale(); }
 }
 
 // ==================== Toast ====================
