@@ -85,31 +85,51 @@
     if (!grid) return;
     var tiers = ['', '专业翻拍', '行业套用', '纯跟拍'];
     var tierClasses = ['', 'tier-1', 'tier-2', 'tier-3'];
-    var laneLabels = { hot: '🔥 热门话题', search: '🔍 搜索截流' };
-    var laneColors = { hot: 'background:#FFEBEE;color:#C62828;', search: 'background:#E3F2FD;color:#1565C0;' };
+    var laneLabels = { hot: '🔥 热门话题' };
+    var laneColors = { hot: 'background:#FFEBEE;color:#C62828;' };
     window.__hotIdMap = window.__hotIdMap || {};
+    window.__kitMap = window.__kitMap || {};
     var html = '';
     getHotspotData().forEach(function (h) {
+      // v2.9.79: 仅保留纯热点（去掉搜索截流/form/music）
+      if (h.lane && h.lane !== 'hot') return;
       var safeId = 'hs_' + String(h.id || '').replace(/[^A-Za-z0-9_-]/g, '_');
       window.__hotIdMap[safeId] = h.id;
       if (hotspotFilter === 'tier1' && h.tier !== 1) return;
       if (hotspotFilter === 'tier2' && h.tier !== 2) return;
       if (hotspotFilter === 'tier3' && h.tier !== 3) return;
       if (hotspotFilter === 'easy' && h.difficulty > 1) return;
-      if (hotspotLane && h.lane !== hotspotLane) return;
       var laneTag = h.lane && laneLabels[h.lane] ? '<span class="hs-tag" style="' + (laneColors[h.lane] || '') + 'font-weight:600;">' + laneLabels[h.lane] + '</span>' : '';
       var formTag = h.form ? '<span class="hs-tag" style="background:#F3E5F5;color:#6A1B9A;">🎬 ' + esc(h.form) + '</span>' : '';
       var srcUrl = h.sourceUrl || h.source || '';
+      var platform = h.platform || '抖音';
+      // 蹭热点三件套：原热点标题 / 话题标签 / BGM（照抄去发视频）
+      var kitWord = h.sourceWord || h.source || h.title || '';
+      var kitTags = h.tags || ('#' + String(kitWord || '').replace(/[，#\s]/g, '').slice(0, 12));
+      var kitBgm = h.bgm || '—';
+      window.__kitMap[safeId + '_w'] = kitWord;
+      window.__kitMap[safeId + '_t'] = kitTags;
+      window.__kitMap[safeId + '_b'] = kitBgm;
+      var platTag = srcUrl
+        ? '<a class="hs-plat" href="' + esc(srcUrl) + '" target="_blank" rel="noopener" aria-label="跳转到' + esc(platform) + '热点原文">📱 ' + esc(platform) + ' ↗</a>'
+        : '<span class="hs-plat">📱 ' + esc(platform) + '</span>';
+      var kitHtml = '<div class="hs-kit">' +
+        '<div class="hs-kit-title">🔥 蹭热点三件套（发视频直接照抄）</div>' +
+        '<div class="hs-kit-row"><span class="hk-l">① 原热点标题</span><span class="hk-v">' + esc(kitWord) + '</span><button class="hk-btn" onclick="copyKit(\'' + safeId + '_w\')">📋 复制</button></div>' +
+        '<div class="hs-kit-row"><span class="hk-l">② 话题标签</span><span class="hk-v">' + esc(kitTags) + '</span><button class="hk-btn" onclick="copyKit(\'' + safeId + '_t\')">📋 复制</button></div>' +
+        '<div class="hs-kit-row"><span class="hk-l">③ BGM</span><span class="hk-v">' + esc(kitBgm) + '</span><button class="hk-btn" onclick="copyKit(\'' + safeId + '_b\')">📋 复制</button></div>' +
+      '</div>';
       html += '<div class="hotspot-card" id="hsc-' + esc(h.id) + '">' +
         '<div class="hs-header" tabindex="0" role="button" aria-label="展开' + esc(h.title) + '脚本" onclick="toggleHotspot(\'' + esc(h.id) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.onclick()}">' +
           '<span class="hs-tier ' + tierClasses[h.tier] + '">' + '🥇🥈🥉'.charAt((h.tier || 3) - 1) + ' ' + tiers[h.tier || 3] + '</span>' +
           '<div style="flex:1;min-width:0;">' +
             '<div class="hs-title">' + esc(h.title) + '</div>' +
-            '<div class="hs-meta">🔥 ' + esc(h.heat || '') + ' · ⏱ ' + esc(h.time || '—') + ' · ' + '★'.repeat(h.difficulty || 0) + '☆ · ' + (h.needFace ? '需出镜' : '免露脸') + '</div>' +
+            '<div class="hs-meta">' + platTag + ' · 🔥 ' + esc(h.heat || '') + ' · ⏱ ' + esc(h.time || '—') + ' · ' + '★'.repeat(h.difficulty || 0) + '☆ · ' + (h.needFace ? '需出镜' : '免露脸') + '</div>' +
           '</div>' +
           '<span style="color:#6B7280;font-size:12px;white-space:nowrap;">展开 ▼</span>' +
         '</div>' +
         '<div class="hs-body">' +
+          kitHtml +
           '<div style="font-size:12px;color:var(--orange);margin-bottom:12px;background:#FFF8E1;padding:8px 10px;border-radius:6px;">💡 ' + esc(h.why || '') + '</div>' +
           (h.steps || []).map(function (s, i) {
             return '<div class="hs-step">' +
@@ -250,6 +270,12 @@
     if (!txt) { showToast('无可复制内容'); return; }
     copyToClipboard(txt, '脚本全文已复制');
   }
+  // 蹭热点三件套复制（v2.9.79）：从 __kitMap 取原热点标题/话题标签/BGM
+  function copyKit(kid) {
+    var txt = (window.__kitMap && window.__kitMap[kid]) || '';
+    if (!txt) { showToast('无可复制内容'); return; }
+    copyToClipboard(txt, '已复制，去抖音直接粘贴');
+  }
   function toggleHotspotLibrary() {
     var panel = document.getElementById('lane-lib');
     if (!panel) return;
@@ -357,17 +383,14 @@
   function updateHomeHotspotCounts() {
     var all = getHotspotData();
     var hot = all.filter(function (h) { return h.lane === 'hot'; }).length;
-    var search = all.filter(function (h) { return h.lane === 'search'; }).length;
     var hc = document.getElementById('homeHotCount');
-    var sc = document.getElementById('homeSearchCount');
     if (hc) hc.textContent = hot > 0 ? '今日已生成 ' + hot + ' 条' : '点击查看今日热点';
-    if (sc) sc.textContent = search > 0 ? '今日已生成 ' + search + ' 条' : '点击查看搜索截流';
   }
   function enterHotspotLane(lane) {
     var tab = document.querySelector('.tab-bar .tab[data-tab="hot"]');
     if (typeof switchTab === 'function') switchTab('hot', tab);
     setTimeout(function () {
-      var btnId = lane === 'hot' ? 'hs-lane-hot-btn' : lane === 'search' ? 'hs-lane-search-btn' : 'hs-lane-all-btn';
+      var btnId = lane === 'hot' ? 'hs-lane-hot-btn' : 'hs-lane-all-btn';
       var btn = document.getElementById(btnId);
       filterHotspotLane(lane || '', btn);
     }, 150);
@@ -387,4 +410,5 @@
   window.updateLibBadge = updateLibBadge;
   window.updateHomeHotspotCounts = updateHomeHotspotCounts;
   window.enterHotspotLane = enterHotspotLane;
+  window.copyKit = copyKit;
 })();
