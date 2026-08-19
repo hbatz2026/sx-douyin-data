@@ -309,16 +309,22 @@ const HS_TREND_SOURCES = [
   // v2.9.79: 小红书实时热搜（60s.viki /v2/rednote，替代下方硬编码 8 词；硬编码降级为实时榜全空时的兜底）
   { platform: '小红书', candidates: [
     { url: 'https://60s.viki.moe/v2/rednote',
+      headers: { 'Referer': 'https://www.xiaohongshu.com/', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
       parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.score||''), url: x.link||'https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(x.title) })) },
   ]},
-  // v2.9.79: 快手官方热榜（GraphQL POST；hsFetch 已支持 method/body。接口：https://www.kuaishou.com/hot-list）
+  // v2.9.79: 快手官方热榜（GraphQL POST；hsFetch 已支持 method/body。需浏览器 UA+Origin 规避 WAF）
   { platform: '快手', candidates: [
     { url: 'https://www.kuaishou.com/graphql',
       method: 'POST',
       body: JSON.stringify({ operationName:'hotListBoard', variables:{}, query:'query hotListBoard { hotListBoard { list { id title hotValue hotType url } } }' }),
-      headers: { 'Content-Type':'application/json', 'Referer':'https://www.kuaishou.com/hot-list' },
+      headers: { 'Content-Type':'application/json', 'Referer':'https://www.kuaishou.com/hot-list', 'Origin':'https://www.kuaishou.com', 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
       parse: j => ((j.data && j.data.hotListBoard && j.data.hotListBoard.list) || [])
         .map(x => ({ word: x.title, heat: String(x.hotValue||''), url: x.url || 'https://www.kuaishou.com/search/video?searchKey='+encodeURIComponent(x.title) })) },
+  ]},
+  // v2.9.79: B站实时热搜（viki /v2/bili，主流平台补充）
+  { platform: 'B站', candidates: [
+    { url: 'https://60s.viki.moe/v2/bili',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.hot_value||x.score||''), url: x.link||'' })) },
   ]},
 ];
 const HS_XIAOHONGSHU = ['多巴胺穿搭','Citywalk','职场穿搭','减脂餐打卡','周末露营','手机摄影技巧','租房改造','副业搞钱']
