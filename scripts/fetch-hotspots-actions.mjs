@@ -76,10 +76,28 @@ const results = await Promise.all(SOURCES.map(async s => {
 }));
 
 const flat = results.flat();
-const out = { hot: dedupe(flat), music: [], form: [], search: [], fetchedAt: new Date().toISOString() };
+// music/form/search 补充（与 SCF HS_MUSIC_SOURCES/HS_FORM_LIBRARY/HS_SEARCH_KEYWORDS 一致，保持候选池完整）
+const music = [];
+try {
+  const mj = await get('https://aweme.snssdk.com/aweme/v1/chart/music/list/?chart_id=6853972723954146568&count=30&device_platform=android&version_name=13.2.0&version_code=130200&aid=1128', { timeout: 15000 });
+  if (mj && mj.music_list) music.push(...mj.music_list.slice(0, 20).map(x => ({ platform: '抖音音乐', lane: 'music', word: x.title || '', heat: String(x.hot_value || ''), url: '', songTitle: x.title || '', songAuthor: (x.author || '').replace(/^音乐人/, '') })));
+} catch (e) {}
+const form = [
+  { platform: '形式库', lane: 'form', word: '卡点', heat: '', url: '', desc: '踩节奏剪辑，画面随鼓点切换', example: '京剧卡点：用戏曲鼓点切营业厅服务画面', difficulty: 1, needFace: false },
+  { platform: '形式库', lane: 'form', word: '变装', heat: '', url: '', desc: '前后反差一键变身，常用于服务/形象展示', example: '工装→职业装变装，展示营业厅专业形象', difficulty: 1, needFace: true },
+  { platform: '形式库', lane: 'form', word: '口播', heat: '', url: '', desc: '对着镜头讲干货，最稳的基础形式', example: '店员口播：宽带怎么选', difficulty: 0, needFace: true },
+  { platform: '形式库', lane: 'form', word: '图文/一图流', heat: '', url: '', desc: '静态图+字幕滚动，适合政策/资费讲解', example: '一图看懂5G套餐区别', difficulty: 0, needFace: false },
+  { platform: '形式库', lane: 'form', word: '对比测评', heat: '', url: '', desc: '前后/竞品对比，突出优势', example: '1000M vs 300M 实测', difficulty: 1, needFace: false },
+  { platform: '形式库', lane: 'form', word: '剧情/情景剧', heat: '', url: '', desc: '小剧场演绎用户痛点', example: '顾客嫌套餐贵→店员算账反转', difficulty: 2, needFace: true },
+  { platform: '形式库', lane: 'form', word: '探店/Vlog', heat: '', url: '', desc: '第一视角带看营业厅', example: '带你逛山西电信XX营业厅', difficulty: 1, needFace: true },
+];
+const search = ['换套餐怎么换', '宽带一年多少钱', '携号转网怎么办理', '流量不够用怎么办', 'IPTV怎么开通', '手机号不用了怎么注销', '5G套餐哪个划算', '营业厅上班时间', '电信和移动哪个信号好', '家里WiFi总卡顿', '老人机哪个好用', '学生手机推荐']
+  .map(w => ({ platform: '百度', lane: 'search', word: w, heat: '', url: 'https://www.baidu.com/s?wd=' + encodeURIComponent(w), intent: '到店咨询' }));
+
+const out = { hot: dedupe(flat), music: dedupe(music), form, search, fetchedAt: new Date().toISOString() };
 const byPlat = {};
 flat.forEach(x => { byPlat[x.platform] = (byPlat[x.platform] || 0) + 1; });
 
 const target = join(__dirname, '..', 'data', 'hotspot-raw.json');
 writeFileSync(target, JSON.stringify(out, null, 2));
-console.log('✅ hotspot-raw.json 生成:', JSON.stringify(byPlat), '| 总', out.hot.length, '条');
+console.log('✅ hotspot-raw.json 生成:', JSON.stringify(byPlat), '| hot', out.hot.length, '| music', out.music.length, '| form', form.length, '| search', search.length);
