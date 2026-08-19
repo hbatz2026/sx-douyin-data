@@ -6,6 +6,8 @@
 //   node deploy-all.mjs --quick    → 同上（前端 quick）
 //   node deploy-all.mjs --full     → 前端 full（含 SCF Event）+ SCF Web 全量部署并验证
 //   node deploy-all.mjs --scf-only → 仅部署 SCF（Web + Event），跳过前端（CI 用，前端走本地 deploy.mjs）
+//   node deploy-all.mjs --target dev → 部署到 dev 函数（douyin-personalize-dev，R4 护栏；需先建 dev 函数）
+//   node deploy-all.mjs --target prod → 默认，部署生产函数
 //
 // 流程:
 //   1. 前端 deploy.mjs (--quick / --full)
@@ -26,9 +28,14 @@ const ARGS = process.argv.slice(2);
 const FULL = ARGS.includes('--full');
 const QUICK = ARGS.includes('--quick') || !FULL;
 const SCF_ONLY = ARGS.includes('--scf-only');
+// R4 部署护栏：--target dev|prod（默认 prod 保持现状）；dev 部署到 douyin-personalize-dev
+const TARGET = ARGS.includes('--target') ? (ARGS[ARGS.indexOf('--target') + 1] || 'prod') : 'prod';
 
 const ENDPOINT = 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com';
 const FRONTEND_URL = 'https://hbatz2026.github.io/sx-douyin-data';
+// dev 函数端点（控制台创建 douyin-personalize-dev 后填入；未配置时 dev 模式仅部署不验证）
+const ENDPOINT_DEV = process.env.ENDPOINT_DEV || '';
+const SCF_ENDPOINT = (TARGET === 'dev' && ENDPOINT_DEV) ? ENDPOINT_DEV : ENDPOINT;
 
 // ─── TC 凭证（读 tc-config.cjs）───
 import { createRequire } from 'module';
@@ -71,7 +78,7 @@ function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 async function triggerColdStart(){
   // fire-and-forget：触发一次冷启动，让 loader.js 拉 Gitee 新代码
   try {
-    fetch(ENDPOINT, {
+    fetch(SCF_ENDPOINT, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ mode:'hotspot-fetch', model:'deepseek-v4-pro', max_tokens:8000, temperature:0.9 })
     }).then(r=>r.text()).then(()=>console.log('  ✅ 冷启动触发完成（loader 已拉取 Gitee 新代码）'))
@@ -85,7 +92,7 @@ async function verifySCF(retries = 6, intervalMs = 20000){
     if (i > 0) await sleep(intervalMs);
     try {
       const t0 = Date.now();
-      const t = await fetch(ENDPOINT, {
+      const t = await fetch(SCF_ENDPOINT, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ mode:'hotspot-fetch', model:'deepseek-v4-pro', max_tokens:8000, temperature:0.9 })
       }).then(r=>r.text());
@@ -151,7 +158,7 @@ try {
 // ─── Step 3: SCF Web 部署（UpdateFunctionCode）───
 console.log('\n═══ [3] SCF Web 部署 ═══');
 try {
-  execSync(`node deploy-web-codeonly.mjs`, { stdio:'inherit', cwd: __dirname });
+  execSync(`node deploy-web-codeonly.mjs --target ${TARGET}`, { stdio:'inherit', cwd: __dirname });
 } catch(e) {
   console.error('❌ SCF Web 部署失败');
   process.exit(1);
@@ -173,9 +180,13 @@ await triggerColdStart();
 
 // ─── Step 5: 端到端验证 ───
 console.log('\n═══ [5] 端到端验证 ═══');
-await verifySCF();
-if (!SCF_ONLY) await verifyFrontend();
-else console.log('  （--scf-only：跳过前端版本校验）');
+if (TARGET === 'dev' && !ENDPOINT_DEV) {
+  console.log('  （--target dev 未配置 ENDPOINT_DEV，跳过验证——部署已提交到 douyin-personalize-dev）');
+} else {
+  await verifySCF();
+  if (!SCF_ONLY) await verifyFrontend();
+  else console.log('  （--scf-only：跳过前端版本校验）');
+}
 
 const elapsed = ((Date.now() - start) / 1000).toFixed(1);
 console.log(`\n✅ 全量部署完成 ${elapsed}s`);
