@@ -239,6 +239,8 @@ async function hsFetch(url, opts = {}) {
   try {
     const r = await fetch(url, {
       signal: ctrl.signal,
+      method: opts.method || 'GET',
+      body: opts.method === 'POST' ? opts.body : undefined,
       headers: Object.assign({ 'User-Agent': 'Mozilla/5.0' }, opts.headers || {})
     });
     if (!r.ok) return null;
@@ -297,13 +299,26 @@ const HS_TREND_SOURCES = [
   ]},
   { platform: '百度', candidates: [
     { url: 'https://top.baidu.com/board?tab=realtime', asText: true, parse: html => {
-      const m = html.match(/<!--s-data:([\s\S]*?)-->/); if (!m) return [];
-      let json; try { json = JSON.parse(m[1]); } catch(e) { return []; }
+      const m = html.match(/<!--s-data:([\s\S]*?)-->/); if (!m) return [];      let json; try { json = JSON.parse(m[1]); } catch(e) { return []; }
       const content = json.data?.cards?.[0]?.content ?? json.cards?.[0]?.content ?? [];
       const list = Array.isArray(content[0]?.content) ? content[0].content : content;
       return list.map(v => { const title = v.word ?? v.title ?? ''; const q = v.query ?? title;
         return { word: title, heat: (v.hotScore||v.hotTag||'').toString(), url: 'https://www.baidu.com/s?wd='+encodeURIComponent(q) }; });
     }},
+  ]},
+  // v2.9.79: 小红书实时热搜（60s.viki /v2/rednote，替代下方硬编码 8 词；硬编码降级为实时榜全空时的兜底）
+  { platform: '小红书', candidates: [
+    { url: 'https://60s.viki.moe/v2/rednote',
+      parse: j => (j.data||[]).map(x => ({ word: x.title, heat: String(x.score||''), url: x.link||'https://www.xiaohongshu.com/search_result?keyword='+encodeURIComponent(x.title) })) },
+  ]},
+  // v2.9.79: 快手官方热榜（GraphQL POST；hsFetch 已支持 method/body。接口：https://www.kuaishou.com/hot-list）
+  { platform: '快手', candidates: [
+    { url: 'https://www.kuaishou.com/graphql',
+      method: 'POST',
+      body: JSON.stringify({ operationName:'hotListBoard', variables:{}, query:'query hotListBoard { hotListBoard { list { id title hotValue hotType url } } }' }),
+      headers: { 'Content-Type':'application/json', 'Referer':'https://www.kuaishou.com/hot-list' },
+      parse: j => ((j.data && j.data.hotListBoard && j.data.hotListBoard.list) || [])
+        .map(x => ({ word: x.title, heat: String(x.hotValue||''), url: x.url || 'https://www.kuaishou.com/search/video?searchKey='+encodeURIComponent(x.title) })) },
   ]},
 ];
 const HS_XIAOHONGSHU = ['多巴胺穿搭','Citywalk','职场穿搭','减脂餐打卡','周末露营','手机摄影技巧','租房改造','副业搞钱']
@@ -365,7 +380,11 @@ async function fetchAllHotspotsSCF() {
     const got = (Array.isArray(results) && results.length) ? results : [];
     return got.map(g => ({ platform: src.platform, lane:'hot', word: g.word, heat: g.heat, url: g.url }));
   });
-  const hot = (await Promise.all(hotTasks)).flat().concat(HS_XIAOHONGSHU.map(t => ({ platform:'小红书', lane:'hot', word: t.word, heat: t.heat, url: t.url })));
+  const hot = (await Promise.all(hotTasks)).flat();
+  // v2.9.79: 小红书硬编码词降级为兜底——仅当实时源（viki /v2/rednote）完全失败时补入，避免实时榜与硬编码重复
+  if (!hot.some(x => x.platform === '小红书')) {
+    hot.push(...HS_XIAOHONGSHU.map(t => ({ platform:'小红书', lane:'hot', word: t.word, heat: t.heat, url: t.url })));
+  }
 
   // 并行抓取音乐榜
   const musicTasks = HS_MUSIC_SOURCES.map(async src => {
