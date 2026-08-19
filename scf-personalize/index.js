@@ -1,5 +1,5 @@
 // SCF Web函数 — 抖本个性化脚本API
-// 环境变量: GITEE_TOKEN, GITEE_USERNAME, SILICONFLOW_API_KEY
+// 环境变量: GITEE_TOKEN, GITEE_USERNAME, MINIMAX_API_KEY（AI 网关密钥，旧 SILICONFLOW_API_KEY 兼容回退）
 // 部署: v=2026-07-21 (BUNDLED_TIMESTAMP 自更新机制)
 // 注意：BUNDLED_TS 由 push-scf-web.mjs 在推送时替换为实际时间戳
 //      本地开发永远写 0，push-scf-web.mjs 自动注入时间戳
@@ -646,10 +646,10 @@ http.createServer(async (req, res) => {
       try {
         const cfg = await loadAIConfig(process.env.GITEE_TOKEN, process.env.GITEE_USERNAME || 'hbatz');
         const t0 = Date.now();
-        const r = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
+        const r = await fetch(cfg.endpoint || 'https://api.minimaxi.com/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.SILICONFLOW_API_KEY}` },
-          body: JSON.stringify({ model: cfg.model || 'qwen3.7-max', messages: [{ role:'user', content:'ping' }], max_tokens: 1 }),
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${(process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY)}` },
+          body: JSON.stringify({ model: cfg.model || 'MiniMax-M3', messages: [{ role:'user', content:'ping' }], max_tokens: 1 }),
           // 2026-08-17: 5s→30s 修 diag 假阳性（网关首响 3-22s 抖动，5s 探测必误报 ai_reachable:false）
           signal: AbortSignal.timeout(30000)
         });
@@ -679,8 +679,8 @@ http.createServer(async (req, res) => {
       diag.env = {
         GITEE_TOKEN_set: !!process.env.GITEE_TOKEN,
         GITEE_USERNAME: process.env.GITEE_USERNAME || 'hbatz',
-        SILICONFLOW_API_KEY_set: !!process.env.SILICONFLOW_API_KEY,
-        SILICONFLOW_API_KEY_length: (process.env.SILICONFLOW_API_KEY || '').length,
+        SILICONFLOW_API_KEY_set: !!(process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY),
+        SILICONFLOW_API_KEY_length: ((process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY) || '').length,
         SCF_CUSTOM_CONTAINER_EVENT_PORT: process.env.SCF_CUSTOM_CONTAINER_EVENT_PORT || null
       };
       res.writeHead(200, corsHeaders); res.end(JSON.stringify(diag, null, 2)); return;
@@ -688,7 +688,7 @@ http.createServer(async (req, res) => {
 
     // 2026-07-21: AI key 传递端点（浏览器直调 SiliconFlow 需要 key）
     if (params.mode === 'get-ai-key') {
-      const key = process.env.SILICONFLOW_API_KEY;
+      const key = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
       if (!key) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ error: 'SILICONFLOW_API_KEY not configured' })); return; }
       res.writeHead(200, corsHeaders); res.end(JSON.stringify({ key: key }));
       return;
@@ -726,7 +726,7 @@ http.createServer(async (req, res) => {
     if (params.mode === 'gen-hotspot') {
       const token = process.env.GITEE_TOKEN;
       const user = process.env.GITEE_USERNAME || 'hbatz';
-      const apiKey = process.env.SILICONFLOW_API_KEY;
+      const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
       if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ error: 'SILICONFLOW_API_KEY not configured' })); return; }
       // 抓取热搜
       const trendRes = await fetch('https://60s.viki.moe/v2/douyin', { signal: AbortSignal.timeout(8000) });
@@ -863,7 +863,7 @@ http.createServer(async (req, res) => {
     if (params.mode === 'hotspot-fetch') {
       const token = process.env.GITEE_TOKEN;
       const user = process.env.GITEE_USERNAME || 'hbatz';
-      const apiKey = process.env.SILICONFLOW_API_KEY;
+      const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
       if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'SILICONFLOW_API_KEY not configured' })); return; }
       try {
         const cands = await fetchAllHotspotsSCF();
@@ -871,8 +871,8 @@ http.createServer(async (req, res) => {
         const msgs = buildHotspotMessages(cands);
         const raw = await callSiliconFlow(msgs.system, msgs.user, apiKey, {
           endpoint: cfg.endpoint,
-          model: cfg.model || params.model || 'deepseek-v4-pro',
-          fallbackModel: cfg.fallbackModel || 'deepseek-v4-flash',
+          model: cfg.model || params.model || 'MiniMax-M3',
+          fallbackModel: cfg.fallbackModel || 'MiniMax-M3',
           temperature: 0.9,
           maxTokens: 10000,
           timeoutMs: 180000
@@ -932,7 +932,7 @@ http.createServer(async (req, res) => {
       try {
         const token = process.env.GITEE_TOKEN;
         const user = process.env.GITEE_USERNAME || 'hbatz';
-        const apiKey = process.env.SILICONFLOW_API_KEY;
+        const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
         if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'SILICONFLOW_API_KEY 未设置' })); return; }
         const cfg = await loadAIConfig(token, user);
         const sp = await runSeedPool({ apiKey, token, user, cfg, params, helpers: { callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize } });
@@ -948,7 +948,7 @@ http.createServer(async (req, res) => {
       try {
         const token = process.env.GITEE_TOKEN;
         const user = process.env.GITEE_USERNAME || 'hbatz';
-        const apiKey = process.env.SILICONFLOW_API_KEY;
+        const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
         if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'SILICONFLOW_API_KEY 未设置' })); return; }
         const cfg = await loadAIConfig(token, user);
         const dp = await runDayPool({ apiKey, token, user, cfg, params, helpers: { callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize } });
@@ -1058,7 +1058,7 @@ http.createServer(async (req, res) => {
     if (params.mode === 'ai') {
       const token = process.env.GITEE_TOKEN;
       const user = process.env.GITEE_USERNAME || 'hbatz';
-      const apiKey = process.env.SILICONFLOW_API_KEY;
+      const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
       if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'SILICONFLOW_API_KEY not configured' })); return; }
       try {
         const cfg = await loadAIConfig(token, user);
@@ -1079,11 +1079,11 @@ http.createServer(async (req, res) => {
         }
         const raw = await callSiliconFlow(system, userMsg, apiKey, {
           endpoint: cfg.endpoint,
-          model: params.model || cfg.model || 'deepseek-v4-pro',
-          fallbackModel: cfg.fallbackModel || 'deepseek-v4-flash',
+          model: params.model || cfg.model || 'MiniMax-M3',
+          fallbackModel: cfg.fallbackModel || 'MiniMax-M3',
           temperature: params.temperature || cfg.temperature || 0.8,
           maxTokens: params.max_tokens || cfg.maxTokens || 2000,
-          // 2026-07-31: tbnx deepseek-v4-pro 实测首响 ~82s，45s 太短必超时；提到 180s
+          // 2026-07-31: tbnx MiniMax-M3 实测首响 ~82s，45s 太短必超时；提到 180s
           timeoutMs: 180000
         });
         res.writeHead(200, corsHeaders); res.end(JSON.stringify({ ok:true, content: sanitizeStance(raw || '') })); return;
@@ -1438,7 +1438,7 @@ async function personalize(params) {
 
   const token = process.env.GITEE_TOKEN;
   const user = process.env.GITEE_USERNAME || 'hbatz';
-  const apiKey = process.env.SILICONFLOW_API_KEY;
+  const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
   if (!apiKey) throw new Error('SILICONFLOW_API_KEY not configured');
   if (!token) throw new Error('GITEE_TOKEN not configured');
 
@@ -1875,15 +1875,15 @@ async function searchT2({ preset, topic }) {
 // ============================================================
 
 // 2026-08-06: bundled AI 配置兜底。Gitee 不可达（如 token 失效）时，loadAIConfig 回退到此，
-// 确保函数仍走 vectorengine 网关 + DeepSeek 主 / Qwen 兜底，不回退写死的旧 tbnx 网关。
+// 确保函数仍走 MiniMax 网关 + MiniMax-M3（2026-08-19 切换），不回退写死的旧 tbnx 网关。
 const BUNDLED_AI_CONFIG = {
   enabled: true,
-  endpoint: 'https://api.vectorengine.cn/v1/chat/completions',
-  model: 'qwen3.7-max',
+  endpoint: 'https://api.minimaxi.com/v1/chat/completions',
+  model: 'MiniMax-M3',
   temperature: 0.8,
   maxTokens: 2000,
   timeoutMs: 180000,
-  fallbackModel: 'deepseek-v4-flash'
+  fallbackModel: 'MiniMax-M3'
 };
 
 async function loadAIConfig(token, user) {
@@ -1982,7 +1982,7 @@ async function callSiliconFlow(system, user, apiKey, cfg) {
   // R1 强制包装（2026-08-17 加强）：同模型"快速失败"重试 1 次 + 跨模型兜底 + 总预算控制。
   // 预算 170s（函数超时 180s 留 10s 余量），主模型单次超时绝不吞掉整个请求，
   // 消除">240s 超时→当日热点池清空"隐患：主模型失败时兜底模型永远有执行机会。
-  const primary = cfg.model || 'deepseek-v4-pro';
+  const primary = cfg.model || 'MiniMax-M3';
   const fb = cfg.fallbackModel || null;
   const seen = new Set();
   const models = [primary, fb].filter(Boolean).filter(m => { if (seen.has(m)) return false; seen.add(m); return true; });
@@ -1999,7 +1999,7 @@ async function callSiliconFlow(system, user, apiKey, cfg) {
       // 主模型每次留 20s 给兜底；兜底用尽剩余预算
       const fetchTimeout = isFallback ? remain : Math.max(15000, remain - 20000);
       try {
-        const res = await fetch(cfg.endpoint || 'https://tbnx.plus7.plus/v1/chat/completions', {
+        const res = await fetch(cfg.endpoint || 'https://api.minimaxi.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
@@ -2415,7 +2415,7 @@ async function wpPlanTopics(apiKey, cfg, token, user, params) {
   // 2026-08-05 修复：tbnx 网关偶发返回空 content（200 但 choices[0].message.content 为空），
   // 单一模型重试仍会得到 null → 改为「跨模型候选 + 重试」，避免一次空响应直接阻塞整条流水线。
   let parsed = null, lastRaw = '';
-  const modelCandidates = [cfg.model || 'deepseek-v4-pro', 'deepseek-ai/DeepSeek-V4-Pro', 'deepseek-v4']
+  const modelCandidates = [cfg.model || 'MiniMax-M3', 'deepseek-ai/DeepSeek-V4-Pro', 'deepseek-v4']
     .filter((v, i, a) => a.indexOf(v) === i); // 去重，保持配置模型优先
   outer:
   for (const m of modelCandidates) {
@@ -2456,7 +2456,7 @@ async function wpGenOneTopic(t, topic, apiKey, cfg, params) {
     '{"sister":"脚本","sweet":"脚本","tech":"脚本","biz":"脚本","young":"脚本","master":"脚本"}';
   const userP = '选题：' + topic + '\n请生成 6 个人设的完整脚本。';
   // 2026-08-05 修复：与 plan 同因，跨模型候选兜底，避免单模型空响应导致该选题整条跳过。
-  const genModels = [cfg.model || 'deepseek-v4-pro', 'deepseek-ai/DeepSeek-V4-Pro'].filter((v, i, a) => a.indexOf(v) === i);
+  const genModels = [cfg.model || 'MiniMax-M3', 'deepseek-ai/DeepSeek-V4-Pro'].filter((v, i, a) => a.indexOf(v) === i);
   let raw = null;
   for (const m of genModels) {
     try {
@@ -2490,7 +2490,7 @@ function wpProgress(draft) {
 async function handleWeeklyPersona(res, params, corsHeaders) {
   const token = process.env.GITEE_TOKEN;
   const user = process.env.GITEE_USERNAME || 'hbatz';
-  const apiKey = process.env.SILICONFLOW_API_KEY;
+  const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
   if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'SILICONFLOW_API_KEY not configured' })); return; }
 
   const t0 = Date.now();
@@ -2570,7 +2570,7 @@ async function handleWeeklyPersona(res, params, corsHeaders) {
 async function handleFillMissingT1(res, params, corsHeaders) {
   const token = process.env.GITEE_TOKEN;
   const user = process.env.GITEE_USERNAME || 'hbatz';
-  const apiKey = process.env.SILICONFLOW_API_KEY;
+  const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
   if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok:false, error:'SILICONFLOW_API_KEY not configured' })); return; }
   try {
     // 读 topicPool + t1Presets
@@ -2597,7 +2597,7 @@ async function handleFillMissingT1(res, params, corsHeaders) {
       const sys = '你是山西电信抖音内容运营专家。为以下「决策指南」类选题生成脚本模板。每个选题给出2-3个人群/档位视角的一句话脚本。';
       const userP = '请为以下' + batch.length + '个选题各生成脚本预设（JSON对象）：\n' + batch.map((k, idx) => (idx+1) + '. ' + k).join('\n') +
         '\n\n【输出要求】只返回一个JSON对象（不要markdown代码块），键为选题名，值为{人群档位:"一句话脚本",...}。\n注意：山西电信在售宽带仅300/500/1000/FTTR，禁止出现100M/100兆/百兆。脚本站在营业员角度。';
-      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'deepseek-v4-pro', temperature: 0.85, maxTokens: 8000, timeoutMs: 180000 });
+      const raw = await callSiliconFlow(sys, userP, apiKey, { endpoint: cfg.endpoint, model: cfg.model || params.model || 'MiniMax-M3', temperature: 0.85, maxTokens: 8000, timeoutMs: 180000 });
       if (!raw) continue;
       const parsed = extractJsonObject(raw);
       if (!parsed || typeof parsed !== 'object') continue;
