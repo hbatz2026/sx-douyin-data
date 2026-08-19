@@ -21,6 +21,13 @@
   if (!TONE || !TONE.affinity) {
     console.warn('[pool] V3Personas.TONE 未加载，周备池模板拼装将失败（请确认 personas.js 在 pool.js 之前加载）');
   }
+  // N-3：合规规则（档位合法表述识别，中文「兆」= 合规变体，见 config/compliance-rules.json）
+  var RULES = (typeof require === 'function')
+    ? (function () { try { return require('./compliance-rules'); } catch (e) { return null; } })()
+    : (root.___COMPLIANCE_RULES || null);
+  var VALID_TIER_RE = (RULES && RULES.tiers && RULES.tiers.validMentions)
+    ? new RegExp('(' + RULES.tiers.validMentions.join('|') + ')')
+    : /(300M|300兆|500M|500兆|1000M|1000兆|千兆|FTTR|融合套餐)/;
   var CACHE_KEY = 'sxdy_v3_pool_cache';
   var CACHE_MAX_AGE_MS = 7 * 24 * 3600 * 1000;
 
@@ -30,22 +37,6 @@
     review:   { name: '深度测评', icon: '🔍' },
     local:    { name: '本地事件', icon: '📍' },
     hotspot:  { name: '热点跟拍', icon: '🔥' }
-  };
-
-  // 语气模板：营业员视角，零攻击运营商表述（红线见 core3.scanStance）
-  var TONE = {
-    affinity: [
-      { p: 'warm',   f: function (t, pt) { return '最近好多街坊问我' + t + '。' + pt + ' 拿不准的直接来厅里，我帮你一条条对。'; } },
-      { p: 'sweet',  f: function (t, pt) { return '姐妹们问得最多的就是' + t + '～' + pt + ' 评论区留城市，我帮你看看哪档合适。'; } }
-    ],
-    professional: [
-      { p: 'tech',   f: function (t, pt) { return t + '，直接给判断依据：' + pt + ' 到厅可现场实测，数据说话。'; } },
-      { p: 'biz',    f: function (t, pt) { return '关于' + t + '，给一个可执行口径：' + pt + ' 建议每季度复核一次，避免长期错配。'; } }
-    ],
-    young: [
-      { p: 'vibe',   f: function (t, pt) { return '兄弟们，' + t + '别瞎选！' + pt + ' 冲之前先看这条，省下的都是自己的。'; } },
-      { p: 'young',  f: function (t, pt) { return t + '？三句话讲完：' + pt + ' 还有不懂的评论区喊我。'; } }
-    ]
   };
 
   var HOOK_BY_TYPE = {
@@ -140,7 +131,9 @@
       var st = root.V3Core.scanStance(text || '');
       if (st.length) reasons.push('立场红线：' + st.join('、'));
     }
-    if (!/(300M|500M|1000M|FTTR|融合套餐)/.test(text || '')) {
+    // 档位检查：仅宽带语境强制（话费/手机/其他选题不误伤）；核心红线仍是"禁 100M/100兆"（BAD_TIER 见 compliance-rules）
+    var TIER_CONTEXT_RE = /(宽带|兆|Mbps|千兆|FTTR|光猫|路由器|网速|WIFI|wifi|5G)/;
+    if (TIER_CONTEXT_RE.test(text || '') && !VALID_TIER_RE.test(text || '')) {
       reasons.push('缺山西电信在售档位(300/500/1000/FTTR)');
     }
     return { ok: reasons.length === 0, reasons: reasons };
