@@ -12,7 +12,12 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, 'scf-personalize');
-const FUNC_NAME = 'douyin-personalize';
+
+// R4 部署护栏（v3.0-完整方案.md §1.4 Week 2）：--target dev|prod（默认 prod 保持现状）
+// 生产只认 CI（GitHub Actions 真实 TC Secrets）；本地试跑请用 --target dev（需先在控制台创建 douyin-personalize-dev）。
+const ARGS = process.argv.slice(2);
+const TARGET = ARGS.includes('--target') ? (ARGS[ARGS.indexOf('--target') + 1] || 'prod') : 'prod';
+const FUNC_NAME = TARGET === 'dev' ? 'douyin-personalize-dev' : 'douyin-personalize';
 
 // 凭证：优先环境变量，回退 tc-config.cjs
 let CREDS = { id: process.env.TC_SECRET_ID, key: process.env.TC_SECRET_KEY, region: process.env.TC_REGION || 'ap-guangzhou' };
@@ -128,7 +133,11 @@ function createZipFile(srcDir) {
 }
 
 async function main(){
-  console.log(`🚀 仅更新代码: ${FUNC_NAME} @ ${CREDS.region}`);
+  console.log(`🚀 仅更新代码: ${FUNC_NAME} @ ${CREDS.region} (target=${TARGET})`);
+  // R4 护栏：非 CI 环境直连 prod 时醒目提示（不阻断——本地确实需要应急部署能力，但提醒确认）
+  if (TARGET !== 'dev' && !process.env.GITHUB_ACTIONS) {
+    console.log('⚠️  注意：本地直连生产函数 douyin-personalize。R4 原则「生产只认 CI」，请确认这是有意操作（--target dev 可指向 dev 函数）。');
+  }
   if (!existsSync(join(SRC_DIR,'index.js'))) { console.error('❌ scf-personalize/index.js 不存在'); process.exit(1); }
   const zipB64 = createZipFile(SRC_DIR);
   console.log(`📦 打包完成 (${zipB64.length} chars)`);
