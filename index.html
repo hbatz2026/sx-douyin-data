@@ -137,6 +137,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .hs-lane-count{font-size:10px;color:var(--text-light);margin-top:1px;}
 .hs-lane-arrow{color:var(--text-light);font-size:14px;}
 
+/* 平台来源标签（v2.9.79：可点击跳转原热点） */
+.hs-plat{display:inline-block;font-size:10px;font-weight:700;color:#1565C0;background:#E3F2FD;border-radius:8px;padding:1px 7px;text-decoration:none;margin-right:2px;}
+.hs-plat:hover{background:#BBDEFB;}
+
+/* 蹭热点三件套（v2.9.79：原热点标题/话题标签/BGM 一键复制） */
+.hs-kit{background:linear-gradient(135deg,#FFF8E1,#FFECB3);border:1.5px solid #FFB300;border-radius:8px;padding:10px;margin-bottom:10px;}
+.hs-kit-title{font-size:12px;font-weight:700;color:#9A3F00;margin-bottom:7px;}
+.hs-kit-row{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:5px;flex-wrap:wrap;}
+.hs-kit-row:last-child{margin-bottom:0;}
+.hs-kit-row .hk-l{flex-shrink:0;color:#9A3F00;font-weight:600;}
+.hs-kit-row .hk-v{flex:1;min-width:0;color:#5D4037;word-break:break-all;}
+.hs-kit-row .hk-btn{flex-shrink:0;border:1px solid #FFB300;background:#fff;color:#9A3F00;font-size:10px;padding:2px 8px;border-radius:10px;cursor:pointer;font-weight:600;}
+.hs-kit-row .hk-btn:active{background:#FFF3E0;}
+
 /* ===== 直播 ===== */
 .live-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
 .live-card{background:var(--white);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;border:1.5px solid var(--gray-border);}
@@ -244,21 +258,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div class="persona-strip" id="personaStrip"></div>
       <div id="poolBar" role="status" aria-live="polite"></div>
       <div class="daily-cards" id="dailyCards"></div>
-      <!-- 热点双车道入口（2.x 移植，v2.9.77） -->
+      <!-- 热点入口（v2.9.79: 仅热门话题，搜索截流已移除） -->
       <div class="hs-lane-cards">
-        <div class="hs-lane-card" role="button" tabindex="0" aria-label="进入热点跟拍中心·热门话题" onclick="enterHotspotLane('hot')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}">
+        <div class="hs-lane-card" role="button" tabindex="0" aria-label="进入热点跟拍中心" onclick="enterHotspotLane('hot')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}">
           <div class="hs-lane-icon">🔥</div>
           <div style="flex:1;min-width:0;">
-            <div class="hs-lane-name">热门话题</div>
+            <div class="hs-lane-name">热点跟拍</div>
             <div class="hs-lane-count" id="homeHotCount">点击查看</div>
-          </div>
-          <span class="hs-lane-arrow">›</span>
-        </div>
-        <div class="hs-lane-card" role="button" tabindex="0" aria-label="进入热点跟拍中心·搜索截流" onclick="enterHotspotLane('search')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}">
-          <div class="hs-lane-icon">🔍</div>
-          <div style="flex:1;min-width:0;">
-            <div class="hs-lane-name">搜索截流</div>
-            <div class="hs-lane-count" id="homeSearchCount">点击查看</div>
           </div>
           <span class="hs-lane-arrow">›</span>
         </div>
@@ -283,19 +289,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <span style="font-size:14px;font-weight:600;">热点跟拍中心</span>
         <span style="font-size:11px;color:var(--text-light);" id="hotspotUpdateTime"></span>
       </div>
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">热门话题 + 搜索截流，AI 匹配营业厅脚本。点击卡片展开完整分镜。</div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">全网热点（抖音/微博/知乎/头条/百度/小红书/快手）AI 匹配营业厅脚本。点卡片展开分镜，蹭热点三件套可一键复制。</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
         <button class="btn btn-sm" style="background:#C2410C;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
         <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
       </div>
       <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;min-height:16px;" id="hotspotRefreshStatus"></div>
 
-      <!-- 热门话题 + 搜索截流 + 难度筛选 -->
+      <!-- 热门话题 + 难度筛选（v2.9.79: 搜索截流已移除） -->
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="hs-tabs" style="flex-wrap:wrap;">
           <button class="hs-tab active lane-filter" id="hs-lane-all-btn" onclick="filterHotspotLane('', this)">🌐 全部</button>
           <button class="hs-tab lane-filter" id="hs-lane-hot-btn" onclick="filterHotspotLane('hot', this)">🔥 热门话题</button>
-          <button class="hs-tab lane-filter" id="hs-lane-search-btn" onclick="filterHotspotLane('search', this)">🔍 搜索截流</button>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:11px;color:var(--text-light);">难度</span>
@@ -392,17 +397,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="toast" id="toast"></div>
 
 <!-- Data -->
-<script src="data/bundle.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="data/dailyScripts.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="data/v3-seedpool.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+<script src="data/bundle.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/dailyScripts.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/v3-seedpool.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/core3.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/track.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/gate.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/pool.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/personas.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/core3.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/track.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/gate.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/pool.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
   <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
-  <script src="src/hotspot.js?v=2.9.78&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001"></script>
+  <script src="src/hotspot.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001"></script>
 
 <script>
 // ==================== Config ====================
