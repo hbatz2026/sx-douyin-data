@@ -80,7 +80,7 @@ async function runAiScript(ctx) {
   let antiHallucinationNote = '';
   if (research.known && research.bullets && research.bullets.length) {
     productCtx = '\n\n【产品事实上下文（来源：' + (research.source === 'user' ? '用户提供的官方资料' : 'AI 模型调研（仅基于训练知识，不联网，准确度有限') + '，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
-    antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字。';
+    antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字；**痛点/反面案例部分也只能用通用营业表达（乱扣费/多花冤枉钱/找不到人/不清楚），禁止引入资料外的具体业务名词（加包/办卡/领流量/充值/查账单/营业厅话费等）**。';
   } else {
     // known=false：模型无法确认产品，禁止输出任何具体功能/数字/承诺
     antiHallucinationNote = '\n⚠️ 产品事实红线（模型无法确认「' + topic + '」的具体卖点，known=false）：script / beats 中**禁止**给出该产品的具体功能列表、数字、参数或承诺，只可写通用营业员口吻（如「来营业厅我帮你看」「进店问问」「查最新政策」）引导用户到店核实；如需承诺具体内容请用户到店。';
