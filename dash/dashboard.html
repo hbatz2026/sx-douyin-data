@@ -28,6 +28,19 @@ body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-s
 .summary-section .title-row h2{font-size:15px;color:var(--blue2);border-left:3px solid var(--blue2);padding-left:8px}
 .summary-section .title-row span{font-size:11px;color:var(--sub)}
 .kpi-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:10px}
+/* 实时/自然月分组样式 */
+.kpi-group{margin-bottom:16px}
+.kpi-group-title{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--blue2);border-left:3px solid var(--blue2);padding-left:8px;margin-bottom:10px;font-weight:600}
+.kpi-group-title .badge{font-size:10px;font-weight:700;padding:2px 10px;border-radius:10px;color:#fff;letter-spacing:1px}
+.badge.rt{background:linear-gradient(90deg,#e63946,#f0b429);box-shadow:0 0 10px rgba(230,57,70,.55);animation:pulse 2s infinite}
+.badge.mo{background:var(--blue);color:#fff}
+@keyframes pulse{0%,100%{box-shadow:0 0 6px rgba(230,57,70,.4)}50%{box-shadow:0 0 16px rgba(230,57,70,.8)}}
+.kpi-group .kpi-grid{grid-template-columns:repeat(6,1fr)}
+.kpi-group:nth-child(2) .kpi-grid{grid-template-columns:repeat(9,1fr)}
+.rt-group .kpi-card{border:1px solid rgba(240,180,41,.35);background:linear-gradient(180deg,rgba(240,180,41,.08),var(--panel));box-shadow:inset 0 0 12px rgba(240,180,41,.05)}
+.rt-group .kpi-card::before{background:linear-gradient(90deg,#f0b429,#e63946)}
+.rt-group .kpi-card .k-label{color:var(--gold)}
+.summary-section .sub-hint{font-size:10px;color:var(--dim);margin-bottom:4px}
 .kpi-card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;transition:border-color .3s}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--blue2)}
 .kpi-card .k-label{font-size:11px;color:var(--sub);line-height:1.3;margin-bottom:6px}
@@ -109,8 +122,9 @@ footer{padding:10px;text-align:center;color:var(--dim);font-size:10px}
     <div class="meta">数据截止 <b id="updateTime">--</b> · 下次刷新 <span id="countdown">30</span>s</div>
   </div>
   <div class="summary-section">
-    <div class="title-row"><h2>全省综合数据</h2><span>今日实时汇总</span></div>
-    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="title-row"><h2>经营数据总览</h2><span>实时(今日) 与 自然月(8月1日至今) 双口径 · 实时数据红色高亮</span></div>
+    <div class="kpi-group rt-group" id="kpiGridRt"></div>
+    <div class="kpi-group" id="kpiGridMo"></div>
   </div>
   <div class="region-section">
     <div class="title-row"><h2>分地市数据</h2><span>各地市经营指标与直播分布</span></div>
@@ -169,30 +183,48 @@ function render(d){
   renderRooms(rooms);
 }
 function renderSummary(s,rooms){
-  const payGmv=s.pay_gmv||0,verifyGmv=s.verify_gmv||0,refundGmv=s.refund_gmv||0;
-  // 门店/动销相关：优先经营页面口径(poi_num/active_poi_cnt)，回退首页口径
-  const poiCnt=s.poi_num||s.poi_cnt||0;
-  const payRoomNight=s.active_poi_cnt||s.pay_room_night_cnt||0;
-  const activeRatio=s.active_poi_ratio||0;
-  const payGmvAvg=s.pay_gmv_avg||0,verifyGmvAvg=s.verify_gmv_avg||0;
-  const payCertCnt=s.pay_cert_cnt||0;
-  const verifyCertCnt=s.verify_cert_cnt||0,productShowUv=s.product_show_uv||0;
+  // 首页实时(今日口径, 不覆盖)
+  const payGmv=s.pay_gmv||0,payCertCnt=s.pay_cert_cnt||0;
+  const verifyGmv=s.verify_gmv||0,verifyCertCnt=s.verify_cert_cnt||0;
+  const refundGmv=s.refund_gmv||0,refundCertCnt=s.refund_cert_cnt||0;
+  const productShowUv=s.product_show_uv||0;
   const livingRoomCnt=s.living_room_cnt||rooms.length;
   const liveShowUv=s.live_show_uv_total||rooms.reduce((a,r)=>a+(r.meta?.live_show_uv_td||0),0);
-  const kpis=[
-    {label:'门店总数',val:fmt(poiCnt),cls:''},
-    {label:'动销门店数',val:fmt(payRoomNight),cls:'green'},
+  // 自然月(经营页面, month_ 前缀)
+  const poiNum=s.poi_num||0,activePoi=s.active_poi_cnt||0,activeRatio=s.active_poi_ratio||0;
+  const payGmvAvg=s.pay_gmv_avg||0,verifyGmvAvg=s.verify_gmv_avg||0;
+  const mPayGmv=s.month_pay_gmv||0,mPayCert=s.month_pay_cert_cnt||0;
+  const mVerifyGmv=s.month_verify_gmv||0,mVerifyCert=s.month_verify_cert_cnt||0;
+  const mRefundGmv=s.month_refund_gmv||0,mRefundCert=s.month_refund_cert_cnt||0;
+  const mPayUser=s.month_pay_user_cnt||0,mVerifyUser=s.month_verify_user_cnt||0;
+  // 实时数据(6项) - 醒目红色
+  const rtKpis=[
+    {label:'成交金额',val:fmtMoney(payGmv),cls:'gold',unit:moneyUnit(payGmv)},
+    {label:'成交券数',val:fmt(payCertCnt),cls:'gold'},
+    {label:'退款金额',val:fmtMoney(refundGmv),cls:'red',unit:moneyUnit(refundGmv)},
+    {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:moneyUnit(verifyGmv)},
+    {label:'核销券数',val:fmt(verifyCertCnt),cls:'green'},
+    {label:'商品访问人数',val:fmt(productShowUv),cls:'cyan'},
+  ];
+  // 自然月数据(9格)
+  const moKpis=[
+    {label:'门店总数',val:fmt(poiNum),cls:''},
+    {label:'动销门店数',val:fmt(activePoi),cls:'green'},
     {label:'动销率',val:activeRatio.toFixed(2)+'%',cls:'gold'},
     {label:'日店均成交',val:fmtMoney(payGmvAvg),cls:'blue',unit:'元'},
     {label:'日店均核销',val:fmtMoney(verifyGmvAvg),cls:'cyan',unit:'元'},
-    {label:'成交金额',val:fmtMoney(payGmv),cls:'gold',unit:moneyUnit(payGmv)},
-    {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:moneyUnit(verifyGmv)},
-    {label:'成交券数',val:fmt(payCertCnt),cls:'blue'},
-    {label:'核销券数',val:fmt(verifyCertCnt),cls:''},
+    {label:'意向成交金额',val:fmtMoney(mPayGmv),cls:'blue',unit:moneyUnit(mPayGmv)},
+    {label:'意向成交券数',val:fmt(mPayCert),cls:'blue'},
+    {label:'核销金额',val:fmtMoney(mVerifyGmv),cls:'',unit:moneyUnit(mVerifyGmv)},
+    {label:'核销券数',val:fmt(mVerifyCert),cls:''},
   ];
-  document.getElementById('kpiGrid').innerHTML=kpis.map(k=>
-    `<div class="kpi-card"><div class="k-label">${k.label}</div><div class="k-val ${k.cls}">${k.val}</div><div class="k-unit">${k.unit||''}</div></div>`
-  ).join('');
+  const groupHtml=(title,badge,badgeCls,items)=>`
+    <div class="kpi-group-title"><span class="badge ${badgeCls}">${badge}</span>${title}</div>
+    <div class="kpi-grid">${items.map(k=>
+      `<div class="kpi-card"><div class="k-label">${k.label}</div><div class="k-val ${k.cls}">${k.val}</div><div class="k-unit">${k.unit||''}</div></div>`
+    ).join('')}</div>`;
+  document.getElementById('kpiGridRt').innerHTML=groupHtml('今日实时数据', '实时', 'rt', rtKpis);
+  document.getElementById('kpiGridMo').innerHTML=groupHtml('自然月数据（8月1日至今）','自然月','mo',moKpis);
 }
 function drawRegionChart(cities,metric){
   const canvas=document.getElementById('regionCanvas');
