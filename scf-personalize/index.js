@@ -3,7 +3,7 @@
 // 部署: v=2026-07-21 (BUNDLED_TIMESTAMP 自更新机制)
 // 注意：BUNDLED_TS 由 push-scf-web.mjs 在推送时替换为实际时间戳
 //      本地开发永远写 0，push-scf-web.mjs 自动注入时间戳
-const BUNDLED_TS = 1785564338118;
+const BUNDLED_TS = 1787208263545;
 
 const CACHE_VER = 'v21'; // BUNDLED_TIMESTAMP 自更新机制
 
@@ -1060,6 +1060,22 @@ http.createServer(async (req, res) => {
       } catch (e) {
         res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'day-pool failed' }));
       }
+      return;
+    }
+
+    // ===== ai-script: 3.0 G7 自定义选题 → AI 生成单条口播稿（区别于通用 ai 代理） =====
+    if (params.mode === 'ai-script') {
+      try {
+        const token = process.env.GITEE_TOKEN;
+        const user = process.env.GITEE_USERNAME || 'hbatz';
+        const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
+        if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'AI 凭证未设置' })); return; }
+        if (!params.topic || params.topic.length < 2) { res.writeHead(400, corsHeaders); res.end(JSON.stringify({ ok: false, error: '缺少选题 topic' })); return; }
+        const cfg = await loadAIConfig(token, user);
+        const { runAiScript } = require('./ai-script-mode.cjs');
+        const r = await runAiScript({ apiKey, token, user, cfg, params, helpers: { callSiliconFlow, extractJsonObject, hsSanitize } });
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify(r));
+      } catch (e) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'ai failed' })); }
       return;
     }
 
