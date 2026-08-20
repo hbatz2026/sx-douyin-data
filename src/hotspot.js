@@ -100,6 +100,14 @@
       if (hotspotFilter === 'tier3' && h.tier !== 3) return;
       if (hotspotFilter === 'easy' && h.difficulty > 1) return;
       var laneTag = h.lane && laneLabels[h.lane] ? '<span class="hs-tag" style="' + (laneColors[h.lane] || '') + 'font-weight:600;">' + laneLabels[h.lane] + '</span>' : '';
+      // v2.9.81: 跟拍形态标签（纯跟拍 rideType / 业务条标"业务"）
+      var rideTag = '';
+      if (h.rideType && h.rideType !== '业务') {
+        var rideEmoji = { '手势舞': '🫰', '卡点反转': '🎞️', 'BGM跟拍': '🎵', '对镜拍': '🪞', '变装': '👗', '转场': '🔄', '剧情模仿': '🎭' }[h.rideType] || '🎯';
+        rideTag = '<span class="hs-tag" style="background:#E8F5E9;color:#2E7D32;font-weight:600;">' + rideEmoji + ' ' + esc(h.rideType) + '跟拍</span>';
+      } else {
+        rideTag = '<span class="hs-tag" style="background:#E3F2FD;color:#1565C0;font-weight:600;">🏪 业务改写</span>';
+      }
       var formTag = h.form ? '<span class="hs-tag" style="background:#F3E5F5;color:#6A1B9A;">🎬 ' + esc(h.form) + '</span>' : '';
       var srcUrl = h.sourceUrl || h.source || '';
       var platform = h.platform || '抖音';
@@ -140,9 +148,10 @@
             '</div>';
           }).join('') +
           (h.formTip ? '<div style="margin-top:10px;padding:8px 10px;background:#E8F5E9;border-radius:6px;font-size:12px;color:#2E7D32;"><strong>🎬 形式怎么拍：</strong>' + esc(h.formTip) + '</div>' : '') +
+          (h.rideBeat ? '<div style="margin-top:8px;padding:8px 10px;background:#F1F8E9;border-radius:6px;font-size:12px;color:#33691E;"><strong>🎼 原版节奏拆解：</strong>' + esc(h.rideBeat) + (h.sourceBgm ? '（BGM：' + esc(h.sourceBgm) + '）' : '') + '</div>' : '') +
           (h.tip ? '<div style="margin-top:8px;padding:8px 10px;background:#FFF3E0;border-radius:6px;font-size:12px;color:#C2410C;"><strong>💡 拍摄提示：</strong>' + esc(h.tip) + '</div>' : '') +
           '<div class="hs-footer">' +
-            laneTag + formTag +
+            laneTag + rideTag + formTag +
             '<span class="hs-tag">🎵 ' + esc(h.bgm || '—') + '</span>' +
             (srcUrl ? '<a href="' + esc(srcUrl) + '" target="_blank" rel="noopener" class="hs-tag" style="background:#E3F2FD;color:#1565C0;text-decoration:none;font-weight:600;">📺 看原版 →</a>' : '<span class="hs-tag" style="background:#FFF3E0;color:#C2410C;">📺 抖音搜同名话题</span>') +
             '<button id="favbtn-' + safeId + '" class="hs-tag" style="cursor:pointer;background:#FFF8E1;color:#C2410C;border:none;font:inherit;font-weight:600;margin-left:auto;" onclick="saveToMyLibrary(\'' + safeId + '\')">⭐ 收进选题库</button>' +
