@@ -182,7 +182,9 @@ function renderRooms(rooms){
     if(productCnt===0)warns.push('未挂商品');
     if(!ri.qr_code)warns.push('无二维码');
     const rid=meta.room_id||'';
-    const displayName=meta.nickname||(meta.unique_id?('ID:'+meta.unique_id):'未知');
+    const nick=meta.nickname||'';
+    const isNumericNick=/^\d+$/.test(nick);
+    const displayName=nick&&!isNumericNick?nick:(meta.unique_id?('ID:'+meta.unique_id):(nick||'未知'));
     return `<div class="room-card" onclick="selectRoom('${rid}')"><div class="top"><span class="name">${displayName}</span><span class="tag ${on?'on':'off'}">${on?'直播中':'未播'}</span></div><div class="metrics"><div class="m"><span class="ml">在线</span><span class="mv">${online}</span></div><div class="m"><span class="ml">观看</span><span class="mv">${watch}</span></div><div class="m"><span class="ml">成交</span><span class="mv">¥${gmvVal.toFixed(0)}</span></div><div class="m"><span class="ml">订单</span><span class="mv">${orders}</span></div><div class="m"><span class="ml">商品</span><span class="mv">${productCnt}</span></div><div class="m"><span class="ml">点赞</span><span class="mv">${fmt(num(meta.live_like_cnt_td))}</span></div></div>${warns.length?`<div class="warn">${warns.join(' · ')}</div>`:''}</div>`;
   }).join('');
 }
@@ -193,7 +195,9 @@ function renderAlerts(alerts){
   if(!alerts.length){a.innerHTML='<div class="empty">暂无告警</div>';return;}
   a.innerHTML=alerts.map(al=>{
     const cls=al.level==='严重'?'sev':al.level==='警告'?'warn':'info';
-    return `<div class="alert ${cls}"><span class="lv">${al.level}</span><div class="desc"><b>${al.nickname||''}</b> · ${al.item||''}<br>${al.desc||''}<div class="time">${al.ts||''}</div></div></div>`;
+    const alNick=al.nickname||'';
+    const alDisplay=/^\d+$/.test(alNick)?('ID:'+alNick):alNick;
+    return `<div class="alert ${cls}"><span class="lv">${al.level}</span><div class="desc"><b>${alDisplay||''}</b> · ${al.item||''}<br>${al.desc||''}<div class="time">${al.ts||''}</div></div></div>`;
   }).join('');
 }
 function tickCountdown(){countdownVal--;if(countdownVal<=0){countdownVal=30;loadData();loadAlerts();}document.getElementById('countdown').textContent=countdownVal;}
