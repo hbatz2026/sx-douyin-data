@@ -10,10 +10,17 @@ const Q = require('./quality-gate.cjs');
 
 const MAX_RETRY = 2;
 
+// 6 人设（对齐 index.js PERSONA_STD：sister/sweet/tech/biz/young/master）；
+// 兼容旧 3 语气别名：affinity→sister（亲和=知性姐姐）、professional→tech（专业=技术专家）、young 保留。
 const MOODS = {
-  affinity: '暖心亲和（暖心姐姐式）：称呼"街坊/姐/宝子"，服务向、温暖、爱举例帮助人',
-  professional: '专业理性（技术专家式）：数据、参数、专业判断，理性说服',
-  young: '活力潮流（活力小哥式）："兄弟们"、年轻化、直接、利落'
+  sister: '知性姐姐：温柔亲切、专业不端着，像经验丰富的客服主管，称呼"街坊/姐"，服务向、温暖',
+  sweet: '甜美学姐：活泼甜美、亲切，像邻家妹妹，称呼"宝子/姐妹们"',
+  tech: '技术专家：数据实测、用参数说话，理性分析、专业判断',
+  biz: '商务精英：专业干练、帮客户算账，效率优先、利益清晰',
+  young: '活力小哥：幽默有梗、接地气，称呼"兄弟们"、年轻化、直接利落',
+  master: '资深店长：沉稳权威、像老师傅，用故事讲道理，可信感强',
+  affinity: '知性姐姐：温柔亲切、专业不端着，像经验丰富的客服主管，称呼"街坊/姐"，服务向、温暖',
+  professional: '技术专家：数据实测、用参数说话，理性分析、专业判断'
 };
 
 function stripThink(text) {
@@ -57,7 +64,7 @@ async function runAiScript(ctx) {
       const obj = extractJson(extractJsonObject, raw);
       const script = obj.script || obj.content || obj.text || '';
       const cand = {
-        _vid: mood[0] + '1', _persona: 'gen', bgm: obj.bgm || '',
+        _vid: mood + '1', _persona: 'gen', bgm: obj.bgm || '',
         title: obj.title || topic, script, hookKind: obj.hookKind || 'value',
         beats: obj.beats || {}, tags: obj.tags || []
       };
