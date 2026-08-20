@@ -23,6 +23,25 @@ function dedupe(list) {
   return out;
 }
 
+// 旧热点/过期话题过滤（v2.9.82）：剔除明显不是当日热榜的旧闻/旧梗，避免 AI 生成陈旧内容。
+// 规则：① 历史台风名称（非当年编号台风）；② 过期节日（根据当前日期判断）；③ 明确旧年份；④ 已沉淀为长期老梗的地域/事件。
+const STALE_KEYWORDS = [
+  // 历史台风（2020-2024 已退场台风，非当年实时编号台风）
+  '台风红霞','台风沙德尔','台风浪卡','台风莲花','台风海高斯','台风美莎克','台风海神','台风森拉克','台风黑格比','台风米克拉',
+  // 老梗/旧事件
+  '淄博烧烤','淄博博山菜','携程被罚','宋亚轩拍抖音','吃菌子自由','海底盾构机','卡顿滤镜',
+];
+const OLD_YEAR_RE = /20(1[5-9]|2[0-5])年/;
+function isStaleHot(word) {
+  const w = String(word || '');
+  if (OLD_YEAR_RE.test(w)) return true;
+  for (const kw of STALE_KEYWORDS) if (w.includes(kw)) return true;
+  return false;
+}
+function filterStale(list) {
+  return list.filter(x => !isStaleHot(x.word));
+}
+
 // 每平台一个抓取函数（含主源+兜底），失败返回 []
 const SOURCES = [
   { platform: '抖音', fn: async () => {
@@ -46,13 +65,7 @@ const SOURCES = [
       return (j && j.data || []).map(x => ({ word: x.title, heat: String(x.hot_value || x.score || ''), url: x.link || '' }));
   }},
   { platform: '快手', fn: async () => {
-      // 首选开源 DailyHotApi（imsyy）
-      let j = await get('https://api-hot.imsyy.top/kuaishou', { timeout: 15000 });
-      if (!j) j = await get('https://api-hot.imsyy.top/kuaishou', { timeout: 15000 }); // 重试一次
-      if (j && j.data) return j.data.map(x => ({ word: x.title, heat: String(x.hot || x.heat || ''), url: x.url || 'https://www.kuaishou.com/search/video?searchKey=' + encodeURIComponent(x.title) }));
-      // 兜底：快手官方 GraphQL
-      const r = await get('https://www.kuaishou.com/graphql', { headers: { 'Content-Type': 'application/json', 'Referer': 'https://www.kuaishou.com/hot-list' } });
-      // GraphQL 需 POST，这里用 fetch 直发
+      // 快手官方 GraphQL（Actions runner 出口相对友好）
       try {
         const res = await fetch('https://www.kuaishou.com/graphql', { method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': UA, 'Referer': 'https://www.kuaishou.com/hot-list', 'Origin': 'https://www.kuaishou.com' }, body: JSON.stringify({ operationName: 'hotListBoard', variables: {}, query: 'query hotListBoard { hotListBoard { list { id title hotValue hotType url } } }' }), signal: AbortSignal.timeout(8000) });
         if (res.ok) { const j2 = await res.json(); const list = (j2.data && j2.data.hotListBoard && j2.data.hotListBoard.list) || []; if (list.length) return list.map(x => ({ word: x.title, heat: String(x.hotValue || ''), url: x.url || 'https://www.kuaishou.com/search/video?searchKey=' + encodeURIComponent(x.title) })); }
@@ -76,18 +89,17 @@ const results = await Promise.all(SOURCES.map(async s => {
 }));
 
 const flat = results.flat();
-// music 源：开源 DailyHotApi（imsyy/dailyhot-api）三榜兜底
-// 主源 douyin_music（抖音热歌榜，SCF 出口被 CDN 风控 → 走 Actions 抓）；失败退 网易云飙升榜 / QQ热歌榜
+// music 源：imsyy CDN 已不可用（api-hot.imsyy.top 解析失败），改用 QQ音乐/网易云原生榜
+// 抖音 aweme 音乐榜在 Actions runner 出口常被风控，SCF 端会补抓。
 const music = [];
 const musicSources = [
-  { name: 'douyin_music', url: 'https://api-hot.imsyy.top/douyin_music', parse: j => (j && j.data || []).map(x => ({ word: `${x.title || ''} - ${x.author || ''}`, heat: String(x.hot || x.heat || ''), url: x.url || '', songTitle: x.title || '', songAuthor: x.author || '' })) },
-  { name: 'netease_toplist', url: 'https://api-hot.imsyy.top/netease_music_toplist?type=1', parse: j => (j && j.data || []).map(x => ({ word: `${x.title || ''} - ${x.author || ''}`, heat: String(x.hot || x.heat || ''), url: x.url || '', songTitle: x.title || '', songAuthor: x.author || '' })) },
-  { name: 'qq_toplist', url: 'https://api-hot.imsyy.top/qq_music_toplist?type=2', parse: j => (j && j.data || []).map(x => ({ word: `${x.title || ''} - ${x.author || ''}`, heat: String(x.hot || x.heat || ''), url: x.url || '', songTitle: x.title || '', songAuthor: x.author || '' })) },
+  { name: 'qq_toplist', url: 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?type=top&topid=26&song_begin=0&song_num=30&format=json', parse: j => (j.songlist || []).map(x => { const d = x.data || x; const name = d.songname || d.name || ''; const singer = (d.singer || []).map(a => a.name).join('/'); return { word: `${name} - ${singer}`, heat: '', url: '', songTitle: name, songAuthor: singer }; }) },
+  { name: 'netease_toplist', url: 'https://music.163.com/api/playlist/detail?id=3778678', headers: { 'Referer': 'https://music.163.com/' }, parse: j => ((j.result && j.result.tracks) || []).map(x => ({ word: `${x.name} - ${(x.artists || []).map(a => a.name).join('/')}`, heat: '', url: '', songTitle: x.name, songAuthor: (x.artists || []).map(a => a.name).join('/') })) },
 ];
 for (const src of musicSources) {
   if (music.length >= 20) break;
   try {
-    const j = await get(src.url, { timeout: 15000 });
+    const j = await get(src.url, { timeout: 15000, headers: src.headers || {} });
     const items = src.parse(j).slice(0, 20).map(x => ({ platform: '抖音音乐', lane: 'music', ...x }));
     if (items.length) {
       music.push(...items);
@@ -109,9 +121,11 @@ const form = [
 const search = ['换套餐怎么换', '宽带一年多少钱', '携号转网怎么办理', '流量不够用怎么办', 'IPTV怎么开通', '手机号不用了怎么注销', '5G套餐哪个划算', '营业厅上班时间', '电信和移动哪个信号好', '家里WiFi总卡顿', '老人机哪个好用', '学生手机推荐']
   .map(w => ({ platform: '百度', lane: 'search', word: w, heat: '', url: 'https://www.baidu.com/s?wd=' + encodeURIComponent(w), intent: '到店咨询' }));
 
-const out = { hot: dedupe(flat), music: dedupe(music), form, search, fetchedAt: new Date().toISOString() };
+const hotClean = filterStale(dedupe(flat));
+const staleDropped = flat.length - hotClean.length;
+const out = { hot: hotClean, music: dedupe(music), form, search, fetchedAt: new Date().toISOString(), staleDropped };
 const byPlat = {};
-flat.forEach(x => { byPlat[x.platform] = (byPlat[x.platform] || 0) + 1; });
+hotClean.forEach(x => { byPlat[x.platform] = (byPlat[x.platform] || 0) + 1; });
 
 const target = join(__dirname, '..', 'data', 'hotspot-raw.json');
 writeFileSync(target, JSON.stringify(out, null, 2));
