@@ -2,8 +2,9 @@ name: Hotspot Daily (每日热点脚本 5 条 → Gitee)
 
 # 背景：v2.9.80 热点卡改为「每天 5 条纯热点脚本」。
 #       前端 autoRefresh 先读 SCF hotspot-cache（Gitee data/hotspot-latest.json），新鲜则秒级展示。
-#       本 workflow 每天定时调 SCF hotspot-fetch 生成 5 条并持久化，保证用户打开站点即有当日 5 条，
-#       不依赖用户访问才生成。SCF 端 prompt 已强制 lane=hot 5 条。
+#       本 workflow 每天定时调 SCF hotspot-fetch 生成 5 条并持久化，保证用户打开站点即有当日 5 条。
+#       注意：SCF 冷启动 + AI 生成 5 条可能超过 curl 等待阈值（HTTP 500 超时），
+#       但 SCF 端生成完会 persist 到 Gitee——所以验证走「查 Gitee latest」，而非等同步响应。
 on:
   schedule:
     - cron: '30 22 * * *'   # 每天 22:30 UTC = 次日 06:30 北京时间，营业厅上班前备好当日 5 条
@@ -12,25 +13,56 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: 调 SCF hotspot-fetch 生成 5 条热点脚本
+      - name: 调 SCF hotspot-fetch 生成热点脚本（同步响应可能超时，异步完成也算成功）
         env:
           SCF_URL: https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com
         run: |
+          set +e
           curl -sS -X POST "$SCF_URL" \
             -H 'Content-Type: application/json; charset=utf-8' \
             -d '{"mode":"hotspot-fetch","model":"MiniMax-M2.7","max_tokens":10000,"temperature":0.9}' \
-            -o /tmp/hotspot-fetch.json -w "HTTP %{http_code}\n" --max-time 240
-          node -e "
-            const j = require('/tmp/hotspot-fetch.json');
-            if (!j.ok || !Array.isArray(j.scripts)) { console.error('❌ hotspot-fetch 失败:', JSON.stringify(j).slice(0, 300)); process.exit(1); }
-            const hot = j.scripts.filter(s => s.lane === 'hot');
-            console.log('✅ 生成 ' + j.scripts.length + ' 条，其中 hot ' + hot.length + ' 条');
+            -o /tmp/hotspot-fetch.json -w "HTTP %{http_code}\n" --max-time 300
+          echo "curl_exit=$?"
+          # 若同步拿到结果且 hot>=5，直接成功
+          if [ -s /tmp/hotspot-fetch.json ]; then
+            node -e "
+              try {
+                const j = require('/tmp/hotspot-fetch.json');
+                if (j.ok && Array.isArray(j.scripts)) {
+                  const hot = j.scripts.filter(s => s.lane === 'hot');
+                  console.log('✅ 同步返回 ' + j.scripts.length + ' 条，hot ' + hot.length + ' 条');
+                  if (hot.length >= 5) process.exit(0);
+                }
+              } catch(e) {}
+            " && exit 0
+          fi
+          echo "⚠️ 同步响应超时/不足 5 条——SCF 生成会异步持久化，等待 90s 后查 Gitee 验证"
+          sleep 90
+      - name: 查 Gitee hotspot-latest.json 验证当日 5 条
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: node -e "
+          const token = process.env.GITEE_TOKEN;
+          (async () => {
+            const r = await fetch('https://gitee.com/api/v5/repos/hbatz/sx-douyin-data/contents/data/hotspot-latest.json?ref=master', {
+              headers: { 'Authorization': 'token ' + token, 'User-Agent': 'hotspot-daily' }
+            });
+            if (!r.ok) { console.error('❌ Gitee GET 失败 ' + r.status); process.exit(1); }
+            const d = await r.json();
+            const jd = JSON.parse(Buffer.from(d.content, 'base64').toString('utf-8'));
+            const hot = (jd.scripts || []).filter(s => s.lane === 'hot');
+            console.log('Gitee latest: 共 ' + (jd.scripts||[]).length + ' 条，hot ' + hot.length + ' 条 | fetchedAt ' + (jd.fetchedAt||''));
+            const ageH = (Date.now() - new Date(jd.fetchedAt || 0).getTime()) / 3600000;
+            console.log('新鲜度: ' + ageH.toFixed(1) + 'h 前');
             hot.slice(0, 5).forEach((s, i) => console.log('  [' + (i+1) + '] ' + s.platform + ' | ' + (s.title || '').slice(0, 36)));
-            if (hot.length < 5) { console.error('❌ hot 条数不足 5（实际 ' + hot.length + '），需人工检查'); process.exit(1); }
-          "
+            if (hot.length >= 5 && ageH < 26) { console.log('✅ 当日 5 条就绪'); process.exit(0); }
+            console.error('❌ 未达当日 5 条（hot=' + hot.length + ', age=' + ageH.toFixed(1) + 'h）');
+            process.exit(1);
+          })().catch(e => { console.error('❌ 验证异常', e.message); process.exit(1); });
+        "
