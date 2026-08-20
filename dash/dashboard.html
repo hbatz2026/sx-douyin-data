@@ -70,6 +70,24 @@ body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-s
 .region-card .r-data .d .dv{color:#fff;font-weight:600}
 .region-card .r-data .d .dv.red{color:var(--red)} .region-card .r-data .d .dv.gold{color:var(--gold)} .region-card .r-data .d .dv.blue{color:var(--blue2)}
 .region-card .r-empty{font-size:11px;color:var(--dim)}
+/* 直播间分地市(今日实时) 模块 */
+.room-region-section{padding:0 28px 14px}
+.room-region-section .title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.room-region-section .title-row h2{font-size:15px;color:var(--blue2);border-left:3px solid var(--blue2);padding-left:8px}
+.room-region-section .title-row span{font-size:11px;color:var(--sub)}
+.room-city-table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.room-city-table th{background:var(--panel2);color:var(--sub);font-size:11px;font-weight:600;padding:9px 8px;text-align:center;border-bottom:1px solid var(--line)}
+.room-city-table td{font-size:12px;padding:8px 8px;text-align:center;border-bottom:1px solid rgba(42,58,78,.5);color:#fff}
+.room-city-table tr:last-child td{border-bottom:none}
+.room-city-table tr:hover td{background:rgba(0,102,204,.08)}
+.room-city-table td.city{font-weight:600;text-align:left;color:var(--blue2)}
+.room-city-table td.gold{color:var(--gold);font-weight:700}
+.room-city-table td.green{color:var(--green)}
+.room-city-table td.red{color:var(--red)}
+.room-city-table .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-left:5px;box-shadow:0 0 6px rgba(46,160,67,.8)}
+.room-city-foot{display:flex;gap:18px;margin-top:8px;font-size:11px;color:var(--sub)}
+.room-city-foot b{color:var(--blue2);font-size:13px}
+.room-city-foot b.gold{color:var(--gold)}
 .qa-section{padding:0 28px 14px}
 .qa-section .title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .qa-section .title-row h2{font-size:15px;color:var(--blue2);border-left:3px solid var(--blue2);padding-left:8px}
@@ -143,6 +161,17 @@ footer{padding:10px;text-align:center;color:var(--dim);font-size:10px}
     </div>
     <div class="region-grid" id="regionGrid"></div>
   </div>
+  <div class="room-region-section">
+    <div class="title-row"><h2>直播间分地市（今日实时）</h2><span>直播间列表口径 · 含历史场次与在播场次 · 金额单位元</span></div>
+    <table class="room-city-table" id="roomCityTable">
+      <thead><tr>
+        <th>城市</th><th>场次</th><th>直播中</th><th>成交金额</th><th>成交券数</th>
+        <th>成交人数</th><th>观看人数</th><th>曝光人数</th><th>实时在线(峰)</th><th>点赞</th><th>评论</th><th>商品数</th>
+      </tr></thead>
+      <tbody id="roomCityBody"></tbody>
+    </table>
+    <div class="room-city-foot" id="roomCityFoot"></div>
+  </div>
   <div class="qa-section">
     <div class="title-row"><h2>直播质检</h2><span>在播直播间巡检与告警</span></div>
     <div class="qa-row">
@@ -180,7 +209,36 @@ function render(d){
   const cities=d.cities||{};
   renderSummary(summary,rooms);
   renderRegions(rooms,cities);
+  renderRoomCities(d.room_cities||{},d.room_cities_total||0);
   renderRooms(rooms);
+}
+function renderRoomCities(rc,total){
+  const body=document.getElementById('roomCityBody');
+  const foot=document.getElementById('roomCityFoot');
+  const keys=Object.keys(rc);
+  if(!keys.length){
+    body.innerHTML='<tr><td colspan="12" style="color:var(--sub);padding:18px">直播间分地市数据采集中，请等待下一轮采集完成...</td></tr>';
+    foot.innerHTML='';
+    return;
+  }
+  // 按成交金额降序，未命名置底
+  const order=keys.slice().sort((a,b)=>{
+    if(a==='未知')return 1;if(b==='未知')return -1;
+    return (rc[b].gmv||0)-(rc[a].gmv||0);
+  });
+  let sumRoom=0,sumLive=0,sumGmv=0,sumCert=0,sumWatch=0;
+  order.forEach(k=>{const c=rc[k];sumRoom+=c.room_cnt||0;sumLive+=c.living_cnt||0;sumGmv+=c.gmv||0;sumCert+=c.pay_cert_cnt||0;sumWatch+=c.watch_uv||0;});
+  body.innerHTML=order.map(k=>{
+    const c=rc[k]||{};
+    const living=(c.living_cnt||0)>0;
+    return `<tr><td class="city">${k}${living?'<span class="live-dot"></span>':''}</td>
+      <td>${c.room_cnt||0}</td><td>${c.living_cnt||0}</td>
+      <td class="gold">¥${fmtMoney(c.gmv||0)}</td><td class="red">${c.pay_cert_cnt||0}</td>
+      <td>${c.pay_user_cnt||0}</td><td>${fmt(c.watch_uv||0)}</td><td>${fmt(c.show_uv||0)}</td>
+      <td>${c.pcu||0}</td><td>${fmt(c.like_cnt||0)}</td><td>${c.comment_cnt||0}</td>
+      <td>${c.product_cnt||0}</td></tr>`;
+  }).join('');
+  foot.innerHTML=`<span>覆盖地市 <b>${keys.length}</b> 个</span><span>总场次 <b>${total||sumRoom}</b> 场</span><span>直播中 <b class="gold">${sumLive}</b> 间</span><span>总成交 <b>¥${fmtMoney(sumGmv)}</b></span><span>成交券 <b>${sumCert}</b></span><span>观看 <b>${fmt(sumWatch)}</b></span>`;
 }
 function renderSummary(s,rooms){
   // 首页实时(今日口径, 不覆盖)
