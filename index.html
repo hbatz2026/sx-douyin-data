@@ -59,6 +59,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .btn-ghost:active{transform:scale(.97);}
 .btn-ghost:focus-visible{outline:2px solid var(--blue-400);outline-offset:2px;}
 
+/* ===== 区块标题（sec-title：借鉴 C 编辑精致 + 交付包 V2，2026-08-20） ===== */
+.sec-title{display:flex;align-items:center;gap:8px;margin:14px 0 10px;}
+.sec-title .zh{font-size:16px;font-weight:800;letter-spacing:.5px;color:var(--ink);white-space:nowrap;}
+.sec-title .en{font-size:10px;letter-spacing:2px;color:var(--blue-400);font-weight:700;text-transform:uppercase;margin-top:2px;white-space:nowrap;}
+.sec-title .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--blue-400),transparent);opacity:.45;margin-left:4px;min-width:24px;}
+.sec-title .trailing{margin-left:auto;font-size:11px;color:var(--text-light);font-weight:400;letter-spacing:0;text-transform:none;white-space:nowrap;}
+
+/* ===== 页面切换动效（交付包 V2 fade，尊重 prefers-reduced-motion） ===== */
+.page.active{animation:pageFade .22s cubic-bezier(0.16,1,0.3,1);}
+@keyframes pageFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.page.active{animation:none;}}
+
 /* ===== FAB：AI 定制脚本 悬浮按钮（借鉴 Material FAB，2026-08-20） ===== */
 .fab{position:fixed;bottom:76px;right:16px;width:56px;height:56px;border-radius:50%;border:none;background:var(--grad);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);cursor:pointer;z-index:45;transition:transform .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent;}
 .fab:hover{transform:scale(1.08);box-shadow:0 22px 52px rgba(0,64,152,.24);}
@@ -299,6 +311,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         </div>
         <span class="hs-lane-arrow" style="color:#fff;">›</span>
       </div>
+      <div class="sec-title" style="margin:4px 0 10px;"><span class="zh">✨ 今日脚本</span><span class="en">TODAY PICK</span><span class="rule"></span></div>
       <div class="daily-cards" id="dailyCards"></div>
       <!-- 热点入口（v2.9.79: 仅热门话题，搜索截流已移除） -->
       <div class="hs-lane-cards">
@@ -315,7 +328,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 排期 -->
     <div class="page" id="page-week">
-      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">📅 本周排期</div>
+      <div class="sec-title"><span class="zh">📅 本周排期</span><span class="en">WEEKLY PLAN</span><span class="rule"></span></div>
       <div class="season-bar" id="seasonBar"></div>
       <div class="week-grid" id="weekGrid"></div>
       <div style="background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
@@ -326,10 +339,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 热点 -->
     <div class="page" id="page-hot">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:18px;">🔥</span>
-        <span style="font-size:14px;font-weight:600;">热点跟拍中心</span>
-        <span style="font-size:11px;color:var(--text-light);" id="hotspotUpdateTime"></span>
+      <div class="sec-title">
+        <span class="zh">🔥 热点跟拍中心</span>
+        <span class="en">HOT TRENDS</span>
+        <span class="rule"></span>
+        <span class="trailing" id="hotspotUpdateTime"></span>
       </div>
       <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">全网热点（抖音/微博/知乎/头条/百度/小红书/快手）AI 匹配营业厅脚本。每日 5 条 = 4 条纯热点跟拍（🫰手势舞/卡点/BGM）+ 1 条业务改写，三件套一键复制。</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
@@ -375,7 +389,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 直播 -->
     <div class="page" id="page-live">
-      <div style="font-size:14px;font-weight:600;margin-bottom:4px;">📺 直播话术</div>
+      <div class="sec-title" style="margin-top:4px;"><span class="zh">📺 直播话术</span><span class="en">LIVE SCRIPTS</span><span class="rule"></span></div>
       <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;">4 大场景 · 10 分钟循环 · 点击展开完整话术</div>
       <div class="persona-strip" id="livePersonaStrip"></div>
       <div class="daily-cards" id="liveCards"></div>
@@ -384,7 +398,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <!-- PAGE: 我的 -->
     <div class="page" id="page-mine">
       <div class="my-section">
-        <h3>📊 使用信号（本机采集）</h3>
+        <h3 class="sec-title" style="margin:0 0 10px;"><span class="zh">📊 使用信号</span><span class="en">SIGNALS</span><span class="rule"></span></h3>
         <div class="sig-grid" id="sigGrid"></div>
         <div style="font-size:10px;color:#55606e;line-height:1.5;">信号只记「3 语气」维度，不记内部人设。默认仅本机留存，用于离线重算内容配比权重；未开启上报前不出本机。</div>
         <div class="my-btn" role="button" tabindex="0" data-testid="recompute-weights" onclick="recomputeWeights()">
