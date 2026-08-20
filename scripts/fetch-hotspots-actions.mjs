@@ -76,12 +76,27 @@ const results = await Promise.all(SOURCES.map(async s => {
 }));
 
 const flat = results.flat();
-// music/form/search 补充（与 SCF HS_MUSIC_SOURCES/HS_FORM_LIBRARY/HS_SEARCH_KEYWORDS 一致，保持候选池完整）
+// music 源：开源 DailyHotApi（imsyy/dailyhot-api）三榜兜底
+// 主源 douyin_music（抖音热歌榜，SCF 出口被 CDN 风控 → 走 Actions 抓）；失败退 网易云飙升榜 / QQ热歌榜
 const music = [];
-try {
-  const mj = await get('https://aweme.snssdk.com/aweme/v1/chart/music/list/?chart_id=6853972723954146568&count=30&device_platform=android&version_name=13.2.0&version_code=130200&aid=1128', { timeout: 15000 });
-  if (mj && mj.music_list) music.push(...mj.music_list.slice(0, 20).map(x => ({ platform: '抖音音乐', lane: 'music', word: x.title || '', heat: String(x.hot_value || ''), url: '', songTitle: x.title || '', songAuthor: (x.author || '').replace(/^音乐人/, '') })));
-} catch (e) {}
+const musicSources = [
+  { name: 'douyin_music', url: 'https://api-hot.imsyy.top/douyin_music', parse: j => (j && j.data || []).map(x => ({ word: `${x.title || ''} - ${x.author || ''}`, heat: String(x.hot || x.heat || ''), url: x.url || '', songTitle: x.title || '', songAuthor: x.author || '' })) },
+  { name: 'netease_toplist', url: 'https://api-hot.imsyy.top/netease_music_toplist?type=1', parse: j => (j && j.data || []).map(x => ({ word: `${x.title || ''} - ${x.author || ''}`, heat: String(x.hot || x.heat || ''), url: x.url || '', songTitle: x.title || '', songAuthor: x.author || '' })) },
+  { name: 'qq_toplist', url: 'https://api-hot.imsyy.top/qq_music_toplist?type=2', parse: j => (j && j.data || []).map(x => ({ word: `${x.title || ''} - ${x.author || ''}`, heat: String(x.hot || x.heat || ''), url: x.url || '', songTitle: x.title || '', songAuthor: x.author || '' })) },
+];
+for (const src of musicSources) {
+  if (music.length >= 20) break;
+  try {
+    const j = await get(src.url, { timeout: 15000 });
+    const items = src.parse(j).slice(0, 20).map(x => ({ platform: '抖音音乐', lane: 'music', ...x }));
+    if (items.length) {
+      music.push(...items);
+      console.log(`✅ music 源 ${src.name} 命中 ${items.length} 条`);
+      break; // 主源成功即停，避免多源混杂
+    }
+    console.log(`⚠️ music 源 ${src.name} 空（${j ? '有返回' : '无返回'}）`);
+  } catch (e) { console.log(`⚠️ music 源 ${src.name} 异常 ${e.message.slice(0, 50)}`); }
+}
 const form = [
   { platform: '形式库', lane: 'form', word: '卡点', heat: '', url: '', desc: '踩节奏剪辑，画面随鼓点切换', example: '京剧卡点：用戏曲鼓点切营业厅服务画面', difficulty: 1, needFace: false },
   { platform: '形式库', lane: 'form', word: '变装', heat: '', url: '', desc: '前后反差一键变身，常用于服务/形象展示', example: '工装→职业装变装，展示营业厅专业形象', difficulty: 1, needFace: true },
