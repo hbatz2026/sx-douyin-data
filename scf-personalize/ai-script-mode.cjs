@@ -7,6 +7,7 @@
 'use strict';
 const { SYSTEM } = require('./seed-pool-mode.cjs');
 const Q = require('./quality-gate.cjs');
+const { researchProduct } = require('./product-research.cjs');
 
 const MAX_RETRY = 2;
 
@@ -59,14 +60,28 @@ function cleanFirstCand(cand) {
 async function runAiScript(ctx) {
   const { apiKey, cfg, params, helpers } = ctx;
   const { callSiliconFlow, extractJsonObject, hsSanitize } = helpers;
-  const mood = (params.mood && MOODS[params.mood]) ? params.mood : 'affinity';
+  const mood = (params.mood && MOODS[params.mood]) ? params.mood : 'sister';
   const topic = hsSanitize((params.topic || '').trim());
   if (!topic || topic.length < 2) throw new Error('选题过短（至少 2 字）');
 
+  // —— 产品事实门：用户输入如涉及具体产品/服务，先让 AI 调研真实卖点（基于模型知识），避免瞎编产品功能
+  const research = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 60000, maxTokens: 700 });
+  let productCtx = '';
+  let antiHallucinationNote = '';
+  if (research.known && research.bullets && research.bullets.length) {
+    productCtx = '\n\n【产品事实上下文（已由 AI 调研，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
+    antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字。';
+  } else {
+    // known=false：模型无法确认产品，禁止输出任何具体功能/数字/承诺
+    antiHallucinationNote = '\n⚠️ 产品事实红线（模型无法确认「' + topic + '」的具体卖点，known=false）：script / beats 中**禁止**给出该产品的具体功能列表、数字、参数或承诺，只可写通用营业员口吻（如「来营业厅我帮你看」「进店问问」「查最新政策」）引导用户到店核实；如需承诺具体内容请用户到店。';
+  }
+
   const user = '选题：' + topic + '\n人设要求：' + MOODS[mood] +
     '\n\n⚠️ 字数硬约束（最高优先级）：script 正文必须 150-250 字，写完先自查字数，宁短勿长、精炼口语，超过 250 字或不足 150 字都会被系统驳回。' +
+    productCtx +
     '\n\n请按 system 要求生成完整口播脚本（五段式 beats、hookKind 四选一、红线零命中），只输出 JSON（含 title/script/beats/hookKind/bgm/tags）。' +
-    '\n⚠️ 广告法红线（必须零命中）：script 正文禁止出现「第一」「最」「首家」「国家级」等极限词；列举多个要点时用「首先/其次/再一个」替代。';
+    '\n⚠️ 广告法红线（必须零命中）：script 正文禁止出现「第一」「最」「首家」「国家级」等极限词；列举多个要点时用「首先/其次/再一个」替代。' +
+    antiHallucinationNote;
 
   let lastErr = null, v = null, score = 0;
   for (let attempt = 0; attempt <= MAX_RETRY && !v; attempt++) {
