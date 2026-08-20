@@ -47,7 +47,8 @@ jobs:
       - name: 查 Gitee hotspot-latest.json 验证当日 5 条
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
-        run: node -e "
+        run: |
+          node -e "
           const token = process.env.GITEE_TOKEN;
           (async () => {
             const r = await fetch('https://gitee.com/api/v5/repos/hbatz/sx-douyin-data/contents/data/hotspot-latest.json?ref=master', {
@@ -65,4 +66,4 @@ jobs:
             console.error('❌ 未达当日 5 条（hot=' + hot.length + ', age=' + ageH.toFixed(1) + 'h）');
             process.exit(1);
           })().catch(e => { console.error('❌ 验证异常', e.message); process.exit(1); });
-        "
+          "
