@@ -592,8 +592,11 @@ function gateHotspotScript(s) {
   const reasons = []; let score = 100;
   const voiceText = (Array.isArray(s.voice) ? s.voice.join('') : (s.voice || '')).replace(/\s/g, '');
   const n = qgCountChars(voiceText);
+  // v2.9.81: 纯跟拍稿（rideType≠业务）是动作/节奏型，口播短是合理的 → voice 下限放宽到 80；业务稿保持 150-250
+  const isRide = !!s.rideType && s.rideType !== '业务';
+  const voiceMin = isRide ? 80 : 150;
   if (!voiceText) { reasons.push({ level: 'error', msg: '口播稿 voice 为空' }); score -= 25; }
-  else if (n < 150 || n > 250) { reasons.push({ level: 'error', msg: `口播稿字数 ${n} 超出 [150,250]` }); score -= 20; }
+  else if (n < voiceMin || n > 250) { reasons.push({ level: 'error', msg: `口播稿字数 ${n} 超出 [${voiceMin},250]（${isRide ? '纯跟拍稿' : '业务稿'}）` }); score -= 20; }
   const steps = Array.isArray(s.steps) ? s.steps : [];
   if (steps.length < 3) { reasons.push({ level: 'warn', msg: `分镜仅 ${steps.length} 段（建议≥3）` }); score -= 10; }
   const allText = [s.title, s.why, voiceText, (s.loop || ''), (s.tip || ''), ...steps.map(st => (st.shot || '') + (st.sub || ''))].join('\n');
