@@ -71,7 +71,9 @@ async function runAiScript(ctx) {
   let lastErr = null, v = null, score = 0;
   for (let attempt = 0; attempt <= MAX_RETRY && !v; attempt++) {
     try {
-      const model = (attempt === 0) ? (cfg.model || 'qwen3.7-max') : (cfg.fallbackModel || 'deepseek-v4-flash');
+      // G7 实时交互：首试 fallbackModel（MiniMax-M3：6-18s、无 think 块、JSON 干净、字数稳），
+      // 备选 cfg.model（MiniMax-M2.7：40-70s、think 块长易截断 JSON、易超字数）——稳定性优先
+      const model = (attempt === 0) ? (cfg.fallbackModel || cfg.model || 'MiniMax-M3') : (cfg.model || 'MiniMax-M2.7');
       const raw = await callSiliconFlow(SYSTEM, user, apiKey, {
         endpoint: cfg.endpoint, model, temperature: 0.8, maxTokens: 2000, timeoutMs: 90000
       });
