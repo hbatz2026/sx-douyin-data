@@ -15,8 +15,8 @@
 
   // ── 数据：静态兜底 + 本地缓存（与 2.x 同 key 同版本，跨站点共享）──
   var HS_CACHE_KEY = 'hsCacheV4';
-  var HS_CACHE_VERSION = 2;
-  var HS_REFRESH_MS = 24 * 3600 * 1000;
+  var HS_CACHE_VERSION = 3; // v2.9.82: 缓存结构升级，加入 fetchedAt
+  var HS_REFRESH_MS = 4 * 3600 * 1000; // 本地缓存 4h（原 24h 太长，易展示旧热点）
   var MY_LIB_KEY = 'myHotspotLib'; // 与 2.x 选题库共享
   var _hsAutoStarted = false;
 
@@ -42,8 +42,8 @@
     return padded;
   }
 
-  function persistHotspotCache(scripts) {
-    try { localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ ts: Date.now(), v: HS_CACHE_VERSION, scripts: scripts })); } catch (e) {}
+  function persistHotspotCache(scripts, fetchedAt) {
+    try { localStorage.setItem(HS_CACHE_KEY, JSON.stringify({ ts: Date.now(), v: HS_CACHE_VERSION, scripts: scripts, fetchedAt: fetchedAt || new Date().toISOString() })); } catch (e) {}
   }
   function loadHotspotCache() {
     try {
@@ -51,6 +51,16 @@
       if (!cache || cache.v !== HS_CACHE_VERSION) return null;
       return cache;
     } catch (e) { return null; }
+  }
+  function isSameDay(a, b) {
+    try {
+      var da = new Date(a), db = new Date(b);
+      return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+    } catch (e) { return false; }
+  }
+  function isTodayHotCache(cache) {
+    if (!cache || !cache.fetchedAt) return false;
+    return isSameDay(cache.fetchedAt, Date.now());
   }
   function persistHotspotBgmCache(list) {
     try { localStorage.setItem('hsBgmCacheV4', JSON.stringify({ ts: Date.now(), list: list || [] })); } catch (e) {}
@@ -100,14 +110,6 @@
       if (hotspotFilter === 'tier3' && h.tier !== 3) return;
       if (hotspotFilter === 'easy' && h.difficulty > 1) return;
       var laneTag = h.lane && laneLabels[h.lane] ? '<span class="hs-tag" style="' + (laneColors[h.lane] || '') + 'font-weight:600;">' + laneLabels[h.lane] + '</span>' : '';
-      // v2.9.81: 跟拍形态标签（纯跟拍 rideType / 业务条标"业务"）
-      var rideTag = '';
-      if (h.rideType && h.rideType !== '业务') {
-        var rideEmoji = { '手势舞': '🫰', '卡点反转': '🎞️', 'BGM跟拍': '🎵', '对镜拍': '🪞', '变装': '👗', '转场': '🔄', '剧情模仿': '🎭' }[h.rideType] || '🎯';
-        rideTag = '<span class="hs-tag" style="background:#E8F5E9;color:#2E7D32;font-weight:600;">' + rideEmoji + ' ' + esc(h.rideType) + '跟拍</span>';
-      } else {
-        rideTag = '<span class="hs-tag" style="background:#E3F2FD;color:#1565C0;font-weight:600;">🏪 业务改写</span>';
-      }
       var formTag = h.form ? '<span class="hs-tag" style="background:#F3E5F5;color:#6A1B9A;">🎬 ' + esc(h.form) + '</span>' : '';
       var srcUrl = h.sourceUrl || h.source || '';
       var platform = h.platform || '抖音';
@@ -148,10 +150,9 @@
             '</div>';
           }).join('') +
           (h.formTip ? '<div style="margin-top:10px;padding:8px 10px;background:#E8F5E9;border-radius:6px;font-size:12px;color:#2E7D32;"><strong>🎬 形式怎么拍：</strong>' + esc(h.formTip) + '</div>' : '') +
-          (h.rideBeat ? '<div style="margin-top:8px;padding:8px 10px;background:#F1F8E9;border-radius:6px;font-size:12px;color:#33691E;"><strong>🎼 原版节奏拆解：</strong>' + esc(h.rideBeat) + (h.sourceBgm ? '（BGM：' + esc(h.sourceBgm) + '）' : '') + '</div>' : '') +
           (h.tip ? '<div style="margin-top:8px;padding:8px 10px;background:#FFF3E0;border-radius:6px;font-size:12px;color:#C2410C;"><strong>💡 拍摄提示：</strong>' + esc(h.tip) + '</div>' : '') +
           '<div class="hs-footer">' +
-            laneTag + rideTag + formTag +
+            laneTag + formTag +
             '<span class="hs-tag">🎵 ' + esc(h.bgm || '—') + '</span>' +
             (srcUrl ? '<a href="' + esc(srcUrl) + '" target="_blank" rel="noopener" class="hs-tag" style="background:#E3F2FD;color:#1565C0;text-decoration:none;font-weight:600;">📺 看原版 →</a>' : '<span class="hs-tag" style="background:#FFF3E0;color:#C2410C;">📺 抖音搜同名话题</span>') +
             '<button id="favbtn-' + safeId + '" class="hs-tag" style="cursor:pointer;background:#FFF8E1;color:#C2410C;border:none;font:inherit;font-weight:600;margin-left:auto;" onclick="saveToMyLibrary(\'' + safeId + '\')">⭐ 收进选题库</button>' +
@@ -170,7 +171,19 @@
     }
     grid.innerHTML = html;
     var ut = document.getElementById('hotspotUpdateTime');
-    if (ut) ut.textContent = '· 更新：' + new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+    if (ut) {
+      var cache = loadHotspotCache();
+      var fa = window.__hotspotFetchedAt || (cache && cache.fetchedAt) || null;
+      var label = '更新：' + (fa ? new Date(fa).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '未知');
+      var staleHint = '';
+      if (fa && !isSameDay(fa, Date.now())) {
+        staleHint = '（⚠️ 非今日数据，建议点"刷新热点脚本"）';
+        ut.style.color = '#C62828';
+      } else {
+        ut.style.color = '';
+      }
+      ut.textContent = '· ' + label + staleHint;
+    }
     updateHomeHotspotCounts();
   }
 
@@ -315,13 +328,15 @@
         throw new Error((data && data.error) ? data.error : 'AI 返回结构异常');
       }
       var scripts = data.scripts;
+      var fetchedAt = data.fetchedAt || new Date().toISOString();
       window.___hotspotData = scripts;
-      persistHotspotCache(scripts);
+      window.__hotspotFetchedAt = fetchedAt;
+      persistHotspotCache(scripts, fetchedAt);
       if (data.musicCandidates && data.musicCandidates.length > 0) {
         persistHotspotBgmCache(data.musicCandidates);
       }
       renderHotspots();
-      setHStatus('✅ 已生成 ' + scripts.length + ' 条（真实热点驱动）');
+      setHStatus('✅ 已生成 ' + scripts.length + ' 条（' + new Date(fetchedAt).toLocaleString('zh-CN') + '）');
     } catch (e) {
       setHStatus('⚠️ 刷新失败：' + (e.message || '未知错误') + '，可继续用上方静态版');
       console.error('Hotspot refresh error:', e);
@@ -335,9 +350,11 @@
     try {
       var cache = loadHotspotCache();
       var grid = document.getElementById('hotspotGrid');
-      if (cache && Array.isArray(cache.scripts) && (Date.now() - cache.ts) < HS_REFRESH_MS) {
+      var cacheFresh = cache && Array.isArray(cache.scripts) && (Date.now() - cache.ts) < HS_REFRESH_MS && isTodayHotCache(cache);
+      if (cacheFresh) {
         if ((!window.___hotspotData || window.___hotspotData.length === 0) && grid) {
           window.___hotspotData = cache.scripts;
+          window.__hotspotFetchedAt = cache.fetchedAt;
           renderHotspots();
         }
         return;
@@ -346,7 +363,8 @@
         window.___hotspotData = padHotspotData([]);
         if (grid) renderHotspots();
       }
-      setHStatus('⏳ 正在加载今日热点...');
+      var reason = cache && !isTodayHotCache(cache) ? '本地缓存非今日数据，正在刷新...' : '⏳ 正在加载今日热点...';
+      setHStatus(reason);
       try {
         var cacheResp = await fetch(PERSONALIZE_API, {
           method: 'POST',
@@ -356,9 +374,11 @@
         var cacheData = await cacheResp.json();
         if (cacheData && cacheData.ok && Array.isArray(cacheData.scripts) && cacheData.scripts.length) {
           var fetchedTs = cacheData.fetchedAt ? new Date(cacheData.fetchedAt).getTime() : 0;
-          if (Date.now() - fetchedTs < HS_REFRESH_MS) {
+          var sharedFresh = Date.now() - fetchedTs < HS_REFRESH_MS && isSameDay(cacheData.fetchedAt, Date.now());
+          if (sharedFresh) {
             window.___hotspotData = cacheData.scripts;
-            persistHotspotCache(cacheData.scripts);
+            window.__hotspotFetchedAt = cacheData.fetchedAt;
+            persistHotspotCache(cacheData.scripts, cacheData.fetchedAt);
             if (grid) renderHotspots();
             setHStatus('✅ 今日热点已加载（' + cacheData.scripts.length + ' 条）');
             return;
@@ -374,8 +394,10 @@
         });
         var data = await resp.json();
         if (data && data.ok && data.scripts) {
+          var fetchedAt = data.fetchedAt || new Date().toISOString();
           window.___hotspotData = data.scripts;
-          persistHotspotCache(data.scripts);
+          window.__hotspotFetchedAt = fetchedAt;
+          persistHotspotCache(data.scripts, fetchedAt);
           if (grid) renderHotspots();
           setHStatus('✅ 今日热点已自动更新（' + data.scripts.length + ' 条）');
         }
