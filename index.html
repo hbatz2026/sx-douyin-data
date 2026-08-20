@@ -59,6 +59,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .btn-ghost:active{transform:scale(.97);}
 .btn-ghost:focus-visible{outline:2px solid var(--blue-400);outline-offset:2px;}
 
+/* ===== FAB：AI 定制脚本 悬浮按钮（借鉴 Material FAB，2026-08-20） ===== */
+.fab{position:fixed;bottom:76px;right:16px;width:56px;height:56px;border-radius:50%;border:none;background:var(--grad);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);cursor:pointer;z-index:45;transition:transform .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent;}
+.fab:hover{transform:scale(1.08);box-shadow:0 22px 52px rgba(0,64,152,.24);}
+.fab:active{transform:scale(.94);}
+.fab:focus-visible{outline:2px solid var(--blue-400);outline-offset:3px;}
+@media (min-width:768px){.fab{bottom:88px;right:calc(50% - 490px + 16px);}}
+
 /* ===== Bottom Tab（glassmorphism + 渐变激活条） ===== */
 .tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;z-index:50;padding:4px 0;box-shadow:0 -2px 8px rgba(0,64,152,.06);}
 .tab-bar .tab{flex:1;text-align:center;padding:4px 0;cursor:pointer;color:var(--text-light);transition:all .15s;position:relative;border-top:2px solid transparent;}
@@ -428,6 +435,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="tab" data-tab="live" onclick="switchTab('live')"><span class="icon">📺</span><span class="label">直播</span></div>
     <div class="tab" data-tab="mine" onclick="switchTab('mine')"><span class="icon">👤</span><span class="label">我的</span></div>
   </div>
+  <!-- FAB：全局「AI 定制脚本」悬浮入口（任何 tab 可调出，借鉴 Material） -->
+  <button class="fab" aria-label="AI 定制脚本" title="AI 定制脚本" onclick="openCustomTopic()">✏️</button>
 </div>
 
 <div class="toast" id="toast"></div>
