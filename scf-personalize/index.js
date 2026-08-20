@@ -232,6 +232,20 @@ async function callSCFApi(action, params, secretId, secretKey, sessionToken) {
 // AI 调用复用 callSiliconFlow（已含 toAsciiJson + 清洗）。
 // ============================================================
 
+// 旧热点/过期话题过滤（与 scripts/fetch-hotspots-actions.mjs 同步）
+const HS_STALE_KEYWORDS = [
+  '台风红霞','台风沙德尔','台风浪卡','台风莲花','台风海高斯','台风美莎克','台风海神','台风森拉克','台风黑格比','台风米克拉',
+  '淄博烧烤','淄博博山菜','携程被罚','宋亚轩拍抖音','吃菌子自由','海底盾构机','卡顿滤镜'
+];
+const HS_OLD_YEAR_RE = /20(1[5-9]|2[0-5])年/;
+function hsIsStaleHot(word) {
+  const w = String(word || '');
+  if (HS_OLD_YEAR_RE.test(w)) return true;
+  for (const kw of HS_STALE_KEYWORDS) if (w.includes(kw)) return true;
+  return false;
+}
+function hsFilterStale(list) { return list.filter(x => !hsIsStaleHot(x.word)); }
+
 const HS_TIMEOUT = 4000; // 2026-08-05 降级：vvhan.com 常挂，4s 超时够探测存活（原 8s 导致 7 源全挂时等 56s+）
 async function hsFetch(url, opts = {}) {
   const ctrl = new AbortController();
@@ -923,6 +937,10 @@ http.createServer(async (req, res) => {
           }
         } catch (e) { console.warn('[hotspot-fetch] raw cache 不可用，回退 SCF 直连:', e.message); }
         if (!cands) cands = await fetchAllHotspotsSCF();
+        // v2.9.82: 过滤旧热点/过期话题，避免数据源偶发旧榜混入（如"台风沙德尔"）
+        const beforeStale = cands.hot.length;
+        cands.hot = hsFilterStale(cands.hot);
+        if (cands.hot.length < beforeStale) console.log('[hotspot-fetch] 已过滤旧热点 ' + (beforeStale - cands.hot.length) + ' 条');
         // v2.9.81: 缓存 music 为空时补抓 SCF 直连音乐榜（aweme/QQ 在 SCF 内实测可达 46+30 条，
         // 避免 Actions 缓存 music=[] 覆盖真实热歌 → AI 的 BGM 只能凭空编）
         if (cands.music && cands.music.length === 0) {
