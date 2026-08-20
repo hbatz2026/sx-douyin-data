@@ -65,11 +65,21 @@ async function runAiScript(ctx) {
   if (!topic || topic.length < 2) throw new Error('选题过短（至少 2 字）');
 
   // —— 产品事实门：用户输入如涉及具体产品/服务，先让 AI 调研真实卖点（基于模型知识），避免瞎编产品功能
-  const research = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 60000, maxTokens: 700 });
+  // 优先级：用户手动填的 productInfo（官方资料） > AI 调研 > 通用营业员口径
+  let research;
+  if (params.productInfo && String(params.productInfo).trim().length >= 4) {
+    const info = String(params.productInfo).trim();
+    // 简化：把整段资料当作 bullets，单条作为"用户提供的官方资料"
+    const bullets = info.split(/[\n\r]+|(?:[。！？])|(?:[，；])/).map(s => s.trim()).filter(s => s.length >= 4 && s.length <= 80).slice(0, 6);
+    research = { known: true, bullets: bullets.length ? bullets : [info.slice(0, 120)], angle: '', source: 'user' };
+  } else {
+    research = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 60000, maxTokens: 700 });
+    research.source = 'ai';
+  }
   let productCtx = '';
   let antiHallucinationNote = '';
   if (research.known && research.bullets && research.bullets.length) {
-    productCtx = '\n\n【产品事实上下文（已由 AI 调研，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
+    productCtx = '\n\n【产品事实上下文（来源：' + (research.source === 'user' ? '用户提供的官方资料' : 'AI 模型调研（仅基于训练知识，不联网，准确度有限') + '，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
     antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字。';
   } else {
     // known=false：模型无法确认产品，禁止输出任何具体功能/数字/承诺
@@ -122,7 +132,9 @@ async function runAiScript(ctx) {
     } catch (e) { lastErr = e.message || String(e); }
   }
   if (!v) throw new Error(lastErr || '生成失败（多次尝试未达标）');
-  return { ok: true, mood, topic, seed: v, score };
+  const result = { ok: true, mood, topic, seed: v, score };
+  if (research) result.research = { known: !!research.known, bullets: research.bullets || [], source: research.source || 'ai' };
+  return result;
 }
 
 module.exports = { runAiScript, MOODS };

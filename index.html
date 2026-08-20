@@ -417,6 +417,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <option value="sister">💝 知性姐姐</option><option value="sweet">🌸 甜美学姐</option><option value="tech">🔧 技术专家</option><option value="biz">💼 商务精英</option><option value="young">😎 活力小哥</option><option value="master">👔 资深店长</option>
       </select>
     </div>
+    <details style="margin:0 0 10px;">
+      <summary style="font-size:12px;color:var(--text-light);cursor:pointer;">📎 产品介绍/官方资料（可选 · 防 AI 瞎编功能）</summary>
+      <textarea id="customProductInfo" placeholder="粘贴产品官方介绍/卖点/链接说明等（如「电信智能体 teleagent：1. 24h 业务问答；2. 套餐比价；4. 到店规划」）。留空则 AI 基于训练知识调研（可能不准确）。" style="width:100%;height:72px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;resize:vertical;margin-top:6px;color:#444;"></textarea>
+    </details>
     <button id="customGenBtn" class="btn" style="width:100%;background:var(--blue);color:#fff;" onclick="genCustomScript()">🚀 生成脚本</button>
     <div id="customResult" style="margin-top:12px;display:none;"></div>
     <button class="btn btn-sm" style="width:100%;margin-top:10px;background:#F5F5F5;color:#666;" onclick="document.getElementById('customModal').style.display='none'">✕ 关闭</button>
@@ -457,11 +461,14 @@ function openCustomTopic(){ var m=document.getElementById('customModal'); if(m) 
 async function genCustomScript(){
   var topic = (document.getElementById('customTopicInput').value||'').trim();
   var mood = document.getElementById('customMood').value;
+  var productInfo = (document.getElementById('customProductInfo')?(document.getElementById('customProductInfo').value||'').trim():'');
   if(topic.length < 2){ if(typeof toast==='function') toast('请输入选题（至少2字）'); return; }
   var btn = document.getElementById('customGenBtn');
   btn.disabled = true; btn.textContent = '⏳ 生成中…';
   try {
-    var res = await fetch(PERSONALIZE_API, { method:'POST', headers:{'Content-Type':'application/json; charset=utf-8'}, body: JSON.stringify({ mode:'ai-script', topic:topic, mood:mood }) });
+    var body = { mode:'ai-script', topic:topic, mood:mood };
+    if (productInfo && productInfo.length >= 4) body.productInfo = productInfo;
+    var res = await fetch(PERSONALIZE_API, { method:'POST', headers:{'Content-Type':'application/json; charset=utf-8'}, body: JSON.stringify(body) });
     if(!res.ok){ var e=await res.json().catch(function(){return{};}); throw new Error(e.error||('HTTP '+res.status)); }
     var data = await res.json();
     if(!data.ok) throw new Error(data.error||'生成失败');
@@ -470,10 +477,16 @@ async function genCustomScript(){
     var box = document.getElementById('customResult');
     box.style.display='block';
     var esc = function(x){ return (x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var sourceChip = '';
+    if (data.research) {
+      if (data.research.source === 'user') sourceChip = '<span style="font-size:11px;background:#E0F7FA;color:#006064;padding:4px 10px;border-radius:10px;">📎 基于官方资料</span>';
+      else if (data.research.known) sourceChip = '<span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:4px 10px;border-radius:10px;">⚠️ AI 调研（仅供参考）</span>';
+      else sourceChip = '<span style="font-size:11px;background:#FFEBEE;color:#C62828;padding:4px 10px;border-radius:10px;">⚠️ 模型无法确认产品（已引导到店）</span>';
+    }
     box.innerHTML = '<div style="font-size:14px;line-height:1.8;white-space:pre-wrap;background:#f8f9fb;border:1px solid var(--gray-border);border-radius:8px;padding:10px;max-height:240px;overflow:auto;">'+esc(safe)+'</div>'+
       '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
       '<span style="font-size:12px;background:#E8F0FE;color:#1a73e8;padding:4px 10px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent, this)">📋 复制口播稿</span>'+
-      (data.score!==undefined?'<span style="font-size:12px;background:#E6F4EA;color:#0d7c0d;padding:4px 10px;border-radius:10px;">门禁分 '+data.score+'</span>':'')+'</div>';
+      (data.score!==undefined?'<span style="font-size:12px;background:#E6F4EA;color:#0d7c0d;padding:4px 10px;border-radius:10px;">门禁分 '+data.score+'</span>':'')+sourceChip+'</div>';
     if(typeof toast==='function') toast('✅ 生成完成');
   } catch(e) {
     if(typeof toast==='function') toast('生成失败：'+e.message);
