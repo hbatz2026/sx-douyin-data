@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>山西电信抖本实时数据大屏</title>
+<!-- 深红视觉体系，参考现有抖本运营看板 (#C1121F) -->
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2a3444;
+  --red:#C1121F; --red2:#e63946; --gold:#f0b429; --green:#2ea043;
+  --text:#e6edf3; --sub:#8b949e;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-serif;min-height:100vh}
+/* 访问密码层 */
+#lock{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
+#lock .box{background:var(--panel);padding:40px;border-radius:12px;text-align:center;border:1px solid var(--line)}
+#lock h2{color:var(--red);margin-bottom:16px}
+#lock input{padding:10px 14px;width:240px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:16px;text-align:center}
+#lock .btn{margin-top:16px;padding:10px 30px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:16px;cursor:pointer}
+#lock .err{color:var(--red2);margin-top:10px;font-size:13px;display:none}
+/* 大屏主体 */
+#dash{display:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:linear-gradient(90deg,var(--red),#7a0a12);}
+.header h1{font-size:24px;letter-spacing:2px}
+.header .meta{font-size:13px;color:#ffd9d9;text-align:right}
+.header .meta b{color:#fff;font-size:16px}
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:18px 28px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center}
+.kpi .label{font-size:13px;color:var(--sub)}
+.kpi .val{font-size:26px;font-weight:700;margin-top:6px;color:#fff}
+.kpi .val.red{color:var(--red2)} .kpi .val.gold{color:var(--gold)} .kpi .val.green{color:var(--green)}
+.main{display:grid;grid-template-columns:2fr 1fr;gap:18px;padding:0 28px 28px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.panel h3{font-size:16px;margin-bottom:14px;color:#fff;border-left:4px solid var(--red);padding-left:10px}
+/* 在播列表 */
+.room-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.room-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;transition:.2s}
+.room-card:hover{border-color:var(--red)}
+.room-card .top{display:flex;justify-content:space-between;align-items:center}
+.room-card .name{font-weight:700;font-size:14px}
+.room-card .tag{font-size:11px;padding:2px 8px;border-radius:10px}
+.room-card .tag.on{background:rgba(46,160,67,.2);color:var(--green)}
+.room-card .tag.shop{background:rgba(240,180,41,.15);color:var(--gold)}
+.room-card .tag.person{background:rgba(230,57,70,.15);color:var(--red2)}
+.room-card .row{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:6px}
+.room-card .row b{color:#fff;font-size:13px}
+.room-card .warn{font-size:11px;color:var(--gold);margin-top:6px}
+/* 告警区 */
+.alert-list{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto}
+.alert{display:flex;gap:10px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;border-left:4px solid var(--sub)}
+.alert.sev{border-left-color:var(--red2)} .alert.warn{border-left-color:var(--gold)} .alert.info{border-left-color:var(--sub)}
+.alert .lv{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.alert.sev .lv{background:var(--red2);color:#fff}
+.alert.warn .lv{background:var(--gold);color:#000}
+.alert.info .lv{background:#2a3444;color:var(--sub)}
+.alert .desc{font-size:12px}
+.alert .desc b{font-size:13px}
+.alert .time{font-size:11px;color:var(--sub);margin-top:4px}
+/* 空态 */
+.empty{color:var(--sub);text-align:center;padding:40px;font-size:14px}
+footer{padding:16px;text-align:center;color:var(--sub);font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- 访问密码层 -->
+<div id="lock">
+  <div class="box">
+    <h2>山西电信直播数据大屏</h2>
+    <input id="pwd" type="password" placeholder="请输入访问密码" autocomplete="off">
+    <div><button class="btn" onclick="checkPwd()">进入</button></div>
+    <div class="err" id="err">密码错误，请重试</div>
+  </div>
+</div>
+
+<!-- 大屏主体 -->
+<div id="dash">
+  <div class="header">
+    <h1>山西电信 · 直播实时数据大屏</h1>
+    <div class="meta">
+      数据截止 <b id="updateTime">--</b> · 刷新中 <span id="countdown"></span>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="main">
+    <div class="panel">
+      <h3>在播直播间</h3>
+      <div class="room-grid" id="roomGrid"></div>
+    </div>
+    <div class="panel">
+      <h3>质检告警</h3>
+      <div class="alert-list" id="alertList"></div>
+    </div>
+  </div>
+
+  <footer>数据来源：生意经(life-data.cn) · 内部数据请勿外传 · 每30秒自动刷新</footer>
+</div>
+
+<script>
+// ============ 访问密码 ============
+const PASS = "sxtel2026"; // TODO: 部署到GitHub前请修改此密码
+function checkPwd(){
+  const v = document.getElementById('pwd').value;
+  if(v === PASS){
+    document.getElementById('lock').style.display='none';
+    document.getElementById('dash').style.display='block';
+    start();
+  } else {
+    document.getElementById('err').style.display='block';
+  }
+}
+document.getElementById('pwd').addEventListener('keydown',e=>{ if(e.key==='Enter') checkPwd(); });
+
+// ============ 数据加载 ============
+const DATA_URL = 'data/data.json'; // 与 collect.py 输出对齐
+let refreshTimer = null;
+
+async function loadData(){
+  try{
+    const res = await fetch(DATA_URL + '?t=' + Date.now());
+    const d = await res.json();
+    render(d);
+  }catch(e){
+    document.getElementById('updateTime').textContent = '加载失败';
+  }
+}
+
+function render(d){
+  document.getElementById('updateTime').textContent = d.ts || '--';
+  const rooms = d.rooms || [];
+  // KPI
+  const kpis = [
+    {label:'在播场次', val:rooms.length, cls:''},
+    {label:'实时在线总数', val:sum(rooms,'online'), cls:''},
+    {label:'累计观看总数', val:sum(rooms,'watch'), cls:''},
+    {label:'成交金额(元)', val:sum(rooms,'gmv'), cls:'red'},
+    {label:'成交订单数', val:sum(rooms,'orders'), cls:'gold'},
+    {label:'告警数', val:alertCount, cls:'red'}
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k=>
+    `<div class="kpi"><div class="label">${k.label}</div><div class="val ${k.cls}">${fmt(k.val)}</div></div>`
+  ).join('');
+  renderRooms(rooms);
+}
+
+function roomGmv(ki){ // 成交金额统一转元 (PayGmv: value=元, raw_value=分)
+  const item = Array.isArray(ki)?ki.find(i=>i&&i.key==='PayGmv'):null;
+  if(!item) return 0;
+  if(item.raw_value) return num(item.raw_value)/100; // 分转元
+  return num(item.value);
+}
+function sum(rooms,key){
+  return rooms.reduce((a,r)=>{
+    const live = r.live||{};
+    const ki = Array.isArray(live.key_index)?live.key_index:[];
+    const kmap={}; ki.forEach(x=>{if(x&&x.key)kmap[x.key]=x.value});
+    switch(key){
+      case 'online': a+=num(kmap.CurrentUserCnt); break;
+      case 'watch':  a+=num(kmap.LiveServerWatchUcnt); break;
+      case 'gmv':    a+=roomGmv(ki); break;
+      case 'orders': a+=num(kmap.PayOrderCnt); break;
+    }
+    return a;
+  },0);
+}
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function fmt(v){ if(v>=10000) return (v/10000).toFixed(1)+'万'; return Math.round(v*100)/100; }
+
+function renderRooms(rooms){
+  const g = document.getElementById('roomGrid');
+  if(!rooms.length){ g.innerHTML='<div class="empty">当前无在播直播间</div>'; return; }
+  g.innerHTML = rooms.map(r=>{
+    const meta = r.meta||{};
+    const live = r.live||{};
+    const ri = live.room_info||{};
+    const ki = Array.isArray(live.key_index)?live.key_index:[];
+    const kmap = {}; ki.forEach(i=>{if(i&&i.key)kmap[i.key]=i.value});
+    const on = ri.is_live;
+    const shop = (meta.room_type_tag||'')==='商家';
+    const containCart = ri.contain_cart;
+    const online = num(kmap.CurrentUserCnt);
+    const gmv = roomGmv(ki);
+    const warn = [];
+    if(containCart===false) warn.push('未挂小房子');
+    if(!ri.qr_code) warn.push('无二维码');
+    return `<div class="room-card">
+      <div class="top">
+        <span class="name">${meta.nickname||'未知'}</span>
+        <span class="tag ${on?'on':''} ${shop?'shop':'person'}">${on?'直播中':shop?'商家':'职人'}</span>
+      </div>
+      <div class="row"><span>在线 ${online}</span><span>成交 ¥${gmv.toFixed(2)}</span></div>
+      <div class="row"><span>抖音号 ${meta.unique_id||meta.author_id||'--'}</span></div>
+      ${warn.length?`<div class="warn">${warn.join(' · ')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ============ 告警加载 ============
+async function loadAlerts(){
+  try{
+    const res = await fetch('data/qa.json?t='+Date.now());
+    const d = await res.json();
+    renderAlerts(d.alerts||[]);
+  }catch(e){ /* 无告警文件则忽略 */ }
+}
+let alertCount = 0;
+function updateKpiAlert(){
+  // 更新KPI中告警数
+  const els = document.querySelectorAll('#kpiRow .kpi');
+  if(els.length>=6) els[5].querySelector('.val').textContent = alertCount;
+}
+function renderAlerts(alerts){
+  alertCount = alerts.length;
+  const a = document.getElementById('alertList');
+  if(!alerts.length){ a.innerHTML='<div class="empty">暂无告警</div>'; return; }
+  a.innerHTML = alerts.map(al=>{
+    const cls = al.level==='严重'?'sev':al.level==='警告'?'warn':'info';
+    return `<div class="alert ${cls}">
+      <span class="lv">${al.level}</span>
+      <div class="desc"><b>${al.nickname}</b> · ${al.item}<br>${al.desc}
+        <div class="time">${al.ts||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  updateKpiAlert();
+}
+
+function start(){
+  loadData(); loadAlerts();
+  setInterval(loadData, 30000);
+  setInterval(loadAlerts, 30000);
+}
+</script>
+</body>
+</html>
