@@ -941,7 +941,8 @@ http.createServer(async (req, res) => {
           fallbackModel: cfg.fallbackModel || 'MiniMax-M2.7',
           temperature: 0.9,
           maxTokens: 10000,
-          timeoutMs: 180000
+          // v2.9.81a: 180→240s，4+1 配方 AI 生成实测 139-200s+，180s 贴线超时
+          timeoutMs: 240000
         });
         if (!raw) { res.writeHead(502, corsHeaders); res.end(JSON.stringify({ ok:false, error: 'AI 生成失败（空响应）' })); return; }
         const content = raw.replace(/```json|```/g, '').trim();
