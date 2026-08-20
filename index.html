@@ -464,7 +464,7 @@ async function genCustomScript(){
     box.innerHTML = '<div style="font-size:14px;line-height:1.8;white-space:pre-wrap;background:#f8f9fb;border:1px solid var(--gray-border);border-radius:8px;padding:10px;max-height:240px;overflow:auto;">'+esc(safe)+'</div>'+
       '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
       '<span style="font-size:12px;background:#E8F0FE;color:#1a73e8;padding:4px 10px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent, this)">📋 复制口播稿</span>'+
-      (s.score!==undefined?'<span style="font-size:12px;background:#E6F4EA;color:#0d7c0d;padding:4px 10px;border-radius:10px;">门禁分 '+s.score+'</span>':'')+'</div>';
+      (data.score!==undefined?'<span style="font-size:12px;background:#E6F4EA;color:#0d7c0d;padding:4px 10px;border-radius:10px;">门禁分 '+data.score+'</span>':'')+'</div>';
     if(typeof toast==='function') toast('✅ 生成完成');
   } catch(e) {
     if(typeof toast==='function') toast('生成失败：'+e.message);
