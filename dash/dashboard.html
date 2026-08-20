@@ -4,15 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>山西电信抖本实时数据大屏</title>
-<!-- 深红视觉体系，参考现有抖本运营看板 (#C1121F) -->
 <style>
 :root{
   --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2a3444;
-  --red:#C1121F; --red2:#e63946; --gold:#f0b429; --green:#2ea043;
+  --red:#C1121F; --red2:#e63946; --gold:#f0b429; --green:#2ea043; --blue:#58a6ff;
   --text:#e6edf3; --sub:#8b949e;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-serif;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-serif;min-height:100vh;overflow-x:hidden}
 /* 访问密码层 */
 #lock{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
 #lock .box{background:var(--panel);padding:40px;border-radius:12px;text-align:center;border:1px solid var(--line)}
@@ -22,45 +21,95 @@ body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-s
 #lock .err{color:var(--red2);margin-top:10px;font-size:13px;display:none}
 /* 大屏主体 */
 #dash{display:none}
-.header{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:linear-gradient(90deg,var(--red),#7a0a12);}
-.header h1{font-size:24px;letter-spacing:2px}
+
+/* 顶部 */
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:linear-gradient(90deg,var(--red),#7a0a12)}
+.header h1{font-size:22px;letter-spacing:2px}
 .header .meta{font-size:13px;color:#ffd9d9;text-align:right}
-.header .meta b{color:#fff;font-size:16px}
-.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;padding:18px 28px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center}
-.kpi .label{font-size:13px;color:var(--sub)}
-.kpi .val{font-size:26px;font-weight:700;margin-top:6px;color:#fff}
-.kpi .val.red{color:var(--red2)} .kpi .val.gold{color:var(--gold)} .kpi .val.green{color:var(--green)}
-.main{display:grid;grid-template-columns:2fr 1fr;gap:18px;padding:0 28px 28px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
-.panel h3{font-size:16px;margin-bottom:14px;color:#fff;border-left:4px solid var(--red);padding-left:10px}
-/* 在播列表 */
-.room-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.room-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;transition:.2s}
+.header .meta b{color:#fff;font-size:15px}
+
+/* KPI 卡片行 - 8格 */
+.kpi-row{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;padding:14px 24px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 8px;text-align:center;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red)}
+.kpi .label{font-size:11px;color:var(--sub);line-height:1.3}
+.kpi .val{font-size:22px;font-weight:700;margin-top:4px;color:#fff}
+.kpi .val.red{color:var(--red2)} .kpi .val.gold{color:var(--gold)} .kpi .val.green{color:var(--green)} .kpi .val.blue{color:var(--blue)}
+
+/* 模块标题 */
+.section-title{display:flex;align-items:center;gap:8px;padding:10px 24px 6px}
+.section-title h2{font-size:15px;color:#fff;border-left:4px solid var(--red);padding-left:8px}
+.section-title span{font-size:12px;color:var(--sub)}
+
+/* 中间区域: 经营 + 流量 */
+.mid-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;padding:0 24px 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.panel h3{font-size:14px;margin-bottom:10px;color:#fff;border-left:3px solid var(--red);padding-left:8px}
+
+/* 经营指标表 */
+.biz-table{width:100%;border-collapse:collapse;font-size:12px}
+.biz-table th{color:var(--sub);font-weight:400;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.biz-table td{padding:4px 6px;border-bottom:1px solid var(--line)}
+.biz-table td b{color:#fff}
+.biz-table .hg{color:var(--red2)}
+.biz-table tr:hover td{background:var(--panel2)}
+
+/* 流量漏斗 */
+.funnel{display:flex;flex-direction:column;gap:4px}
+.funnel-item{display:flex;align-items:center;gap:8px}
+.funnel-bar{flex:1;height:28px;background:var(--panel2);border-radius:4px;position:relative;overflow:hidden}
+.funnel-fill{height:100%;border-radius:4px;transition:width .6s;display:flex;align-items:center;padding-left:8px;font-size:11px;color:#fff;font-weight:600}
+.funnel-label{width:90px;font-size:12px;color:var(--sub);text-align:right}
+.funnel-val{width:60px;font-size:12px;color:#fff;font-weight:600}
+
+/* 流量来源 */
+.flow-source{display:flex;flex-direction:column;gap:8px}
+.flow-bar{display:flex;align-items:center;gap:8px}
+.flow-bar .name{width:70px;font-size:12px;color:var(--sub);text-align:right}
+.flow-bar .bar{flex:1;height:20px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.flow-bar .fill{height:100%;border-radius:4px}
+.flow-bar .fill.natural{background:linear-gradient(90deg,#2ea043,#58a6ff)}
+.flow-bar .fill.business{background:linear-gradient(90deg,var(--gold),var(--red2))}
+.flow-bar .val{width:60px;font-size:12px;color:#fff;font-weight:600}
+
+/* 底部区域: 直播间 + 告警 */
+.bottom-row{display:grid;grid-template-columns:2.2fr 1fr;gap:14px;padding:0 24px 14px}
+
+/* 直播间卡片 */
+.room-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:360px;overflow-y:auto}
+.room-card{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;cursor:pointer;transition:.2s}
 .room-card:hover{border-color:var(--red)}
-.room-card .top{display:flex;justify-content:space-between;align-items:center}
-.room-card .name{font-weight:700;font-size:14px}
-.room-card .tag{font-size:11px;padding:2px 8px;border-radius:10px}
+.room-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.room-card .name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.room-card .tag{font-size:10px;padding:2px 6px;border-radius:8px;white-space:nowrap}
 .room-card .tag.on{background:rgba(46,160,67,.2);color:var(--green)}
-.room-card .tag.shop{background:rgba(240,180,41,.15);color:var(--gold)}
-.room-card .tag.person{background:rgba(230,57,70,.15);color:var(--red2)}
-.room-card .row{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:6px}
-.room-card .row b{color:#fff;font-size:13px}
-.room-card .warn{font-size:11px;color:var(--gold);margin-top:6px}
+.room-card .tag.off{background:rgba(139,148,158,.2);color:var(--sub)}
+.room-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11px}
+.room-card .metrics .m{display:flex;flex-direction:column}
+.room-card .metrics .m .ml{color:var(--sub);font-size:10px}
+.room-card .metrics .m .mv{color:#fff;font-weight:600}
+.room-card .warn{font-size:10px;color:var(--gold);margin-top:4px}
+
 /* 告警区 */
-.alert-list{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto}
-.alert{display:flex;gap:10px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;border-left:4px solid var(--sub)}
+.alert-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto}
+.alert{display:flex;gap:8px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;border-left:3px solid var(--sub)}
 .alert.sev{border-left-color:var(--red2)} .alert.warn{border-left-color:var(--gold)} .alert.info{border-left-color:var(--sub)}
-.alert .lv{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.alert .lv{font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;white-space:nowrap}
 .alert.sev .lv{background:var(--red2);color:#fff}
 .alert.warn .lv{background:var(--gold);color:#000}
 .alert.info .lv{background:#2a3444;color:var(--sub)}
-.alert .desc{font-size:12px}
-.alert .desc b{font-size:13px}
-.alert .time{font-size:11px;color:var(--sub);margin-top:4px}
+.alert .desc{font-size:11px}
+.alert .desc b{font-size:12px}
+.alert .time{font-size:10px;color:var(--sub);margin-top:2px}
+
 /* 空态 */
-.empty{color:var(--sub);text-align:center;padding:40px;font-size:14px}
-footer{padding:16px;text-align:center;color:var(--sub);font-size:12px}
+.empty{color:var(--sub);text-align:center;padding:30px;font-size:13px}
+footer{padding:12px;text-align:center;color:var(--sub);font-size:11px}
+
+/* 滚动条 */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
 </style>
 </head>
 <body>
@@ -78,21 +127,45 @@ footer{padding:16px;text-align:center;color:var(--sub);font-size:12px}
 <!-- 大屏主体 -->
 <div id="dash">
   <div class="header">
-    <h1>山西电信 · 直播实时数据大屏</h1>
+    <h1>山西电信 · 抖本实时数据大屏</h1>
     <div class="meta">
-      数据截止 <b id="updateTime">--</b> · 刷新中 <span id="countdown"></span>
+      数据截止 <b id="updateTime">--</b> · 下次刷新 <span id="countdown">30</span>s
     </div>
   </div>
 
+  <!-- 概览 KPI -->
+  <div class="section-title"><h2>今日概览</h2><span>全省在播直播间汇总</span></div>
   <div class="kpi-row" id="kpiRow"></div>
 
-  <div class="main">
+  <!-- 经营 + 流量 -->
+  <div class="section-title"><h2>经营与流量</h2><span>点击直播间卡片可展开详情</span></div>
+  <div class="mid-row">
+    <div class="panel">
+      <h3>经营指标</h3>
+      <table class="biz-table" id="bizTable">
+        <thead><tr><th>直播间</th><th>成交金(元)</th><th>订单</th><th>在线</th><th>观看</th><th>千次观看</th><th>转化率</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h3>流量漏斗（选中直播间）</h3>
+      <div class="funnel" id="funnel"><div class="empty">请点击左侧直播间</div></div>
+    </div>
+    <div class="panel">
+      <h3>流量来源（选中直播间）</h3>
+      <div class="flow-source" id="flowSource"><div class="empty">请点击左侧直播间</div></div>
+    </div>
+  </div>
+
+  <!-- 直播间 + 告警 -->
+  <div class="section-title"><h2>直播间巡检</h2><span>实时在播列表与质检告警</span></div>
+  <div class="bottom-row">
     <div class="panel">
       <h3>在播直播间</h3>
       <div class="room-grid" id="roomGrid"></div>
     </div>
     <div class="panel">
-      <h3>质检告警</h3>
+      <h3>质检告警 <span id="alertBadge" style="font-size:12px;color:var(--red2)"></span></h3>
       <div class="alert-list" id="alertList"></div>
     </div>
   </div>
@@ -102,7 +175,7 @@ footer{padding:16px;text-align:center;color:var(--sub);font-size:12px}
 
 <script>
 // ============ 访问密码 ============
-const PASS = "sxtel2026"; // TODO: 部署到GitHub前请修改此密码
+const PASS = "sxtel2026";
 function checkPwd(){
   const v = document.getElementById('pwd').value;
   if(v === PASS){
@@ -116,123 +189,262 @@ function checkPwd(){
 document.getElementById('pwd').addEventListener('keydown',e=>{ if(e.key==='Enter') checkPwd(); });
 
 // ============ 数据加载 ============
-const DATA_URL = 'data/data.json'; // 与 collect.py 输出对齐
-let refreshTimer = null;
+// 部署到 GitHub Pages 时 data.json/qa.json 与 dashboard.html 同目录(dash/)
+// 本地测试时 data/ 子目录也兼容
+const DATA_URL = (() => {
+  const p = location.pathname;
+  if (p.includes('/dash/')) return 'data.json';   // GitHub Pages: dash/data.json
+  return 'data/data.json';                          // 本地: data/data.json
+})();
+const QA_URL = (() => {
+  const p = location.pathname;
+  if (p.includes('/dash/')) return 'qa.json';
+  return 'data/qa.json';
+})();
+
+let CURRENT_ROOM = null;
+let RAW_DATA = null;
+let alertCount = 0;
+let countdownVal = 30;
+
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function fmt(v){ if(v>=10000) return (v/10000).toFixed(1)+'万'; return Math.round(v*100)/100; }
+function fmtMoney(v){ if(v>=10000) return (v/10000).toFixed(2)+'万'; return v.toFixed(2); }
+
+// 从 key_index 提取值
+function kv(ki, key){
+  if(!Array.isArray(ki)) return 0;
+  const item = ki.find(i => i && i.key === key);
+  return item ? num(item.value) : 0;
+}
+// 成交金额(PayGmv 的 value 已是元)
+function gmv(ki){
+  return kv(ki, 'PayGmv');
+}
 
 async function loadData(){
   try{
     const res = await fetch(DATA_URL + '?t=' + Date.now());
     const d = await res.json();
+    RAW_DATA = d;
     render(d);
   }catch(e){
     document.getElementById('updateTime').textContent = '加载失败';
   }
 }
 
+async function loadAlerts(){
+  try{
+    const res = await fetch(QA_URL + '?t=' + Date.now());
+    const d = await res.json();
+    renderAlerts(d.alerts||[]);
+  }catch(e){ /* 忽略 */ }
+}
+
 function render(d){
   document.getElementById('updateTime').textContent = d.ts || '--';
   const rooms = d.rooms || [];
-  // KPI
+  renderKPI(rooms);
+  renderBizTable(rooms);
+  renderRooms(rooms);
+  // 如果有选中的房间, 刷新其详情
+  if(CURRENT_ROOM){
+    const r = rooms.find(x => (x.meta||{}).room_id === CURRENT_ROOM);
+    if(r) renderRoomDetail(r);
+  }
+}
+
+// ========== 概览 KPI ==========
+function renderKPI(rooms){
+  let totalOnline=0, totalWatch=0, totalGmv=0, totalOrders=0, totalLikes=0, totalComments=0, totalFollows=0;
+  rooms.forEach(r => {
+    const live = r.live||{};
+    const ki = Array.isArray(live.key_index)?live.key_index:[];
+    totalOnline += kv(ki,'CurrentUserCnt');
+    totalWatch += kv(ki,'LiveServerWatchUcnt');
+    totalGmv += gmv(ki);
+    totalOrders += kv(ki,'PayOrderCnt');
+    const meta = r.meta||{};
+    totalLikes += num(meta.live_like_cnt_td);
+    totalComments += num(meta.live_comment_cnt_td);
+    totalFollows += kv(ki,'LiveFollowAnchorUcnt');
+  });
   const kpis = [
     {label:'在播场次', val:rooms.length, cls:''},
-    {label:'实时在线总数', val:sum(rooms,'online'), cls:''},
-    {label:'累计观看总数', val:sum(rooms,'watch'), cls:''},
-    {label:'成交金额(元)', val:sum(rooms,'gmv'), cls:'red'},
-    {label:'成交订单数', val:sum(rooms,'orders'), cls:'gold'},
-    {label:'告警数', val:alertCount, cls:'red'}
+    {label:'实时在线', val:totalOnline, cls:'blue'},
+    {label:'累计观看', val:totalWatch, cls:''},
+    {label:'成交金额(元)', val:fmtMoney(totalGmv), cls:'red'},
+    {label:'成交订单', val:totalOrders, cls:'gold'},
+    {label:'点赞总数', val:fmt(totalLikes), cls:''},
+    {label:'评论总数', val:totalComments, cls:''},
+    {label:'告警数', val:alertCount, cls:'red'},
   ];
-  document.getElementById('kpiRow').innerHTML = kpis.map(k=>
-    `<div class="kpi"><div class="label">${k.label}</div><div class="val ${k.cls}">${fmt(k.val)}</div></div>`
+  document.getElementById('kpiRow').innerHTML = kpis.map(k =>
+    `<div class="kpi"><div class="label">${k.label}</div><div class="val ${k.cls}">${typeof k.val==='string'?k.val:fmt(k.val)}</div></div>`
   ).join('');
-  renderRooms(rooms);
 }
 
-function roomGmv(ki){ // 成交金额统一转元 (PayGmv: value=元, raw_value=分)
-  const item = Array.isArray(ki)?ki.find(i=>i&&i.key==='PayGmv'):null;
-  if(!item) return 0;
-  if(item.raw_value) return num(item.raw_value)/100; // 分转元
-  return num(item.value);
-}
-function sum(rooms,key){
-  return rooms.reduce((a,r)=>{
-    const live = r.live||{};
+// ========== 经营指标表 ==========
+function renderBizTable(rooms){
+  const tbody = document.querySelector('#bizTable tbody');
+  if(!rooms.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无在播</td></tr>'; return; }
+  // 按成交金额降序
+  const sorted = [...rooms].sort((a,b) => {
+    const ga = gmv(a.live?.key_index||[]), gb = gmv(b.live?.key_index||[]);
+    return gb - ga;
+  });
+  tbody.innerHTML = sorted.map(r => {
+    const meta = r.meta||{}, live = r.live||{};
     const ki = Array.isArray(live.key_index)?live.key_index:[];
-    const kmap={}; ki.forEach(x=>{if(x&&x.key)kmap[x.key]=x.value});
-    switch(key){
-      case 'online': a+=num(kmap.CurrentUserCnt); break;
-      case 'watch':  a+=num(kmap.LiveServerWatchUcnt); break;
-      case 'gmv':    a+=roomGmv(ki); break;
-      case 'orders': a+=num(kmap.PayOrderCnt); break;
-    }
-    return a;
-  },0);
+    const ri = live.room_info||{};
+    const g = gmv(ki);
+    const orders = kv(ki,'PayOrderCnt');
+    const online = kv(ki,'CurrentUserCnt');
+    const watch = kv(ki,'LiveServerWatchUcnt');
+    const thousandGmv = kv(ki,'ThousandWatchCntGmv');
+    const cvr = kv(ki,'GoodsCvr');
+    const name = (meta.nickname||'').substring(0,16);
+    const hg = g > 0 ? 'hg' : '';
+    return `<tr>
+      <td>${name}</td>
+      <td class="${hg}"><b>${g.toFixed(2)}</b></td>
+      <td>${orders}</td>
+      <td>${online}</td>
+      <td>${watch}</td>
+      <td>${thousandGmv.toFixed(0)}</td>
+      <td>${cvr.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
 }
-function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
-function fmt(v){ if(v>=10000) return (v/10000).toFixed(1)+'万'; return Math.round(v*100)/100; }
 
+// ========== 直播间卡片 ==========
 function renderRooms(rooms){
   const g = document.getElementById('roomGrid');
-  if(!rooms.length){ g.innerHTML='<div class="empty">当前无在播直播间</div>'; return; }
-  g.innerHTML = rooms.map(r=>{
-    const meta = r.meta||{};
-    const live = r.live||{};
+  if(!rooms.length){ g.innerHTML = '<div class="empty">当前无在播直播间</div>'; return; }
+  g.innerHTML = rooms.map(r => {
+    const meta = r.meta||{}, live = r.live||{};
     const ri = live.room_info||{};
     const ki = Array.isArray(live.key_index)?live.key_index:[];
-    const kmap = {}; ki.forEach(i=>{if(i&&i.key)kmap[i.key]=i.value});
-    const on = ri.is_live;
+    const on = ri.is_life || ri.is_live;
+    const online = kv(ki,'CurrentUserCnt');
+    const g = gmv(ki);
+    const orders = kv(ki,'PayOrderCnt');
+    const watch = kv(ki,'LiveServerWatchUcnt');
     const shop = (meta.room_type_tag||'')==='商家';
     const containCart = ri.contain_cart;
-    const online = num(kmap.CurrentUserCnt);
-    const gmv = roomGmv(ki);
-    const warn = [];
-    if(containCart===false) warn.push('未挂小房子');
-    if(!ri.qr_code) warn.push('无二维码');
-    return `<div class="room-card">
+    const warns = [];
+    if(containCart===false) warns.push('未挂小房子');
+    if(!ri.qr_code) warns.push('无二维码');
+    const rid = meta.room_id || '';
+    return `<div class="room-card" onclick="selectRoom('${rid}')">
       <div class="top">
         <span class="name">${meta.nickname||'未知'}</span>
-        <span class="tag ${on?'on':''} ${shop?'shop':'person'}">${on?'直播中':shop?'商家':'职人'}</span>
+        <span class="tag ${on?'on':'off'}">${on?'直播中':'未播'}</span>
       </div>
-      <div class="row"><span>在线 ${online}</span><span>成交 ¥${gmv.toFixed(2)}</span></div>
-      <div class="row"><span>抖音号 ${meta.unique_id||meta.author_id||'--'}</span></div>
-      ${warn.length?`<div class="warn">${warn.join(' · ')}</div>`:''}
+      <div class="metrics">
+        <div class="m"><span class="ml">在线</span><span class="mv">${online}</span></div>
+        <div class="m"><span class="ml">观看</span><span class="mv">${watch}</span></div>
+        <div class="m"><span class="ml">成交</span><span class="mv">¥${g.toFixed(0)}</span></div>
+        <div class="m"><span class="ml">订单</span><span class="mv">${orders}</span></div>
+        <div class="m"><span class="ml">点赞</span><span class="mv">${fmt(num(meta.live_like_cnt_td))}</span></div>
+        <div class="m"><span class="ml">评论</span><span class="mv">${num(meta.live_comment_cnt_td)}</span></div>
+      </div>
+      ${warns.length?`<div class="warn">${warns.join(' · ')}</div>`:''}
     </div>`;
   }).join('');
 }
 
-// ============ 告警加载 ============
-async function loadAlerts(){
-  try{
-    const res = await fetch('data/qa.json?t='+Date.now());
-    const d = await res.json();
-    renderAlerts(d.alerts||[]);
-  }catch(e){ /* 无告警文件则忽略 */ }
+// ========== 点击直播间展开流量详情 ==========
+function selectRoom(rid){
+  CURRENT_ROOM = rid;
+  if(!RAW_DATA) return;
+  const r = RAW_DATA.rooms.find(x => (x.meta||{}).room_id === rid);
+  if(r) renderRoomDetail(r);
+  // 高亮选中卡片
+  document.querySelectorAll('.room-card').forEach(c => c.style.borderColor='');
+  event.currentTarget.style.borderColor = 'var(--red)';
 }
-let alertCount = 0;
-function updateKpiAlert(){
-  // 更新KPI中告警数
-  const els = document.querySelectorAll('#kpiRow .kpi');
-  if(els.length>=6) els[5].querySelector('.val').textContent = alertCount;
+
+function renderRoomDetail(r){
+  const live = r.live||{};
+  // 流量漏斗
+  const funnelData = live.flow_funnel || {};
+  const funnelEl = document.getElementById('funnel');
+  const funnelSteps = funnelData.funnel || [];
+  if(funnelSteps.length){
+    const max = Math.max(...funnelSteps.map(s => num(s.value)));
+    funnelEl.innerHTML = funnelSteps.map(s => {
+      const v = num(s.value);
+      const pct = max > 0 ? (v / max * 100) : 0;
+      const colors = ['#e63946','#f0b429','#2ea043','#58a6ff','#a371f7'];
+      const ci = funnelSteps.indexOf(s) % colors.length;
+      return `<div class="funnel-item">
+        <span class="funnel-label">${s.name||''}</span>
+        <div class="funnel-bar"><div class="funnel-fill" style="width:${pct}%;background:${colors[ci]}">${s.name||''}</div></div>
+        <span class="funnel-val">${v}</span>
+      </div>`;
+    }).join('');
+  } else {
+    funnelEl.innerHTML = '<div class="empty">暂无漏斗数据</div>';
+  }
+
+  // 流量来源
+  const flowType = live.flow_type || {};
+  const flowEl = document.getElementById('flowSource');
+  const types = flowType.flow_type || [];
+  if(types.length){
+    const total = types.reduce((a,t) => a + num(t.value), 0);
+    flowEl.innerHTML = types.map(t => {
+      const v = num(t.value);
+      const pct = total > 0 ? (v / total * 100) : 0;
+      const cls = (t.name||'').includes('自然') ? 'natural' : 'business';
+      return `<div class="flow-bar">
+        <span class="name">${t.name||''}</span>
+        <div class="bar"><div class="fill ${cls}" style="width:${pct}%"></div></div>
+        <span class="val">${v} (${pct.toFixed(1)}%)</span>
+      </div>`;
+    }).join('') + `<div style="margin-top:8px;font-size:11px;color:var(--sub)">总流量: ${total}</div>`;
+  } else {
+    flowEl.innerHTML = '<div class="empty">暂无流量来源数据</div>';
+  }
 }
+
+// ========== 告警 ==========
 function renderAlerts(alerts){
   alertCount = alerts.length;
+  document.getElementById('alertBadge').textContent = alerts.length ? `(${alerts.length})` : '';
+  // 更新KPI中告警数
+  const kpis = document.querySelectorAll('#kpiRow .kpi .val');
+  if(kpis.length >= 8) kpis[7].textContent = alertCount;
+
   const a = document.getElementById('alertList');
-  if(!alerts.length){ a.innerHTML='<div class="empty">暂无告警</div>'; return; }
-  a.innerHTML = alerts.map(al=>{
+  if(!alerts.length){ a.innerHTML = '<div class="empty">暂无告警</div>'; return; }
+  a.innerHTML = alerts.map(al => {
     const cls = al.level==='严重'?'sev':al.level==='警告'?'warn':'info';
     return `<div class="alert ${cls}">
       <span class="lv">${al.level}</span>
-      <div class="desc"><b>${al.nickname}</b> · ${al.item}<br>${al.desc}
+      <div class="desc"><b>${al.nickname||''}</b> · ${al.item||''}<br>${al.desc||''}
         <div class="time">${al.ts||''}</div>
       </div>
     </div>`;
   }).join('');
-  updateKpiAlert();
+}
+
+// ========== 倒计时与刷新 ==========
+function tickCountdown(){
+  countdownVal--;
+  if(countdownVal <= 0){
+    countdownVal = 30;
+    loadData();
+    loadAlerts();
+  }
+  document.getElementById('countdown').textContent = countdownVal;
 }
 
 function start(){
-  loadData(); loadAlerts();
-  setInterval(loadData, 30000);
-  setInterval(loadAlerts, 30000);
+  loadData();
+  loadAlerts();
+  setInterval(tickCountdown, 1000);
 }
 </script>
 </body>
