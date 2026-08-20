@@ -71,7 +71,7 @@ function crc32(buf) {
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 function createZipFile(srcDir) {
-  const files = ['index.js', 'loader.js', 'scf_bootstrap', 'version.txt', 'quality-gate.cjs', 'seed-pool-mode.cjs', 'config/compliance-rules.json'];
+  const files = ['index.js', 'loader.js', 'scf_bootstrap', 'version.txt', 'quality-gate.cjs', 'seed-pool-mode.cjs', 'validate-seedpool.cjs', 'ai-script-mode.cjs', 'config/compliance-rules.json'];
   const localParts = [];
   const central = [];
   let offset = 0;
@@ -151,12 +151,11 @@ async function main(){
   // ⚠️ 防复发硬保证（2026-08-07 复盘教训）：
   // 控制台/默认部署的函数超时是 3s，而 AI 网关首响 ~12s，会被平台超时掐断，
   // 表现为"函数能启动但 AI 调不通 / timed out after 3 seconds"。
-  // 无论代码走控制台还是 API 部署，部署后强制把 Timeout 设为 300s。
-  // v2.9.81a：180→300s，4+1 配方（4 条跟拍拆解+1 业务）AI 生成实测 139-200s+，180s 贴线超时。
+  // 无论代码走控制台还是 API 部署，部署后强制把 Timeout 设为 180s。
   // 注：本凭证的 UpdateFunctionConfiguration 已证实能持久化（改 Description 生效），故这步确定落地。
-  console.log('⏱  强制设置函数超时 Timeout=300s（防 AI 4+1 生成超 180s 被掐断）...');
+  console.log('⏱  强制设置函数超时 Timeout=180s（防 AI 调用被 3s 默认超时掐断）...');
   try {
-    await callSCF('UpdateFunctionConfiguration', { FunctionName: FUNC_NAME, Timeout: 300 });
+    await callSCF('UpdateFunctionConfiguration', { FunctionName: FUNC_NAME, Timeout: 180 });
     const cfg = await callSCF('GetFunctionConfiguration', { FunctionName: FUNC_NAME });
     console.log(`✅ Timeout 已生效: ${cfg.Timeout}s`);
   } catch (e) {
