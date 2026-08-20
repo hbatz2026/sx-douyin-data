@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "v3-seedpool.schema.json",
+  "title": "3.0 SEED_POOL / 日预热池 结构契约",
+  "description": "SCF seed-pool-mode.cjs 生成的 window.___v3SeedPool / window.___dayPool 的结构契约。与 quality-gate.cjs 的内容门禁（字数/红线/档位）互补：本契约校验字段类型/必填/枚举，防止 AI 生成畸形池被写回。",
+  "type": "object",
+  "required": ["week", "generatedAt", "scripts"],
+  "properties": {
+    "week": { "type": "string", "pattern": "^\\d{4}-W\\d{2}$", "description": "ISO 周，如 2026-W34" },
+    "date": { "type": "string", "description": "日预热池专用：YYYY-MM-DD" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "scripts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/seed" }
+    }
+  },
+  "definitions": {
+    "seed": {
+      "type": "object",
+      "required": ["seedId", "topic", "type", "typeName", "typeIcon", "mood", "hookKind", "structure", "variants", "slots"],
+      "properties": {
+        "seedId": { "type": "string", "minLength": 1 },
+        "topic": { "type": "string", "minLength": 2 },
+        "type": { "type": "string", "enum": ["decision", "scene", "review", "local", "hotspot"] },
+        "typeName": { "type": "string" },
+        "typeIcon": { "type": "string" },
+        "mood": { "type": "string", "enum": ["affinity", "professional", "young"] },
+        "hookType": { "type": "string" },
+        "hookKind": { "type": "string", "enum": ["conflict", "value", "suspense", "resonance", "冲突", "价值", "悬念", "共鸣", ""] },
+        "hook": { "type": "string" },
+        "structure": { "type": "string" },
+        "scene": { "type": "string" },
+        "day": { "type": "integer", "minimum": 1 },
+        "compliance": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string" },
+            "autoFixed": { "type": "integer" },
+            "blocked": { "type": "boolean" }
+          }
+        },
+        "variants": {
+          "type": "object",
+          "required": ["affinity", "professional", "young"],
+          "properties": {
+            "affinity": { "type": "array", "items": { "$ref": "#/definitions/variant" } },
+            "professional": { "type": "array", "items": { "$ref": "#/definitions/variant" } },
+            "young": { "type": "array", "items": { "$ref": "#/definitions/variant" } }
+          }
+        },
+        "slots": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "required": ["_vid", "_persona", "title", "script", "beats", "tags"],
+      "properties": {
+        "_vid": { "type": "string" },
+        "_persona": { "type": "string" },
+        "bgm": { "type": "string" },
+        "title": { "type": "string" },
+        "script": { "type": "string" },
+        "hookKind": { "type": "string" },
+        "beats": {
+          "type": "object",
+          "required": ["hook", "pain", "solution", "proof", "cta"],
+          "properties": {
+            "hook": { "type": "string" },
+            "pain": { "type": "string" },
+            "solution": { "type": "string" },
+            "proof": { "type": "string" },
+            "cta": { "type": "string" }
+          }
+        },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "_fallback": { "type": "boolean" }
+      }
+    }
+  }
+}
