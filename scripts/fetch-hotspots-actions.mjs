@@ -17,9 +17,25 @@ async function get(url, opts = {}) {
     return opts.asText ? await r.text() : await r.json();
   } catch (e) { return null; }
 }
+// 去重并聚合来源平台：同一热词出现在多个平台 → platforms 多、sourceCount 高 = 强实时热点信号。
+// 单源出现的词大概率是某源返回的旧榜/长尾，自动靠后排（多源交叉验证，防旧热点复发，不依赖人工黑名单）。
 function dedupe(list) {
-  const seen = new Set(), out = [];
-  for (const it of list) { const k = String(it.word || '').trim(); if (!k || seen.has(k)) continue; seen.add(k); out.push(it); }
+  const seen = new Map(), out = [];
+  for (const it of list) {
+    const k = String(it.word || '').trim();
+    if (!k) continue;
+    if (seen.has(k)) {
+      const rec = seen.get(k);
+      if (!rec.platforms.includes(it.platform)) rec.platforms.push(it.platform);
+    } else {
+      const rec = Object.assign({}, it, { platforms: [it.platform] });
+      seen.set(k, rec);
+      out.push(rec);
+    }
+  }
+  out.forEach(x => { x.sourceCount = x.platforms.length; });
+  // 多源共现的强热点排前面，单源疑似旧榜排后面（AI 优先选前面的，旧榜自然落选）
+  out.sort((a, b) => (b.sourceCount || 1) - (a.sourceCount || 1));
   return out;
 }
 
@@ -130,3 +146,15 @@ hotClean.forEach(x => { byPlat[x.platform] = (byPlat[x.platform] || 0) + 1; });
 const target = join(__dirname, '..', 'data', 'hotspot-raw.json');
 writeFileSync(target, JSON.stringify(out, null, 2));
 console.log('✅ hotspot-raw.json 生成:', JSON.stringify(byPlat), '| hot', out.hot.length, '| music', out.music.length, '| form', form.length, '| search', search.length);
+
+// v2.9.83 门禁自检：若 filterStale 后仍命中旧热点信号（已知旧梗 / 旧年份 / 相对时间词）→ 退出非 0，
+// 使 Actions 该步骤失败，阻断写入 Gitee（沿用上一次好缓存，绝不把旧热点落库）。
+(function gateStale() {
+  const REL_TIME_RE = /(去年|前年|上个月|上月|上周|前几个月|几年前|当年)/;
+  const leaked = out.hot.filter(x => isStaleHot(x.word) || OLD_YEAR_RE.test(x.word) || REL_TIME_RE.test(x.word));
+  if (leaked.length) {
+    console.error('❌ 旧热点门禁：仍漏过 ' + leaked.length + ' 条 → ' + leaked.map(x => x.word).join(' | '));
+    process.exit(1);
+  }
+  console.log('✅ 旧热点门禁通过（hot ' + out.hot.length + ' 条，多源共现 ' + out.hot.filter(x => (x.sourceCount || 1) >= 2).length + ' 条）');
+})();

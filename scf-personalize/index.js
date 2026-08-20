@@ -941,6 +941,24 @@ http.createServer(async (req, res) => {
         const beforeStale = cands.hot.length;
         cands.hot = hsFilterStale(cands.hot);
         if (cands.hot.length < beforeStale) console.log('[hotspot-fetch] 已过滤旧热点 ' + (beforeStale - cands.hot.length) + ' 条');
+        // v2.9.83: 多源交叉排序——raw 候选带 sourceCount，多源共现的强热点排前，AI 优先选（旧榜单源自动落选）
+        if (cands.hot.length && cands.hot[0].sourceCount != null) {
+          cands.hot.sort((a, b) => (b.sourceCount || 1) - (a.sourceCount || 1));
+        }
+        // v2.9.83: 实时榜二次确认（兜底缓存整体陈旧）——SCF 直连实时榜对「单源且不在实时榜」的候选降权到末尾，
+        // 不在榜的旧榜污染自然落选；直连失败则跳过，绝不阻断生成。
+        try {
+          const live = await fetchAllHotspotsSCF();
+          const liveWords = new Set((live.hot || []).map(h => String(h.word || '').trim()).filter(Boolean));
+          if (liveWords.size > 5) {
+            cands.hot.sort((a, b) => {
+              const aLive = (a.sourceCount || 1) >= 2 || liveWords.has(String(a.word || '').trim());
+              const bLive = (b.sourceCount || 1) >= 2 || liveWords.has(String(b.word || '').trim());
+              return (bLive ? 1 : 0) - (aLive ? 1 : 0);
+            });
+            console.log('[hotspot-fetch] 实时榜二次确认（' + liveWords.size + ' 实时词）后候选 ' + cands.hot.length + ' 条，单源未在榜者已降权');
+          }
+        } catch (le) { console.warn('[hotspot-fetch] 实时榜二次确认失败，跳过不阻断:', le.message); }
         // v2.9.81: 缓存 music 为空时补抓 SCF 直连音乐榜（aweme/QQ 在 SCF 内实测可达 46+30 条，
         // 避免 Actions 缓存 music=[] 覆盖真实热歌 → AI 的 BGM 只能凭空编）
         if (cands.music && cands.music.length === 0) {
