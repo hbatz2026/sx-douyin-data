@@ -56,7 +56,7 @@ body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-s
 .qa-section .title-row h2{font-size:15px;color:var(--blue2);border-left:3px solid var(--blue2);padding-left:8px}
 .qa-section .title-row span{font-size:11px;color:var(--sub)}
 .qa-row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
-.room-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:280px;overflow-y:auto}
+.room-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:360px;overflow-y:auto}
 .room-card{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:10px;cursor:pointer;transition:.2s}
 .room-card:hover{border-color:var(--blue2)}
 .room-card.active{border-color:var(--blue2);background:rgba(0,102,204,.08)}
@@ -70,7 +70,7 @@ body{background:var(--bg);color:var(--text);font-family:"Microsoft YaHei",sans-s
 .room-card .metrics .m .ml{color:var(--sub);font-size:9px}
 .room-card .metrics .m .mv{color:#fff;font-weight:600}
 .room-card .warn{font-size:9px;color:var(--gold);margin-top:3px}
-.alert-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
+.alert-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto}
 .alert{display:flex;gap:6px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:7px;border-left:3px solid var(--sub)}
 .alert.sev{border-left-color:var(--red)} .alert.warn{border-left-color:var(--gold)} .alert.info{border-left-color:var(--blue2)}
 .alert .lv{font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;white-space:nowrap}
@@ -130,6 +130,7 @@ let RAW_DATA=null,alertCount=0,countdownVal=30;
 function num(v){const n=parseFloat(v);return isNaN(n)?0:n;}
 function fmt(v){if(v>=10000)return(v/10000).toFixed(1)+'万';return Math.round(v*100)/100;}
 function fmtMoney(v){if(v>=10000)return(v/10000).toFixed(2)+'万';return v.toFixed(2);}
+function moneyUnit(v){return v>=10000?'万元':'元';}
 function kv(ki,key){if(!Array.isArray(ki))return 0;const item=ki.find(i=>i&&i.key===key);return item?num(item.value):0;}
 function gmv(ki){return kv(ki,'PayGmv');}
 function extractCity(nickname){if(!nickname)return'未知';for(const c of CITIES){if(nickname.includes(c))return c;}return'其他';}
@@ -147,9 +148,9 @@ function renderSummary(s,rooms){
     {label:'门店总数',val:fmt(poiCnt),cls:''},
     {label:'动销门店数',val:fmt(payRoomNight),cls:'green'},
     {label:'成交券数',val:fmt(payCertCnt),cls:'blue'},
-    {label:'成交金额',val:fmtMoney(payGmv),cls:'gold',unit:'元'},
+    {label:'成交金额',val:fmtMoney(payGmv),cls:'gold',unit:moneyUnit(payGmv)},
     {label:'核销券数',val:fmt(verifyCertCnt),cls:'cyan'},
-    {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:'元'},
+    {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:moneyUnit(verifyGmv)},
     {label:'商品访问人数',val:fmt(productShowUv),cls:''},
     {label:'在播厅店数',val:livingRoomCnt,cls:'red'},
     {label:'直播间曝光',val:fmt(liveShowUv),cls:'blue'},
@@ -181,7 +182,8 @@ function renderRooms(rooms){
     if(productCnt===0)warns.push('未挂商品');
     if(!ri.qr_code)warns.push('无二维码');
     const rid=meta.room_id||'';
-    return `<div class="room-card" onclick="selectRoom('${rid}')"><div class="top"><span class="name">${meta.nickname||'未知'}</span><span class="tag ${on?'on':'off'}">${on?'直播中':'未播'}</span></div><div class="metrics"><div class="m"><span class="ml">在线</span><span class="mv">${online}</span></div><div class="m"><span class="ml">观看</span><span class="mv">${watch}</span></div><div class="m"><span class="ml">成交</span><span class="mv">¥${gmvVal.toFixed(0)}</span></div><div class="m"><span class="ml">订单</span><span class="mv">${orders}</span></div><div class="m"><span class="ml">商品</span><span class="mv">${productCnt}</span></div><div class="m"><span class="ml">点赞</span><span class="mv">${fmt(num(meta.live_like_cnt_td))}</span></div></div>${warns.length?`<div class="warn">${warns.join(' · ')}</div>`:''}</div>`;
+    const displayName=meta.nickname||(meta.unique_id?('ID:'+meta.unique_id):'未知');
+    return `<div class="room-card" onclick="selectRoom('${rid}')"><div class="top"><span class="name">${displayName}</span><span class="tag ${on?'on':'off'}">${on?'直播中':'未播'}</span></div><div class="metrics"><div class="m"><span class="ml">在线</span><span class="mv">${online}</span></div><div class="m"><span class="ml">观看</span><span class="mv">${watch}</span></div><div class="m"><span class="ml">成交</span><span class="mv">¥${gmvVal.toFixed(0)}</span></div><div class="m"><span class="ml">订单</span><span class="mv">${orders}</span></div><div class="m"><span class="ml">商品</span><span class="mv">${productCnt}</span></div><div class="m"><span class="ml">点赞</span><span class="mv">${fmt(num(meta.live_like_cnt_td))}</span></div></div>${warns.length?`<div class="warn">${warns.join(' · ')}</div>`:''}</div>`;
   }).join('');
 }
 function selectRoom(rid){document.querySelectorAll('.room-card').forEach(c=>c.classList.remove('active'));event.currentTarget.classList.add('active');}
