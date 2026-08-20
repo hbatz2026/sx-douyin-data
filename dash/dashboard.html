@@ -296,7 +296,7 @@ function drawRegionChart(cities,metric){
   const W=cssW,H=300;
   ctx.clearRect(0,0,W,H);
   const label=METRIC_LABELS[metric]||metric;
-  const data=CITIES.map(c=>{const cd=cities[c]||{};return {name:c,val:num(cd[metric]||0),live:cd.poi_num?true:false};});
+  const data=CITIES.map(c=>{const cd=cities[c]||{};return {name:c,val:num(cd[metric]||0),live:cd.pay_gmv!=null};});
   const maxVal=Math.max(...data.map(d=>d.val),0.01);
   const barW=Math.min(80,(W-60)/CITIES.length-12);
   const gap=(W-60)/CITIES.length;
@@ -363,12 +363,14 @@ function renderRegions(rooms,cities){
   document.getElementById('regionGrid').innerHTML=CITIES.map(city=>{
     const rd=regionMap[city];const liveCnt=rd.rooms.length;
     const cd=rd.cityData||{};
+    const hasData=cd.pay_gmv!=null && cd.pay_gmv!==undefined;
     const poiNum=cd.poi_num||0;
-    if(poiNum>0){
-      // has city-level data from collect
+    if(hasData){
+      // has city-level data from collect (dito RegionalAnalysis, no poi_num)
       let totalGmv=0,totalOrders=0,totalWatch=0,totalOnline=0;
       rd.rooms.forEach(r=>{const ki=r.live?.key_index||[];totalGmv+=gmv(ki);totalOrders+=kv(ki,'PayOrderCnt');totalWatch+=kv(ki,'LiveServerWatchUcnt');totalOnline+=kv(ki,'CurrentUserCnt');});
-      return `<div class="region-card has-live"><div class="r-name"><span class="dot"></span>${city} <span style="font-size:10px;color:var(--sub);font-weight:400">(${poiNum}店${liveCnt>0?'/'+liveCnt+'间':''})</span></div><div class="r-data"><div class="d"><span class="dl">成交金额</span><span class="dv red">¥${fmtMoney(cd.pay_gmv||0)}</span></div><div class="d"><span class="dl">成交券数</span><span class="dv gold">${cd.pay_cert_cnt||0}</span></div><div class="d"><span class="dl">核销金额</span><span class="dv green">¥${fmtMoney(cd.verify_gmv||0)}</span></div><div class="d"><span class="dl">核销券数</span><span class="dv">${cd.verify_cert_cnt||0}</span></div><div class="d"><span class="dl">动销门店</span><span class="dv blue">${cd.active_poi_cnt||0}</span></div><div class="d"><span class="dl">动销率</span><span class="dv">${(cd.active_poi_ratio||0).toFixed(1)}%</span></div></div></div>`;
+      const storeInfo=poiNum>0?`(${poiNum}店${liveCnt>0?'/'+liveCnt+'间':''})`:(liveCnt>0?`(${liveCnt}间)`:'');
+      return `<div class="region-card has-live"><div class="r-name"><span class="dot"></span>${city} ${storeInfo?`<span style="font-size:10px;color:var(--sub);font-weight:400">${storeInfo}</span>`:''}</div><div class="r-data"><div class="d"><span class="dl">成交金额</span><span class="dv red">¥${fmtMoney(cd.pay_gmv||0)}</span></div><div class="d"><span class="dl">成交券数</span><span class="dv gold">${cd.pay_cert_cnt||0}</span></div><div class="d"><span class="dl">核销金额</span><span class="dv green">¥${fmtMoney(cd.verify_gmv||0)}</span></div><div class="d"><span class="dl">核销券数</span><span class="dv">${cd.verify_cert_cnt||0}</span></div><div class="d"><span class="dl">成交人数</span><span class="dv blue">${cd.pay_user_cnt||0}</span></div><div class="d"><span class="dl">退款金额</span><span class="dv">¥${fmtMoney(cd.refund_gmv||0)}</span></div></div></div>`;
     }
     if(liveCnt===0){return `<div class="region-card"><div class="r-name"><span class="dot"></span>${city}</div><div class="r-empty">暂无在播</div></div>`;}
     let totalGmv=0,totalOrders=0,totalWatch=0,totalOnline=0;
