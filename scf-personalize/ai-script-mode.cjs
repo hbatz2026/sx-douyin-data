@@ -41,6 +41,21 @@ function extractJson(extractJsonObject, text) {
   throw new Error('AI 输出无法解析为 JSON');
 }
 
+// ad_002「第一」轻清洗（与 gate 同口径负向断言保护序数；两段式避免「第一个」→「头一个个」）
+function cleanFirstText(s) {
+  return String(s || '').replace(/第一个/g, '首先').replace(/第一(?!步|名|位|顺|时间|次|回)/g, '头一个');
+}
+// 清洗 cand 全部字符串字段（title/script/tags/beats），ad_002 可能命中任意字段
+function cleanFirstCand(cand) {
+  cand.title = cleanFirstText(cand.title);
+  cand.script = cleanFirstText(cand.script);
+  if (Array.isArray(cand.tags)) cand.tags = cand.tags.map(cleanFirstText);
+  if (cand.beats && typeof cand.beats === 'object') {
+    for (const k of Object.keys(cand.beats)) cand.beats[k] = cleanFirstText(cand.beats[k]);
+  }
+  return cand;
+}
+
 async function runAiScript(ctx) {
   const { apiKey, cfg, params, helpers } = ctx;
   const { callSiliconFlow, extractJsonObject, hsSanitize } = helpers;
@@ -77,11 +92,10 @@ async function runAiScript(ctx) {
       };
       let r = Q.checkVariant(cand, {});
       if (!r.pass) {
-        // ad_002「第一」轻清洗（与 gate 同口径负向断言，保护序数）后重新过门禁一次
+        // ad_002「第一」轻清洗（cand 全字段）后重新过门禁一次
         const hitFirst = r.reasons && r.reasons.some(x => (x.msg || '').indexOf('ad_002') >= 0 || (x.msg || '').indexOf('第一') >= 0);
         if (hitFirst) {
-          // 两段式清洗（避免「第一个」→「头一个个」）：先「第一个」→「首先」，再「第一(非序数)」→「头一个」
-          cand.script = cand.script.replace(/第一个/g, '首先').replace(/第一(?!步|名|位|顺|时间|次|回)/g, '头一个');
+          cleanFirstCand(cand);
           const r2 = Q.checkVariant(cand, {});
           if (r2.pass) r = r2;
         }
