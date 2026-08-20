@@ -170,20 +170,25 @@ function render(d){
 }
 function renderSummary(s,rooms){
   const payGmv=s.pay_gmv||0,verifyGmv=s.verify_gmv||0,refundGmv=s.refund_gmv||0;
-  const poiCnt=s.poi_cnt||0,payRoomNight=s.pay_room_night_cnt||0,payCertCnt=s.pay_cert_cnt||0;
+  // 门店/动销相关：优先经营页面口径(poi_num/active_poi_cnt)，回退首页口径
+  const poiCnt=s.poi_num||s.poi_cnt||0;
+  const payRoomNight=s.active_poi_cnt||s.pay_room_night_cnt||0;
+  const activeRatio=s.active_poi_ratio||0;
+  const payGmvAvg=s.pay_gmv_avg||0,verifyGmvAvg=s.verify_gmv_avg||0;
+  const payCertCnt=s.pay_cert_cnt||0;
   const verifyCertCnt=s.verify_cert_cnt||0,productShowUv=s.product_show_uv||0;
   const livingRoomCnt=s.living_room_cnt||rooms.length;
   const liveShowUv=s.live_show_uv_total||rooms.reduce((a,r)=>a+(r.meta?.live_show_uv_td||0),0);
   const kpis=[
     {label:'门店总数',val:fmt(poiCnt),cls:''},
     {label:'动销门店数',val:fmt(payRoomNight),cls:'green'},
-    {label:'成交券数',val:fmt(payCertCnt),cls:'blue'},
+    {label:'动销率',val:activeRatio.toFixed(2)+'%',cls:'gold'},
+    {label:'日店均成交',val:fmtMoney(payGmvAvg),cls:'blue',unit:'元'},
+    {label:'日店均核销',val:fmtMoney(verifyGmvAvg),cls:'cyan',unit:'元'},
     {label:'成交金额',val:fmtMoney(payGmv),cls:'gold',unit:moneyUnit(payGmv)},
-    {label:'核销券数',val:fmt(verifyCertCnt),cls:'cyan'},
     {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:moneyUnit(verifyGmv)},
-    {label:'商品访问人数',val:fmt(productShowUv),cls:''},
-    {label:'在播厅店数',val:livingRoomCnt,cls:'red'},
-    {label:'直播间曝光',val:fmt(liveShowUv),cls:'blue'},
+    {label:'成交券数',val:fmt(payCertCnt),cls:'blue'},
+    {label:'核销券数',val:fmt(verifyCertCnt),cls:''},
   ];
   document.getElementById('kpiGrid').innerHTML=kpis.map(k=>
     `<div class="kpi-card"><div class="k-label">${k.label}</div><div class="k-val ${k.cls}">${k.val}</div><div class="k-unit">${k.unit||''}</div></div>`
