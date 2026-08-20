@@ -444,21 +444,25 @@ function buildHotspotMessages(cands) {
   const music = cands.music.slice(0,10).map(c => `[抖音热门BGM] ${c.songTitle||c.word}${c.songAuthor?(' - '+c.songAuthor):''}${c.heat?(' 使用量'+c.heat):''}`).join('\n');
   const form = cands.form.slice(0,8).map(c => `[短视频形式] ${c.word}：${c.desc}（示例：${c.example}）难度${c.difficulty}`).join('\n');
   const search = cands.search.slice(0,10).map(c => `[${c.platform}搜索截流] ${c.word} → 意图:${c.intent}`).join('\n');
-  const system = `You are a senior short-video script editor for a China Telecom (Shanxi) retail store. Pick the most store-relevant trending topics, hot BGM, and video FORMS, then adapt them into compliant, ready-to-shoot Douyin short-video scripts that ride traffic WITHOUT violating platform rules.
+  const system = `You are a senior short-video script editor for a China Telecom (Shanxi) retail store. You write two kinds of scripts: (A) PURE TREND RIDES that copy viral Douyin gameplay (hand-gesture dance, beat-sync reversal, hot BGM choreography) so the store rides the traffic — 4 of 5 scripts; (B) ONE business script that adapts a trending topic to telecom service.
 
 Strict rules:
 1. Speak as the store clerk, objective, helpful. Never attack any carrier. Never use banned words: 合约/话费/号卡/流量卡/月租/资费/办卡/0元购/免费领卡/套路/割韭菜/智商税 — replace with compliant phrasing.
 2. Home broadband tiers in Shanxi are only 300M/500M/1000M/FTTR. NEVER output 100M/100兆.
-3. Each script must include a clear on-screen CTA driving to the store. No hard-sell.
+3. Business script (type B) must include a clear on-screen CTA driving to the store. Pure trend rides (type A) do NOT need a business CTA — they just need to copy the viral gameplay so viewers watch/share; only the closing second may lightly show the store (uniform/background/gesture).
 4. Every script MUST set "form" to ONE short-video form from the form library, and "bgm" to a concrete hot song (prefer from the 抖音热门BGM list, format "歌名 - 作者"; if none fits, suggest a fitting style).
 5. Output ONLY a JSON array. No markdown, no commentary.
-6. NATURAL adaptation (critical): never hard-force a trending topic onto telecom. Pick only topics with a REAL connection (broadband/WiFi/phone/5G/FTTR/upgrade/service/cheap-plan/anti-fraud) or an obvious contrasting angle. In "why", state the ACTUAL reason this topic fits a telecom store (real pain point / data / scene / contrast) — not generic praise like "全民关注".
-7. RIDE-THE-TREND KIT: every script must surface what the clerk copies to Douyin — "sourceWord" = the ORIGINAL trending topic text (exact wording), "tags" = 1-3 hashtags built from that topic (e.g. "#宇树科技 #机器狗 #宽带升级"), "bgm" = the hot song. These three (原热点标题 / 话题标签 / BGM) are the essential ride-the-trend kit and must echo the topic, not generic tags.
-8. "title" must echo the trending topic (click-worthy), not a generic telecom pitch.
+6. PURE TREND RIDE (type A, 4 scripts, critical): pick 4 hot items that are VIRAL GAMEPLAY — 手势舞/卡点反转/热门BGM跟拍/对镜拍/变装/转场/剧情模仿 — NOT news-style topics. Copy the original gameplay beat by beat: analyze how the original went viral (the gesture, the beat cut, the BGM, the reversal), and re-create it with a store clerk as the performer. "why" explains WHY this ride will get traffic (heat data / original's viral point / the contrast of a store clerk doing it). Fill "rideType" (手势舞|卡点反转|BGM跟拍|对镜拍|变装|转场|剧情模仿), "rideBeat" (1-2 sentences breaking down the original's rhythm: which beat does what action/cut), "sourceBgm" (original BGM 歌名-作者). The 4 steps must follow the original's rhythm exactly (which beat does what).
+7. RIDE-THE-TREND KIT: every script must surface what the clerk copies to Douyin — "sourceWord" = the ORIGINAL trending topic/gameplay text (exact wording), "tags" = 1-3 hashtags built from that topic (e.g. "#手势舞 #营业厅小姐姐 #电信"), "bgm" = the hot song. These three (原热点标题 / 话题标签 / BGM) are the essential ride-the-trend kit and must echo the topic, not generic tags.
+8. "title" must echo the trending topic/gameplay (click-worthy), not a generic telecom pitch.
+9. Output order: first 4 PURE TREND RIDES (type A), then 1 BUSINESS script (type B). Type B is the ONLY one with "rideType": "业务" and a real telecom service hook.
 
 JSON schema (one object per script):
 {
   "lane": "hot"|"music"|"form"|"search",
+  "rideType": "手势舞|卡点反转|BGM跟拍|对镜拍|变装|转场|剧情模仿|业务",
+  "rideBeat": "original rhythm breakdown (1-2 sentences, type A only)",
+  "sourceBgm": "original BGM 歌名-作者 (type A only)",
   "platform": "抖音|微博|百度|小红书|知乎|头条|快手|B站|抖音音乐|形式库",
   "tier": 1|2|3,
   "title": "script title",
@@ -486,7 +490,7 @@ JSON schema (one object per script):
   "schedule": "suggested publish day + timeliness"
 }`;
   const user = `以下是今日多平台候选（话题热点 + 热门BGM + 短视频形式）。
-请严格按以下要求生成：**总数 5 条脚本，全部为话题热点(hot)类（lane 一律填 "hot"，不要生成搜索截流类）**；每条脚本必须包含 4 个 steps，每个 step 必须包含 shot（画面动作，15-25字）、sub（屏幕字幕/关键信息，15-25字）、duration（建议时长，如"3-5秒"）；每条脚本必须包含 4 句 voice 口播逐字稿，与 4 个 steps 严格一一对应，营业员拿到可直接照念；**voice 每句 40-65 字、4 句合计必须 170-250 字（宁长勿短，总字数不足 170 字视为不合格整条重写，杜绝 130 字左右的短稿）**；必须包含 formTip（这种形式怎么拍最出彩）、tip（1条具体拍摄建议）、loop（1句诱导互动的问题）、bgm（具体热门歌名-作者）。务必完整输出 5 条脚本的 JSON 数组，不要被截断。
+请严格按以下要求生成：**总数 5 条脚本，顺序为：前 4 条纯热点跟拍（lane=hot，rideType ∈ 手势舞/卡点反转/BGM跟拍/对镜拍/变装/转场/剧情模仿）+ 后 1 条业务改写（rideType="业务"）**。前 4 条必须选**可复刻的爆款玩法**（手势舞/BGM卡点/反转挑战等），按原版节奏逐拍复刻，bgm 用原版热歌；最后 1 条才是电信业务向改写（有 CTA/档位）。每条脚本必须包含 4 个 steps，每个 step 必须包含 shot（画面动作，15-25字）、sub（屏幕字幕/关键信息，15-25字）、duration（建议时长，如"3-5秒"）；每条脚本必须包含 4 句 voice 口播逐字稿，与 4 个 steps 严格一一对应，营业员拿到可直接照念；**voice 每句 40-65 字、4 句合计必须 170-250 字（宁长勿短，总字数不足 170 字视为不合格整条重写，杜绝 130 字左右的短稿）**；必须包含 formTip（这种形式怎么拍最出彩）、tip（1条具体拍摄建议）、loop（1句诱导互动的问题）、bgm（具体热门歌名-作者）。务必完整输出 5 条脚本的 JSON 数组，不要被截断。
 
 【话题热点候选】
 ${hot}
@@ -554,6 +558,9 @@ function normalizeHotspot(scripts) {
       tip: hsSanitize(s.tip||''),
       bgm: hsSanitize(s.bgm||''),
       musicUrl: s.musicUrl||'',
+      rideType: hsSanitize(s.rideType||'业务'),
+      rideBeat: hsSanitize(s.rideBeat||''),
+      sourceBgm: hsSanitize(s.sourceBgm||''),
       tags: hsSanitize(s.tags||''),
       difficulty: [0,1,2].includes(s.difficulty) ? s.difficulty : 1,
       needFace: !!s.needFace,
@@ -912,6 +919,17 @@ http.createServer(async (req, res) => {
           }
         } catch (e) { console.warn('[hotspot-fetch] raw cache 不可用，回退 SCF 直连:', e.message); }
         if (!cands) cands = await fetchAllHotspotsSCF();
+        // v2.9.81: 缓存 music 为空时补抓 SCF 直连音乐榜（aweme/QQ 在 SCF 内实测可达 46+30 条，
+        // 避免 Actions 缓存 music=[] 覆盖真实热歌 → AI 的 BGM 只能凭空编）
+        if (cands.music && cands.music.length === 0) {
+          try {
+            const direct = await fetchAllHotspotsSCF();
+            if (direct.music && direct.music.length) {
+              cands.music = direct.music;
+              console.log('[hotspot-fetch] 缓存 music 为空，已补抓 SCF 直连音乐榜 ' + direct.music.length + ' 条');
+            }
+          } catch (me) { console.warn('[hotspot-fetch] 补抓音乐榜失败:', me.message); }
+        }
         const cfg = await loadAIConfig(token, user);
         const msgs = buildHotspotMessages(cands);
         const raw = await callSiliconFlow(msgs.system, msgs.user, apiKey, {
