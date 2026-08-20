@@ -1,64 +1,47 @@
 {
-  "ts": "20260820120649",
-  "generated_at": "2026-08-20 12:12:54",
+  "ts": "20260820161646",
+  "generated_at": "2026-08-20 16:18:08",
   "total_rooms": 5,
   "alerts": [
     {
-      "level": "严重",
-      "item": "未挂小房子",
-      "desc": "接口显示 contain_cart=false，未挂载团购购物车",
-      "nickname": "刘伊妮中国电信(榆次东湖井营业厅)",
-      "room_id": "b68ba6c703e3a45fb91c57753731fd91f6e5e8a86f70ada6012c04fff0c42b07",
-      "ts": "20260820120649"
+      "level": "提示",
+      "item": "低互动",
+      "desc": "直播超30分钟无评论",
+      "nickname": "中国电信滨河路营业厅小刘",
+      "room_id": "809ab545709ed5a0bbb3ef895e571c8ff66a06fc9b735cb2fea4ea5250aa577c",
+      "ts": "20260820161646"
     },
     {
       "level": "提示",
       "item": "低互动",
       "desc": "直播超30分钟无评论",
-      "nickname": "刘伊妮中国电信(榆次东湖井营业厅)",
-      "room_id": "b68ba6c703e3a45fb91c57753731fd91f6e5e8a86f70ada6012c04fff0c42b07",
-      "ts": "20260820120649"
+      "nickname": "中国电信(乐平街营业厅)小倩",
+      "room_id": "fbf1dfd234a9bee509b71ab108dc16e5318411a4a169b2611ed9afdfec295678",
+      "ts": "20260820161646"
     },
     {
-      "level": "严重",
-      "item": "未挂小房子",
-      "desc": "接口显示 contain_cart=false，未挂载团购购物车",
-      "nickname": "中国电信萌茜(康源北路店)小白",
-      "room_id": "be0f87b5c15fae86145df1f78c53c5f8d2242a3e3034ab77299a08ce8c0a0dc6",
-      "ts": "20260820120649"
+      "level": "提示",
+      "item": "低互动",
+      "desc": "直播超30分钟无评论",
+      "nickname": "85187433269",
+      "room_id": "df8473f75d8734d7050e38b9f5919e1027c32e3d9326db4300c30c75eeb66389",
+      "ts": "20260820161646"
     },
     {
-      "level": "严重",
-      "item": "未挂小房子",
-      "desc": "接口显示 contain_cart=false，未挂载团购购物车",
-      "nickname": "太原摄乐翼堆小姐姐",
-      "room_id": "c9368d5eb121fd08aa38bf35c77b8a0171364b0acc2d91ff52a2a7831156bec3",
-      "ts": "20260820120649"
+      "level": "提示",
+      "item": "低互动",
+      "desc": "直播超30分钟无评论",
+      "nickname": "中国电信(前进西街营业厅)慢慢",
+      "room_id": "b4ed64ea4d71442fc4d436c29b1f8fd41d68caff3e254fbbfd8244b5ff6b3608",
+      "ts": "20260820161646"
     },
     {
-      "level": "严重",
-      "item": "未挂小房子",
-      "desc": "接口显示 contain_cart=false，未挂载团购购物车",
-      "nickname": "电信解北厅李静中国电信(解放北路营业厅)",
-      "room_id": "3c6ea501d0fcb084688a3d7c497b005678c255e9db9ac6588edb1574e7b38e94",
-      "ts": "20260820120649"
-    },
-    {
-      "level": "严重",
-      "item": "未挂小房子",
-      "desc": "接口显示 contain_cart=false，未挂载团购购物车",
-      "nickname": "宋玉依中国电信股份有限公司全渠道运营中心",
-      "room_id": "d653b160b4883d186a350cff05e6e9969cf2fa5e5089d92111f462a16031ef91",
-      "ts": "20260820120649"
-    },
-    {
-      "level": "警告",
-      "item": "无人挂播疑似",
-      "desc": "开播22分钟但实时在线为0",
-      "nickname": "宋玉依中国电信股份有限公司全渠道运营中心",
-      "room_id": "d653b160b4883d186a350cff05e6e9969cf2fa5e5089d92111f462a16031ef91",
-      "ts": "20260820120649"
+      "level": "提示",
+      "item": "低互动",
+      "desc": "直播超30分钟无评论",
+      "nickname": "忻州电信来客",
+      "room_id": "45d74d6157fc858f2fd98ee2ceaeb1850be23a5226ad13376d0eee16b3f2f898",
+      "ts": "20260820161646"
     }
-  ],
-  "vision_alerts": 0
+  ]
 }
