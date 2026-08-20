@@ -5,6 +5,7 @@
 // helpers 由 index.js 注入：{ callSiliconFlow, extractJsonObject, createOrUpdateGiteeFile, readGiteeFileR, hsSanitize }
 'use strict';
 const Q = require('./quality-gate.cjs');
+const { validateSeedPool } = require('./validate-seedpool.cjs');
 const path = require('path');
 // 合规规则：加载随包 config/compliance-rules.json（零代码加规则），失败回退内置红线
 try {
@@ -249,6 +250,8 @@ async function runSeedPool(ctx) {
     });
     const pool = { week: draft.week, generatedAt: new Date().toISOString(), scripts };
     const q = Q.checkPool(pool);
+    const sv = validateSeedPool(pool);
+    if (!sv.valid) throw new Error('SEED_POOL 结构契约校验失败，阻断写回: ' + sv.errors.join('; '));
     const body = '// 3.0 SEED_POOL（SCF seed-pool 模式生成）week=' + draft.week + '\n' +
       '// 达标率 ' + q.passed + '/' + q.total + ' 生成于 ' + pool.generatedAt + '\nwindow.___v3SeedPool = ' + JSON.stringify(pool) + ';\n';
     await createOrUpdateGiteeFile(OUT, body, token, user);
@@ -343,6 +346,8 @@ async function runDayPool(ctx) {
     });
     const pool = { week: draft.week, date: draft.date, generatedAt: new Date().toISOString(), scripts };
     const q = Q.checkPool(pool);
+    const sv = validateSeedPool(pool);
+    if (!sv.valid) throw new Error('日预热池结构契约校验失败，阻断写回: ' + sv.errors.join('; '));
     const body = '// 3.0 日预热池（SCF day-pool 模式生成，来源今日热点）date=' + draft.date + '\n' +
       '// 达标率 ' + q.passed + '/' + q.total + ' 生成于 ' + pool.generatedAt + '\nwindow.___dayPool = ' + JSON.stringify(pool) + ';\n';
     await createOrUpdateGiteeFile(DAY_OUT, body, token, user);
