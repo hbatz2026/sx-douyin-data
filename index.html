@@ -289,10 +289,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <span style="font-size:14px;font-weight:600;">热点跟拍中心</span>
         <span style="font-size:11px;color:var(--text-light);" id="hotspotUpdateTime"></span>
       </div>
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">全网热点（抖音/微博/知乎/头条/百度/小红书/快手）AI 匹配营业厅脚本。点卡片展开分镜，蹭热点三件套可一键复制。</div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px;">全网热点（抖音/微博/知乎/头条/百度/小红书/快手）AI 匹配营业厅脚本。每日 5 条 = 4 条纯热点跟拍（🫰手势舞/卡点/BGM）+ 1 条业务改写，三件套一键复制。</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
         <button class="btn btn-sm" style="background:#C2410C;color:#fff;" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
         <button class="btn btn-sm" style="background:#F5F5F5;color:#666;" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
+        <button class="btn btn-sm" style="background:#EDE7F6;color:#5E35B1;" onclick="openCustomTopic()">✏️ 自定义选题</button>
       </div>
       <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;min-height:16px;" id="hotspotRefreshStatus"></div>
 
@@ -396,18 +397,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 <div class="toast" id="toast"></div>
 
+<!-- G7 自定义选题弹窗 -->
+<div id="customModal" style="display:none;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;">
+  <div class="modal-sheet" style="max-width:480px;">
+    <h3 style="font-size:15px;margin-bottom:10px;">✏️ 自定义选题 · AI 生成脚本</h3>
+    <textarea id="customTopicInput" placeholder="输入你的选题，如：小区宽带总掉线怎么办" style="width:100%;height:64px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;resize:none;"></textarea>
+    <div style="display:flex;gap:8px;margin:10px 0;align-items:center;">
+      <span style="font-size:12px;color:var(--text-light);">语气</span>
+      <select id="customMood" style="flex:1;padding:6px;border:1px solid var(--gray-border);border-radius:8px;">
+        <option value="affinity">💝 亲和</option><option value="professional">🔧 专业</option><option value="young">😎 年轻</option>
+      </select>
+    </div>
+    <button id="customGenBtn" class="btn" style="width:100%;background:var(--blue);color:#fff;" onclick="genCustomScript()">🚀 生成脚本</button>
+    <div id="customResult" style="margin-top:12px;display:none;"></div>
+    <button class="btn btn-sm" style="width:100%;margin-top:10px;background:#F5F5F5;color:#666;" onclick="document.getElementById('customModal').style.display='none'">✕ 关闭</button>
+  </div>
+</div>
+
 <!-- Data -->
-<script src="data/bundle.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="data/dailyScripts.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="data/v3-seedpool.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+<script src="data/bundle.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/dailyScripts.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="data/v3-seedpool.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/core3.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/track.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/gate.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
-  <script src="src/v3/pool.js?v=2.9.79&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/personas.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/core3.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/track.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/gate.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
+  <script src="src/v3/pool.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001&t=1787121319483&t=1787119948938&t=1787109472438&t=1787104935710&t=1787101380637&t=1787048094462&t=1787047894587&t=1787045070999&t=1787041885133"></script>
   <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
-  <script src="src/hotspot.js?v=2.9.82&t=1787148000000"></script>
+  <script src="src/hotspot.js?v=2.9.84&t=1787190627054&t=1787129789645&t=1787127852274&t=1787126961267&t=1787125597000&t=1787125077001"></script>
 
 <script>
 // ==================== Config ====================
@@ -421,6 +439,38 @@ var MOODS = [
 var MOOD_TO_PERSONA = { affinity:'warm', professional:'tech', young:'vibe' };
 var WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
 var TAB_NAMES = { today:'今日', week:'排期', hot:'热点', live:'直播', mine:'我的' };
+
+// G7 自定义选题入口：直连 SCF mode='ai' 生成单条口播稿（与 SEED_POOL 同门禁）
+var PERSONALIZE_API = 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com';
+
+// ==================== G7 自定义选题入口 ====================
+function openCustomTopic(){ var m=document.getElementById('customModal'); if(m) m.style.display='flex'; }
+async function genCustomScript(){
+  var topic = (document.getElementById('customTopicInput').value||'').trim();
+  var mood = document.getElementById('customMood').value;
+  if(topic.length < 2){ if(typeof toast==='function') toast('请输入选题（至少2字）'); return; }
+  var btn = document.getElementById('customGenBtn');
+  btn.disabled = true; btn.textContent = '⏳ 生成中…';
+  try {
+    var res = await fetch(PERSONALIZE_API, { method:'POST', headers:{'Content-Type':'application/json; charset=utf-8'}, body: JSON.stringify({ mode:'ai-script', topic:topic, mood:mood }) });
+    if(!res.ok){ var e=await res.json().catch(function(){return{};}); throw new Error(e.error||('HTTP '+res.status)); }
+    var data = await res.json();
+    if(!data.ok) throw new Error(data.error||'生成失败');
+    var s = data.seed;
+    var safe = (typeof sanitizeStance==='function') ? sanitizeStance(s.script||'') : (s.script||'');
+    var box = document.getElementById('customResult');
+    box.style.display='block';
+    var esc = function(x){ return (x||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    box.innerHTML = '<div style="font-size:14px;line-height:1.8;white-space:pre-wrap;background:#f8f9fb;border:1px solid var(--gray-border);border-radius:8px;padding:10px;max-height:240px;overflow:auto;">'+esc(safe)+'</div>'+
+      '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">'+
+      '<span style="font-size:12px;background:#E8F0FE;color:#1a73e8;padding:4px 10px;border-radius:10px;cursor:pointer;" onclick="copyText(this.parentElement.previousElementSibling.textContent, this)">📋 复制口播稿</span>'+
+      (s.score!==undefined?'<span style="font-size:12px;background:#E6F4EA;color:#0d7c0d;padding:4px 10px;border-radius:10px;">门禁分 '+s.score+'</span>':'')+'</div>';
+    if(typeof toast==='function') toast('✅ 生成完成');
+  } catch(e) {
+    if(typeof toast==='function') toast('生成失败：'+e.message);
+    var b=document.getElementById('customResult'); if(b) b.style.display='none';
+  } finally { btn.disabled=false; btn.textContent='🚀 生成脚本'; }
+}
 
 var curMood = localStorage.getItem('douyin_mood') || 'affinity';
 var curScriptIdx = 0;
