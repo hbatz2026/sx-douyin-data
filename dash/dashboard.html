@@ -364,18 +364,14 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
       </div>
       <div class="section-body">
         <div class="kpi-grid" style="grid-template-columns: repeat(9,1fr)" id="kpiGridMo"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
+        <div style="display:grid;grid-template-columns:1.8fr 1fr;gap:16px;margin-top:16px">
           <div class="chart-box">
-            <div class="chart-box-title">收入结构</div>
-            <div id="summaryPieChart" style="height:260px"></div>
+            <div class="chart-box-title">月度经营指标对比</div>
+            <div id="summaryBarChart" style="height:260px"></div>
           </div>
           <div class="chart-box">
             <div class="chart-box-title">动销率</div>
             <div id="summaryGaugeChart" style="height:260px"></div>
-          </div>
-          <div class="chart-box">
-            <div class="chart-box-title">月度指标对比</div>
-            <div id="summaryBarChart" style="height:260px"></div>
           </div>
         </div>
       </div>
@@ -500,7 +496,7 @@ let QA_DATA = null;
 let regionChart = null, regionPieChart = null, regionBar2Chart = null;
 let heatmapChart = null, bubbleChart = null;
 let flowBarChart = null, flowFunnelChart = null, flowLineChart = null;
-let summaryPieChart = null, summaryGaugeChart = null, summaryBarChart = null;
+let summaryGaugeChart = null, summaryBarChart = null;
 let modalCharts = [];
 let currentRegionTab = 'pay_gmv';
 let lastCityData = {};
@@ -693,7 +689,7 @@ function renderFlowCharts(fr) {
         minSize: '30%',
         sort: 'descending',
         gap: 4,
-        label: { show: true, position: 'inside', fontSize: 12, formatter: p => p.name + '\n' + fmt(p.value) },
+        label: { show: true, position: 'inside', fontSize: 13, fontWeight: 'bold', color: '#fff', formatter: p => p.name + '\n' + fmt(p.value) },
         itemStyle: { borderColor: '#fff', borderWidth: 1 },
         data: [
           { value: showUv, name: '曝光人数', itemStyle: { color: '#0A5CDE' } },
@@ -731,32 +727,7 @@ function renderFlowCharts(fr) {
 function renderSummaryCharts(s) {
   if (!s) return;
   
-  // 1. Pie: 收入结构 (成交/退款/核销)
-  const pieEl = document.getElementById('summaryPieChart');
-  if (pieEl) {
-    if (summaryPieChart) summaryPieChart.dispose();
-    summaryPieChart = echarts.init(pieEl);
-    summaryPieChart.setOption({
-      ...EC_LIGHT,
-      tooltip: { ...EC_LIGHT.tooltip, trigger: 'item', formatter: p => p.name + ': ' + fmtMoney(p.value) + '元 (' + p.percent + '%)' },
-      legend: { bottom: 5, fontSize: 11, icon: 'circle' },
-      series: [{
-        type: 'pie',
-        radius: ['40%', '65%'],
-        center: ['50%', '45%'],
-        avoidLabelOverlap: true,
-        itemStyle: { borderColor: '#fff', borderWidth: 2 },
-        label: { show: true, formatter: '{d}%', fontSize: 11 },
-        data: [
-          { value: num(s.pay_gmv), name: '成交额', itemStyle: { color: '#D4A017' } },
-          { value: num(s.verify_gmv), name: '核销额', itemStyle: { color: '#018B8D' } },
-          { value: num(s.refund_gmv), name: '退款额', itemStyle: { color: '#C8161D' } },
-        ].filter(d => d.value > 0),
-      }]
-    });
-  }
-  
-  // 2. Gauge: 动销率
+  // 1. Gauge: 动销率
   const gaugeEl = document.getElementById('summaryGaugeChart');
   if (gaugeEl) {
     if (summaryGaugeChart) summaryGaugeChart.dispose();
@@ -782,26 +753,29 @@ function renderSummaryCharts(s) {
     });
   }
   
-  // 3. Horizontal Bar: 月度指标对比
+  // 2. Horizontal Bar: 月度指标对比 (合并收入结构)
   const barEl = document.getElementById('summaryBarChart');
   if (barEl) {
     if (summaryBarChart) summaryBarChart.dispose();
     summaryBarChart = echarts.init(barEl);
+    const totalGmv = num(s.month_pay_gmv) + num(s.month_verify_gmv) + num(s.month_refund_gmv);
     const moData = [
-      { name: '月成交额', value: num(s.month_pay_gmv), color: '#D4A017', isMoney: true },
-      { name: '月核销额', value: num(s.month_verify_gmv), color: '#018B8D', isMoney: true },
-      { name: '月退款额', value: num(s.month_refund_gmv), color: '#C8161D', isMoney: true },
-      { name: '月成交券', value: num(s.month_pay_cert_cnt), color: '#D4A017', isMoney: false },
-      { name: '月核销券', value: num(s.month_verify_cert_cnt), color: '#018B8D', isMoney: false },
-      { name: '月退款券', value: num(s.month_refund_cert_cnt), color: '#C8161D', isMoney: false },
+      { name: '月成交额', value: num(s.month_pay_gmv), color: '#D4A017', isMoney: true, pct: totalGmv ? (num(s.month_pay_gmv)/totalGmv*100).toFixed(1) : '0' },
+      { name: '月核销额', value: num(s.month_verify_gmv), color: '#018B8D', isMoney: true, pct: totalGmv ? (num(s.month_verify_gmv)/totalGmv*100).toFixed(1) : '0' },
+      { name: '月退款额', value: num(s.month_refund_gmv), color: '#C8161D', isMoney: true, pct: totalGmv ? (num(s.month_refund_gmv)/totalGmv*100).toFixed(1) : '0' },
+      { name: '月成交券', value: num(s.month_pay_cert_cnt), color: '#D4A017', isMoney: false, pct: '' },
+      { name: '月核销券', value: num(s.month_verify_cert_cnt), color: '#018B8D', isMoney: false, pct: '' },
+      { name: '月退款券', value: num(s.month_refund_cert_cnt), color: '#C8161D', isMoney: false, pct: '' },
     ];
     summaryBarChart.setOption({
       ...EC_LIGHT,
       tooltip: { ...EC_LIGHT.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: params => {
         const d = moData[params[0].dataIndex];
-        return d.name + ': ' + (d.isMoney ? fmtMoney(d.value) + '元' : fmt(d.value));
+        let tip = d.name + ': ' + (d.isMoney ? fmtMoney(d.value) + '元' : fmt(d.value));
+        if (d.pct) tip += ' (' + d.pct + '%)';
+        return tip;
       }},
-      grid: { left: '3%', right: '12%', bottom: '3%', containLabel: true },
+      grid: { left: '3%', right: '14%', bottom: '3%', containLabel: true },
       xAxis: { type: 'value', axisLabel: { fontSize: 10 } },
       yAxis: { type: 'category', data: moData.map(d => d.name), axisLabel: { fontSize: 11 } },
       series: [{
@@ -810,7 +784,9 @@ function renderSummaryCharts(s) {
         barWidth: '50%',
         label: { show: true, position: 'right', fontSize: 10, formatter: p => {
           const d = moData[p.dataIndex];
-          return d.isMoney ? fmtMoney(d.value) : fmt(d.value);
+          let label = d.isMoney ? fmtMoney(d.value) : fmt(d.value);
+          if (d.pct) label += ' (' + d.pct + '%)';
+          return label;
         }},
       }]
     });
@@ -1358,7 +1334,7 @@ function start() {
 
 // Resize handler
 window.addEventListener('resize', () => {
-  [regionChart, regionPieChart, regionBar2Chart, heatmapChart, bubbleChart, flowBarChart, flowFunnelChart, flowLineChart, summaryPieChart, summaryGaugeChart, summaryBarChart].forEach(c => { if (c) c.resize(); });
+  [regionChart, regionPieChart, regionBar2Chart, heatmapChart, bubbleChart, flowBarChart, flowFunnelChart, flowLineChart, summaryGaugeChart, summaryBarChart].forEach(c => { if (c) c.resize(); });
   modalCharts.forEach(c => c.resize());
 });
 </script>
