@@ -64,7 +64,7 @@ body{background:var(--bg-base);color:var(--text-primary);font-family:"Microsoft 
 .kpi-grid{display:grid;gap:var(--sp-3)}
 .kpi-grid.rt{grid-template-columns:repeat(6,1fr)}
 .kpi-grid.mo{grid-template-columns:repeat(9,1fr)}
-.kpi-grid.flow{grid-template-columns:repeat(4,1fr)}
+.kpi-grid.flow{grid-template-columns:repeat(6,1fr)}
 .kpi-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4) var(--sp-3);text-align:center;position:relative;overflow:hidden;transition:all .25s}
 .kpi-card:hover{border-color:var(--border-default);transform:translateY(-2px)}
 .kpi-card .accent-bar{position:absolute;top:0;left:0;right:0;height:2px}
@@ -309,8 +309,10 @@ function renderFlow(fr){
   }
   const items=[
     {label:'开播抖音号',val:fmt(fr.live_author_cnt||0),cls:'white',unit:'个'},
+    {label:'直播场次',val:fmt(fr.live_cnt||0),cls:'cyan',unit:'场'},
     {label:'曝光人数',val:fmt(fr.live_show_uv||0),cls:'blue',unit:'人'},
     {label:'观看人数',val:fmt(fr.live_watch_uv||0),cls:'cyan',unit:'人'},
+    {label:'成交金额',val:fmtMoney(fr.live_gmv||0),cls:'pay',unit:moneyUnit(fr.live_gmv||0)},
     {label:'成交券数',val:fmt(fr.live_pay_cert_cnt||0),cls:'pay',unit:'张'},
   ];
   grid.innerHTML=items.map(k=>
@@ -399,6 +401,8 @@ function drawRegionChart(cities,metric){
         }
       })),
       barWidth:'45%',
+      animationDuration:800,
+      animationEasing:'cubicOut',
       label:{show:true,position:'top',
         color:'#e6edf3',fontSize:10,
         formatter:p=>p.value>0?(isMoney?'¥'+fmtMoney(p.value):fmt(p.value)):''
