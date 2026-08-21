@@ -1,47 +1,24 @@
 {
-  "ts": "20260820161646",
-  "generated_at": "2026-08-20 16:18:08",
+  "ts": "20260821085818",
+  "generated_at": "2026-08-21 09:01:31",
   "total_rooms": 5,
   "alerts": [
     {
-      "level": "提示",
-      "item": "低互动",
-      "desc": "直播超30分钟无评论",
-      "nickname": "中国电信滨河路营业厅小刘",
-      "room_id": "809ab545709ed5a0bbb3ef895e571c8ff66a06fc9b735cb2fea4ea5250aa577c",
-      "ts": "20260820161646"
+      "level": "警告",
+      "item": "无人挂播疑似",
+      "desc": "开播31分钟但实时在线为0",
+      "nickname": "莫殇",
+      "room_id": "1b12d2035c2a0a4bf3651d5d9f3f3718e59a8c7b6cd78680ed4789db7535ba12",
+      "ts": "20260821085818"
     },
     {
       "level": "提示",
       "item": "低互动",
       "desc": "直播超30分钟无评论",
-      "nickname": "中国电信(乐平街营业厅)小倩",
-      "room_id": "fbf1dfd234a9bee509b71ab108dc16e5318411a4a169b2611ed9afdfec295678",
-      "ts": "20260820161646"
-    },
-    {
-      "level": "提示",
-      "item": "低互动",
-      "desc": "直播超30分钟无评论",
-      "nickname": "85187433269",
-      "room_id": "df8473f75d8734d7050e38b9f5919e1027c32e3d9326db4300c30c75eeb66389",
-      "ts": "20260820161646"
-    },
-    {
-      "level": "提示",
-      "item": "低互动",
-      "desc": "直播超30分钟无评论",
-      "nickname": "中国电信(前进西街营业厅)慢慢",
-      "room_id": "b4ed64ea4d71442fc4d436c29b1f8fd41d68caff3e254fbbfd8244b5ff6b3608",
-      "ts": "20260820161646"
-    },
-    {
-      "level": "提示",
-      "item": "低互动",
-      "desc": "直播超30分钟无评论",
-      "nickname": "忻州电信来客",
-      "room_id": "45d74d6157fc858f2fd98ee2ceaeb1850be23a5226ad13376d0eee16b3f2f898",
-      "ts": "20260820161646"
+      "nickname": "莫殇",
+      "room_id": "1b12d2035c2a0a4bf3651d5d9f3f3718e59a8c7b6cd78680ed4789db7535ba12",
+      "ts": "20260821085818"
     }
-  ]
+  ],
+  "vision_alerts": 0
 }
