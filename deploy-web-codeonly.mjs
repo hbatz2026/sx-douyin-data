@@ -71,7 +71,7 @@ function crc32(buf) {
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 function createZipFile(srcDir) {
-  const files = ['index.js', 'loader.js', 'scf_bootstrap', 'version.txt', 'quality-gate.cjs', 'seed-pool-mode.cjs', 'validate-seedpool.cjs', 'ai-script-mode.cjs', 'product-research.cjs', 'config/compliance-rules.json'];
+  const files = ['index.js', 'loader.js', 'scf_bootstrap', 'version.txt', 'quality-gate.cjs', 'seed-pool-mode.cjs', 'validate-seedpool.cjs', 'ai-script-mode.cjs', 'ai-rewrite-mode.cjs', 'product-research.cjs', 'config/compliance-rules.json'];
   const localParts = [];
   const central = [];
   let offset = 0;
