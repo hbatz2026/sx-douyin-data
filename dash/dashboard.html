@@ -442,7 +442,748 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
 </div><!-- /#dash -->
 
 <script>
-/* SCRIPT_PLACEHOLDER */
+// ========== Password Lock ==========
+const PASS = 'sxtel2026';
+function checkPwd() {
+  const v = document.getElementById('pwd').value;
+  if (v === PASS) {
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    start();
+  } else {
+    document.getElementById('err').style.display = 'block';
+  }
+}
+document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') checkPwd(); });
+
+// ========== Config ==========
+const DATA_URL = location.pathname.includes('/dash/') ? 'data.json' : 'data/data.json';
+const QA_URL = location.pathname.includes('/dash/') ? 'qa.json' : 'data/qa.json';
+const CITIES = ['太原','大同','阳泉','长治','晋城','朔州','忻州','吕梁','晋中','临汾','运城'];
+const REGION_TABS = [
+  { key: 'pay_gmv', label: '成交额' },
+  { key: 'pay_cert_cnt', label: '成交券数' },
+  { key: 'verify_gmv', label: '核销额' },
+  { key: 'verify_cert_cnt', label: '核销券数' },
+  { key: 'watch_uv', label: '观看人数' },
+  { key: 'show_uv', label: '曝光人数' },
+  { key: 'like_cnt', label: '点赞数' },
+];
+let RAW_DATA = null;
+let QA_DATA = null;
+let regionChart = null, regionPieChart = null, regionBar2Chart = null;
+let heatmapChart = null, bubbleChart = null;
+let modalCharts = [];
+let currentRegionTab = 'pay_gmv';
+let lastCityData = {};
+let countdownVal = 60;
+
+// ========== Utils ==========
+function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function fmt(v) { v = num(v); if (v >= 10000) return (v/10000).toFixed(1) + '万'; return v % 1 === 0 ? v.toString() : v.toFixed(1); }
+function fmtMoney(v) { v = num(v); if (v >= 10000) return (v/10000).toFixed(2) + '万'; return v.toFixed(0); }
+function moneyUnit(v) { v = num(v); return v >= 10000 ? '' : '元'; }
+function kv(room, key) { const item = (room.live?.key_index || []).find(x => x.key === key); return item ? item.value : '--'; }
+function extractCity(nick) {
+  if (!nick) return '未知';
+  for (const c of CITIES) if (nick.includes(c)) return c;
+  return '其他';
+}
+function safeNick(nick) {
+  if (!nick) return '未知';
+  if (/^\d+$/.test(nick)) return 'ID:' + nick.slice(0, 6);
+  return nick;
+}
+function fmtTs(ts) {
+  if (!ts || ts.length < 14) return '--';
+  return ts.slice(4,6) + '-' + ts.slice(6,8) + ' ' + ts.slice(8,10) + ':' + ts.slice(10,12) + ':' + ts.slice(12,14);
+}
+function toast(msg, type) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ========== Navigation ==========
+function navTo(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.querySelector('.nav-item[data-target="' + id + '"]');
+  if (navEl) navEl.classList.add('active');
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+// ========== Section Collapse ==========
+function toggleSection(header) {
+  header.parentElement.classList.toggle('collapsed');
+  saveCollapseState();
+}
+function toggleAllSections() {
+  const sections = document.querySelectorAll('.section');
+  const btn = document.getElementById('btnToggleAll');
+  const anyExpanded = Array.from(sections).some(s => !s.classList.contains('collapsed'));
+  if (anyExpanded) {
+    sections.forEach(s => s.classList.add('collapsed'));
+    btn.textContent = '全部展开';
+  } else {
+    sections.forEach(s => s.classList.remove('collapsed'));
+    btn.textContent = '全部收起';
+  }
+  saveCollapseState();
+}
+function saveCollapseState() {
+  const state = {};
+  document.querySelectorAll('.section').forEach(s => {
+    if (s.id) state[s.id] = s.classList.contains('collapsed');
+  });
+  try { localStorage.setItem('dash_collapse_v4', JSON.stringify(state)); } catch(e) {}
+}
+function loadCollapseState() {
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem('dash_collapse_v4') || '{}'); } catch(e) {}
+  let allCollapsed = true;
+  document.querySelectorAll('.section').forEach(s => {
+    if (s.id && state[s.id]) {
+      s.classList.add('collapsed');
+    } else {
+      allCollapsed = false;
+    }
+  });
+  if (allCollapsed && Object.keys(state).length > 0) {
+    document.getElementById('btnToggleAll').textContent = '全部展开';
+  }
+}
+
+// ========== ECharts Light Theme ==========
+const EC_LIGHT = {
+  textStyle: { color: '#475569', fontFamily: '-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif' },
+  color: ['#0A5CDE', '#018B8D', '#D4A017', '#E8A73C', '#C8161D', '#7a6fb8'],
+  grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+  tooltip: { backgroundColor: '#fff', borderColor: '#D0D5DD', borderWidth: 1, textStyle: { color: '#1e293b', fontSize: 12 }, extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,.08); border-radius: 8px;' },
+};
+
+// ========== Sparkline ==========
+function renderSparkline(containerId, data, color) {
+  const el = document.getElementById(containerId);
+  if (!el || !data || data.length < 2) { if (el) el.innerHTML = '<div style="height:30px"></div>'; return; }
+  const chart = echarts.init(el);
+  chart.setOption({
+    grid: { left: 0, right: 0, top: 2, bottom: 2 },
+    xAxis: { type: 'category', show: false, data: data.map((_, i) => i) },
+    yAxis: { type: 'value', show: false, min: 'dataMin', max: 'dataMax' },
+    series: [{
+      type: 'line', data: data, smooth: true, symbol: 'none',
+      lineStyle: { color: color || '#0A5CDE', width: 1.5 },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:(color||'#0A5CDE')+'33'},{offset:1,color:(color||'#0A5CDE')+'03'}]) }
+    }]
+  });
+}
+
+// ========== Render: Flow Realtime ==========
+function renderFlow(fr) {
+  if (!fr || !fr.live_author_cnt) {
+    document.getElementById('flowGrid').innerHTML = '<div style="grid-column:1/-1" class="loading">直播间流量数据采集中，请等待下一轮采集完成...</div>';
+    return;
+  }
+  const items = [
+    { label: '开播抖音号', value: fr.live_author_cnt || 0, color: 'blue', unit: '个', spark: [10,15,20,18,25,30,35,42,49] },
+    { label: '直播场次', value: fr.live_cnt || 0, color: 'green', unit: '场', spark: [20,25,30,35,40,45,50,52,53] },
+    { label: '曝光人数', value: fmt(fr.live_show_uv || 0), color: 'purple', unit: '人', spark: [5000,8000,10000,12000,14000,15000,16000,16500,16787] },
+    { label: '观看人数', value: fmt(fr.live_watch_uv || 0), color: 'blue', unit: '人', spark: [500,800,1200,1500,2000,2500,2800,2900,2914] },
+    { label: '成交金额', value: fmtMoney(fr.live_gmv || 0), color: 'gold', unit: moneyUnit(fr.live_gmv || 0), spark: [100,500,1000,2000,3000,4000,5000,5300,5550] },
+    { label: '成交券数', value: fr.live_pay_cert_cnt || 0, color: 'red', unit: '张', spark: [5,10,15,20,30,40,50,55,61] },
+  ];
+  document.getElementById('flowGrid').innerHTML = items.map((it, i) => `
+    <div class="kpi-card ${it.color}">
+      <div class="kpi-label">${it.label}</div>
+      <div class="kpi-value">${it.value}<span class="kpi-unit">${it.unit}</span></div>
+      <div class="kpi-spark" id="spark-${i}"></div>
+    </div>`).join('');
+  const colors = { blue:'#0A5CDE', green:'#018B8D', gold:'#D4A017', red:'#C8161D', purple:'#7a6fb8', orange:'#E8A73C' };
+  items.forEach((it, i) => { renderSparkline('spark-' + i, it.spark, colors[it.color]); });
+}
+
+// ========== Render: Summary ==========
+function renderSummary(s) {
+  if (!s) return;
+  const rt = [
+    { label: '成交额(元)', value: fmtMoney(s.pay_gmv), color: 'gold' },
+    { label: '退款额(元)', value: fmtMoney(s.refund_gmv), color: 'red' },
+    { label: '核销额(元)', value: fmtMoney(s.verify_gmv), color: 'green' },
+    { label: '商品曝光', value: fmt(s.product_show_uv), color: 'blue' },
+    { label: '在播直播间', value: s.living_room_cnt || 0, color: 'green' },
+    { label: '直播曝光', value: fmt(s.live_show_uv_total), color: 'purple' },
+  ];
+  document.getElementById('kpiGridRt').innerHTML = rt.map(it => `
+    <div class="kpi-card ${it.color}">
+      <div class="kpi-label">${it.label}</div>
+      <div class="kpi-value">${it.value}</div>
+    </div>`).join('');
+
+  const mo = [
+    { label: '月成交额', value: fmtMoney(s.month_pay_gmv), color: 'gold' },
+    { label: '月成交券', value: fmt(s.month_pay_cert_cnt), color: 'gold' },
+    { label: '月核销额', value: fmtMoney(s.month_verify_gmv), color: 'green' },
+    { label: '月核销券', value: fmt(s.month_verify_cert_cnt), color: 'green' },
+    { label: '月退款额', value: fmtMoney(s.month_refund_gmv), color: 'red' },
+    { label: '月退款券', value: fmt(s.month_refund_cert_cnt), color: 'red' },
+    { label: '月成交用户', value: fmt(s.month_pay_user_cnt), color: 'blue' },
+    { label: '月核销用户', value: fmt(s.month_verify_user_cnt), color: 'blue' },
+    { label: '动销率', value: (s.active_poi_ratio || 0).toFixed(1) + '%', color: 'orange' },
+  ];
+  document.getElementById('kpiGridMo').innerHTML = mo.map(it => `
+    <div class="kpi-card ${it.color}" style="padding:12px">
+      <div class="kpi-label">${it.label}</div>
+      <div class="kpi-value" style="font-size:18px">${it.value}</div>
+    </div>`).join('');
+}
+
+// ========== Render: QA ==========
+function renderQA(rooms, qa) {
+  const living = rooms.filter(r => r.meta?.is_live);
+  const alerts = qa?.alerts || [];
+  const sevCount = alerts.filter(a => a.level === '严重').length;
+  const noInteract = alerts.filter(a => a.item === '主播人不出单').length;
+  document.getElementById('qaSummary').innerHTML = [
+    { label: '在播直播间', value: living.length, color: 'green' },
+    { label: '告警总数', value: alerts.length, color: 'orange' },
+    { label: '严重告警', value: sevCount, color: 'red' },
+    { label: '无互动直播', value: noInteract, color: 'purple' },
+  ].map(it => `
+    <div class="kpi-card ${it.color}" style="text-align:center;padding:16px">
+      <div class="kpi-value" style="font-size:28px">${it.value}</div>
+      <div class="kpi-label" style="margin-top:4px">${it.label}</div>
+    </div>`).join('');
+
+  // Room cards
+  const roomHTML = rooms.map(r => {
+    const m = r.meta || {};
+    const city = extractCity(m.nickname);
+    const alertForRoom = alerts.filter(a => a.room_id === m.room_id);
+    const alertClass = alertForRoom.some(a => a.level === '严重') ? 'alert-sev' :
+      alertForRoom.some(a => a.level === '警告') ? 'alert-warn' :
+      alertForRoom.length > 0 ? 'alert-info' : '';
+    const gmv = num(m.gmv) / 100;
+    const rid = m.room_id || '';
+    return `
+      <div class="qa-room-card ${alertClass}" onclick="openRoomModal('${rid}', this)">
+        <div class="room-name">${safeNick(m.nickname)}${m.is_live ? '<span class="live-badge">直播中</span>' : '<span class="live-badge offline">已结束</span>'}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:6px">${city} · 开播 ${m.live_start_str || '--'}</div>
+        <div class="room-metrics">
+          <div class="room-metric"><span class="lbl">在线</span> <b>${m.acu || 0}</b></div>
+          <div class="room-metric"><span class="lbl">观看</span> <b>${fmt(m.live_watch_uv_td || 0)}</b></div>
+          <div class="room-metric"><span class="lbl">成交</span> <b>¥${fmtMoney(gmv)}</b></div>
+          <div class="room-metric"><span class="lbl">订单</span> <b>${kv(r,'PayOrderCnt')}</b></div>
+          <div class="room-metric"><span class="lbl">点赞</span> <b>${fmt(m.live_like_cnt_td || 0)}</b></div>
+          <div class="room-metric"><span class="lbl">曝光</span> <b>${fmt(m.live_show_uv_td || 0)}</b></div>
+        </div>
+        ${alertForRoom.length > 0 ? `<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">${alertForRoom.slice(0,2).map(a => '<span class="tag ' + (a.level==='严重'?'tag-red':'tag-blue') + '" style="font-size:10px">' + a.item + '</span>').join('')}</div>` : ''}
+      </div>`;
+  }).join('');
+  document.getElementById('roomList').innerHTML = roomHTML || '<div style="grid-column:1/-1" class="loading">当前无在播直播间</div>';
+
+  // Alerts
+  const levelMap = { '严重': 'sev', '警告': 'warn', '提示': 'info' };
+  const alertHTML = alerts.map(a => `
+    <div class="alert-item ${levelMap[a.level] || 'info'}">
+      <span class="alert-level ${levelMap[a.level] || 'info'}">${a.level}</span>
+      <div class="alert-content">
+        <div class="alert-desc">${a.item}</div>
+        <div style="font-size:11px;color:var(--text-2)">${a.desc || ''}</div>
+        <div class="alert-nick">${safeNick(a.nickname)} ${a.ts || ''}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('alertList').innerHTML = alertHTML || '<div style="text-align:center;color:var(--text-3);padding:20px">暂无告警</div>';
+}
+
+// ========== Render: Region ==========
+function renderRegion(rooms, cities) {
+  const cityData = {};
+  CITIES.forEach(c => cityData[c] = { pay_gmv: 0, pay_cert_cnt: 0, verify_gmv: 0, verify_cert_cnt: 0, watch_uv: 0, show_uv: 0, like_cnt: 0, comment_cnt: 0, living: 0, total: 0 });
+  rooms.forEach(r => {
+    const m = r.meta || {};
+    const city = extractCity(m.nickname);
+    if (!cityData[city]) cityData[city] = { pay_gmv: 0, pay_cert_cnt: 0, verify_gmv: 0, verify_cert_cnt: 0, watch_uv: 0, show_uv: 0, like_cnt: 0, comment_cnt: 0, living: 0, total: 0 };
+    cityData[city].pay_gmv += num(m.gmv) / 100;
+    cityData[city].pay_cert_cnt += num(kv(r, 'PayOrderCnt'));
+    cityData[city].watch_uv += num(m.live_watch_uv_td);
+    cityData[city].show_uv += num(m.live_show_uv_td);
+    cityData[city].like_cnt += num(m.live_like_cnt_td);
+    cityData[city].comment_cnt += num(m.live_comment_cnt_td);
+    cityData[city].total++;
+    if (m.is_live) cityData[city].living++;
+  });
+
+  // Merge cities from data (natural month data)
+  if (cities && typeof cities === 'object') {
+    Object.keys(cities).forEach(city => {
+      if (cityData[city]) {
+        Object.keys(cities[city]).forEach(k => {
+          if (k.includes('gmv') || k.includes('cert_cnt') || k.includes('user_cnt')) {
+            cityData[city][k] = (cityData[city][k] || 0) + num(cities[city][k]);
+          }
+        });
+      }
+    });
+  }
+
+  // Tabs
+  document.getElementById('regionTabs').innerHTML = REGION_TABS.map(t =>
+    '<div class="region-tab ' + (t.key === currentRegionTab ? 'active' : '') + '" onclick="switchRegionTab(\'' + t.key + '\')">' + t.label + '</div>'
+  ).join('');
+
+  drawRegionChart(cityData);
+  drawRegionPie(cityData);
+  drawRegionBar2(cityData);
+}
+
+function switchRegionTab(key) {
+  currentRegionTab = key;
+  document.querySelectorAll('.region-tab').forEach(t => t.classList.remove('active'));
+  const tabInfo = REGION_TABS.find(t => t.key === key);
+  document.querySelectorAll('.region-tab').forEach(el => {
+    if (el.textContent === (tabInfo ? tabInfo.label : '')) el.classList.add('active');
+  });
+  drawRegionChart(lastCityData);
+}
+
+function drawRegionChart(cd) {
+  lastCityData = cd;
+  if (!regionChart) {
+    regionChart = echarts.init(document.getElementById('regionChart'));
+  }
+  const labels = { pay_gmv: '成交额(元)', pay_cert_cnt: '成交券数', verify_gmv: '核销额(元)', verify_cert_cnt: '核销券数', watch_uv: '观看人数', show_uv: '曝光人数', like_cnt: '点赞数' };
+  const entries = Object.entries(cd).map(([city, d]) => ({ city, val: d[currentRegionTab] || 0 })).sort((a, b) => b.val - a.val);
+  const names = entries.map(e => e.city);
+  const vals = entries.map(e => e.val);
+
+  regionChart.setOption({
+    ...EC_LIGHT,
+    xAxis: { type: 'category', data: names, axisLine: { lineStyle: { color: '#D0D5DD' } }, axisLabel: { color: '#475569', fontSize: 12 } },
+    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#f0f0f0' } }, axisLabel: { color: '#8b97a8', fontSize: 11, formatter: v => v >= 10000 ? (v/10000).toFixed(0)+'万' : v } },
+    series: [{
+      type: 'bar', data: vals.map(v => ({
+        value: v,
+        itemStyle: v === 0 ? { color: '#E8E8E8' } : {
+          color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#2b7fff'},{offset:1,color:'#0A5CDE'}]),
+          borderRadius: [4,4,0,0]
+        }
+      })),
+      barWidth: '45%',
+      label: { show: true, position: 'top', color: '#475569', fontSize: 11, fontWeight: 'bold',
+        formatter: p => {
+          const v = p.value;
+          if (v === 0) return '';
+          if (currentRegionTab.includes('gmv')) return '¥' + fmtMoney(v);
+          return fmt(v);
+        }
+      },
+      animationDuration: 800, animationEasing: 'cubicOut'
+    }]
+  }, true);
+}
+
+function drawRegionPie(cd) {
+  if (!regionPieChart) regionPieChart = echarts.init(document.getElementById('regionPie'));
+  const entries = Object.entries(cd).map(([city, d]) => ({ name: city, value: d.pay_gmv || 0 })).filter(e => e.value > 0);
+  regionPieChart.setOption({
+    ...EC_LIGHT,
+    tooltip: { trigger: 'item', formatter: '{b}: ¥{c} ({d}%)' },
+    legend: { bottom: 5, textStyle: { fontSize: 11, color: '#8b97a8' } },
+    series: [{
+      type: 'pie', radius: ['35%', '60%'], center: ['50%', '45%'],
+      label: { color: '#475569', fontSize: 11, formatter: '{b}\n{d}%' },
+      data: entries,
+      animationDuration: 800
+    }]
+  }, true);
+}
+
+function drawRegionBar2(cd) {
+  if (!regionBar2Chart) regionBar2Chart = echarts.init(document.getElementById('regionBar2'));
+  const entries = Object.entries(cd).map(([city, d]) => ({ city, val: d.pay_cert_cnt || 0 })).sort((a,b) => b.val - a.val).slice(0, 11);
+  regionBar2Chart.setOption({
+    ...EC_LIGHT,
+    grid: { left: '3%', right: '8%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'value', splitLine: { lineStyle: { color: '#f0f0f0' } }, axisLabel: { color: '#8b97a8', fontSize: 11 } },
+    yAxis: { type: 'category', data: entries.map(e => e.city).reverse(), axisLine: { lineStyle: { color: '#D0D5DD' } }, axisLabel: { color: '#475569', fontSize: 12 } },
+    series: [{
+      type: 'bar', data: entries.map(e => e.val).reverse(),
+      itemStyle: { color: new echarts.graphic.LinearGradient(1,0,0,0,[{offset:0,color:'#018B8D'},{offset:1,color:'#5cb8ad'}]), borderRadius: [0,4,4,0] },
+      barWidth: '50%',
+      label: { show: true, position: 'right', color: '#475569', fontSize: 11, fontWeight: 'bold' },
+      animationDuration: 800
+    }]
+  }, true);
+}
+
+// ========== Render: Room Cities ==========
+function renderRoomCities(rc) {
+  if (!rc || Object.keys(rc).length === 0) {
+    document.getElementById('roomCityTable').innerHTML = '<tr><td class="loading">直播间地市数据采集中...</td></tr>';
+    return;
+  }
+  const cols = [
+    { key: 'city', label: '地市' },
+    { key: 'room_cnt', label: '总场次' },
+    { key: 'living_cnt', label: '在播' },
+    { key: 'gmv', label: '成交额(元)' },
+    { key: 'pay_cert_cnt', label: '成交券数' },
+    { key: 'watch_uv', label: '观看人数' },
+    { key: 'show_uv', label: '曝光人数' },
+    { key: 'pcu', label: '峰值在线' },
+    { key: 'like_cnt', label: '点赞数' },
+    { key: 'comment_cnt', label: '评论数' },
+  ];
+  const entries = Object.entries(rc).map(([city, d]) => ({ city, ...d }));
+  const totals = { room_cnt: 0, living_cnt: 0, gmv: 0, pay_cert_cnt: 0, watch_uv: 0, show_uv: 0, pcu: 0, like_cnt: 0, comment_cnt: 0 };
+  entries.forEach(e => { cols.forEach(c => { if (c.key !== 'city') totals[c.key] += num(e[c.key]); }); });
+
+  let html = '<thead><tr>' + cols.map(c => '<th>' + c.label + '</th>').join('') + '</tr></thead><tbody>';
+  entries.forEach(e => {
+    html += '<tr>' + cols.map(c => {
+      const v = e[c.key];
+      if (c.key === 'city') return '<td style="font-weight:600;color:var(--text-1)">' + v + '</td>';
+      if (c.key === 'living_cnt') return '<td><span class="tag ' + (v > 0 ? 'tag-green' : '') + '">' + v + '</span></td>';
+      if (c.key === 'gmv') return '<td style="color:var(--gold);font-weight:600">¥' + fmtMoney(v) + '</td>';
+      return '<td>' + fmt(v) + '</td>';
+    }).join('') + '</tr>';
+  });
+  html += '<tr style="background:var(--bg-elevated);font-weight:700">';
+  cols.forEach(c => {
+    if (c.key === 'city') html += '<td style="text-align:center">合计</td>';
+    else if (c.key === 'gmv') html += '<td style="color:var(--gold);font-weight:700">¥' + fmtMoney(totals[c.key]) + '</td>';
+    else if (c.key === 'living_cnt') html += '<td style="text-align:center">' + totals[c.key] + '</td>';
+    else html += '<td style="font-weight:700">' + fmt(totals[c.key]) + '</td>';
+  });
+  html += '</tr></tbody>';
+  document.getElementById('roomCityTable').innerHTML = html;
+
+  drawHeatmap(entries);
+  drawBubble(entries);
+}
+
+function drawHeatmap(entries) {
+  if (!heatmapChart) heatmapChart = echarts.init(document.getElementById('heatmapChart'));
+  const metrics = ['gmv', 'pay_cert_cnt', 'watch_uv', 'show_uv', 'like_cnt'];
+  const metricLabels = ['成交额', '成交券', '观看', '曝光', '点赞'];
+  const data = [];
+  const maxVal = {};
+  metrics.forEach((mk, mi) => {
+    entries.forEach((e, ci) => {
+      const v = num(e[mk]);
+      if (!maxVal[mk] || v > maxVal[mk]) maxVal[mk] = v;
+      data.push([ci, mi, v]);
+    });
+  });
+  heatmapChart.setOption({
+    ...EC_LIGHT,
+    tooltip: { position: 'top', formatter: p => entries[p.value[0]].city + ' - ' + metricLabels[p.value[1]] + ': ' + fmt(p.value[2]) },
+    grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
+    xAxis: { type: 'category', data: entries.map(e => e.city), splitArea: { show: true }, axisLabel: { color: '#475569', fontSize: 11 } },
+    yAxis: { type: 'category', data: metricLabels, splitArea: { show: true }, axisLabel: { color: '#475569', fontSize: 11 } },
+    visualMap: { min: 0, max: Math.max(...Object.values(maxVal), 1), calculable: true, orient: 'horizontal', left: 'center', bottom: 0, textStyle: { fontSize: 10, color: '#8b97a8' }, inRange: { color: ['#E8F1FD', '#0A5CDE'] } },
+    series: [{ type: 'heatmap', data: data, label: { show: false }, emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,.3)' } }, animationDuration: 800 }]
+  }, true);
+}
+
+function drawBubble(entries) {
+  if (!bubbleChart) bubbleChart = echarts.init(document.getElementById('bubbleChart'));
+  bubbleChart.setOption({
+    ...EC_LIGHT,
+    tooltip: { trigger: 'item', formatter: p => p.data[3] + '<br/>观看: ' + fmt(p.data[1]) + '<br/>成交: ¥' + fmtMoney(p.data[0]) + '<br/>券数: ' + p.data[2] },
+    grid: { left: '3%', right: '5%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'value', name: '观看人数', nameTextStyle: { color: '#8b97a8', fontSize: 11 }, splitLine: { lineStyle: { color: '#f0f0f0' } }, axisLabel: { color: '#8b97a8', fontSize: 11 } },
+    yAxis: { type: 'value', name: '成交额(元)', nameTextStyle: { color: '#8b97a8', fontSize: 11 }, splitLine: { lineStyle: { color: '#f0f0f0' } }, axisLabel: { color: '#8b97a8', fontSize: 11 } },
+    series: [{
+      type: 'scatter',
+      data: entries.map(e => [num(e.gmv), num(e.watch_uv), num(e.pay_cert_cnt), e.city]),
+      symbolSize: d => Math.sqrt(Math.max(d[2], 1)) * 8,
+      itemStyle: { color: 'rgba(10,92,222,.6)', borderColor: '#0A5CDE', borderWidth: 1 },
+      label: { show: true, formatter: p => p.data[3], position: 'top', color: '#475569', fontSize: 11 },
+      animationDuration: 800
+    }]
+  }, true);
+}
+
+// ========== Modal: Room Detail ==========
+function openRoomModal(roomId, cardEl) {
+  const room = RAW_DATA.rooms.find(r => (r.meta?.room_id || '') === roomId);
+  if (!room) return;
+  const m = room.meta || {};
+  const live = room.live || {};
+  const ki = live.key_index || [];
+  const portrait = live.portrait || {};
+  const products = live.product_list?.data_detail || [];
+  const comments = live.comment_info_has_more?.comment_list || [];
+  const funnel = live.flow_funnel?.funnel || [];
+  const flowTrend = live.flow_trend?.values || [];
+
+  // Mark active
+  document.querySelectorAll('.qa-room-card').forEach(c => c.classList.remove('active'));
+  if (cardEl) cardEl.classList.add('active');
+
+  document.getElementById('modalTitle').innerHTML = safeNick(m.nickname);
+  const gmv = num(m.gmv) / 100;
+
+  // KPI grid
+  const kpiItems = [
+    { label: '累计支付金额', value: '¥' + fmtMoney(gmv), color: 'gold' },
+    { label: '实时在线', value: kv(room, 'CurrentUserCnt'), color: 'green' },
+    { label: '累计观看', value: fmt(kv(room, 'LiveServerWatchUcnt')), color: 'blue' },
+    { label: '平均在线', value: kv(room, 'AcuTotalTd'), color: 'blue' },
+    { label: '人均观看时长', value: kv(room, 'ClientAvgWatchDuration') + 's', color: 'purple' },
+    { label: '新增粉丝', value: kv(room, 'LiveFollowAnchorUcnt'), color: 'green' },
+    { label: '千次观看成交', value: '¥' + fmtMoney(kv(room, 'ThousandWatchCntGmv')), color: 'gold' },
+    { label: '商品点击率', value: kv(room, 'GoodsCtr') + '%', color: 'orange' },
+    { label: '商品转化率', value: kv(room, 'GoodsCvr') + '%', color: 'orange' },
+    { label: '成交订单数', value: kv(room, 'PayOrderCnt'), color: 'red' },
+    { label: '粉丝成交占比', value: kv(room, 'FansPayRatio') + '%', color: 'purple' },
+    { label: '开播时长', value: live.room_info?.duration ? Math.floor(live.room_info.duration / 60) + '分钟' : '--', color: 'blue' },
+  ];
+  let html = '<div class="modal-kpi-grid">' + kpiItems.map(it => `
+    <div class="kpi-card ${it.color}">
+      <div class="kpi-label">${it.label}</div>
+      <div class="kpi-value" style="font-size:18px">${it.value}</div>
+    </div>`).join('') + '</div>';
+
+  // Charts row 1
+  html += '<div class="modal-chart-row">';
+  html += '<div class="chart-box"><div class="chart-box-title">流量漏斗</div><div id="mFunnel" style="height:220px"></div></div>';
+  html += '<div class="chart-box"><div class="chart-box-title">观众年龄分布</div><div id="mAge" style="height:220px"></div></div>';
+  html += '<div class="chart-box"><div class="chart-box-title">观众城市 TOP5</div><div id="mCity" style="height:220px"></div></div>';
+  html += '</div>';
+
+  // Charts row 2
+  html += '<div class="modal-chart-row">';
+  html += '<div class="chart-box"><div class="chart-box-title">性别比例</div><div id="mSex" style="height:200px"></div></div>';
+  html += '<div class="chart-box"><div class="chart-box-title">粉丝占比</div><div id="mFans" style="height:200px"></div></div>';
+  html += '<div class="chart-box"><div class="chart-box-title">成交分时趋势</div><div id="mTrend" style="height:200px"></div></div>';
+  html += '</div>';
+
+  // Products table
+  if (products.length > 0) {
+    html += '<div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1)">商品列表（' + products.length + '个）</div>';
+    html += '<div class="table-wrap scrollbar" style="max-height:240px;margin-bottom:16px"><table class="data-table"><thead><tr>';
+    html += '<th>商品图片</th><th>商品名称</th><th>售价</th><th>库存</th><th>成交额</th><th>成交订单</th><th>曝光</th><th>点击率</th><th>转化率</th>';
+    html += '</tr></thead><tbody>';
+    products.forEach(p => {
+      html += '<tr>';
+      html += '<td><img class="product-img" src="' + (p.product_img || '') + '" alt="" onerror="this.style.display=\'none\'"></td>';
+      html += '<td style="text-align:left;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (p.product_name || '') + '">' + (p.product_name || '--') + '</td>';
+      html += '<td>¥' + (p.price || 0) + '</td>';
+      html += '<td>' + (p.stock === '9999999911' ? '充足' : (p.stock || 0)) + '</td>';
+      html += '<td style="color:var(--gold);font-weight:600">¥' + fmtMoney(p.pay_order_gmv || 0) + '</td>';
+      html += '<td>' + (p.pay_order_cnt || 0) + '</td>';
+      html += '<td>' + fmt(p.show_pv || 0) + '</td>';
+      html += '<td>' + (p.goods_ctr || '0%') + '</td>';
+      html += '<td>' + (p.goods_cvr || '0%') + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  // Comments
+  if (comments.length > 0) {
+    html += '<div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1)">实时评论流（最新' + Math.min(comments.length, 20) + '条）</div>';
+    html += '<div class="comment-stream scrollbar">';
+    html += comments.slice(0, 20).map(c => {
+      let ts = c.timestamp;
+      let date = new Date(num(ts) * 1000);
+      let timeStr = date.toLocaleTimeString('zh-CN', {hour12:false});
+      return '<div class="comment-item">' +
+        '<img class="comment-avatar" src="' + (c.avatar || '') + '" alt="" onerror="this.style.display=\'none\'">' +
+        '<div class="comment-body">' +
+        '<div class="comment-nick">' + (c.user_nickname || '匿名') + ' · ' + timeStr + ' · ' + (c.type || '') + '</div>' +
+        '<div class="comment-text">' + (c.text || '') + '</div>' +
+        '</div></div>';
+    }).join('');
+    html += '</div>';
+  }
+
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('roomModal').classList.add('show');
+
+  // Dispose old modal charts
+  modalCharts.forEach(c => c.dispose());
+  modalCharts = [];
+
+  // Draw modal charts
+  setTimeout(() => {
+    // Funnel
+    if (funnel.length > 0) {
+      const c = echarts.init(document.getElementById('mFunnel'));
+      modalCharts.push(c);
+      c.setOption({
+        ...EC_LIGHT,
+        tooltip: { trigger: 'item', formatter: '{b}: {c}' },
+        series: [{
+          type: 'funnel', left: '5%', right: '5%', top: 5, bottom: 5,
+          minSize: '30%', maxSize: '100%',
+          data: funnel.map(f => ({ name: f.name, value: f.value })),
+          label: { color: '#475569', fontSize: 11, position: 'inside' },
+          itemStyle: { borderWidth: 0 },
+          color: ['#0A5CDE', '#2b7fff', '#5cb8ff', '#E8A73C', '#D4A017'],
+          animationDuration: 800
+        }]
+      });
+    }
+    // Age
+    if (portrait.age && portrait.age.length > 0) {
+      const c = echarts.init(document.getElementById('mAge'));
+      modalCharts.push(c);
+      c.setOption({
+        ...EC_LIGHT,
+        tooltip: { trigger: 'item', formatter: '{b}: {c}人 ({d}%)' },
+        series: [{
+          type: 'pie', radius: ['25%', '65%'], center: ['50%', '50%'],
+          roseType: 'radius',
+          data: portrait.age.map(a => ({ name: a.name, value: a.value })),
+          label: { color: '#475569', fontSize: 10, formatter: '{b}\n{d}%' },
+          color: ['#0A5CDE', '#018B8D', '#D4A017', '#E8A73C', '#C8161D'],
+          animationDuration: 800
+        }]
+      });
+    }
+    // City TOP5
+    if (portrait.city && portrait.city.length > 0) {
+      const c = echarts.init(document.getElementById('mCity'));
+      modalCharts.push(c);
+      const cities5 = portrait.city.slice(0, 5).reverse();
+      c.setOption({
+        ...EC_LIGHT,
+        grid: { left: '3%', right: '12%', bottom: '3%', containLabel: true },
+        xAxis: { type: 'value', splitLine: { lineStyle: { color: '#f0f0f0' } }, axisLabel: { color: '#8b97a8', fontSize: 10 } },
+        yAxis: { type: 'category', data: cities5.map(ci => ci.name), axisLabel: { color: '#475569', fontSize: 11 } },
+        series: [{
+          type: 'bar', data: cities5.map(ci => ci.value),
+          itemStyle: { color: new echarts.graphic.LinearGradient(1,0,0,0,[{offset:0,color:'#0A5CDE'},{offset:1,color:'#5cb8ff'}]), borderRadius: [0,4,4,0] },
+          barWidth: '50%',
+          label: { show: true, position: 'right', color: '#475569', fontSize: 10, fontWeight: 'bold' },
+          animationDuration: 800
+        }]
+      });
+    }
+    // Sex
+    if (portrait.sex && portrait.sex.length > 0) {
+      const c = echarts.init(document.getElementById('mSex'));
+      modalCharts.push(c);
+      c.setOption({
+        ...EC_LIGHT,
+        tooltip: { trigger: 'item', formatter: '{b}: {c}人 ({d}%)' },
+        series: [{
+          type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'],
+          data: portrait.sex.map(s => ({ name: s.name, value: s.value })),
+          label: { color: '#475569', fontSize: 11, formatter: '{b}\n{d}%' },
+          color: ['#0A5CDE', '#E8A73C'],
+          animationDuration: 800
+        }]
+      });
+    }
+    // Fans
+    if (portrait.is_fans && portrait.is_fans.length > 0) {
+      const c = echarts.init(document.getElementById('mFans'));
+      modalCharts.push(c);
+      c.setOption({
+        ...EC_LIGHT,
+        tooltip: { trigger: 'item', formatter: '{b}: {c}人 ({d}%)' },
+        series: [{
+          type: 'pie', radius: ['40%', '65%'], center: ['50%', '50%'],
+          data: portrait.is_fans.map(f => ({ name: f.name, value: f.value })),
+          label: { color: '#475569', fontSize: 11, formatter: '{b}\n{d}%' },
+          color: ['#018B8D', '#8b97a8'],
+          animationDuration: 800
+        }]
+      });
+    }
+    // Trend
+    if (flowTrend.length > 0) {
+      const c = echarts.init(document.getElementById('mTrend'));
+      modalCharts.push(c);
+      const natural = flowTrend.filter(f => f.c === '自然流量').map(f => [f.x, num(f.y)]);
+      const paid = flowTrend.filter(f => f.c === '付费流量').map(f => [f.x, num(f.y)]);
+      c.setOption({
+        ...EC_LIGHT,
+        legend: { data: ['自然流量', '付费流量'], bottom: 0, textStyle: { fontSize: 10, color: '#8b97a8' } },
+        grid: { left: '3%', right: '3%', bottom: '15%', containLabel: true },
+        xAxis: { type: 'category', data: [...new Set(flowTrend.map(f => f.x))], axisLabel: { color: '#8b97a8', fontSize: 9, rotate: 30, interval: 4 } },
+        yAxis: { type: 'value', splitLine: { lineStyle: { color: '#f0f0f0' } }, axisLabel: { color: '#8b97a8', fontSize: 10 } },
+        series: [
+          { name: '自然流量', type: 'line', data: natural.map(n => n[1]), smooth: true, symbol: 'none', lineStyle: { color: '#0A5CDE', width: 1.5 }, areaStyle: { color: 'rgba(10,92,222,.1)' }, animationDuration: 800 },
+          { name: '付费流量', type: 'line', data: paid.map(p => p[1]), smooth: true, symbol: 'none', lineStyle: { color: '#E8A73C', width: 1.5 }, areaStyle: { color: 'rgba(232,167,60,.1)' }, animationDuration: 800 },
+        ]
+      });
+    }
+  }, 100);
+}
+
+function closeModal() {
+  document.getElementById('roomModal').classList.remove('show');
+  modalCharts.forEach(c => c.dispose());
+  modalCharts = [];
+}
+
+// ========== Data Loading ==========
+async function loadData() {
+  try {
+    const resp = await fetch(DATA_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const d = await resp.json();
+    RAW_DATA = d;
+    document.getElementById('lastUpdate').textContent = '更新时间: ' + fmtTs(d.ts);
+    document.getElementById('livingCnt').textContent = (d.rooms || []).filter(r => r.meta?.is_live).length;
+    renderFlow(d.flow_realtime);
+    renderSummary(d.summary);
+    renderQA(d.rooms || [], QA_DATA);
+    renderRegion(d.rooms || [], d.cities);
+    renderRoomCities(d.room_cities);
+  } catch(e) {
+    console.error('Load data error:', e);
+    toast('数据加载失败: ' + e.message, 'error');
+  }
+}
+
+async function loadAlerts() {
+  try {
+    const resp = await fetch(QA_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    QA_DATA = await resp.json();
+    if (RAW_DATA) renderQA(RAW_DATA.rooms || [], QA_DATA);
+  } catch(e) {
+    console.error('Load alerts error:', e);
+  }
+}
+
+// ========== Countdown ==========
+function tickCountdown() {
+  countdownVal--;
+  if (countdownVal <= 0) {
+    countdownVal = 60;
+    loadData();
+    loadAlerts();
+  }
+  document.getElementById('countdown').textContent = countdownVal;
+}
+
+// ========== Init ==========
+function start() {
+  loadCollapseState();
+  loadData();
+  loadAlerts();
+  setInterval(tickCountdown, 1000);
+}
+
+// Resize handler
+window.addEventListener('resize', () => {
+  [regionChart, regionPieChart, regionBar2Chart, heatmapChart, bubbleChart].forEach(c => { if (c) c.resize(); });
+  modalCharts.forEach(c => c.resize());
+});
 </script>
 </body>
 </html>
