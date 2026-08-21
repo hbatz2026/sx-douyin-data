@@ -7,158 +7,167 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
 :root{
-  /* 三级背景 */
-  --bg-base:#070d1a; --bg-surface:#0e1626; --bg-elevated:#16202f;
+  /* 背景层 */
+  --bg-primary:#F5F7FA; --bg-card:#FFFFFF; --bg-elevated:#EEF1F6;
   /* 品牌色 */
-  --color-brand:#0A5CDE; --color-brand-light:#2b7fff;
+  --primary:#0A5CDE; --primary-light:#E8F1FD; --primary-hover:#084BB5;
   /* 数据语义色 */
-  --color-pay:#f0b429; --color-verify:#018B8D; --color-refund:#C8161D;
-  --color-info:#2b7fff; --color-neutral:#5b6b80;
-  /* 状态色 */
-  --success:#018B8D; --warning:#e8a73c; --danger:#C8161D; --info:#2b7fff;
+  --success:#018B8D; --warning:#E8A73C; --error:#C8161D;
+  --accent-gold:#D4A017; --neutral:#6B7280;
   /* 文字层级 */
-  --text-primary:#e6edf3; --text-secondary:#8b9bb0; --text-tertiary:#4a5a6e;
+  --text-title:#1A1A1A; --text-body:#4A4A4A; --text-hint:#8A8A8A;
   /* 边框 */
-  --border-subtle:rgba(255,255,255,.06); --border-default:rgba(43,127,255,.15);
-  /* 间距基准 4px */
+  --border-subtle:#E8E8E8; --border-default:#D0D5DD;
+  /* 间距 4px 基准 */
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px; --sp-8:32px;
+  /* 阴影 */
+  --shadow-hover:0 4px 12px rgba(10,92,222,.08);
+  --shadow-card:0 1px 3px rgba(0,0,0,.04);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg-base);color:var(--text-primary);font-family:"Microsoft YaHei","PingFang SC",sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg-primary);color:var(--text-body);font-family:"Microsoft YaHei","PingFang SC",sans-serif;min-height:100vh;overflow-x:hidden}
 
 /* 密码锁 */
-#lock{position:fixed;inset:0;background:var(--bg-base);display:flex;align-items:center;justify-content:center;z-index:999}
-#lock .box{background:var(--bg-surface);padding:var(--sp-8);border-radius:var(--sp-2);text-align:center;border:1px solid var(--border-default);box-shadow:0 0 40px rgba(10,92,222,.15)}
-#lock h2{color:var(--color-brand-light);margin-bottom:var(--sp-4);font-size:20px;letter-spacing:2px}
-#lock input{padding:10px 14px;width:240px;border-radius:var(--sp-1);border:1px solid var(--border-default);background:var(--bg-elevated);color:var(--text-primary);font-size:15px;text-align:center}
-#lock .btn{margin-top:var(--sp-3);padding:9px 30px;background:var(--color-brand);color:#fff;border:none;border-radius:var(--sp-1);font-size:15px;cursor:pointer;transition:background .2s}
-#lock .btn:hover{background:var(--color-brand-light)}
-#lock .err{color:var(--danger);margin-top:var(--sp-2);font-size:12px;display:none}
+#lock{position:fixed;inset:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:999}
+#lock .box{background:var(--bg-card);padding:var(--sp-8);border-radius:var(--sp-2);text-align:center;box-shadow:var(--shadow-hover);border:1px solid var(--border-subtle)}
+#lock h2{color:var(--primary);margin-bottom:var(--sp-4);font-size:20px;letter-spacing:2px}
+#lock input{padding:10px 14px;width:240px;border-radius:var(--sp-1);border:1px solid var(--border-default);background:var(--bg-primary);color:var(--text-title);font-size:15px;text-align:center;outline:none}
+#lock input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,92,222,.1)}
+#lock .btn{margin-top:var(--sp-3);padding:9px 30px;background:var(--primary);color:#fff;border:none;border-radius:var(--sp-1);font-size:15px;cursor:pointer;transition:background .2s}
+#lock .btn:hover{background:var(--primary-hover)}
+#lock .err{color:var(--error);margin-top:var(--sp-2);font-size:12px;display:none}
 #dash{display:none}
 
 /* Header */
-.header{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-4) var(--sp-8);background:var(--bg-surface);border-bottom:1px solid var(--border-default);position:relative}
-.header::after{content:'';position:absolute;bottom:-1px;left:0;width:200px;height:1px;background:linear-gradient(90deg,var(--color-brand),transparent)}
-.header h1{font-size:20px;letter-spacing:3px;font-weight:600;color:var(--text-primary)}
-.header h1::before{content:'';display:inline-block;width:3px;height:18px;background:var(--color-brand);vertical-align:middle;margin-right:var(--sp-3);border-radius:1px}
-.header .meta{font-size:12px;color:var(--text-secondary);text-align:right}
-.header .meta b{color:var(--color-brand-light);font-size:14px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-4) var(--sp-8);background:var(--bg-card);border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-card)}
+.header h1{font-size:20px;letter-spacing:2px;font-weight:600;color:var(--text-title)}
+.header h1::before{content:'';display:inline-block;width:3px;height:18px;background:var(--primary);vertical-align:middle;margin-right:var(--sp-3);border-radius:1px}
+.header .meta{display:flex;align-items:center;gap:var(--sp-4);font-size:12px;color:var(--text-hint)}
+.header .meta b{color:var(--primary);font-size:14px}
+.header .btn-toggle-all{padding:5px 14px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-body);border-radius:var(--sp-1);cursor:pointer;transition:all .2s}
+.header .btn-toggle-all:hover{border-color:var(--primary);color:var(--primary)}
 
-/* 通用 section 标题 */
+/* 通用 section */
 .section{padding:var(--sp-4) var(--sp-8) var(--sp-2)}
-.section-title{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-3)}
-.section-title .dot-icon{display:flex;gap:2px}
-.section-title .dot-icon span{width:var(--sp-1);height:var(--sp-1);border-radius:50%;background:var(--color-brand);opacity:.6}
-.section-title .dot-icon span:nth-child(1){opacity:1}
-.section-title h2{font-size:15px;color:var(--color-brand-light);font-weight:600}
-.section-title .hint{font-size:11px;color:var(--text-tertiary);margin-left:auto}
+.section-header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-3);cursor:pointer;user-select:none}
+.section-header .dot-icon{display:flex;gap:2px}
+.section-header .dot-icon span{width:var(--sp-1);height:var(--sp-1);border-radius:50%;background:var(--primary);opacity:.6}
+.section-header .dot-icon span:nth-child(1){opacity:1}
+.section-header h2{font-size:15px;color:var(--text-title);font-weight:600}
+.section-header .hint{font-size:11px;color:var(--text-hint);margin-left:auto}
+.section-header .toggle-btn{font-size:14px;color:var(--text-hint);transition:transform .3s;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header.collapsed .toggle-btn{transform:rotate(-90deg)}
+.section-body{transition:max-height .4s ease,opacity .3s ease,margin .3s ease;overflow:hidden;max-height:2000px;opacity:1}
+.section-body.collapsed{max-height:0;opacity:0;margin:0!important}
 
 /* KPI 卡片 */
 .kpi-group{margin-bottom:var(--sp-5)}
-.kpi-group-label{display:flex;align-items:center;gap:var(--sp-2);font-size:12px;color:var(--text-secondary);margin-bottom:var(--sp-3);font-weight:600}
+.kpi-group-label{display:flex;align-items:center;gap:var(--sp-2);font-size:12px;color:var(--text-body);margin-bottom:var(--sp-3);font-weight:600}
 .kpi-group-label .badge{font-size:10px;font-weight:700;padding:2px 10px;border-radius:10px;letter-spacing:1px}
-.badge.rt{background:linear-gradient(135deg,var(--color-refund),var(--color-pay));color:#fff;box-shadow:0 0 8px rgba(240,180,41,.3)}
-.badge.mo{background:var(--color-brand);color:#fff}
+.badge.rt{background:rgba(200,22,29,.1);color:var(--error)}
+.badge.mo{background:rgba(10,92,222,.1);color:var(--primary)}
 @keyframes breathe{0%,100%{opacity:.6}50%{opacity:1}}
-.badge.live{background:var(--success);color:#fff;animation:breathe 2s infinite}
+.badge.live{background:rgba(1,139,141,.1);color:var(--success)}
 .kpi-grid{display:grid;gap:var(--sp-3)}
 .kpi-grid.rt{grid-template-columns:repeat(6,1fr)}
 .kpi-grid.mo{grid-template-columns:repeat(9,1fr)}
 .kpi-grid.flow{grid-template-columns:repeat(6,1fr)}
-.kpi-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4) var(--sp-3);text-align:center;position:relative;overflow:hidden;transition:all .25s}
-.kpi-card:hover{border-color:var(--border-default);transform:translateY(-2px)}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4) var(--sp-3);text-align:center;position:relative;overflow:hidden;transition:all .25s;box-shadow:var(--shadow-card)}
+.kpi-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
 .kpi-card .accent-bar{position:absolute;top:0;left:0;right:0;height:2px}
-.kpi-card.rt .accent-bar{background:linear-gradient(90deg,var(--color-pay),var(--color-refund))}
-.kpi-card.mo .accent-bar{background:var(--color-brand)}
-.kpi-card.flow .accent-bar{background:linear-gradient(90deg,var(--color-brand),var(--color-brand-light))}
-.kpi-card .k-label{font-size:11px;color:var(--text-secondary);line-height:1.3;margin-bottom:var(--sp-2)}
-.kpi-card .k-val{font-size:26px;font-weight:700;letter-spacing:1px;line-height:1.2}
-.kpi-card .k-val.pay{color:var(--color-pay)}
-.kpi-card .k-val.green{color:var(--color-verify)}
-.kpi-card .k-val.red{color:var(--color-refund)}
-.kpi-card .k-val.blue{color:var(--color-brand-light)}
-.kpi-card .k-val.cyan{color:#00d4ff}
-.kpi-card .k-val.white{color:var(--text-primary)}
-.kpi-card .k-unit{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+.kpi-card.rt .accent-bar{background:var(--error)}
+.kpi-card.mo .accent-bar{background:var(--primary)}
+.kpi-card.flow .accent-bar{background:var(--primary)}
+.kpi-card .k-label{font-size:11px;color:var(--text-hint);line-height:1.3;margin-bottom:var(--sp-2)}
+.kpi-card .k-val{font-size:26px;font-weight:700;letter-spacing:1px;line-height:1.2;color:var(--text-title)}
+.kpi-card .k-val.pay{color:var(--accent-gold)}
+.kpi-card .k-val.green{color:var(--success)}
+.kpi-card .k-val.red{color:var(--error)}
+.kpi-card .k-val.blue{color:var(--primary)}
+.kpi-card .k-unit{font-size:11px;color:var(--text-hint);margin-top:2px}
+
+/* 直播质检 - 重点展示 */
+.qa-section{padding:0 var(--sp-8) var(--sp-2)}
+.qa-highlight{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-5);box-shadow:var(--shadow-card)}
+.qa-row{display:grid;grid-template-columns:3fr 2fr;gap:var(--sp-5)}
+.qa-col-title{font-size:13px;font-weight:600;color:var(--text-title);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:var(--sp-2)}
+.qa-col-title .count{font-size:11px;color:var(--text-hint);font-weight:400}
+.room-list{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);max-height:500px;overflow-y:auto}
+.room-card{background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);cursor:pointer;transition:all .2s}
+.room-card:hover{border-color:var(--primary);box-shadow:var(--shadow-hover)}
+.room-card.active{border-color:var(--primary);background:var(--primary-light)}
+.room-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2)}
+.room-card .name{font-weight:600;font-size:13px;color:var(--text-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.room-card .tag{font-size:9px;padding:2px 6px;border-radius:8px;white-space:nowrap;font-weight:600}
+.room-card .tag.on{background:rgba(1,139,141,.1);color:var(--success)}
+.room-card .tag.off{background:rgba(138,138,138,.12);color:var(--text-hint)}
+.room-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-1);font-size:11px}
+.room-card .metrics .m{display:flex;flex-direction:column;align-items:center}
+.room-card .metrics .ml{color:var(--text-hint);font-size:10px}
+.room-card .metrics .mv{color:var(--text-title);font-weight:600;font-size:13px}
+.room-card .warn{font-size:10px;color:var(--warning);margin-top:var(--sp-1);padding:2px 6px;background:rgba(232,167,60,.08);border-radius:var(--sp-1);display:inline-block}
+.alert-list{display:flex;flex-direction:column;gap:var(--sp-2);max-height:500px;overflow-y:auto}
+.alert{display:flex;gap:var(--sp-2);align-items:flex-start;background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);transition:all .2s}
+.alert:hover{box-shadow:var(--shadow-hover)}
+.alert.sev{border-left:3px solid var(--error)}
+.alert.warn{border-left:3px solid var(--warning)}
+.alert.info{border-left:3px solid var(--primary)}
+.alert .lv{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.alert.sev .lv{background:var(--error);color:#fff}
+.alert.warn .lv{background:var(--warning);color:#fff}
+.alert.info .lv{background:var(--primary);color:#fff}
+.alert .desc{font-size:12px;color:var(--text-body)}
+.alert .desc b{font-size:13px;color:var(--text-title)}
+.alert .time{font-size:10px;color:var(--text-hint);margin-top:2px}
+.empty{color:var(--text-hint);text-align:center;padding:var(--sp-6);font-size:13px}
 
 /* 分地市 section */
 .region-section{padding:0 var(--sp-8) var(--sp-2)}
 .region-tabs{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3);flex-wrap:wrap}
-.region-tabs button{padding:5px 14px;font-size:12px;background:var(--bg-surface);border:1px solid var(--border-subtle);color:var(--text-secondary);border-radius:var(--sp-1);cursor:pointer;transition:all .2s}
-.region-tabs button.active{background:var(--color-brand);color:#fff;border-color:var(--color-brand-light)}
-.region-tabs button:hover{border-color:var(--color-brand-light);color:var(--text-primary)}
-.chart-wrap{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4);margin-bottom:var(--sp-3)}
+.region-tabs button{padding:5px 14px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-body);border-radius:var(--sp-1);cursor:pointer;transition:all .2s}
+.region-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.region-tabs button:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+.chart-wrap{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4);margin-bottom:var(--sp-3);box-shadow:var(--shadow-card)}
 #regionChart{width:100%;height:320px}
 .region-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--sp-3)}
-.region-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);transition:all .25s}
-.region-card:hover{border-color:var(--border-default)}
+.region-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);transition:all .25s;box-shadow:var(--shadow-card)}
+.region-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
 .region-card.has-live{border-left:3px solid var(--success)}
-.region-card .r-name{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:var(--sp-2)}
-.region-card .r-name .live-pulse{width:8px;height:8px;border-radius:50%;background:var(--text-tertiary)}
-.region-card.has-live .r-name .live-pulse{background:var(--success);box-shadow:0 0 8px var(--success);animation:breathe 2s infinite}
+.region-card .r-name{font-size:13px;font-weight:600;color:var(--text-title);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:var(--sp-2)}
+.region-card .r-name .live-pulse{width:8px;height:8px;border-radius:50%;background:var(--text-hint)}
+.region-card.has-live .r-name .live-pulse{background:var(--success);animation:breathe 2s infinite}
 .region-card .r-data{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2) var(--sp-3)}
 .region-card .r-data .d{display:flex;flex-direction:column;text-align:center}
-.region-card .r-data .dl{color:var(--text-tertiary);font-size:10px;margin-bottom:2px}
-.region-card .r-data .dv{color:var(--text-primary);font-weight:600;font-size:13px}
-.region-card .r-data .dv.red{color:var(--color-refund)}
-.region-card .r-data .dv.gold{color:var(--color-pay)}
-.region-card .r-data .dv.blue{color:var(--color-brand-light)}
-.region-card .r-data .dv.green{color:var(--color-verify)}
-.region-card .r-empty{font-size:11px;color:var(--text-tertiary);text-align:center;padding:var(--sp-3)}
+.region-card .r-data .dl{color:var(--text-hint);font-size:10px;margin-bottom:2px}
+.region-card .r-data .dv{color:var(--text-title);font-weight:600;font-size:13px}
+.region-card .r-data .dv.red{color:var(--error)}
+.region-card .r-data .dv.gold{color:var(--accent-gold)}
+.region-card .r-data .dv.blue{color:var(--primary)}
+.region-card .r-data .dv.green{color:var(--success)}
+.region-card .r-empty{font-size:11px;color:var(--text-hint);text-align:center;padding:var(--sp-3)}
 
 /* 直播间分地市表格 */
 .room-region-section{padding:0 var(--sp-8) var(--sp-2)}
-.table-wrap{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-2);overflow:auto;max-height:420px}
+.table-wrap{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);overflow:auto;max-height:420px;box-shadow:var(--shadow-card)}
 .room-city-table{width:100%;border-collapse:collapse}
-.room-city-table th{background:var(--bg-elevated);color:var(--text-secondary);font-size:11px;font-weight:600;padding:10px var(--sp-2);text-align:center;border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:1}
-.room-city-table td{font-size:12px;padding:9px var(--sp-2);text-align:center;border-bottom:1px solid var(--border-subtle);color:var(--text-primary)}
+.room-city-table th{background:var(--bg-elevated);color:var(--text-hint);font-size:11px;font-weight:600;padding:10px var(--sp-2);text-align:center;border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:1}
+.room-city-table td{font-size:12px;padding:9px var(--sp-2);text-align:center;border-bottom:1px solid var(--border-subtle);color:var(--text-body)}
 .room-city-table tr:last-child td{border-bottom:none}
-.room-city-table tr:hover td{background:rgba(10,92,222,.06)}
-.room-city-table td.city{font-weight:600;text-align:left;color:var(--color-brand-light)}
-.room-city-table td.gold{color:var(--color-pay);font-weight:700}
-.room-city-table td.green{color:var(--color-verify)}
-.room-city-table td.red{color:var(--color-refund)}
-.room-city-table .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-left:5px;box-shadow:0 0 6px var(--success)}
-.room-city-foot{display:flex;gap:var(--sp-5);margin-top:var(--sp-2);font-size:11px;color:var(--text-secondary);flex-wrap:wrap}
-.room-city-foot b{color:var(--color-brand-light);font-size:13px}
-.room-city-foot b.gold{color:var(--color-pay)}
+.room-city-table tr:hover td{background:var(--primary-light)}
+.room-city-table td.city{font-weight:600;text-align:left;color:var(--primary)}
+.room-city-table td.gold{color:var(--accent-gold);font-weight:700}
+.room-city-table td.green{color:var(--success)}
+.room-city-table td.red{color:var(--error)}
+.room-city-table .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-left:5px}
+.room-city-foot{display:flex;gap:var(--sp-5);margin-top:var(--sp-2);font-size:11px;color:var(--text-hint);flex-wrap:wrap}
+.room-city-foot b{color:var(--primary);font-size:13px}
+.room-city-foot b.gold{color:var(--accent-gold)}
 
-/* 直播质检 */
-.qa-section{padding:0 var(--sp-8) var(--sp-2)}
-.qa-row{display:grid;grid-template-columns:2fr 1fr;gap:var(--sp-4)}
-.room-list{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2);max-height:360px;overflow-y:auto}
-.room-card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-1);padding:10px;cursor:pointer;transition:all .2s}
-.room-card:hover{border-color:var(--border-default)}
-.room-card.active{border-color:var(--color-brand-light);background:rgba(10,92,222,.06)}
-.room-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-.room-card .name{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
-.room-card .tag{font-size:9px;padding:1px 5px;border-radius:8px;white-space:nowrap}
-.room-card .tag.on{background:rgba(1,139,141,.2);color:var(--success)}
-.room-card .tag.off{background:rgba(139,155,176,.15);color:var(--text-tertiary)}
-.room-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;font-size:10px}
-.room-card .metrics .m{display:flex;flex-direction:column}
-.room-card .metrics .ml{color:var(--text-tertiary);font-size:9px}
-.room-card .metrics .mv{color:var(--text-primary);font-weight:600}
-.room-card .warn{font-size:9px;color:var(--warning);margin-top:3px}
-.alert-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto}
-.alert{display:flex;gap:6px;align-items:flex-start;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--sp-1);padding:7px;border-left:3px solid var(--text-tertiary)}
-.alert.sev{border-left-color:var(--danger)}
-.alert.warn{border-left-color:var(--warning)}
-.alert.info{border-left-color:var(--color-brand-light)}
-.alert .lv{font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;white-space:nowrap}
-.alert.sev .lv{background:var(--danger);color:#fff}
-.alert.warn .lv{background:var(--warning);color:#000}
-.alert.info .lv{background:var(--color-brand-light);color:#fff}
-.alert .desc{font-size:11px}
-.alert .desc b{font-size:12px}
-.alert .time{font-size:9px;color:var(--text-tertiary);margin-top:1px}
-.empty{color:var(--text-tertiary);text-align:center;padding:20px;font-size:12px}
-
-footer{padding:var(--sp-3);text-align:center;color:var(--text-tertiary);font-size:10px}
+footer{padding:var(--sp-3);text-align:center;color:var(--text-hint);font-size:10px}
 ::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--bg-surface)}
+::-webkit-scrollbar-track{background:var(--bg-primary)}
 ::-webkit-scrollbar-thumb{background:var(--border-default);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--color-brand)}
+::-webkit-scrollbar-thumb:hover{background:var(--primary)}
 </style>
 </head>
 <body>
@@ -173,76 +182,99 @@ footer{padding:var(--sp-3);text-align:center;color:var(--text-tertiary);font-siz
 <div id="dash">
   <div class="header">
     <h1>山西电信 · 抖本实时数据大屏</h1>
-    <div class="meta">数据截止 <b id="updateTime">--</b> · 下次刷新 <span id="countdown">60</span>s</div>
+    <div class="meta">数据截止 <b id="updateTime">--</b> · 下次刷新 <span id="countdown">60</span>s <button class="btn-toggle-all" id="btnToggleAll" onclick="toggleAllSections()">全部收起</button></div>
   </div>
-  <!-- 直播间实时数据 (内容分析页) -->
+  <!-- 直播间实时数据 -->
   <div class="section" id="flowSection">
-    <div class="section-title">
+    <div class="section-header" onclick="toggleSection(this)">
       <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
       <h2>直播间实时数据</h2>
       <span class="hint">内容分析页实时口径 · 开播抖音号数量 / 曝光人数 / 观看人数 / 成交券数</span>
+      <span class="toggle-btn">▾</span>
     </div>
-    <div class="kpi-group">
-      <div class="kpi-grid flow" id="flowGrid"></div>
+    <div class="section-body">
+      <div class="kpi-group">
+        <div class="kpi-grid flow" id="flowGrid"></div>
+      </div>
     </div>
   </div>
   <!-- 经营数据总览 -->
   <div class="section">
-    <div class="section-title">
+    <div class="section-header" onclick="toggleSection(this)">
       <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
       <h2>经营数据总览</h2>
       <span class="hint">实时(今日) 与 自然月(8月1日至今) 双口径</span>
+      <span class="toggle-btn">▾</span>
     </div>
-    <div class="kpi-group" id="kpiGridRt"></div>
-    <div class="kpi-group" id="kpiGridMo"></div>
+    <div class="section-body">
+      <div class="kpi-group" id="kpiGridRt"></div>
+      <div class="kpi-group" id="kpiGridMo"></div>
+    </div>
+  </div>
+  <!-- 直播质检 (重点展示) -->
+  <div class="qa-section" id="qaSection">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
+      <h2>直播质检</h2>
+      <span class="hint">在播直播间巡检与告警 · 重点监控模块</span>
+      <span class="toggle-btn">▾</span>
+    </div>
+    <div class="section-body">
+      <div class="qa-highlight">
+        <div class="qa-row">
+          <div>
+            <div class="qa-col-title">在播直播间 <span class="count" id="roomCount"></span></div>
+            <div class="room-list" id="roomList"></div>
+          </div>
+          <div>
+            <div class="qa-col-title">告警列表 <span class="count" id="alertCountText"></span></div>
+            <div class="alert-list" id="alertList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- 分地市数据 -->
   <div class="region-section">
-    <div class="section-title">
+    <div class="section-header" onclick="toggleSection(this)">
       <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
       <h2>分地市数据</h2>
       <span class="hint">各地市经营指标(自然月口径)与直播分布</span>
+      <span class="toggle-btn">▾</span>
     </div>
-    <div class="region-tabs" id="regionTabs">
-      <button class="active" data-metric="pay_gmv">成交金额</button>
-      <button data-metric="pay_cert_cnt">成交券数</button>
-      <button data-metric="pay_user_cnt">成交人数</button>
-      <button data-metric="verify_gmv">核销金额</button>
-      <button data-metric="verify_cert_cnt">核销券数</button>
-      <button data-metric="refund_gmv">退款金额</button>
-      <button data-metric="refund_cert_cnt">退款券数</button>
+    <div class="section-body">
+      <div class="region-tabs" id="regionTabs">
+        <button class="active" data-metric="pay_gmv">成交金额</button>
+        <button data-metric="pay_cert_cnt">成交券数</button>
+        <button data-metric="pay_user_cnt">成交人数</button>
+        <button data-metric="verify_gmv">核销金额</button>
+        <button data-metric="verify_cert_cnt">核销券数</button>
+        <button data-metric="refund_gmv">退款金额</button>
+        <button data-metric="refund_cert_cnt">退款券数</button>
+      </div>
+      <div class="chart-wrap"><div id="regionChart"></div></div>
+      <div class="region-grid" id="regionGrid"></div>
     </div>
-    <div class="chart-wrap"><div id="regionChart"></div></div>
-    <div class="region-grid" id="regionGrid"></div>
   </div>
   <!-- 直播间分地市(今日实时) -->
   <div class="room-region-section">
-    <div class="section-title">
+    <div class="section-header" onclick="toggleSection(this)">
       <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
       <h2>直播间分地市(今日实时)</h2>
       <span class="hint">直播间列表口径 · 含历史场次与在播场次 · 金额单位元</span>
+      <span class="toggle-btn">▾</span>
     </div>
-    <div class="table-wrap">
-      <table class="room-city-table" id="roomCityTable">
-        <thead><tr>
-          <th>城市</th><th>场次</th><th>直播中</th><th>成交金额</th><th>成交券数</th>
-          <th>成交人数</th><th>观看人数</th><th>曝光人数</th><th>实时在线(峰)</th><th>点赞</th><th>评论</th><th>商品数</th>
-        </tr></thead>
-        <tbody id="roomCityBody"></tbody>
-      </table>
-    </div>
-    <div class="room-city-foot" id="roomCityFoot"></div>
-  </div>
-  <!-- 直播质检 -->
-  <div class="qa-section">
-    <div class="section-title">
-      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
-      <h2>直播质检</h2>
-      <span class="hint">在播直播间巡检与告警</span>
-    </div>
-    <div class="qa-row">
-      <div><div class="room-list" id="roomList"></div></div>
-      <div><div class="alert-list" id="alertList"></div></div>
+    <div class="section-body">
+      <div class="table-wrap">
+        <table class="room-city-table" id="roomCityTable">
+          <thead><tr>
+            <th>城市</th><th>场次</th><th>直播中</th><th>成交金额</th><th>成交券数</th>
+            <th>成交人数</th><th>观看人数</th><th>曝光人数</th><th>实时在线(峰)</th><th>点赞</th><th>评论</th><th>商品数</th>
+          </tr></thead>
+          <tbody id="roomCityBody"></tbody>
+        </table>
+      </div>
+      <div class="room-city-foot" id="roomCityFoot"></div>
     </div>
   </div>
   <footer>数据来源：生意经(life-data.cn) · 内部数据请勿外传 · 每60秒自动刷新</footer>
@@ -262,6 +294,48 @@ const METRIC_LABELS={
 let RAW_DATA=null,alertCount=0,countdownVal=60,currentMetric='pay_gmv';
 let regionChart=null;
 
+/* 折叠交互 */
+function toggleSection(header){
+  const body=header.nextElementSibling;
+  header.classList.toggle('collapsed');
+  body.classList.toggle('collapsed');
+  saveCollapseState();
+}
+function toggleAllSections(){
+  const headers=document.querySelectorAll('.section-header, .qa-section .section-header');
+  const btn=document.getElementById('btnToggleAll');
+  const anyExpanded=Array.from(headers).some(h=>!h.classList.contains('collapsed'));
+  if(anyExpanded){
+    headers.forEach(h=>{h.classList.add('collapsed');h.nextElementSibling.classList.add('collapsed');});
+    btn.textContent='全部展开';
+  }else{
+    headers.forEach(h=>{h.classList.remove('collapsed');h.nextElementSibling.classList.remove('collapsed');});
+    btn.textContent='全部收起';
+  }
+  saveCollapseState();
+}
+function saveCollapseState(){
+  const state={};
+  document.querySelectorAll('.section-header').forEach((h,i)=>{
+    const sectionId=h.closest('.section,.qa-section');
+    if(sectionId&&sectionId.id){state[sectionId.id]=h.classList.contains('collapsed');}
+  });
+  try{localStorage.setItem('dash_collapse',JSON.stringify(state));}catch(e){}
+}
+function loadCollapseState(){
+  let state={};
+  try{state=JSON.parse(localStorage.getItem('dash_collapse')||'{}');}catch(e){}
+  document.querySelectorAll('.section-header').forEach(h=>{
+    const sectionId=h.closest('.section,.qa-section');
+    if(sectionId&&sectionId.id&&state[sectionId.id]){
+      h.classList.add('collapsed');
+      h.nextElementSibling.classList.add('collapsed');
+    }
+  });
+  const allCollapsed=document.querySelectorAll('.section-header:not(.collapsed)').length===0;
+  if(allCollapsed&&Object.keys(state).length>0){document.getElementById('btnToggleAll').textContent='全部展开';}
+}
+
 function num(v){const n=parseFloat(v);return isNaN(n)?0:n;}
 function fmt(v){if(v>=10000)return(v/10000).toFixed(1)+'万';return Math.round(v*100)/100;}
 function fmtMoney(v){if(v>=10000)return(v/10000).toFixed(2)+'万';return v.toFixed(2);}
@@ -270,24 +344,22 @@ function kv(ki,key){if(!Array.isArray(ki))return 0;const item=ki.find(i=>i&&i.ke
 function gmv(ki){return kv(ki,'PayGmv');}
 function extractCity(nickname){if(!nickname)return'未知';for(const c of CITIES){if(nickname.includes(c))return c;}return'其他';}
 
-// ECharts 通用主题
-const ECHARTS_THEME={
-  textStyle:{color:'#8b9bb0',fontFamily:'"Microsoft YaHei",sans-serif'},
+/* ECharts 浅色主题 */
+const ECHARTS_LIGHT={
+  textStyle:{color:'#8A8A8A',fontFamily:'"Microsoft YaHei",sans-serif'},
   grid:{left:50,right:20,top:30,bottom:35},
 };
-
 function initRegionChart(){
   if(regionChart)return;
-const el=document.getElementById('regionChart');
-regionChart=echarts.init(el);
-window.addEventListener('resize',()=>{if(regionChart)regionChart.resize();});
+  const el=document.getElementById('regionChart');
+  regionChart=echarts.init(el);
+  window.addEventListener('resize',()=>{if(regionChart)regionChart.resize();});
 }
 
 async function loadData(){try{const res=await fetch(DATA_URL+'?t='+Date.now());const d=await res.json();RAW_DATA=d;render(d);}catch(e){document.getElementById('updateTime').textContent='加载失败';}}
 async function loadAlerts(){try{const res=await fetch(QA_URL+'?t='+Date.now());const d=await res.json();renderAlerts(d.alerts||[]);}catch(e){}}
 
 function render(d){
-  // 格式化时间戳 20260821085818 -> 08-21 08:58:18
   const rawTs=d.ts||'';
   const fmtTs=rawTs.length===14?`${rawTs.slice(4,6)}-${rawTs.slice(6,8)} ${rawTs.slice(8,10)}:${rawTs.slice(10,12)}:${rawTs.slice(12,14)}`:rawTs||'--';
   document.getElementById('updateTime').textContent=fmtTs;
@@ -296,9 +368,9 @@ function render(d){
   const flowRt=d.flow_realtime||{};
   renderFlow(flowRt);
   renderSummary(summary,rooms);
+  renderRooms(rooms);
   renderRegions(rooms,cities);
   renderRoomCities(d.room_cities||{},d.room_cities_total||0);
-  renderRooms(rooms);
 }
 
 function renderFlow(fr){
@@ -308,10 +380,10 @@ function renderFlow(fr){
     return;
   }
   const items=[
-    {label:'开播抖音号',val:fmt(fr.live_author_cnt||0),cls:'white',unit:'个'},
-    {label:'直播场次',val:fmt(fr.live_cnt||0),cls:'cyan',unit:'场'},
+    {label:'开播抖音号',val:fmt(fr.live_author_cnt||0),cls:'',unit:'个'},
+    {label:'直播场次',val:fmt(fr.live_cnt||0),cls:'blue',unit:'场'},
     {label:'曝光人数',val:fmt(fr.live_show_uv||0),cls:'blue',unit:'人'},
-    {label:'观看人数',val:fmt(fr.live_watch_uv||0),cls:'cyan',unit:'人'},
+    {label:'观看人数',val:fmt(fr.live_watch_uv||0),cls:'',unit:'人'},
     {label:'成交金额',val:fmtMoney(fr.live_gmv||0),cls:'pay',unit:moneyUnit(fr.live_gmv||0)},
     {label:'成交券数',val:fmt(fr.live_pay_cert_cnt||0),cls:'pay',unit:'张'},
   ];
@@ -337,14 +409,14 @@ function renderSummary(s,rooms){
     {label:'退款金额',val:fmtMoney(refundGmv),cls:'red',unit:moneyUnit(refundGmv)},
     {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:moneyUnit(verifyGmv)},
     {label:'核销券数',val:fmt(verifyCertCnt),cls:'green'},
-    {label:'商品访问人数',val:fmt(productShowUv),cls:'cyan'},
+    {label:'商品访问人数',val:fmt(productShowUv),cls:'blue'},
   ];
   const moKpis=[
     {label:'门店总数',val:fmt(poiNum),cls:''},
     {label:'动销门店数',val:fmt(activePoi),cls:'green'},
     {label:'动销率',val:activeRatio.toFixed(2)+'%',cls:'pay'},
     {label:'日店均成交',val:fmtMoney(payGmvAvg),cls:'blue',unit:'元'},
-    {label:'日店均核销',val:fmtMoney(verifyGmvAvg),cls:'cyan',unit:'元'},
+    {label:'日店均核销',val:fmtMoney(verifyGmvAvg),cls:'',unit:'元'},
     {label:'意向成交额',val:fmtMoney(mPayGmv),cls:'blue',unit:moneyUnit(mPayGmv)},
     {label:'成交券数',val:fmt(mPayCert),cls:'blue'},
     {label:'核销金额',val:fmtMoney(mVerifyGmv),cls:'',unit:moneyUnit(mVerifyGmv)},
@@ -367,27 +439,27 @@ function drawRegionChart(cities,metric){
   const maxVal=Math.max(...data.map(d=>d.val),0.01);
   const isMoney=metric.includes('gmv');
   regionChart.setOption({
-    ...ECHARTS_THEME,
+    ...ECHARTS_LIGHT,
     tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
       formatter:p=>{
         const v=p[0].value;
-        const s=`${p[0].name}<br/>${label}: ${isMoney?'¥'+fmtMoney(v):fmt(v)}`;
-        return s;
+        return`${p[0].name}<br/>${label}: ${isMoney?'¥'+fmtMoney(v):fmt(v)}`;
       },
-      backgroundColor:'rgba(14,22,38,.9)',borderColor:'rgba(43,127,255,.3)',textStyle:{color:'#e6edf3'}
+      backgroundColor:'#FFFFFF',borderColor:'#D0D5DD',textStyle:{color:'#4A4A4A',fontSize:12},
+      extraCssText:'box-shadow:0 4px 12px rgba(0,0,0,.08);border-radius:8px;'
     },
     grid:{left:60,right:20,top:35,bottom:40},
     xAxis:{type:'category',data:data.map(d=>d.name),
-      axisLine:{lineStyle:{color:'rgba(255,255,255,.08)'}},
-      axisLabel:{color:'#8b9bb0',fontSize:11},
+      axisLine:{lineStyle:{color:'#D0D5DD'}},
+      axisLabel:{color:'#8A8A8A',fontSize:11},
       axisTick:{show:false}
     },
     yAxis:{type:'value',
       axisLine:{show:false},
-      axisLabel:{color:'#8b9bb0',fontSize:10,
+      axisLabel:{color:'#8A8A8A',fontSize:10,
         formatter:v=>isMoney?fmtMoney(v):fmt(v)
       },
-      splitLine:{lineStyle:{color:'rgba(255,255,255,.04)',type:'dashed'}}
+      splitLine:{lineStyle:{color:'#E8E8E8',type:'dashed'}}
     },
     series:[{
       type:'bar',
@@ -397,18 +469,18 @@ function drawRegionChart(cities,metric){
           borderRadius:[4,4,0,0],
           color:d.val>0?new echarts.graphic.LinearGradient(0,0,0,1,[
             {offset:0,color:'#2b7fff'},{offset:1,color:'#0A5CDE'}
-          ]):'rgba(74,90,110,.3)'
+          ]):'#E8E8E8'
         }
       })),
       barWidth:'45%',
       animationDuration:800,
       animationEasing:'cubicOut',
       label:{show:true,position:'top',
-        color:'#e6edf3',fontSize:10,
+        color:'#4A4A4A',fontSize:10,
         formatter:p=>p.value>0?(isMoney?'¥'+fmtMoney(p.value):fmt(p.value)):''
       },
       emphasis:{itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[
-        {offset:0,color:'#4b9fff'},{offset:1,color:'#1e6fee'}
+        {offset:0,color:'#4b9fff'},{offset:1,color:'#084BB5'}
       ])}}
     }]
   },true);
@@ -421,9 +493,9 @@ function renderRegions(rooms,cities){
   }else{
     initRegionChart();
     if(regionChart)regionChart.setOption({
-      ...ECHARTS_THEME,
+      ...ECHARTS_LIGHT,
       title:{text:'分地市数据采集中...',left:'center',top:'center',
-        textStyle:{color:'#8b9bb0',fontSize:14,fontWeight:'normal'}}
+        textStyle:{color:'#8A8A8A',fontSize:14,fontWeight:'normal'}}
     },true);
   }
   const regionMap={};
@@ -439,7 +511,7 @@ function renderRegions(rooms,cities){
     if(liveCnt===0){return `<div class="region-card"><div class="r-name"><span class="live-pulse"></span>${city}</div><div class="r-empty">暂无在播</div></div>`;}
     let totalGmv=0,totalOrders=0,totalWatch=0,totalOnline=0;
     rd.rooms.forEach(r=>{const ki=r.live?.key_index||[];totalGmv+=gmv(ki);totalOrders+=kv(ki,'PayOrderCnt');totalWatch+=kv(ki,'LiveServerWatchUcnt');totalOnline+=kv(ki,'CurrentUserCnt');});
-    return `<div class="region-card has-live"><div class="r-name"><span class="live-pulse"></span>${city} <span style="font-size:10px;color:var(--text-tertiary);font-weight:400">(${liveCnt}间)</span></div><div class="r-data"><div class="d"><span class="dl">成交金额</span><span class="dv gold">¥${fmtMoney(totalGmv)}</span></div><div class="d"><span class="dl">成交订单</span><span class="dv">${totalOrders}</span></div><div class="d"><span class="dl">累计观看</span><span class="dv">${fmt(totalWatch)}</span></div><div class="d"><span class="dl">实时在线</span><span class="dv blue">${totalOnline}</span></div><div class="d"><span class="dl">-</span><span class="dv">-</span></div><div class="d"><span class="dl">-</span><span class="dv">-</span></div></div></div>`;
+    return `<div class="region-card has-live"><div class="r-name"><span class="live-pulse"></span>${city} <span style="font-size:10px;color:var(--text-hint);font-weight:400">(${liveCnt}间)</span></div><div class="r-data"><div class="d"><span class="dl">成交金额</span><span class="dv gold">¥${fmtMoney(totalGmv)}</span></div><div class="d"><span class="dl">成交订单</span><span class="dv">${totalOrders}</span></div><div class="d"><span class="dl">累计观看</span><span class="dv">${fmt(totalWatch)}</span></div><div class="d"><span class="dl">实时在线</span><span class="dv blue">${totalOnline}</span></div><div class="d"><span class="dl">-</span><span class="dv">-</span></div><div class="d"><span class="dl">-</span><span class="dv">-</span></div></div></div>`;
   }).join('');
 }
 
@@ -448,7 +520,7 @@ function renderRoomCities(rc,total){
   const foot=document.getElementById('roomCityFoot');
   const keys=Object.keys(rc);
   if(!keys.length){
-    body.innerHTML='<tr><td colspan="12" style="color:var(--text-tertiary);padding:18px">直播间分地市数据采集中，请等待下一轮采集完成...</td></tr>';
+    body.innerHTML='<tr><td colspan="12" style="color:var(--text-hint);padding:18px">直播间分地市数据采集中，请等待下一轮采集完成...</td></tr>';
     foot.innerHTML='';
     return;
   }
@@ -472,6 +544,7 @@ function renderRoomCities(rc,total){
 
 function renderRooms(rooms){
   const g=document.getElementById('roomList');
+  document.getElementById('roomCount').textContent=rooms.length?`(${rooms.length}间)`:'';;
   if(!rooms.length){g.innerHTML='<div class="empty">当前无在播直播间</div>';return;}
   g.innerHTML=rooms.map(r=>{
     const meta=r.meta||{},live=r.live||{};const ri=live.room_info||{};
@@ -492,6 +565,7 @@ function selectRoom(rid){document.querySelectorAll('.room-card').forEach(c=>c.cl
 
 function renderAlerts(alerts){
   alertCount=alerts.length;
+  document.getElementById('alertCountText').textContent=alerts.length?`(${alerts.length}条)`:'';
   const a=document.getElementById('alertList');
   if(!alerts.length){a.innerHTML='<div class="empty">暂无告警</div>';return;}
   a.innerHTML=alerts.map(al=>{
@@ -512,7 +586,7 @@ document.getElementById('regionTabs').addEventListener('click',e=>{
 });
 
 function tickCountdown(){countdownVal--;if(countdownVal<=0){countdownVal=60;loadData();loadAlerts();}document.getElementById('countdown').textContent=countdownVal;}
-function start(){loadData();loadAlerts();setInterval(tickCountdown,1000);}
+function start(){loadCollapseState();loadData();loadAlerts();setInterval(tickCountdown,1000);}
 </script>
 </body>
 </html>
