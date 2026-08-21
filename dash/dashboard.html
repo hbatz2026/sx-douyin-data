@@ -265,7 +265,7 @@ let regionChart=null;
 function num(v){const n=parseFloat(v);return isNaN(n)?0:n;}
 function fmt(v){if(v>=10000)return(v/10000).toFixed(1)+'万';return Math.round(v*100)/100;}
 function fmtMoney(v){if(v>=10000)return(v/10000).toFixed(2)+'万';return v.toFixed(2);}
-function moneyUnit(v){return v>=10000?'万元':'元';}
+function moneyUnit(v){return v>=10000?'':'元';}
 function kv(ki,key){if(!Array.isArray(ki))return 0;const item=ki.find(i=>i&&i.key===key);return item?num(item.value):0;}
 function gmv(ki){return kv(ki,'PayGmv');}
 function extractCity(nickname){if(!nickname)return'未知';for(const c of CITIES){if(nickname.includes(c))return c;}return'其他';}
