@@ -7,9 +7,13 @@
 'use strict';
 const { SYSTEM } = require('./seed-pool-mode.cjs');
 const Q = require('./quality-gate.cjs');
-const { researchProduct } = require('./product-research.cjs');
+const { researchProduct, researchProductWeb } = require('./product-research.cjs');
 
 const MAX_RETRY = 2;
+
+// 活动/优惠类选题识别（2026-08-21）：命中则"输入即事实"不走联网搜索（本店活动网上搜不到，且省时间）。
+// 宽松正则，误判代价=多一次搜索，可接受。
+const ACTIVITY_RE = /[送赠优惠立减返免礼抽奖福利特惠促销折]|\d+\s*(元|块)/;
 
 // 6 人设（对齐 index.js PERSONA_STD：sister/sweet/tech/biz/young/master）；
 // 兼容旧 3 语气别名：affinity→sister（亲和=知性姐姐）、professional→tech（专业=技术专家）、young 保留。
@@ -65,28 +69,39 @@ async function runAiScript(ctx) {
   // 2026-08-21 修复：<6 字一律拦截（前端同规则，后端兜底防绕过），提示带示例引导
   if (!topic || topic.length < 6) throw new Error('选题过短（至少 6 字）：请补充具体活动/卖点，如「充100元话费送抽纸礼品」');
 
-  // —— 产品事实门（2026-08-21 反转假设，根治"输入越具体生成越空"）：
-  // 信任顺序：用户填的 productInfo（官方资料） > 用户输入本身（≥6 字即事实） > AI 调研兜底（仅模糊词）
-  // 旧逻辑拿用户输入去问 AI 认不认识，不认识(known=false) 就禁止输出输入里的具体信息 → 卖点全灭。
-  // 新逻辑：营业员输入的 ≥6 字描述 = 自家真实活动/产品，直接当已知事实，不再调研。
+  // —— 产品事实门（2026-08-21 反转假设 + 联网搜索，根治"输入越具体生成越空"与"AI 瞎编功能"）：
+  // 信任顺序：productInfo（官方资料） > 活动/优惠类输入即事实 > M3 联网搜索真实卖点 > 训练知识调研 > topic 兜底
+  // 旧逻辑拿用户输入去问模型"认不认识"，不认识(known=false) 就禁止输出输入里的具体信息 → 卖点全灭。
+  // 2026-08-21 v3：产品/选题类先 M3 联网搜索真实资料（web_search 服务端工具）→ 提炼卖点 → 注入生成 prompt。
   let research;
   if (params.productInfo && String(params.productInfo).trim().length >= 4) {
+    // ① 官方资料（最高可信）：用户填的产品介绍/链接说明
     const info = String(params.productInfo).trim();
     // 简化：把整段资料当作 bullets，单条作为"用户提供的官方资料"
     const bullets = info.split(/[\n\r]+|(?:[。！？])|(?:[，；])/).map(s => s.trim()).filter(s => s.length >= 4 && s.length <= 80).slice(0, 6);
     research = { known: true, bullets: bullets.length ? bullets : [info.slice(0, 120)], angle: '', source: 'user' };
-  } else if (topic.length >= 6) {
-    // 用户输入本身即事实：不调研、不降级，直接作为已知卖点上下文（source='user'，前端显示"基于官方资料"青色 chip）
+  } else if (ACTIVITY_RE.test(topic)) {
+    // ② 活动/优惠类：输入即事实（本店活动网上搜不到，直接当卖点上下文；source='user' 青色 chip）
     research = { known: true, bullets: [topic], angle: '', source: 'user' };
   } else {
-    // 模糊选题（<6 字）才走 AI 调研兜底（标注 AI 参考）
-    research = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 60000, maxTokens: 700 });
-    research.source = 'ai';
+    // ③ 产品/选题类：M3 联网搜索真实卖点 → 提炼 → 注入；失败依次退训练知识调研 → topic 兜底
+    let rw = await researchProductWeb(topic, { apiKey, cfg, helpers }, { timeoutMs: 60000 });
+    if (rw.known) {
+      rw.source = 'web'; // 前端显示"AI 联网搜索（真实资料）"
+      research = rw;
+    } else {
+      const rt = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 45000, maxTokens: 700 });
+      if (rt.known) { rt.source = 'ai'; research = rt; }
+      else { research = { known: true, bullets: [topic], angle: '', source: 'user' }; }
+    }
   }
   let productCtx = '';
   let antiHallucinationNote = '';
   if (research.known && research.bullets && research.bullets.length) {
-    productCtx = '\n\n【产品事实上下文（来源：' + (research.source === 'user' ? '用户提供的官方资料' : 'AI 模型调研（仅基于训练知识，不联网，准确度有限') + '，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
+    const srcLabel = research.source === 'user' ? '用户提供的官方资料'
+      : research.source === 'web' ? 'AI 联网搜索（真实资料，来自搜索结果）'
+      : 'AI 模型调研（基于训练知识，可能不准确）';
+    productCtx = '\n\n【产品事实上下文（来源：' + srcLabel + '，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
     antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字；**痛点/反面案例部分也只能用通用营业表达（乱扣费/多花冤枉钱/找不到人/不清楚），禁止引入资料外的具体业务名词（加包/办卡/领流量/充值/查账单/营业厅话费等）**。';
   } else {
     // known=false（仅模糊词调研失败时触达）：不再反向锁死用户信息（≥6 字已走 ② 分支），只防"无中生有"
