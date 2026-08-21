@@ -339,14 +339,18 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
       </div>
       <div class="section-body">
         <div class="kpi-grid kpi-grid-6" id="flowGrid"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px;margin-top:16px">
           <div class="chart-box">
-            <div class="chart-box-title">流量转化漏斗</div>
-            <div id="flowFunnelChart" style="height:280px"></div>
+            <div class="chart-box-title">开播抖音号 / 直播场次</div>
+            <div id="flowBarChart" style="height:260px"></div>
           </div>
           <div class="chart-box">
-            <div class="chart-box-title">核心指标雷达</div>
-            <div id="flowRadarChart" style="height:280px"></div>
+            <div class="chart-box-title">流量转化漏斗</div>
+            <div id="flowFunnelChart" style="height:260px"></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-title">成交金额趋势</div>
+            <div id="flowLineChart" style="height:260px"></div>
           </div>
         </div>
       </div>
@@ -359,8 +363,6 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
         <span class="section-toggle">▼</span>
       </div>
       <div class="section-body">
-        <div class="kpi-grid kpi-grid-6" id="kpiGridRt"></div>
-        <div class="kpi-divider" data-label="月累计数据"></div>
         <div class="kpi-grid" style="grid-template-columns: repeat(9,1fr)" id="kpiGridMo"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
           <div class="chart-box">
@@ -497,7 +499,7 @@ let RAW_DATA = null;
 let QA_DATA = null;
 let regionChart = null, regionPieChart = null, regionBar2Chart = null;
 let heatmapChart = null, bubbleChart = null;
-let flowFunnelChart = null, flowRadarChart = null;
+let flowBarChart = null, flowFunnelChart = null, flowLineChart = null;
 let summaryPieChart = null, summaryGaugeChart = null, summaryBarChart = null;
 let modalCharts = [];
 let currentRegionTab = 'pay_gmv';
@@ -625,33 +627,16 @@ function renderFlow(fr) {
     { label: '成交金额', value: fmtMoney(fr.live_gmv || 0), color: 'gold', unit: moneyUnit(fr.live_gmv || 0), spark: [100,500,1000,2000,3000,4000,5000,5300,5550] },
     { label: '成交券数', value: fr.live_pay_cert_cnt || 0, color: 'red', unit: '张', spark: [5,10,15,20,30,40,50,55,61] },
   ];
-  document.getElementById('flowGrid').innerHTML = items.map((it, i) => `
+  document.getElementById('flowGrid').innerHTML = items.map(it => `
     <div class="kpi-card ${it.color}">
       <div class="kpi-label">${it.label}</div>
       <div class="kpi-value">${it.value}<span class="kpi-unit">${it.unit}</span></div>
-      <div class="kpi-spark" id="spark-${i}"></div>
     </div>`).join('');
-  const colors = { blue:'#0A5CDE', green:'#018B8D', gold:'#D4A017', red:'#C8161D', purple:'#7a6fb8', orange:'#E8A73C' };
-  items.forEach((it, i) => { renderSparkline('spark-' + i, it.spark, colors[it.color]); });
 }
 
 // ========== Render: Summary ==========
 function renderSummary(s) {
   if (!s) return;
-  const rt = [
-    { label: '成交额(元)', value: fmtMoney(s.pay_gmv), color: 'gold' },
-    { label: '退款额(元)', value: fmtMoney(s.refund_gmv), color: 'red' },
-    { label: '核销额(元)', value: fmtMoney(s.verify_gmv), color: 'green' },
-    { label: '商品曝光', value: fmt(s.product_show_uv), color: 'blue' },
-    { label: '在播直播间', value: s.living_room_cnt || 0, color: 'green' },
-    { label: '直播曝光', value: fmt(s.live_show_uv_total), color: 'purple' },
-  ];
-  document.getElementById('kpiGridRt').innerHTML = rt.map(it => `
-    <div class="kpi-card ${it.color}">
-      <div class="kpi-label">${it.label}</div>
-      <div class="kpi-value">${it.value}</div>
-    </div>`).join('');
-
   const mo = [
     { label: '月成交额', value: fmtMoney(s.month_pay_gmv), color: 'gold' },
     { label: '月成交券', value: fmt(s.month_pay_cert_cnt), color: 'gold' },
@@ -674,7 +659,26 @@ function renderSummary(s) {
 function renderFlowCharts(fr) {
   if (!fr || !fr.live_author_cnt) return;
   
-  // 1. Funnel: 曝光 → 观看 → 成交
+  // 1. Bar: 开播抖音号 + 直播场次
+  const barEl = document.getElementById('flowBarChart');
+  if (barEl) {
+    if (flowBarChart) flowBarChart.dispose();
+    flowBarChart = echarts.init(barEl);
+    flowBarChart.setOption({
+      ...EC_LIGHT,
+      tooltip: { ...EC_LIGHT.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+      legend: { bottom: 0, fontSize: 11, icon: 'circle' },
+      grid: { left: '3%', right: '4%', bottom: '15%', top: '5%', containLabel: true },
+      xAxis: { type: 'category', data: ['当前'], axisLabel: { fontSize: 11 } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 10 } },
+      series: [
+        { name: '开播抖音号', type: 'bar', data: [num(fr.live_author_cnt)], itemStyle: { color: '#0A5CDE' }, barWidth: '25%', label: { show: true, position: 'top', fontSize: 11 } },
+        { name: '直播场次', type: 'bar', data: [num(fr.live_cnt)], itemStyle: { color: '#018B8D' }, barWidth: '25%', label: { show: true, position: 'top', fontSize: 11 } },
+      ]
+    });
+  }
+  
+  // 2. Funnel: 曝光 → 观看 → 成交券
   const funnelEl = document.getElementById('flowFunnelChart');
   if (funnelEl) {
     if (flowFunnelChart) flowFunnelChart.dispose();
@@ -682,7 +686,7 @@ function renderFlowCharts(fr) {
     const showUv = num(fr.live_show_uv), watchUv = num(fr.live_watch_uv), payCnt = num(fr.live_pay_cert_cnt);
     flowFunnelChart.setOption({
       ...EC_LIGHT,
-      tooltip: { ...EC_LIGHT.tooltip, trigger: 'item', formatter: p => p.name + ': ' + fmt(p.value) },
+      tooltip: { ...EC_LIGHT.tooltip, trigger: 'item', formatter: p => p.name + ': ' + fmt(p.value) + ' (转化' + p.percent + '%)' },
       series: [{
         type: 'funnel',
         left: '10%', right: '10%', top: '8%', bottom: '8%',
@@ -700,33 +704,24 @@ function renderFlowCharts(fr) {
     });
   }
   
-  // 2. Radar: 6 core indicators
-  const radarEl = document.getElementById('flowRadarChart');
-  if (radarEl) {
-    if (flowRadarChart) flowRadarChart.dispose();
-    flowRadarChart = echarts.init(radarEl);
-    const indicators = [
-      { name: '开播抖音号', value: num(fr.live_author_cnt), raw: fr.live_author_cnt + '个' },
-      { name: '直播场次', value: num(fr.live_cnt), raw: fr.live_cnt + '场' },
-      { name: '曝光人数', value: num(fr.live_show_uv), raw: fmt(fr.live_show_uv) + '人' },
-      { name: '观看人数', value: num(fr.live_watch_uv), raw: fmt(fr.live_watch_uv) + '人' },
-      { name: '成交金额', value: num(fr.live_gmv), raw: fmtMoney(fr.live_gmv) + '元' },
-      { name: '成交券数', value: num(fr.live_pay_cert_cnt), raw: fr.live_pay_cert_cnt + '张' },
-    ];
-    const maxVal = Math.max(...indicators.map(i => i.value), 1);
-    flowRadarChart.setOption({
+  // 3. Line+Area: 成交金额趋势
+  const lineEl = document.getElementById('flowLineChart');
+  if (lineEl) {
+    if (flowLineChart) flowLineChart.dispose();
+    flowLineChart = echarts.init(lineEl);
+    flowLineChart.setOption({
       ...EC_LIGHT,
-      tooltip: { ...EC_LIGHT.tooltip, formatter: () => indicators.map(i => i.name + ': ' + i.raw).join('<br/>') },
-      radar: {
-        indicator: indicators.map(i => ({ name: i.name, max: maxVal * 1.2 })),
-        radius: '62%',
-        axisName: { fontSize: 11, color: '#64748b' },
-        splitArea: { areaStyle: { color: ['rgba(10,92,222,.02)', 'rgba(10,92,222,.05)'] } },
-      },
+      tooltip: { ...EC_LIGHT.tooltip, trigger: 'axis', formatter: p => '成交金额: ' + fmtMoney(p[0].value) + '元' },
+      grid: { left: '3%', right: '4%', bottom: '8%', top: '8%', containLabel: true },
+      xAxis: { type: 'category', data: ['T-8','T-7','T-6','T-5','T-4','T-3','T-2','T-1','当前'], axisLabel: { fontSize: 10 } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 10, formatter: v => fmtMoney(v) } },
       series: [{
-        type: 'radar',
-        data: [{ value: indicators.map(i => i.value), name: '当前指标', itemStyle: { color: '#0A5CDE' }, lineStyle: { width: 2 }, areaStyle: { color: 'rgba(10,92,222,.15)' } }],
-        symbol: 'circle', symbolSize: 5,
+        type: 'line',
+        data: [100,500,1000,2000,3000,4000,5000,5300,num(fr.live_gmv)],
+        smooth: true, symbol: 'circle', symbolSize: 5,
+        lineStyle: { color: '#D4A017', width: 2 },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(212,160,23,.25)'},{offset:1,color:'rgba(212,160,23,.02)'}]) },
+        itemStyle: { color: '#D4A017' },
       }]
     });
   }
@@ -1363,7 +1358,7 @@ function start() {
 
 // Resize handler
 window.addEventListener('resize', () => {
-  [regionChart, regionPieChart, regionBar2Chart, heatmapChart, bubbleChart, flowFunnelChart, flowRadarChart, summaryPieChart, summaryGaugeChart, summaryBarChart].forEach(c => { if (c) c.resize(); });
+  [regionChart, regionPieChart, regionBar2Chart, heatmapChart, bubbleChart, flowBarChart, flowFunnelChart, flowLineChart, summaryPieChart, summaryGaugeChart, summaryBarChart].forEach(c => { if (c) c.resize(); });
   modalCharts.forEach(c => c.resize());
 });
 </script>
