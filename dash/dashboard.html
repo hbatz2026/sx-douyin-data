@@ -239,6 +239,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
 .chart-box-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; }
 .chart-box canvas, .chart-box > div { width: 100% !important; }
 
+/* Chart row grids (desktop default) */
+.chart-row { display: grid; gap: 16px; margin-top: 16px; }
+.chart-row-3 { grid-template-columns: 1fr 1.2fr 1fr; }
+.chart-row-2 { grid-template-columns: 1fr 1fr; }
+.chart-row-summary { grid-template-columns: 1.8fr 1fr; margin-top: 16px; }
+
 /* Comment stream */
 .comment-stream { max-height: 300px; overflow-y: auto; }
 .comment-item { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid var(--border-light); }
@@ -271,6 +277,95 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
 .scrollbar::-webkit-scrollbar-track { background: transparent; }
 .scrollbar::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
 .scrollbar::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ========== Responsive: Tablet & Mobile ========== */
+/* 平板 (<1100px) */
+@media (max-width: 1100px) {
+  .kpi-grid-6 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-grid-5 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .qa-layout { grid-template-columns: 1fr; }
+  .qa-summary { grid-template-columns: repeat(2, 1fr); }
+  .modal { width: 96vw; }
+  .modal-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-chart-row { grid-template-columns: 1fr; }
+  .status-title { font-size: 16px; }
+}
+
+/* 手机 (<768px) */
+@media (max-width: 768px) {
+  /* 侧边栏 → 底部导航 */
+  #sidebar {
+    position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: 100%; height: 54px;
+    flex-direction: row; align-items: center; z-index: 150; overflow-x: auto; overflow-y: hidden;
+  }
+  #sidebar .sidebar-header, #sidebar .sidebar-footer { display: none; }
+  .sidebar-nav { display: flex; flex-direction: row; padding: 0; height: 100%; overflow-x: auto; overflow-y: hidden; }
+  .nav-item { flex: 1; min-width: 64px; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 4px; font-size: 10px; border-left: none; border-top: 2px solid transparent; }
+  .nav-item.active { border-top-color: #60a5fa; }
+  .nav-icon { font-size: 16px; width: auto; height: auto; }
+  .nav-label { display: block !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  #sidebar.collapsed { width: 100%; }
+  #sidebar.collapsed .nav-label { display: block; }
+
+  /* Main */
+  #main { margin-left: 0; padding-bottom: 54px; }
+
+  /* Status bar */
+  .status-bar { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+  .status-title { font-size: 15px; }
+  .status-item { font-size: 12px; }
+  .status-right { gap: 8px; flex-wrap: wrap; }
+  .countdown-badge { font-size: 11px; padding: 3px 8px; }
+  .btn-toggle-all { font-size: 11px; padding: 4px 10px; }
+  #lastUpdate { display: none; }
+
+  /* Content */
+  .content { padding: 12px; }
+  .section-header { padding: 12px 14px; }
+  .section-body { padding: 12px; }
+
+  /* KPI grids: 降列 */
+  .kpi-grid-6, .kpi-grid-5 { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  #kpiGridMo { grid-template-columns: repeat(3, 1fr) !important; }
+  .kpi-value { font-size: 20px; }
+  .kpi-card { padding: 12px; }
+
+  /* Chart rows → 单列 */
+  .chart-row { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .region-chart-container { height: 260px; }
+  .chart-box { padding: 10px; }
+
+  /* QA */
+  .qa-summary { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .qa-room-card { padding: 10px; }
+
+  /* Region tabs */
+  .region-tabs { gap: 6px; }
+  .region-tab { padding: 5px 10px; font-size: 12px; }
+
+  /* Table: 横向滚动 */
+  .table-wrap { overflow-x: auto; max-height: none; -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 720px; }
+  .data-table th, .data-table td { padding: 7px 8px; font-size: 12px; white-space: nowrap; }
+
+  /* Modal 手机全屏 */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { width: 100vw; max-width: 100vw; max-height: 92vh; border-radius: 16px 16px 0 0; }
+  .modal-header { padding: 12px 16px; }
+  .modal-body { padding: 16px; }
+  .modal-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .modal-chart-row { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Toast */
+  .toast-container { top: 10px; right: 10px; left: 10px; }
+  .toast { font-size: 12px; padding: 10px 14px; }
+
+  /* Footer */
+  footer { padding-bottom: 60px; }
+}
 </style>
 </head>
 <body>
@@ -339,7 +434,7 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
       </div>
       <div class="section-body">
         <div class="kpi-grid kpi-grid-6" id="flowGrid"></div>
-        <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:16px;margin-top:16px">
+        <div class="chart-row chart-row-3">
           <div class="chart-box">
             <div class="chart-box-title">开播抖音号 / 直播场次</div>
             <div id="flowBarChart" style="height:260px"></div>
@@ -364,7 +459,7 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
       </div>
       <div class="section-body">
         <div class="kpi-grid" style="grid-template-columns: repeat(9,1fr)" id="kpiGridMo"></div>
-        <div style="display:grid;grid-template-columns:1.8fr 1fr;gap:16px;margin-top:16px">
+        <div class="chart-row chart-row-2 chart-row-summary">
           <div class="chart-box">
             <div class="chart-box-title">月度经营指标对比</div>
             <div id="summaryBarChart" style="height:260px"></div>
@@ -407,7 +502,7 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
       <div class="section-body">
         <div class="region-tabs" id="regionTabs"></div>
         <div class="region-chart-container" id="regionChart"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="chart-row chart-row-2">
           <div class="chart-box">
             <div class="chart-box-title">地市成交额占比</div>
             <div id="regionPie" style="height:280px"></div>
@@ -427,7 +522,7 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
         <span class="section-toggle">▼</span>
       </div>
       <div class="section-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="chart-row chart-row-2" style="margin-bottom:16px">
           <div class="chart-box">
             <div class="chart-box-title">成交额热力图</div>
             <div id="heatmapChart" style="height:320px"></div>
