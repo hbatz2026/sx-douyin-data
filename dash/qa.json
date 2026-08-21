@@ -1,23 +1,23 @@
 {
-  "ts": "20260821095855",
-  "generated_at": "2026-08-21 10:01:10",
+  "ts": "20260821100221",
+  "generated_at": "2026-08-21 10:04:37",
   "total_rooms": 5,
   "alerts": [
     {
       "level": "警告",
       "item": "无人挂播疑似",
-      "desc": "开播37分钟但实时在线为0",
-      "nickname": "$$$清零$$$",
-      "room_id": "e7aa4a7c69bb8a9322e9a416fb914819a844a928a6c9efcbb467279fc3e45310",
-      "ts": "20260821095855"
+      "desc": "开播32分钟但实时在线为0",
+      "nickname": "小翼中国电信(建设路营业厅)",
+      "room_id": "ff57b24e07b758ff362b38609699a57f8740ce520f153ef666faea76d7cb7f6b",
+      "ts": "20260821100221"
     },
     {
       "level": "提示",
       "item": "低互动",
       "desc": "直播超30分钟无评论",
-      "nickname": "$$$清零$$$",
-      "room_id": "e7aa4a7c69bb8a9322e9a416fb914819a844a928a6c9efcbb467279fc3e45310",
-      "ts": "20260821095855"
+      "nickname": "小翼中国电信(建设路营业厅)",
+      "room_id": "ff57b24e07b758ff362b38609699a57f8740ce520f153ef666faea76d7cb7f6b",
+      "ts": "20260821100221"
     }
   ],
   "vision_alerts": 0
