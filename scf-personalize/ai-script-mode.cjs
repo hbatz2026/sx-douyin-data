@@ -118,7 +118,7 @@ async function runAiScript(ctx) {
     } else {
       const rt = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 45000, maxTokens: 700 });
       if (rt.known) { rt.source = 'ai'; research = rt; }
-      else { research = { known: true, bullets: [topic], angle: '', source: 'user' }; }
+      else { research = { known: true, bullets: [topic], angle: '', source: 'user', degraded: true }; } // v6：兜底标记，无真实调研资料
     }
   }
   let productCtx = '';
@@ -140,6 +140,10 @@ async function runAiScript(ctx) {
   } else {
     // known=false（仅模糊词调研失败时触达）：不再反向锁死用户信息（≥6 字已走 ② 分支），只防"无中生有"
     antiHallucinationNote = '\n⚠️ 素材红线（用户未提供该活动/产品的具体信息）：**禁止编造**具体金额、礼品、套餐档位或服务承诺；可用通用营业员口吻（如「来营业厅我帮你看」「进店问问」「查最新政策」）引导用户到店核实；同时引导用户补充卖点（金额/礼品/优惠）以获得更具体脚本。';
+  }
+  // v6：联网搜索失败退兜底（degraded）时追加约束——产品名只有名字没有真实功能资料，禁止把名字联想成业务能力
+  if (research.degraded) {
+    antiHallucinationNote += '\n⚠️ 兜底约束（联网搜索未获得该产品的真实资料）：**禁止编造**其具体功能、参数或业务能力（如查套餐/查流量/在线客服/远程维修/24小时响应等）；不要把它描述成营业厅业务工具或智能客服；围绕「它是山西电信推出的新东西，具体功能可到店了解」展开，用「到店了解最新功能」「进店咨询」引导。';
   }
 
   const user = '选题：' + topic + '\n人设要求：' + MOODS[mood] +
@@ -212,17 +216,20 @@ async function runAiScript(ctx) {
         const r3 = Q.checkVariant(cand, {});
         if (r3.pass) r = r3; else cand.script = orig;
       }
-      // 定位跑偏 + 价格编造检测（2026-08-21 v4/v5）：联网调研的办公/软件类产品被写成"营业厅业务工具"，或编造价格承诺 → 重试。
-      // 判定：script 含业务功能词/价格词，且真实调研卖点（bullets）完全不含这些词 → 跑偏（真实卖点里没有这些内容）。
-      if (r.pass && research.source === 'web') {
-        const BIZ_WORDS = /查流量|查套餐|查话费|比对套餐|算续费|续费|缴费|办卡|改套餐|补卡|销号|宽带故障|查账单|流量用不完|套餐升级/;
+      // 定位跑偏 + 价格编造检测（2026-08-21 v4/v6）：script 声称的功能/价格不在事实上下文（bullets）里 → 重试。
+      // v6 放宽：不依赖 source==='web'（web 搜索失败退 user 兜底时同样生效），只要 bullets 不含业务词/价格词而 script 含即重试。
+      // 活动类（② 分支 bullets=[活动描述]）含"话费/100元"等词，script 围绕活动写不误伤。
+      if (r.pass && research && research.known && research.bullets && research.bullets.length) {
+        const BIZ_WORDS = /查流量|查套餐|查话费|比对套餐|算续费|续费|缴费|办卡|改套餐|补卡|销号|宽带故障|查账单|流量用不完|套餐升级|在线客服|智能客服/;
         const bulletText = (research.bullets || []).join('');
-        if (BIZ_WORDS.test(script) && !BIZ_WORDS.test(bulletText)) {
-          lastErr = '产品定位跑偏（真实卖点不含营业厅业务功能，script 却写成业务工具），重试';
+        // v6.1：用 cand.script（含强 CTA 兜底追加后的全文），否则 beats.cta 里的编造词会漏检
+        const finalScript = cand.script || script;
+        if (BIZ_WORDS.test(finalScript) && !BIZ_WORDS.test(bulletText)) {
+          lastErr = '产品定位跑偏（事实上下文不含营业厅业务功能，script 却写成业务工具/智能客服），重试';
           continue; // 直接进下一 attempt（重试）
         }
-        if (PRICE_WORDS.test(script) && !PRICE_WORDS.test(bulletText)) {
-          lastErr = '价格编造（真实资料无价格/免费承诺，script 却出现），重试';
+        if (PRICE_WORDS.test(finalScript) && !PRICE_WORDS.test(bulletText)) {
+          lastErr = '价格编造（事实上下文无价格/免费承诺，script 却出现），重试';
           continue;
         }
       }

@@ -35,49 +35,59 @@ function extractJsonObj(extractJsonObject, text) {
 
 // ── 联网搜索版（2026-08-21）：MiniMax Server Tool web_search_20250305，Anthropic Messages 格式 ──
 // 模型在服务端自动搜索并把结果用于生成最终答复，无需多轮 tool 回传；直接读 content 里最后一个 text 块。
+// 2026-08-21 v6：内部重试 1 次（Anthropic endpoint 偶发超时/网络抖动，避免退训练知识/兜底导致跑偏）
 async function researchProductWeb(topic, ctx, opts) {
   const { apiKey, cfg } = ctx;
   const timeoutMs = (opts && opts.timeoutMs) || 60000;
   const model = (opts && opts.model) || cfg.fallbackModel || cfg.model || 'MiniMax-M3';
-  try {
-    const res = await fetch('https://api.minimaxi.com/anthropic/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: buildUserWeb(topic) }],
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }]
-      }),
-      signal: AbortSignal.timeout(timeoutMs)
-    });
-    if (!res.ok) {
-      const body = (await res.text()).slice(0, 200);
-      return { known: false, reason: '联网调研 HTTP ' + res.status + ': ' + body };
-    }
-    const j = await res.json();
-    const blocks = (j && j.content) || [];
-    // 取最后一个 text 块（模型搜索后的最终回答）
-    let finalText = '';
-    for (const b of blocks) { if (b && b.type === 'text' && b.text) finalText = b.text; }
-    if (!finalText) return { known: false, reason: '联网调研无文本输出' };
-    const obj = extractJsonObj(null, finalText);
-    if (obj && obj.known === true && Array.isArray(obj.bullets) && obj.bullets.length) {
-      return { known: true, bullets: obj.bullets.slice(0, 5).map(s => String(s).trim()).filter(Boolean), angle: obj.angle ? String(obj.angle).trim() : '', source: 'web' };
-    }
-    if (obj && obj.known === false) return { known: false, reason: String(obj.reason || '未搜到可靠资料') };
-    // 模型没按 JSON 输出：尝试从搜索结果块提取标题作为卖点线索（弱降级）
-    for (const b of blocks) {
-      if (b && b.type === 'web_search_tool_result') {
-        const rs = (b.content || []).filter(x => x.type === 'web_search_result' && x.title && x.content);
-        if (rs.length) {
-          return { known: true, bullets: rs.slice(0, 4).map(r => (r.title || '').trim().slice(0, 40) + '：' + (r.content || '').trim().slice(0, 60)), angle: '', source: 'web', degraded: true };
+  let lastErr = '';
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch('https://api.minimaxi.com/anthropic/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model,
+          max_tokens: 1500,
+          messages: [{ role: 'user', content: buildUserWeb(topic) }],
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+        }),
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      if (!res.ok) {
+        const body = (await res.text()).slice(0, 200);
+        lastErr = '联网调研 HTTP ' + res.status + ': ' + body;
+        if (attempt === 1) continue;
+        return { known: false, reason: lastErr };
+      }
+      const j = await res.json();
+      const blocks = (j && j.content) || [];
+      // 取最后一个 text 块（模型搜索后的最终回答）
+      let finalText = '';
+      for (const b of blocks) { if (b && b.type === 'text' && b.text) finalText = b.text; }
+      if (!finalText) { lastErr = '联网调研无文本输出'; if (attempt === 1) continue; return { known: false, reason: lastErr }; }
+      const obj = extractJsonObj(null, finalText);
+      if (obj && obj.known === true && Array.isArray(obj.bullets) && obj.bullets.length) {
+        return { known: true, bullets: obj.bullets.slice(0, 5).map(s => String(s).trim()).filter(Boolean), angle: obj.angle ? String(obj.angle).trim() : '', source: 'web' };
+      }
+      if (obj && obj.known === false) { lastErr = String(obj.reason || '未搜到可靠资料'); if (attempt === 1) continue; return { known: false, reason: lastErr }; }
+      // 模型没按 JSON 输出：尝试从搜索结果块提取标题作为卖点线索（弱降级）
+      for (const b of blocks) {
+        if (b && b.type === 'web_search_tool_result') {
+          const rs = (b.content || []).filter(x => x.type === 'web_search_result' && x.title && x.content);
+          if (rs.length) {
+            return { known: true, bullets: rs.slice(0, 4).map(r => (r.title || '').trim().slice(0, 40) + '：' + (r.content || '').trim().slice(0, 60)), angle: '', source: 'web', degraded: true };
+          }
         }
       }
+      lastErr = '联网调研输出未识别';
+      if (attempt === 1) continue;
+      return { known: false, reason: lastErr };
+    } catch (e) {
+      lastErr = '联网调研异常: ' + (e.message || String(e));
+      if (attempt === 1) continue;
+      return { known: false, reason: lastErr };
     }
-    return { known: false, reason: '联网调研输出未识别' };
-  } catch (e) {
-    return { known: false, reason: '联网调研异常: ' + (e.message || String(e)) };
   }
 }
 
