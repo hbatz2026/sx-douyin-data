@@ -199,6 +199,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sc-switch.fb-up.on{background:var(--green-light);color:var(--green);}
 .sc-switch.fb-down.on{background:var(--red-light);color:var(--red);}
 .sc-switch:disabled{opacity:.5;cursor:default;}
+/* 改写入口行（2026-08-21：今日脚本「就地改写」） */
+.sc-rewrite-row{padding:0 14px 10px;}
+.sc-rewrite{width:100%;padding:7px;border:none;border-radius:6px;background:var(--blue-light);color:var(--blue-600);font-size:12px;font-weight:600;cursor:pointer;min-height:36px;font-family:inherit;transition:all .15s;}
+.sc-rewrite:hover{background:var(--grad-soft);}
+.sc-rewrite:active{transform:scale(.98);}
+.sc-rewrite:focus-visible{outline:2px solid var(--blue-400);outline-offset:2px;}
+/* 改写弹窗：原稿框 / 意图 chip / 结果 */
+.rewrite-orig{font-size:12px;line-height:1.7;background:var(--gray);border-radius:8px;padding:8px 10px;max-height:110px;overflow:auto;color:var(--text);margin-bottom:10px;}
 
 /* ===== 排期（2026-08-21：字号微调 + 移动端 2 列适配） ===== */
 .week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;}
@@ -562,23 +570,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   </div>
 </div>
 
+<!-- AI 改写弹窗（2026-08-21：今日脚本「就地改写」，复用 .modal-overlay 焦点管理） -->
+<div id="rewriteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rewriteModalTitle">
+  <div class="modal-sheet" role="document">
+    <h3 id="rewriteModalTitle" style="font-size:15px;margin-bottom:8px;">✏️ 改写这条脚本</h3>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">原稿（不会改动，改写生成新版本）：</div>
+    <div id="rewriteOrig" class="rewrite-orig"></div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">想怎么改：</div>
+    <div id="rewriteIntents" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      <button type="button" class="p-chip active" data-intent="polish" aria-pressed="true" onclick="setRewriteIntent('polish',this)">🔄 换种说法</button>
+      <button type="button" class="p-chip" data-intent="short" aria-pressed="false" onclick="setRewriteIntent('short',this)">⏱ 缩短到 100 字</button>
+      <button type="button" class="p-chip" data-intent="casual" aria-pressed="false" onclick="setRewriteIntent('casual',this)">💬 更口语</button>
+      <button type="button" class="p-chip" data-intent="local" aria-pressed="false" onclick="setRewriteIntent('local',this)">📍 加本店信息</button>
+    </div>
+    <div id="rewriteExtraWrap" style="display:none;margin-bottom:10px;">
+      <textarea id="rewriteExtra" aria-label="补充信息" placeholder="补充店名 / 活动 / 优惠，如：太原柳巷营业厅，本月办宽带送 6 个月会员" style="width:100%;height:56px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;resize:vertical;"></textarea>
+    </div>
+    <button id="rewriteGenBtn" class="btn-primary" style="width:100%;" onclick="genRewrite()">🚀 生成改写稿</button>
+    <div id="rewriteResult" style="margin-top:12px;display:none;"></div>
+    <button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="closeRewriteModal()">✕ 关闭</button>
+  </div>
+</div>
+
 <!-- Data（2026-08-21：3.0 移除 bundle.js 大包（234K 含 2.x 专用数据 ~117K），显式加载 3.0 实际依赖的 8 个小数据文件，首屏 JS 净减 ~180K） -->
-  <script src="data/v3-seedpool.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/dailyScripts.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/hotspotData.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/topicPool.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/t1Presets.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/t2Presets.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/t4Presets.js?v=2.9.83&t=1787292907632"></script>
-  <script src="data/weeklyNew.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/v3-seedpool.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/dailyScripts.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/hotspotData.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/topicPool.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/t1Presets.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/t2Presets.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/t4Presets.js?v=2.9.84&t=1787298567043"></script>
+  <script src="data/weeklyNew.js?v=2.9.84&t=1787298567043"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.83&t=1787292907632"></script>
-  <script src="src/v3/core3.js?v=2.9.83&t=1787292907632"></script>
-  <script src="src/v3/track.js?v=2.9.83&t=1787292907632"></script>
-  <script src="src/v3/gate.js?v=2.9.83&t=1787292907632"></script>
-  <script src="src/v3/pool.js?v=2.9.83&t=1787292907632"></script>
+  <script src="src/v3/personas.js?v=2.9.84&t=1787298567043"></script>
+  <script src="src/v3/core3.js?v=2.9.84&t=1787298567043"></script>
+  <script src="src/v3/track.js?v=2.9.84&t=1787298567043"></script>
+  <script src="src/v3/gate.js?v=2.9.84&t=1787298567043"></script>
+  <script src="src/v3/pool.js?v=2.9.84&t=1787298567043"></script>
   <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
-  <script src="src/hotspot.js?v=2.9.83&t=1787292907632"></script>
+  <script src="src/hotspot.js?v=2.9.84&t=1787298567043"></script>
 
 <script>
 // ==================== Config ====================
@@ -613,6 +643,115 @@ function closeCustomTopic() {
   if (m._returnFocus && typeof m._returnFocus.focus === 'function') { try { m._returnFocus.focus(); } catch(e){} }
   m._returnFocus = null;
 }
+
+// ==================== AI 改写（2026-08-21：今日脚本就地改写，mode='ai-rewrite'） ====================
+var rewriteState = { idx: -1, intent: 'polish' };
+
+/** 任一弹窗打开则返回其元素（供 ESC / Tab 圈闭复用） */
+function anyOpenModal() {
+  var a = document.getElementById('customModal'), b = document.getElementById('rewriteModal');
+  if (a && a.classList.contains('show')) return a;
+  if (b && b.classList.contains('show')) return b;
+  return null;
+}
+
+function openRewriteModal(idx) {
+  var script = scriptAt(idx);
+  if (!script) return;
+  var orig = currentText(idx);
+  if (!orig || orig.length < 20) { showToast('该稿暂无可改写文本'); return; }
+  rewriteState.idx = idx;
+  rewriteState.intent = 'polish';
+  document.getElementById('rewriteOrig').textContent = orig;
+  document.getElementById('rewriteExtra').value = '';
+  document.getElementById('rewriteExtraWrap').style.display = 'none';
+  var box = document.getElementById('rewriteResult'); if (box) box.style.display = 'none';
+  document.querySelectorAll('#rewriteIntents .p-chip').forEach(function(e){
+    e.classList.toggle('active', e.getAttribute('data-intent') === 'polish');
+    e.setAttribute('aria-pressed', e.getAttribute('data-intent') === 'polish' ? 'true' : 'false');
+  });
+  var m = document.getElementById('rewriteModal');
+  m.classList.add('show');
+  setTimeout(function(){ document.getElementById('rewriteGenBtn').focus(); }, 80);
+}
+
+function closeRewriteModal() {
+  var m = document.getElementById('rewriteModal');
+  if (!m) return;
+  m.classList.remove('show');
+  var box = document.getElementById('rewriteResult'); if (box) box.style.display = 'none';
+}
+
+function setRewriteIntent(k, el) {
+  rewriteState.intent = k;
+  document.querySelectorAll('#rewriteIntents .p-chip').forEach(function(e){
+    e.classList.toggle('active', e.getAttribute('data-intent') === k);
+    e.setAttribute('aria-pressed', e.getAttribute('data-intent') === k ? 'true' : 'false');
+  });
+  document.getElementById('rewriteExtraWrap').style.display = (k === 'local') ? '' : 'none';
+  if (k === 'local') setTimeout(function(){ document.getElementById('rewriteExtra').focus(); }, 60);
+}
+
+async function genRewrite() {
+  var idx = rewriteState.idx;
+  var script = scriptAt(idx);
+  if (!script) return;
+  var orig = currentText(idx);
+  var extra = document.getElementById('rewriteExtra').value.trim();
+  if (rewriteState.intent === 'local' && !extra) { showToast('选「加本店信息」请先填店名 / 活动'); document.getElementById('rewriteExtra').focus(); return; }
+  var btn = document.getElementById('rewriteGenBtn');
+  btn.disabled = true; btn.textContent = '⏳ 改写中…（约 10-30 秒）';
+  try {
+    var res = await fetch(PERSONALIZE_API, { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ mode: 'ai-rewrite', topic: script.topic || script.seedId || '今日脚本', script: orig, mood: curMood, intent: rewriteState.intent, extra: extra }) });
+    if (!res.ok) { var e = await res.json().catch(function(){ return {}; }); throw new Error(e.error || ('HTTP ' + res.status)); }
+    var data = await res.json();
+    if (!data.ok) throw new Error(data.error || '改写失败');
+    var safe = (typeof sanitizeStance === 'function') ? sanitizeStance(data.script || '') : (data.script || '');
+    var box = document.getElementById('rewriteResult');
+    box.style.display = 'block';
+    var escFn = function(x){ return (x || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    box.innerHTML =
+      '<div style="font-size:14px;line-height:1.8;white-space:pre-wrap;background:var(--gray);border:1px solid var(--gray-border);border-radius:8px;padding:10px;max-height:220px;overflow:auto;" id="rewriteOut">' + escFn(safe) + '</div>' +
+      '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
+      '<button type="button" class="sc-rewrite" style="width:auto;padding:6px 14px;" onclick="copyToClipboard(document.getElementById(\'rewriteOut\').textContent, \'改写稿已复制\')">📋 复制改写稿</button>' +
+      '<button type="button" class="sc-rewrite" style="width:auto;padding:6px 14px;background:var(--green-light);color:var(--green);" onclick="useRewrite()">✅ 用这条替换卡片</button>' +
+      (data.chars ? '<span style="font-size:11px;color:var(--text-light);padding:6px 8px;">' + data.chars + ' 字 · 已过合规检查</span>' : '') +
+      '</div>';
+    showToast('✅ 改写完成');
+  } catch (e2) {
+    showToast('改写失败：' + e2.message);
+    var b = document.getElementById('rewriteResult'); if (b) b.style.display = 'none';
+  } finally { btn.disabled = false; btn.textContent = '🚀 生成改写稿'; }
+}
+
+/** 用改写稿替换当前卡片文本（复制/分享将走新稿；立场扫描再拦一道） */
+function useRewrite() {
+  var out = document.getElementById('rewriteOut');
+  if (!out) return;
+  var idx = rewriteState.idx;
+  var script = scriptAt(idx);
+  if (!script) return;
+  var text = out.textContent;
+  if (V3.scanStance(text).length) { showToast('该改写稿未通过立场校验，已拦截'); return; }
+  script.__fullText = text;
+  var pv = document.getElementById('pv-' + idx);
+  if (pv) {
+    pv.setAttribute('data-full', '1');
+    var card = document.getElementById('card-' + idx);
+    if (card && card.classList.contains('expanded')) {
+      pv.textContent = text;
+    } else {
+      var preview = text.slice(0, 120) + (text.length > 120 ? '...' : '');
+      pv.textContent = preview;
+      pv.setAttribute('data-preview-text', preview);
+      pv.setAttribute('data-full-text', text);
+    }
+  }
+  closeRewriteModal();
+  showToast('✅ 已替换为改写稿，复制按钮将复制新稿');
+}
+
 async function genCustomScript(){
   var topic = (document.getElementById('customTopicInput').value||'').trim();
   var mood = document.getElementById('customMood').value;
@@ -702,15 +841,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // 键盘可达（2026-08-21 扩展）：div[role=button] Enter/Space + ESC 关弹窗 + Tab 圈闭 + Tab 栏方向键
   document.addEventListener('keydown', function(e){
     var t = e.target;
-    // ① ESC：关闭打开的自定义选题弹窗
+    // ① ESC：关闭任一打开弹窗（自定义选题 / 改写）
     if (e.key === 'Escape') {
-      var m = document.getElementById('customModal');
-      if (m && m.classList.contains('show')) { closeCustomTopic(); e.preventDefault(); return; }
+      var m = anyOpenModal();
+      if (m) { if (m.id === 'customModal') closeCustomTopic(); else closeRewriteModal(); e.preventDefault(); return; }
     }
-    // ② Tab：弹窗内焦点圈闭（focus trap）
+    // ② Tab：弹窗内焦点圈闭（focus trap，任一弹窗）
     if (e.key === 'Tab') {
-      var mm = document.getElementById('customModal');
-      if (mm && mm.classList.contains('show')) {
+      var mm = anyOpenModal();
+      if (mm) {
         var f = mm.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
         if (f.length) {
           var first = f[0], last = f[f.length - 1];
@@ -935,7 +1074,8 @@ function renderScriptCard(script, idx, vidOverride) {
     '<button type="button" class="sc-switch" onclick="event.stopPropagation();shareCard('+idx+')">📤 分享</button>' +
     '<button type="button" class="sc-switch fb-up" title="这条对我有用" aria-label="好评" aria-pressed="false" onclick="event.stopPropagation();feedbackCard('+idx+',1)">👍</button>' +
     '<button type="button" class="sc-switch fb-down" title="这条没帮助" aria-label="差评" aria-pressed="false" onclick="event.stopPropagation();feedbackCard('+idx+',-1)">👎</button>' +
-    '</div></div>';
+    '</div>' +
+    '<div class="sc-rewrite-row"><button type="button" class="sc-rewrite" title="按意图改写这条口播稿，保留原稿事实" onclick="event.stopPropagation();openRewriteModal('+idx+')">✏️ 改写这条（换说法 / 缩短 / 口语化 / 加本店）</button></div></div>';
 }
 
 function esc(s) {

@@ -1079,6 +1079,24 @@ http.createServer(async (req, res) => {
       return;
     }
 
+    // ===== ai-rewrite: 3.0 今日脚本「就地改写」（2026-08-21，G7 同门禁管道） =====
+    // 营业员对现有口播稿点「改写」→ 按意图改（换说法/缩短/口语化/加本店），保留原文事实。
+    if (params.mode === 'ai-rewrite') {
+      try {
+        const token = process.env.GITEE_TOKEN;
+        const user = process.env.GITEE_USERNAME || 'hbatz';
+        const apiKey = (process.env.MINIMAX_API_KEY || process.env.SILICONFLOW_API_KEY);
+        if (!apiKey) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: 'AI 凭证未设置' })); return; }
+        if (!params.script || String(params.script).trim().length < 20) { res.writeHead(400, corsHeaders); res.end(JSON.stringify({ ok: false, error: '缺少原稿 script（至少 20 字）' })); return; }
+        if (!params.topic || String(params.topic).trim().length < 2) { res.writeHead(400, corsHeaders); res.end(JSON.stringify({ ok: false, error: '缺少选题 topic' })); return; }
+        const cfg = await loadAIConfig(token, user);
+        const { runAiRewrite } = require('./ai-rewrite-mode.cjs');
+        const r = await runAiRewrite({ apiKey, token, user, cfg, params, helpers: { callSiliconFlow, extractJsonObject, hsSanitize } });
+        res.writeHead(200, corsHeaders); res.end(JSON.stringify(r));
+      } catch (e) { res.writeHead(500, corsHeaders); res.end(JSON.stringify({ ok: false, error: e.message || 'ai-rewrite failed' })); }
+      return;
+    }
+
     // ===== sfb-migrate: 把旧的 data/{t}ScriptFullByPersona.js 单文件迁成分片存储 =====
     // 只需跑一次（或新增类型时）。分开做是为了不占用 weekly-persona 的单次时间预算。
     if (params.mode === 'sfb-migrate') {
