@@ -563,22 +563,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 
 <!-- Data（2026-08-21：3.0 移除 bundle.js 大包（234K 含 2.x 专用数据 ~117K），显式加载 3.0 实际依赖的 8 个小数据文件，首屏 JS 净减 ~180K） -->
-  <script src="data/v3-seedpool.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/dailyScripts.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/hotspotData.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/topicPool.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/t1Presets.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/t2Presets.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/t4Presets.js?v=2.9.82&t=1787285060918"></script>
-  <script src="data/weeklyNew.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/v3-seedpool.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/dailyScripts.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/hotspotData.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/topicPool.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/t1Presets.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/t2Presets.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/t4Presets.js?v=2.9.83&t=1787292907632"></script>
+  <script src="data/weeklyNew.js?v=2.9.83&t=1787292907632"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.82&t=1787285060918"></script>
-  <script src="src/v3/core3.js?v=2.9.82&t=1787285060918"></script>
-  <script src="src/v3/track.js?v=2.9.82&t=1787285060918"></script>
-  <script src="src/v3/gate.js?v=2.9.82&t=1787285060918"></script>
-  <script src="src/v3/pool.js?v=2.9.82&t=1787285060918"></script>
+  <script src="src/v3/personas.js?v=2.9.83&t=1787292907632"></script>
+  <script src="src/v3/core3.js?v=2.9.83&t=1787292907632"></script>
+  <script src="src/v3/track.js?v=2.9.83&t=1787292907632"></script>
+  <script src="src/v3/gate.js?v=2.9.83&t=1787292907632"></script>
+  <script src="src/v3/pool.js?v=2.9.83&t=1787292907632"></script>
   <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
-  <script src="src/hotspot.js?v=2.9.82&t=1787285060918"></script>
+  <script src="src/hotspot.js?v=2.9.83&t=1787292907632"></script>
 
 <script>
 // ==================== Config ====================
@@ -639,6 +639,7 @@ async function genCustomScript(){
     var sourceChip = '';
     if (data.research) {
       if (data.research.source === 'user') sourceChip = '<span style="font-size:11px;background:#E0F7FA;color:#006064;padding:4px 10px;border-radius:10px;">📎 基于官方资料</span>';
+      else if (data.research.source === 'web') sourceChip = '<span style="font-size:11px;background:#E8F5E9;color:#1B5E20;padding:4px 10px;border-radius:10px;">🔍 AI 联网搜索（真实资料）</span>';
       else if (data.research.known) sourceChip = '<span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:4px 10px;border-radius:10px;">⚠️ AI 调研（仅供参考）</span>';
       else sourceChip = '<span style="font-size:11px;background:#FFEBEE;color:#C62828;padding:4px 10px;border-radius:10px;">⚠️ 模型无法确认产品（已引导到店）</span>';
     }
