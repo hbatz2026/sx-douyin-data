@@ -6,171 +6,276 @@
 <title>山西电信抖本实时数据大屏</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
-:root{
-  /* 背景层 */
-  --bg-primary:#F5F7FA; --bg-card:#FFFFFF; --bg-elevated:#EEF1F6;
-  /* 品牌色 */
-  --primary:#0A5CDE; --primary-light:#E8F1FD; --primary-hover:#084BB5;
-  /* 数据语义色 */
-  --success:#018B8D; --warning:#E8A73C; --error:#C8161D;
-  --accent-gold:#D4A017; --neutral:#6B7280;
-  /* 文字层级 */
-  --text-title:#1A1A1A; --text-body:#4A4A4A; --text-hint:#8A8A8A;
-  /* 边框 */
-  --border-subtle:#E8E8E8; --border-default:#D0D5DD;
-  /* 间距 4px 基准 */
-  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px; --sp-8:32px;
-  /* 阴影 */
-  --shadow-hover:0 4px 12px rgba(10,92,222,.08);
-  --shadow-card:0 1px 3px rgba(0,0,0,.04);
+/* ========== CSS Design System (aligned with biz-dashboard) ========== */
+:root {
+  --bg: #f0f2f7;
+  --surface: #fff;
+  --bg-elevated: #EEF1F6;
+  --primary: #0A5CDE;
+  --primary-soft: #E8F1FD;
+  --primary-hover: #084BB5;
+  --text-1: #1e293b;
+  --text-2: #475569;
+  --text-3: #8b97a8;
+  --green: #018B8D;
+  --red: #C8161D;
+  --orange: #E8A73C;
+  --gold: #D4A017;
+  --purple: #7a6fb8;
+  --border-light: #E8E8E8;
+  --border-default: #D0D5DD;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(30,41,59,.04);
+  --shadow-card: 0 1px 4px rgba(30,41,59,.06);
+  --shadow-hover: 0 4px 12px rgba(10,92,222,.08);
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 28px; --sp-8: 32px;
+  --sidebar-w: 210px;
+  --sidebar-w-collapse: 56px;
+  --sidebar-bg: #1e293b;
+  --sidebar-bg-hover: #334155;
+  --sidebar-text: #cbd5e1;
+  --sidebar-text-active: #fff;
+  --sidebar-active-bg: #0A5CDE;
 }
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg-primary);color:var(--text-body);font-family:"Microsoft YaHei","PingFang SC",sans-serif;min-height:100vh;overflow-x:hidden}
 
-/* 密码锁 */
-#lock{position:fixed;inset:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:999}
-#lock .box{background:var(--bg-card);padding:var(--sp-8);border-radius:var(--sp-2);text-align:center;box-shadow:var(--shadow-hover);border:1px solid var(--border-subtle)}
-#lock h2{color:var(--primary);margin-bottom:var(--sp-4);font-size:20px;letter-spacing:2px}
-#lock input{padding:10px 14px;width:240px;border-radius:var(--sp-1);border:1px solid var(--border-default);background:var(--bg-primary);color:var(--text-title);font-size:15px;text-align:center;outline:none}
-#lock input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,92,222,.1)}
-#lock .btn{margin-top:var(--sp-3);padding:9px 30px;background:var(--primary);color:#fff;border:none;border-radius:var(--sp-1);font-size:15px;cursor:pointer;transition:background .2s}
-#lock .btn:hover{background:var(--primary-hover)}
-#lock .err{color:var(--error);margin-top:var(--sp-2);font-size:12px;display:none}
-#dash{display:none}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text-1); font-size: 14px; line-height: 1.5; }
 
-/* Header */
-.header{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-4) var(--sp-8);background:var(--bg-card);border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-card)}
-.header h1{font-size:20px;letter-spacing:2px;font-weight:600;color:var(--text-title)}
-.header h1::before{content:'';display:inline-block;width:3px;height:18px;background:var(--primary);vertical-align:middle;margin-right:var(--sp-3);border-radius:1px}
-.header .meta{display:flex;align-items:center;gap:var(--sp-4);font-size:12px;color:var(--text-hint)}
-.header .meta b{color:var(--primary);font-size:14px}
-.header .btn-toggle-all{padding:5px 14px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-body);border-radius:var(--sp-1);cursor:pointer;transition:all .2s}
-.header .btn-toggle-all:hover{border-color:var(--primary);color:var(--primary)}
+/* ========== Password Lock ========== */
+#lock { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; }
+#lock .box { background: var(--surface); padding: var(--sp-8); border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow-hover); border: 1px solid var(--border-light); }
+#lock h2 { color: var(--primary); margin-bottom: var(--sp-4); font-size: 20px; letter-spacing: 2px; }
+#lock input { padding: 10px 14px; width: 240px; border-radius: var(--radius); border: 1px solid var(--border-default); background: var(--bg); color: var(--text-1); font-size: 15px; text-align: center; outline: none; }
+#lock input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(10,92,222,.1); }
+#lock .btn { margin-top: var(--sp-3); padding: 9px 30px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius); font-size: 15px; cursor: pointer; transition: background .2s; }
+#lock .btn:hover { background: var(--primary-hover); }
+#lock .err { color: var(--red); margin-top: var(--sp-2); font-size: 12px; display: none; }
+#dash { display: none; }
 
-/* 通用 section */
-.section{padding:var(--sp-4) var(--sp-8) var(--sp-2)}
-.section-header{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-3);cursor:pointer;user-select:none}
-.section-header .dot-icon{display:flex;gap:2px}
-.section-header .dot-icon span{width:var(--sp-1);height:var(--sp-1);border-radius:50%;background:var(--primary);opacity:.6}
-.section-header .dot-icon span:nth-child(1){opacity:1}
-.section-header h2{font-size:15px;color:var(--text-title);font-weight:600}
-.section-header .hint{font-size:11px;color:var(--text-hint);margin-left:auto}
-.section-header .toggle-btn{font-size:14px;color:var(--text-hint);transition:transform .3s;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.section-header.collapsed .toggle-btn{transform:rotate(-90deg)}
-.section-body{transition:max-height .4s ease,opacity .3s ease,margin .3s ease;overflow:hidden;max-height:2000px;opacity:1}
-.section-body.collapsed{max-height:0;opacity:0;margin:0!important}
+/* ========== Sidebar ========== */
+#sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+  background: var(--sidebar-bg); color: var(--sidebar-text);
+  display: flex; flex-direction: column; z-index: 100;
+  transition: width .25s ease; overflow-x: hidden;
+}
+#sidebar.collapsed { width: var(--sidebar-w-collapse); }
+.sidebar-header { padding: 16px 12px; display: flex; align-items: center; gap: 8px; min-height: 52px; }
+.sidebar-logo { width: 28px; height: 28px; background: var(--primary); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; font-weight: 700; color: #fff; }
+.sidebar-title { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; }
+#sidebar.collapsed .sidebar-title { display: none; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  cursor: pointer; color: var(--sidebar-text); white-space: nowrap;
+  transition: background .15s; border-left: 3px solid transparent; font-size: 13px;
+}
+.nav-item:hover { background: var(--sidebar-bg-hover); }
+.nav-item.active { color: var(--sidebar-text-active); background: var(--sidebar-active-bg); border-left-color: #60a5fa; }
+.nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+.nav-label { overflow: hidden; }
+#sidebar.collapsed .nav-label { display: none; }
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid #334155; }
+#sidebar.collapsed .sidebar-footer { display: none; }
+.collapse-btn { background: none; border: none; color: var(--sidebar-text); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; }
+.collapse-btn:hover { background: var(--sidebar-bg-hover); color: #fff; }
 
-/* KPI 卡片 */
-.kpi-group{margin-bottom:var(--sp-5)}
-.kpi-group-label{display:flex;align-items:center;gap:var(--sp-2);font-size:12px;color:var(--text-body);margin-bottom:var(--sp-3);font-weight:600}
-.kpi-group-label .badge{font-size:10px;font-weight:700;padding:2px 10px;border-radius:10px;letter-spacing:1px}
-.badge.rt{background:rgba(200,22,29,.1);color:var(--error)}
-.badge.mo{background:rgba(10,92,222,.1);color:var(--primary)}
-@keyframes breathe{0%,100%{opacity:.6}50%{opacity:1}}
-.badge.live{background:rgba(1,139,141,.1);color:var(--success)}
-.kpi-grid{display:grid;gap:var(--sp-3)}
-.kpi-grid.rt{grid-template-columns:repeat(6,1fr)}
-.kpi-grid.mo{grid-template-columns:repeat(9,1fr)}
-.kpi-grid.flow{grid-template-columns:repeat(6,1fr)}
-.kpi-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4) var(--sp-3);text-align:center;position:relative;overflow:hidden;transition:all .25s;box-shadow:var(--shadow-card)}
-.kpi-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
-.kpi-card .accent-bar{position:absolute;top:0;left:0;right:0;height:2px}
-.kpi-card.rt .accent-bar{background:var(--error)}
-.kpi-card.mo .accent-bar{background:var(--primary)}
-.kpi-card.flow .accent-bar{background:var(--primary)}
-.kpi-card .k-label{font-size:11px;color:var(--text-hint);line-height:1.3;margin-bottom:var(--sp-2)}
-.kpi-card .k-val{font-size:26px;font-weight:700;letter-spacing:1px;line-height:1.2;color:var(--text-title)}
-.kpi-card .k-val.pay{color:var(--accent-gold)}
-.kpi-card .k-val.green{color:var(--success)}
-.kpi-card .k-val.red{color:var(--error)}
-.kpi-card .k-val.blue{color:var(--primary)}
-.kpi-card .k-unit{font-size:11px;color:var(--text-hint);margin-top:2px}
+/* ========== Main Content ========== */
+#main { margin-left: var(--sidebar-w); transition: margin-left .25s ease; min-height: 100vh; }
+#sidebar.collapsed ~ #main { margin-left: var(--sidebar-w-collapse); }
 
-/* 直播质检 - 重点展示 */
-.qa-section{padding:0 var(--sp-8) var(--sp-2)}
-.qa-highlight{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-5);box-shadow:var(--shadow-card)}
-.qa-row{display:grid;grid-template-columns:3fr 2fr;gap:var(--sp-5)}
-.qa-col-title{font-size:13px;font-weight:600;color:var(--text-title);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:var(--sp-2)}
-.qa-col-title .count{font-size:11px;color:var(--text-hint);font-weight:400}
-.room-list{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);max-height:500px;overflow-y:auto}
-.room-card{background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);cursor:pointer;transition:all .2s}
-.room-card:hover{border-color:var(--primary);box-shadow:var(--shadow-hover)}
-.room-card.active{border-color:var(--primary);background:var(--primary-light)}
-.room-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2)}
-.room-card .name{font-weight:600;font-size:13px;color:var(--text-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
-.room-card .tag{font-size:9px;padding:2px 6px;border-radius:8px;white-space:nowrap;font-weight:600}
-.room-card .tag.on{background:rgba(1,139,141,.1);color:var(--success)}
-.room-card .tag.off{background:rgba(138,138,138,.12);color:var(--text-hint)}
-.room-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-1);font-size:11px}
-.room-card .metrics .m{display:flex;flex-direction:column;align-items:center}
-.room-card .metrics .ml{color:var(--text-hint);font-size:10px}
-.room-card .metrics .mv{color:var(--text-title);font-weight:600;font-size:13px}
-.room-card .warn{font-size:10px;color:var(--warning);margin-top:var(--sp-1);padding:2px 6px;background:rgba(232,167,60,.08);border-radius:var(--sp-1);display:inline-block}
-.alert-list{display:flex;flex-direction:column;gap:var(--sp-2);max-height:500px;overflow-y:auto}
-.alert{display:flex;gap:var(--sp-2);align-items:flex-start;background:var(--bg-primary);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);transition:all .2s}
-.alert:hover{box-shadow:var(--shadow-hover)}
-.alert.sev{border-left:3px solid var(--error)}
-.alert.warn{border-left:3px solid var(--warning)}
-.alert.info{border-left:3px solid var(--primary)}
-.alert .lv{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;flex-shrink:0}
-.alert.sev .lv{background:var(--error);color:#fff}
-.alert.warn .lv{background:var(--warning);color:#fff}
-.alert.info .lv{background:var(--primary);color:#fff}
-.alert .desc{font-size:12px;color:var(--text-body)}
-.alert .desc b{font-size:13px;color:var(--text-title)}
-.alert .time{font-size:10px;color:var(--text-hint);margin-top:2px}
-.empty{color:var(--text-hint);text-align:center;padding:var(--sp-6);font-size:13px}
+/* Top Status Bar */
+.status-bar {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--surface); border-bottom: 1px solid var(--border-light);
+  padding: 10px var(--sp-5); display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+}
+.status-left { display: flex; align-items: center; gap: var(--sp-4); }
+.status-title { font-size: 18px; font-weight: 700; color: var(--text-1); }
+.status-right { display: flex; align-items: center; gap: var(--sp-4); }
+.status-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-green { background: var(--green); animation: pulse 2s infinite; }
+.dot-red { background: var(--red); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+.countdown-badge { background: var(--primary-soft); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.btn-toggle-all { padding: 5px 14px; font-size: 12px; background: var(--surface); border: 1px solid var(--border-default); color: var(--text-2); border-radius: var(--radius); cursor: pointer; transition: all .2s; }
+.btn-toggle-all:hover { border-color: var(--primary); color: var(--primary); }
 
-/* 分地市 section */
-.region-section{padding:0 var(--sp-8) var(--sp-2)}
-.region-tabs{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3);flex-wrap:wrap}
-.region-tabs button{padding:5px 14px;font-size:12px;background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-body);border-radius:var(--sp-1);cursor:pointer;transition:all .2s}
-.region-tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-.region-tabs button:hover:not(.active){border-color:var(--primary);color:var(--primary)}
-.chart-wrap{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-4);margin-bottom:var(--sp-3);box-shadow:var(--shadow-card)}
-#regionChart{width:100%;height:320px}
-.region-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--sp-3)}
-.region-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);padding:var(--sp-3);transition:all .25s;box-shadow:var(--shadow-card)}
-.region-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
-.region-card.has-live{border-left:3px solid var(--success)}
-.region-card .r-name{font-size:13px;font-weight:600;color:var(--text-title);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:var(--sp-2)}
-.region-card .r-name .live-pulse{width:8px;height:8px;border-radius:50%;background:var(--text-hint)}
-.region-card.has-live .r-name .live-pulse{background:var(--success);animation:breathe 2s infinite}
-.region-card .r-data{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2) var(--sp-3)}
-.region-card .r-data .d{display:flex;flex-direction:column;text-align:center}
-.region-card .r-data .dl{color:var(--text-hint);font-size:10px;margin-bottom:2px}
-.region-card .r-data .dv{color:var(--text-title);font-weight:600;font-size:13px}
-.region-card .r-data .dv.red{color:var(--error)}
-.region-card .r-data .dv.gold{color:var(--accent-gold)}
-.region-card .r-data .dv.blue{color:var(--primary)}
-.region-card .r-data .dv.green{color:var(--success)}
-.region-card .r-empty{font-size:11px;color:var(--text-hint);text-align:center;padding:var(--sp-3)}
+/* Content sections */
+.content { padding: var(--sp-5); }
+.section {
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  margin-bottom: var(--sp-5); border: 1px solid var(--border-light); overflow: hidden;
+  transition: box-shadow .2s;
+}
+.section:hover { box-shadow: var(--shadow-hover); }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; cursor: pointer; user-select: none; border-bottom: 1px solid var(--border-light);
+  background: var(--bg-elevated);
+}
+.section-header:hover { background: #e6eaf0; }
+.section-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--text-1); }
+.section-title .icon { font-size: 18px; }
+.section-toggle { font-size: 12px; color: var(--text-3); transition: transform .2s; }
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section-body { padding: var(--sp-5); }
+.section.collapsed .section-body { display: none; }
 
-/* 直播间分地市表格 */
-.room-region-section{padding:0 var(--sp-8) var(--sp-2)}
-.table-wrap{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--sp-2);overflow:auto;max-height:420px;box-shadow:var(--shadow-card)}
-.room-city-table{width:100%;border-collapse:collapse}
-.room-city-table th{background:var(--bg-elevated);color:var(--text-hint);font-size:11px;font-weight:600;padding:10px var(--sp-2);text-align:center;border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:1}
-.room-city-table td{font-size:12px;padding:9px var(--sp-2);text-align:center;border-bottom:1px solid var(--border-subtle);color:var(--text-body)}
-.room-city-table tr:last-child td{border-bottom:none}
-.room-city-table tr:hover td{background:var(--primary-light)}
-.room-city-table td.city{font-weight:600;text-align:left;color:var(--primary)}
-.room-city-table td.gold{color:var(--accent-gold);font-weight:700}
-.room-city-table td.green{color:var(--success)}
-.room-city-table td.red{color:var(--error)}
-.room-city-table .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-left:5px}
-.room-city-foot{display:flex;gap:var(--sp-5);margin-top:var(--sp-2);font-size:11px;color:var(--text-hint);flex-wrap:wrap}
-.room-city-foot b{color:var(--primary);font-size:13px}
-.room-city-foot b.gold{color:var(--accent-gold)}
+/* KPI Grid */
+.kpi-grid { display: grid; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.kpi-grid-6 { grid-template-columns: repeat(6, 1fr); }
+.kpi-grid-5 { grid-template-columns: repeat(5, 1fr); }
+.kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 1400px) { .kpi-grid-6 { grid-template-columns: repeat(3, 1fr); } .kpi-grid-5 { grid-template-columns: repeat(3, 1fr); } }
 
-footer{padding:var(--sp-3);text-align:center;color:var(--text-hint);font-size:10px}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--bg-primary)}
-::-webkit-scrollbar-thumb{background:var(--border-default);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--primary)}
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius);
+  padding: var(--sp-4); position: relative; overflow: hidden; cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.kpi-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.kpi-card.blue::before { background: var(--primary); }
+.kpi-card.green::before { background: var(--green); }
+.kpi-card.gold::before { background: var(--gold); }
+.kpi-card.red::before { background: var(--red); }
+.kpi-card.orange::before { background: var(--orange); }
+.kpi-card.purple::before { background: var(--purple); }
+.kpi-label { font-size: 12px; color: var(--text-3); margin-bottom: 6px; }
+.kpi-value { font-size: 24px; font-weight: 700; color: var(--text-1); line-height: 1.2; }
+.kpi-unit { font-size: 13px; font-weight: 400; color: var(--text-3); margin-left: 2px; }
+.kpi-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.kpi-spark { height: 30px; margin-top: 8px; }
+
+/* KPI Row Divider */
+.kpi-divider { height: 1px; background: var(--border-light); margin: var(--sp-4) 0; position: relative; }
+.kpi-divider::after { content: attr(data-label); position: absolute; left: 50%; top: -10px; transform: translateX(-50%); background: var(--surface); padding: 0 12px; font-size: 12px; color: var(--text-3); }
+
+/* QA Module */
+.qa-layout { display: grid; grid-template-columns: 1fr 360px; gap: var(--sp-4); }
+@media (max-width: 1200px) { .qa-layout { grid-template-columns: 1fr; } }
+.qa-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.qa-room-card {
+  background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius);
+  padding: var(--sp-3); cursor: pointer; transition: all .15s; position: relative;
+}
+.qa-room-card:hover { border-color: var(--primary); box-shadow: var(--shadow-hover); }
+.qa-room-card.active { border-color: var(--primary); background: var(--primary-soft); }
+.qa-room-card.alert-sev::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); border-radius: 3px 0 0 3px; }
+.qa-room-card.alert-warn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--orange); border-radius: 3px 0 0 3px; }
+.qa-room-card.alert-info::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); border-radius: 3px 0 0 3px; }
+.room-name { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.room-metrics { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.room-metric { font-size: 11px; color: var(--text-2); }
+.room-metric b { color: var(--text-1); font-size: 13px; }
+.room-metric .lbl { color: var(--text-3); }
+.live-badge { display: inline-block; background: var(--green); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: 4px; }
+.live-badge.offline { background: var(--text-3); }
+
+.alert-list { max-height: 400px; overflow-y: auto; }
+.alert-item { display: flex; align-items: start; gap: 8px; padding: 10px 12px; border-radius: var(--radius); margin-bottom: 6px; font-size: 12px; }
+.alert-item.sev { background: #fef2f2; border-left: 3px solid var(--red); }
+.alert-item.warn { background: #fffbeb; border-left: 3px solid var(--orange); }
+.alert-item.info { background: var(--primary-soft); border-left: 3px solid var(--primary); }
+.alert-level { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; }
+.alert-level.sev { background: var(--red); color: #fff; }
+.alert-level.warn { background: var(--orange); color: #fff; }
+.alert-level.info { background: var(--primary); color: #fff; }
+.alert-content { flex: 1; }
+.alert-desc { color: var(--text-1); font-weight: 500; }
+.alert-nick { color: var(--text-3); font-size: 11px; margin-top: 2px; }
+
+/* Region */
+.region-tabs { display: flex; gap: 6px; margin-bottom: var(--sp-4); flex-wrap: wrap; }
+.region-tab {
+  padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
+  background: var(--bg-elevated); color: var(--text-2); border: 1px solid var(--border-light);
+  transition: all .15s;
+}
+.region-tab:hover { border-color: var(--primary); }
+.region-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.region-chart-container { height: 320px; margin-bottom: var(--sp-4); }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { background: var(--bg-elevated); padding: 10px 12px; text-align: center; font-weight: 600; color: var(--text-2); position: sticky; top: 0; cursor: pointer; white-space: nowrap; }
+.data-table th:hover { background: #e0e5ee; }
+.data-table th.sort-asc::after { content: ' \2191'; color: var(--primary); }
+.data-table th.sort-desc::after { content: ' \2193'; color: var(--primary); }
+.data-table td { padding: 8px 12px; text-align: center; color: var(--text-2); border-bottom: 1px solid var(--border-light); }
+.data-table tr:hover { background: var(--primary-soft); }
+.table-wrap { max-height: 520px; overflow-y: auto; border-radius: var(--radius); border: 1px solid var(--border-light); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(30,41,59,.5); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--radius-lg); max-width: 94vw; max-height: 92vh;
+  width: 1000px; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  animation: modalIn .25s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border-light); position: sticky; top: 0; background: var(--surface); z-index: 10; }
+.modal-title { font-size: 18px; font-weight: 700; color: var(--text-1); display: flex; align-items: center; gap: 8px; }
+.modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-3); padding: 4px 8px; border-radius: 4px; }
+.modal-close:hover { background: var(--bg-elevated); color: var(--text-1); }
+.modal-body { padding: 24px; }
+
+/* Modal charts grid */
+.modal-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-4); }
+@media (max-width: 800px) { .modal-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+.modal-chart-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+@media (max-width: 800px) { .modal-chart-row { grid-template-columns: 1fr; } }
+.chart-box { background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius); padding: var(--sp-3); }
+.chart-box-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; }
+.chart-box canvas, .chart-box > div { width: 100% !important; }
+
+/* Comment stream */
+.comment-stream { max-height: 300px; overflow-y: auto; }
+.comment-item { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid var(--border-light); }
+.comment-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.comment-body { flex: 1; }
+.comment-nick { font-size: 12px; color: var(--text-3); }
+.comment-text { font-size: 13px; color: var(--text-1); }
+
+/* Toast */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; }
+.toast { background: var(--surface); border-radius: var(--radius); padding: 12px 20px; margin-bottom: 8px; box-shadow: var(--shadow-hover); font-size: 13px; display: flex; align-items: center; gap: 8px; animation: toastIn .3s ease; border-left: 3px solid var(--green); }
+.toast.error { border-left-color: var(--red); }
+.toast.info { border-left-color: var(--primary); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+/* Product table in modal */
+.product-img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
+
+/* Misc */
+.loading { text-align: center; padding: 40px; color: var(--text-3); }
+.error-msg { text-align: center; padding: 40px; color: var(--red); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+.tag-green { background: #e6f7f0; color: var(--green); }
+.tag-red { background: #fef2f2; color: var(--red); }
+.tag-blue { background: var(--primary-soft); color: var(--primary); }
+
+footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-size: 10px; }
+
+.scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar::-webkit-scrollbar-track { background: transparent; }
+.scrollbar::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+.scrollbar::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 </style>
 </head>
 <body>
+
+<!-- ========== Password Lock ========== -->
 <div id="lock">
   <div class="box">
     <h2>山西电信直播数据大屏</h2>
@@ -179,414 +284,165 @@ footer{padding:var(--sp-3);text-align:center;color:var(--text-hint);font-size:10
     <div class="err" id="err">密码错误，请重试</div>
   </div>
 </div>
+
 <div id="dash">
-  <div class="header">
-    <h1>山西电信 · 抖本实时数据大屏</h1>
-    <div class="meta">数据截止 <b id="updateTime">--</b> · 下次刷新 <span id="countdown">60</span>s <button class="btn-toggle-all" id="btnToggleAll" onclick="toggleAllSections()">全部收起</button></div>
+<!-- ========== Sidebar ========== -->
+<div id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">抖</div>
+    <span class="sidebar-title">抖本数据大屏</span>
   </div>
-  <!-- 直播间实时数据 -->
-  <div class="section" id="flowSection">
-    <div class="section-header" onclick="toggleSection(this)">
-      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
-      <h2>直播间实时数据</h2>
-      <span class="hint">内容分析页实时口径 · 开播抖音号数量 / 曝光人数 / 观看人数 / 成交券数</span>
-      <span class="toggle-btn">▾</span>
+  <div class="sidebar-nav">
+    <div class="nav-item active" data-target="sec-flow" onclick="navTo('sec-flow')">
+      <span class="nav-icon">📊</span><span class="nav-label">实时流量</span>
     </div>
-    <div class="section-body">
-      <div class="kpi-group">
-        <div class="kpi-grid flow" id="flowGrid"></div>
+    <div class="nav-item" data-target="sec-summary" onclick="navTo('sec-summary')">
+      <span class="nav-icon">📋</span><span class="nav-label">经营总览</span>
+    </div>
+    <div class="nav-item" data-target="sec-qa" onclick="navTo('sec-qa')">
+      <span class="nav-icon">🛡</span><span class="nav-label">直播质检</span>
+    </div>
+    <div class="nav-item" data-target="sec-region" onclick="navTo('sec-region')">
+      <span class="nav-icon">🗺</span><span class="nav-label">地市排行</span>
+    </div>
+    <div class="nav-item" data-target="sec-room-city" onclick="navTo('sec-room-city')">
+      <span class="nav-icon">📡</span><span class="nav-label">直播间地市</span>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <button class="collapse-btn" onclick="toggleSidebar()">◀</button>
+  </div>
+</div>
+
+<!-- ========== Main Content ========== -->
+<div id="main">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span class="status-title">山西团队抖本实时数据大屏</span>
+      <span class="status-item"><span class="status-dot dot-green"></span>数据同步中</span>
+    </div>
+    <div class="status-right">
+      <span class="status-item" id="lastUpdate">更新时间: --</span>
+      <span class="status-item"><span class="status-dot dot-green" id="livingDot"></span>在播: <b id="livingCnt">--</b></span>
+      <span class="countdown-badge">刷新倒计时 <span id="countdown">60</span>s</span>
+      <button class="btn-toggle-all" id="btnToggleAll" onclick="toggleAllSections()">全部收起</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Section 1: Flow Realtime -->
+    <div class="section" id="sec-flow">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-title"><span class="icon">📊</span>直播间实时流量</div>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="kpi-grid kpi-grid-6" id="flowGrid"></div>
       </div>
     </div>
-  </div>
-  <!-- 经营数据总览 -->
-  <div class="section">
-    <div class="section-header" onclick="toggleSection(this)">
-      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
-      <h2>经营数据总览</h2>
-      <span class="hint">实时(今日) 与 自然月(8月1日至今) 双口径</span>
-      <span class="toggle-btn">▾</span>
+
+    <!-- Section 2: Summary -->
+    <div class="section" id="sec-summary">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-title"><span class="icon">📋</span>经营数据总览</div>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="kpi-grid kpi-grid-6" id="kpiGridRt"></div>
+        <div class="kpi-divider" data-label="月累计数据"></div>
+        <div class="kpi-grid" style="grid-template-columns: repeat(9,1fr)" id="kpiGridMo"></div>
+      </div>
     </div>
-    <div class="section-body">
-      <div class="kpi-group" id="kpiGridRt"></div>
-      <div class="kpi-group" id="kpiGridMo"></div>
-    </div>
-  </div>
-  <!-- 直播质检 (重点展示) -->
-  <div class="qa-section" id="qaSection">
-    <div class="section-header" onclick="toggleSection(this)">
-      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
-      <h2>直播质检</h2>
-      <span class="hint">在播直播间巡检与告警 · 重点监控模块</span>
-      <span class="toggle-btn">▾</span>
-    </div>
-    <div class="section-body">
-      <div class="qa-highlight">
-        <div class="qa-row">
+
+    <!-- Section 3: QA -->
+    <div class="section" id="sec-qa">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-title"><span class="icon">🛡</span>直播质检看板</div>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-body">
+        <div class="qa-summary" id="qaSummary"></div>
+        <div class="qa-layout">
           <div>
-            <div class="qa-col-title">在播直播间 <span class="count" id="roomCount"></span></div>
-            <div class="room-list" id="roomList"></div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1)">在播直播间</div>
+            <div class="kpi-grid kpi-grid-3" id="roomList"></div>
           </div>
           <div>
-            <div class="qa-col-title">告警列表 <span class="count" id="alertCountText"></span></div>
-            <div class="alert-list" id="alertList"></div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1)">告警列表</div>
+            <div class="alert-list scrollbar" id="alertList"></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <!-- 分地市数据 -->
-  <div class="region-section">
-    <div class="section-header" onclick="toggleSection(this)">
-      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
-      <h2>分地市数据</h2>
-      <span class="hint">各地市经营指标(自然月口径)与直播分布</span>
-      <span class="toggle-btn">▾</span>
-    </div>
-    <div class="section-body">
-      <div class="region-tabs" id="regionTabs">
-        <button class="active" data-metric="pay_gmv">成交金额</button>
-        <button data-metric="pay_cert_cnt">成交券数</button>
-        <button data-metric="pay_user_cnt">成交人数</button>
-        <button data-metric="verify_gmv">核销金额</button>
-        <button data-metric="verify_cert_cnt">核销券数</button>
-        <button data-metric="refund_gmv">退款金额</button>
-        <button data-metric="refund_cert_cnt">退款券数</button>
+
+    <!-- Section 4: Region -->
+    <div class="section" id="sec-region">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-title"><span class="icon">🗺</span>地市经营排行</div>
+        <span class="section-toggle">▼</span>
       </div>
-      <div class="chart-wrap"><div id="regionChart"></div></div>
-      <div class="region-grid" id="regionGrid"></div>
-    </div>
-  </div>
-  <!-- 直播间分地市(今日实时) -->
-  <div class="room-region-section">
-    <div class="section-header" onclick="toggleSection(this)">
-      <div class="dot-icon"><span></span><span></span><span></span><span></span></div>
-      <h2>直播间分地市(今日实时)</h2>
-      <span class="hint">直播间列表口径 · 含历史场次与在播场次 · 金额单位元</span>
-      <span class="toggle-btn">▾</span>
-    </div>
-    <div class="section-body">
-      <div class="table-wrap">
-        <table class="room-city-table" id="roomCityTable">
-          <thead><tr>
-            <th>城市</th><th>场次</th><th>直播中</th><th>成交金额</th><th>成交券数</th>
-            <th>成交人数</th><th>观看人数</th><th>曝光人数</th><th>实时在线(峰)</th><th>点赞</th><th>评论</th><th>商品数</th>
-          </tr></thead>
-          <tbody id="roomCityBody"></tbody>
-        </table>
+      <div class="section-body">
+        <div class="region-tabs" id="regionTabs"></div>
+        <div class="region-chart-container" id="regionChart"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-box">
+            <div class="chart-box-title">地市成交额占比</div>
+            <div id="regionPie" style="height:280px"></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-title">地市成交券数 TOP11</div>
+            <div id="regionBar2" style="height:280px"></div>
+          </div>
+        </div>
       </div>
-      <div class="room-city-foot" id="roomCityFoot"></div>
+    </div>
+
+    <!-- Section 5: Room Cities -->
+    <div class="section" id="sec-room-city">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-title"><span class="icon">📡</span>直播间地市总览</div>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="section-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="chart-box">
+            <div class="chart-box-title">成交额热力图</div>
+            <div id="heatmapChart" style="height:320px"></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-title">观看人数 vs 成交金额（气泡图）</div>
+            <div id="bubbleChart" style="height:320px"></div>
+          </div>
+        </div>
+        <div class="table-wrap scrollbar">
+          <table class="data-table" id="roomCityTable"></table>
+        </div>
+      </div>
     </div>
   </div>
+
   <footer>数据来源：生意经(life-data.cn) · 内部数据请勿外传 · 每60秒自动刷新</footer>
 </div>
+
+<!-- ========== Modal: Room Detail ========== -->
+<div class="modal-overlay" id="roomModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">直播间详情</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ========== Toast ========== -->
+<div class="toast-container" id="toastContainer"></div>
+
+</div><!-- /#dash -->
+
 <script>
-const PASS="sxtel2026";
-function checkPwd(){const v=document.getElementById('pwd').value;if(v===PASS){document.getElementById('lock').style.display='none';document.getElementById('dash').style.display='block';start();}else{document.getElementById('err').style.display='block';}}
-document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')checkPwd();});
-const DATA_URL=location.pathname.includes('/dash/')?'data.json':'data/data.json';
-const QA_URL=location.pathname.includes('/dash/')?'qa.json':'data/qa.json';
-const CITIES=['太原','晋中','大同','阳泉','长治','晋城','朔州','忻州','吕梁','临汾','运城'];
-const METRIC_LABELS={
-  pay_gmv:'成交金额',pay_cert_cnt:'成交券数',pay_user_cnt:'成交人数',
-  verify_gmv:'核销金额',verify_cert_cnt:'核销券数',
-  refund_gmv:'退款金额',refund_cert_cnt:'退款券数'
-};
-let RAW_DATA=null,alertCount=0,countdownVal=60,currentMetric='pay_gmv';
-let regionChart=null;
-
-/* 折叠交互 */
-function toggleSection(header){
-  const body=header.nextElementSibling;
-  header.classList.toggle('collapsed');
-  body.classList.toggle('collapsed');
-  saveCollapseState();
-}
-function toggleAllSections(){
-  const headers=document.querySelectorAll('.section-header, .qa-section .section-header');
-  const btn=document.getElementById('btnToggleAll');
-  const anyExpanded=Array.from(headers).some(h=>!h.classList.contains('collapsed'));
-  if(anyExpanded){
-    headers.forEach(h=>{h.classList.add('collapsed');h.nextElementSibling.classList.add('collapsed');});
-    btn.textContent='全部展开';
-  }else{
-    headers.forEach(h=>{h.classList.remove('collapsed');h.nextElementSibling.classList.remove('collapsed');});
-    btn.textContent='全部收起';
-  }
-  saveCollapseState();
-}
-function saveCollapseState(){
-  const state={};
-  document.querySelectorAll('.section-header').forEach((h,i)=>{
-    const sectionId=h.closest('.section,.qa-section');
-    if(sectionId&&sectionId.id){state[sectionId.id]=h.classList.contains('collapsed');}
-  });
-  try{localStorage.setItem('dash_collapse',JSON.stringify(state));}catch(e){}
-}
-function loadCollapseState(){
-  let state={};
-  try{state=JSON.parse(localStorage.getItem('dash_collapse')||'{}');}catch(e){}
-  document.querySelectorAll('.section-header').forEach(h=>{
-    const sectionId=h.closest('.section,.qa-section');
-    if(sectionId&&sectionId.id&&state[sectionId.id]){
-      h.classList.add('collapsed');
-      h.nextElementSibling.classList.add('collapsed');
-    }
-  });
-  const allCollapsed=document.querySelectorAll('.section-header:not(.collapsed)').length===0;
-  if(allCollapsed&&Object.keys(state).length>0){document.getElementById('btnToggleAll').textContent='全部展开';}
-}
-
-function num(v){const n=parseFloat(v);return isNaN(n)?0:n;}
-function fmt(v){if(v>=10000)return(v/10000).toFixed(1)+'万';return Math.round(v*100)/100;}
-function fmtMoney(v){if(v>=10000)return(v/10000).toFixed(2)+'万';return v.toFixed(2);}
-function moneyUnit(v){return v>=10000?'':'元';}
-function kv(ki,key){if(!Array.isArray(ki))return 0;const item=ki.find(i=>i&&i.key===key);return item?num(item.value):0;}
-function gmv(ki){return kv(ki,'PayGmv');}
-function extractCity(nickname){if(!nickname)return'未知';for(const c of CITIES){if(nickname.includes(c))return c;}return'其他';}
-
-/* ECharts 浅色主题 */
-const ECHARTS_LIGHT={
-  textStyle:{color:'#8A8A8A',fontFamily:'"Microsoft YaHei",sans-serif'},
-  grid:{left:50,right:20,top:30,bottom:35},
-};
-function initRegionChart(){
-  if(regionChart)return;
-  const el=document.getElementById('regionChart');
-  regionChart=echarts.init(el);
-  window.addEventListener('resize',()=>{if(regionChart)regionChart.resize();});
-}
-
-async function loadData(){try{const res=await fetch(DATA_URL+'?t='+Date.now());const d=await res.json();RAW_DATA=d;render(d);}catch(e){document.getElementById('updateTime').textContent='加载失败';}}
-async function loadAlerts(){try{const res=await fetch(QA_URL+'?t='+Date.now());const d=await res.json();renderAlerts(d.alerts||[]);}catch(e){}}
-
-function render(d){
-  const rawTs=d.ts||'';
-  const fmtTs=rawTs.length===14?`${rawTs.slice(4,6)}-${rawTs.slice(6,8)} ${rawTs.slice(8,10)}:${rawTs.slice(10,12)}:${rawTs.slice(12,14)}`:rawTs||'--';
-  document.getElementById('updateTime').textContent=fmtTs;
-  const rooms=d.rooms||[];const summary=d.summary||{};
-  const cities=d.cities||{};
-  const flowRt=d.flow_realtime||{};
-  renderFlow(flowRt);
-  renderSummary(summary,rooms);
-  renderRooms(rooms);
-  renderRegions(rooms,cities);
-  renderRoomCities(d.room_cities||{},d.room_cities_total||0);
-}
-
-function renderFlow(fr){
-  const grid=document.getElementById('flowGrid');
-  if(!fr||!fr.live_author_cnt){
-    grid.innerHTML='<div style="grid-column:1/-1" class="empty">直播间流量数据采集中，请等待下一轮采集完成...</div>';
-    return;
-  }
-  const items=[
-    {label:'开播抖音号',val:fmt(fr.live_author_cnt||0),cls:'',unit:'个'},
-    {label:'直播场次',val:fmt(fr.live_cnt||0),cls:'blue',unit:'场'},
-    {label:'曝光人数',val:fmt(fr.live_show_uv||0),cls:'blue',unit:'人'},
-    {label:'观看人数',val:fmt(fr.live_watch_uv||0),cls:'',unit:'人'},
-    {label:'成交金额',val:fmtMoney(fr.live_gmv||0),cls:'pay',unit:moneyUnit(fr.live_gmv||0)},
-    {label:'成交券数',val:fmt(fr.live_pay_cert_cnt||0),cls:'pay',unit:'张'},
-  ];
-  grid.innerHTML=items.map(k=>
-    `<div class="kpi-card flow"><div class="accent-bar"></div><div class="k-label">${k.label}</div><div class="k-val ${k.cls}">${k.val}</div><div class="k-unit">${k.unit||''}</div></div>`
-  ).join('');
-}
-
-function renderSummary(s,rooms){
-  const payGmv=s.pay_gmv||0,payCertCnt=s.pay_cert_cnt||0;
-  const verifyGmv=s.verify_gmv||0,verifyCertCnt=s.verify_cert_cnt||0;
-  const refundGmv=s.refund_gmv||0,refundCertCnt=s.refund_cert_cnt||0;
-  const productShowUv=s.product_show_uv||0;
-  const poiNum=s.poi_num||0,activePoi=s.active_poi_cnt||0,activeRatio=s.active_poi_ratio||0;
-  const payGmvAvg=s.pay_gmv_avg||0,verifyGmvAvg=s.verify_gmv_avg||0;
-  const mPayGmv=s.month_pay_gmv||0,mPayCert=s.month_pay_cert_cnt||0;
-  const mVerifyGmv=s.month_verify_gmv||0,mVerifyCert=s.month_verify_cert_cnt||0;
-  const mRefundGmv=s.month_refund_gmv||0,mRefundCert=s.month_refund_cert_cnt||0;
-  const mPayUser=s.month_pay_user_cnt||0,mVerifyUser=s.month_verify_user_cnt||0;
-  const rtKpis=[
-    {label:'成交金额',val:fmtMoney(payGmv),cls:'pay',unit:moneyUnit(payGmv)},
-    {label:'成交券数',val:fmt(payCertCnt),cls:'pay'},
-    {label:'退款金额',val:fmtMoney(refundGmv),cls:'red',unit:moneyUnit(refundGmv)},
-    {label:'核销金额',val:fmtMoney(verifyGmv),cls:'green',unit:moneyUnit(verifyGmv)},
-    {label:'核销券数',val:fmt(verifyCertCnt),cls:'green'},
-    {label:'商品访问人数',val:fmt(productShowUv),cls:'blue'},
-  ];
-  const moKpis=[
-    {label:'门店总数',val:fmt(poiNum),cls:''},
-    {label:'动销门店数',val:fmt(activePoi),cls:'green'},
-    {label:'动销率',val:activeRatio.toFixed(2)+'%',cls:'pay'},
-    {label:'日店均成交',val:fmtMoney(payGmvAvg),cls:'blue',unit:'元'},
-    {label:'日店均核销',val:fmtMoney(verifyGmvAvg),cls:'',unit:'元'},
-    {label:'意向成交额',val:fmtMoney(mPayGmv),cls:'blue',unit:moneyUnit(mPayGmv)},
-    {label:'成交券数',val:fmt(mPayCert),cls:'blue'},
-    {label:'核销金额',val:fmtMoney(mVerifyGmv),cls:'',unit:moneyUnit(mVerifyGmv)},
-    {label:'核销券数',val:fmt(mVerifyCert),cls:''},
-  ];
-  const groupHtml=(title,badge,badgeCls,items,gridCls)=>`
-    <div class="kpi-group-label"><span class="badge ${badgeCls}">${badge}</span>${title}</div>
-    <div class="kpi-grid ${gridCls}">${items.map(k=>
-      `<div class="kpi-card ${badgeCls}"><div class="accent-bar"></div><div class="k-label">${k.label}</div><div class="k-val ${k.cls}">${k.val}</div><div class="k-unit">${k.unit||''}</div></div>`
-    ).join('')}</div>`;
-  document.getElementById('kpiGridRt').innerHTML=groupHtml('今日实时(首页口径)','实时','rt',rtKpis,'rt');
-  document.getElementById('kpiGridMo').innerHTML=groupHtml('自然月数据(8月1日至今)','自然月','mo',moKpis,'mo');
-}
-
-function drawRegionChart(cities,metric){
-  initRegionChart();
-  if(!regionChart)return;
-  const label=METRIC_LABELS[metric]||metric;
-  const data=CITIES.map(c=>{const cd=cities[c]||{};return {name:c,val:num(cd[metric]||0),live:cd.pay_gmv!=null};});
-  const maxVal=Math.max(...data.map(d=>d.val),0.01);
-  const isMoney=metric.includes('gmv');
-  regionChart.setOption({
-    ...ECHARTS_LIGHT,
-    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
-      formatter:p=>{
-        const v=p[0].value;
-        return`${p[0].name}<br/>${label}: ${isMoney?'¥'+fmtMoney(v):fmt(v)}`;
-      },
-      backgroundColor:'#FFFFFF',borderColor:'#D0D5DD',textStyle:{color:'#4A4A4A',fontSize:12},
-      extraCssText:'box-shadow:0 4px 12px rgba(0,0,0,.08);border-radius:8px;'
-    },
-    grid:{left:60,right:20,top:35,bottom:40},
-    xAxis:{type:'category',data:data.map(d=>d.name),
-      axisLine:{lineStyle:{color:'#D0D5DD'}},
-      axisLabel:{color:'#8A8A8A',fontSize:11},
-      axisTick:{show:false}
-    },
-    yAxis:{type:'value',
-      axisLine:{show:false},
-      axisLabel:{color:'#8A8A8A',fontSize:10,
-        formatter:v=>isMoney?fmtMoney(v):fmt(v)
-      },
-      splitLine:{lineStyle:{color:'#E8E8E8',type:'dashed'}}
-    },
-    series:[{
-      type:'bar',
-      data:data.map(d=>({
-        value:d.val,
-        itemStyle:{
-          borderRadius:[4,4,0,0],
-          color:d.val>0?new echarts.graphic.LinearGradient(0,0,0,1,[
-            {offset:0,color:'#2b7fff'},{offset:1,color:'#0A5CDE'}
-          ]):'#E8E8E8'
-        }
-      })),
-      barWidth:'45%',
-      animationDuration:800,
-      animationEasing:'cubicOut',
-      label:{show:true,position:'top',
-        color:'#4A4A4A',fontSize:10,
-        formatter:p=>p.value>0?(isMoney?'¥'+fmtMoney(p.value):fmt(p.value)):''
-      },
-      emphasis:{itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[
-        {offset:0,color:'#4b9fff'},{offset:1,color:'#084BB5'}
-      ])}}
-    }]
-  },true);
-}
-
-function renderRegions(rooms,cities){
-  const hasCityData=cities&&Object.keys(cities).length>0;
-  if(hasCityData){
-    drawRegionChart(cities,currentMetric);
-  }else{
-    initRegionChart();
-    if(regionChart)regionChart.setOption({
-      ...ECHARTS_LIGHT,
-      title:{text:'分地市数据采集中...',left:'center',top:'center',
-        textStyle:{color:'#8A8A8A',fontSize:14,fontWeight:'normal'}}
-    },true);
-  }
-  const regionMap={};
-  CITIES.forEach(c=>regionMap[c]={rooms:[],hasLive:false,cityData:cities[c]||{}});
-  rooms.forEach(r=>{const city=extractCity(r.meta?.nickname);if(!regionMap[city])regionMap[city]={rooms:[],hasLive:false,cityData:{}};regionMap[city].rooms.push(r);regionMap[city].hasLive=true;});
-  document.getElementById('regionGrid').innerHTML=CITIES.map(city=>{
-    const rd=regionMap[city];const liveCnt=rd.rooms.length;
-    const cd=rd.cityData||{};
-    const hasData=cd.pay_gmv!=null&&cd.pay_gmv!==undefined;
-    if(hasData){
-      return `<div class="region-card has-live"><div class="r-name"><span class="live-pulse"></span>${city}</div><div class="r-data"><div class="d"><span class="dl">成交金额</span><span class="dv gold">¥${fmtMoney(cd.pay_gmv||0)}</span></div><div class="d"><span class="dl">成交券数</span><span class="dv">${cd.pay_cert_cnt||0}</span></div><div class="d"><span class="dl">成交人数</span><span class="dv blue">${cd.pay_user_cnt||0}</span></div><div class="d"><span class="dl">核销金额</span><span class="dv green">¥${fmtMoney(cd.verify_gmv||0)}</span></div><div class="d"><span class="dl">核销券数</span><span class="dv">${cd.verify_cert_cnt||0}</span></div><div class="d"><span class="dl">退款金额</span><span class="dv red">¥${fmtMoney(cd.refund_gmv||0)}</span></div></div></div>`;
-    }
-    if(liveCnt===0){return `<div class="region-card"><div class="r-name"><span class="live-pulse"></span>${city}</div><div class="r-empty">暂无在播</div></div>`;}
-    let totalGmv=0,totalOrders=0,totalWatch=0,totalOnline=0;
-    rd.rooms.forEach(r=>{const ki=r.live?.key_index||[];totalGmv+=gmv(ki);totalOrders+=kv(ki,'PayOrderCnt');totalWatch+=kv(ki,'LiveServerWatchUcnt');totalOnline+=kv(ki,'CurrentUserCnt');});
-    return `<div class="region-card has-live"><div class="r-name"><span class="live-pulse"></span>${city} <span style="font-size:10px;color:var(--text-hint);font-weight:400">(${liveCnt}间)</span></div><div class="r-data"><div class="d"><span class="dl">成交金额</span><span class="dv gold">¥${fmtMoney(totalGmv)}</span></div><div class="d"><span class="dl">成交订单</span><span class="dv">${totalOrders}</span></div><div class="d"><span class="dl">累计观看</span><span class="dv">${fmt(totalWatch)}</span></div><div class="d"><span class="dl">实时在线</span><span class="dv blue">${totalOnline}</span></div><div class="d"><span class="dl">-</span><span class="dv">-</span></div><div class="d"><span class="dl">-</span><span class="dv">-</span></div></div></div>`;
-  }).join('');
-}
-
-function renderRoomCities(rc,total){
-  const body=document.getElementById('roomCityBody');
-  const foot=document.getElementById('roomCityFoot');
-  const keys=Object.keys(rc);
-  if(!keys.length){
-    body.innerHTML='<tr><td colspan="12" style="color:var(--text-hint);padding:18px">直播间分地市数据采集中，请等待下一轮采集完成...</td></tr>';
-    foot.innerHTML='';
-    return;
-  }
-  const order=keys.slice().sort((a,b)=>{
-    if(a==='未知')return 1;if(b==='未知')return-1;
-    return(rc[b].gmv||0)-(rc[a].gmv||0);
-  });
-  let sumRoom=0,sumLive=0,sumGmv=0,sumCert=0,sumWatch=0;
-  order.forEach(k=>{const c=rc[k];sumRoom+=c.room_cnt||0;sumLive+=c.living_cnt||0;sumGmv+=c.gmv||0;sumCert+=c.pay_cert_cnt||0;sumWatch+=c.watch_uv||0;});
-  body.innerHTML=order.map(k=>{
-    const c=rc[k]||{};const living=(c.living_cnt||0)>0;
-    return `<tr><td class="city">${k}${living?'<span class="live-dot"></span>':''}</td>
-      <td>${c.room_cnt||0}</td><td>${c.living_cnt||0}</td>
-      <td class="gold">¥${fmtMoney(c.gmv||0)}</td><td class="red">${c.pay_cert_cnt||0}</td>
-      <td>${c.pay_user_cnt||0}</td><td>${fmt(c.watch_uv||0)}</td><td>${fmt(c.show_uv||0)}</td>
-      <td>${c.pcu||0}</td><td>${fmt(c.like_cnt||0)}</td><td>${c.comment_cnt||0}</td>
-      <td>${c.product_cnt||0}</td></tr>`;
-  }).join('');
-  foot.innerHTML=`<span>覆盖地市 <b>${keys.length}</b> 个</span><span>总场次 <b>${total||sumRoom}</b> 场</span><span>直播中 <b class="gold">${sumLive}</b> 间</span><span>总成交 <b>¥${fmtMoney(sumGmv)}</b></span><span>成交券 <b>${sumCert}</b></span><span>观看 <b>${fmt(sumWatch)}</b></span>`;
-}
-
-function renderRooms(rooms){
-  const g=document.getElementById('roomList');
-  document.getElementById('roomCount').textContent=rooms.length?`(${rooms.length}间)`:'';;
-  if(!rooms.length){g.innerHTML='<div class="empty">当前无在播直播间</div>';return;}
-  g.innerHTML=rooms.map(r=>{
-    const meta=r.meta||{},live=r.live||{};const ri=live.room_info||{};
-    const ki=Array.isArray(live.key_index)?live.key_index:[];const on=ri.is_life||ri.is_live;
-    const online=kv(ki,'CurrentUserCnt'),gmvVal=gmv(ki),orders=kv(ki,'PayOrderCnt'),watch=kv(ki,'LiveServerWatchUcnt');
-    const productCnt=live.product_cnt||0;const warns=[];
-    if(productCnt===0)warns.push('未挂商品');
-    if(!ri.qr_code)warns.push('无二维码');
-    const rid=meta.room_id||'';
-    const nick=meta.nickname||'';
-    const isNumericNick=/^\d+$/.test(nick);
-    const displayName=nick&&!isNumericNick?nick:(meta.unique_id?('ID:'+meta.unique_id):(nick||'未知'));
-    return `<div class="room-card" onclick="selectRoom('${rid}')"><div class="top"><span class="name">${displayName}</span><span class="tag ${on?'on':'off'}">${on?'直播中':'未播'}</span></div><div class="metrics"><div class="m"><span class="ml">在线</span><span class="mv">${online}</span></div><div class="m"><span class="ml">观看</span><span class="mv">${watch}</span></div><div class="m"><span class="ml">成交</span><span class="mv">¥${gmvVal.toFixed(0)}</span></div><div class="m"><span class="ml">订单</span><span class="mv">${orders}</span></div><div class="m"><span class="ml">商品</span><span class="mv">${productCnt}</span></div><div class="m"><span class="ml">点赞</span><span class="mv">${fmt(num(meta.live_like_cnt_td))}</span></div></div>${warns.length?`<div class="warn">${warns.join(' · ')}</div>`:''}</div>`;
-  }).join('');
-}
-
-function selectRoom(rid){document.querySelectorAll('.room-card').forEach(c=>c.classList.remove('active'));if(event&&event.currentTarget)event.currentTarget.classList.add('active');}
-
-function renderAlerts(alerts){
-  alertCount=alerts.length;
-  document.getElementById('alertCountText').textContent=alerts.length?`(${alerts.length}条)`:'';
-  const a=document.getElementById('alertList');
-  if(!alerts.length){a.innerHTML='<div class="empty">暂无告警</div>';return;}
-  a.innerHTML=alerts.map(al=>{
-    const cls=al.level==='严重'?'sev':al.level==='警告'?'warn':'info';
-    const alNick=al.nickname||'';
-    const alDisplay=/^\d+$/.test(alNick)?('ID:'+alNick):alNick;
-    return `<div class="alert ${cls}"><span class="lv">${al.level}</span><div class="desc"><b>${alDisplay||''}</b> · ${al.item||''}<br>${al.desc||''}<div class="time">${al.ts||''}</div></div></div>`;
-  }).join('');
-}
-
-document.getElementById('regionTabs').addEventListener('click',e=>{
-  if(e.target.tagName==='BUTTON'){
-    document.querySelectorAll('#regionTabs button').forEach(b=>b.classList.remove('active'));
-    e.target.classList.add('active');
-    currentMetric=e.target.dataset.metric;
-    if(RAW_DATA&&RAW_DATA.cities){drawRegionChart(RAW_DATA.cities,currentMetric);}
-  }
-});
-
-function tickCountdown(){countdownVal--;if(countdownVal<=0){countdownVal=60;loadData();loadAlerts();}document.getElementById('countdown').textContent=countdownVal;}
-function start(){loadCollapseState();loadData();loadAlerts();setInterval(tickCountdown,1000);}
+/* SCRIPT_PLACEHOLDER */
 </script>
 </body>
 </html>
