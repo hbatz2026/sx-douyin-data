@@ -170,7 +170,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
 .qa-room-card.alert-sev::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); border-radius: 3px 0 0 3px; }
 .qa-room-card.alert-warn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--orange); border-radius: 3px 0 0 3px; }
 .qa-room-card.alert-info::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); border-radius: 3px 0 0 3px; }
-.room-name { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.room-name-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+.room-name-text { font-size: 13px; font-weight: 600; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.live-link-btn { flex-shrink: 0; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--primary); color: #fff; text-decoration: none; white-space: nowrap; transition: opacity .15s; }
+.live-link-btn:hover { opacity: .85; }
 .room-metrics { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
 .room-metric { font-size: 11px; color: var(--text-2); }
 .room-metric b { color: var(--text-1); font-size: 13px; }
