@@ -545,7 +545,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div id="customModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="customModalTitle">
   <div class="modal-sheet" role="document">
     <h3 id="customModalTitle" style="font-size:15px;margin-bottom:10px;">✏️ 自定义选题 · AI 生成脚本</h3>
-    <textarea id="customTopicInput" aria-label="选题内容" placeholder="输入你的选题，如：小区宽带总掉线怎么办" style="width:100%;height:64px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;resize:none;"></textarea>
+    <textarea id="customTopicInput" aria-label="选题内容" placeholder="输入你的选题或活动（至少6字，越具体生成越好），如：充100元话费送抽纸礼品 / 小区宽带总掉线怎么办" style="width:100%;height:64px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;resize:none;"></textarea>
     <div style="display:flex;gap:8px;margin:10px 0;align-items:center;">
       <span style="font-size:12px;color:var(--text-light);">人设</span>
       <select id="customMood" aria-label="人设" style="flex:1;padding:6px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;min-height:36px;">
@@ -563,22 +563,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 </div>
 
 <!-- Data（2026-08-21：3.0 移除 bundle.js 大包（234K 含 2.x 专用数据 ~117K），显式加载 3.0 实际依赖的 8 个小数据文件，首屏 JS 净减 ~180K） -->
-  <script src="data/v3-seedpool.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/dailyScripts.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/hotspotData.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/topicPool.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/t1Presets.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/t2Presets.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/t4Presets.js?v=2.9.81&t=1787277022915"></script>
-  <script src="data/weeklyNew.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/v3-seedpool.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/dailyScripts.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/hotspotData.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/topicPool.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/t1Presets.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/t2Presets.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/t4Presets.js?v=2.9.82&t=1787285060918"></script>
+  <script src="data/weeklyNew.js?v=2.9.82&t=1787285060918"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.81&t=1787277022915"></script>
-  <script src="src/v3/core3.js?v=2.9.81&t=1787277022915"></script>
-  <script src="src/v3/track.js?v=2.9.81&t=1787277022915"></script>
-  <script src="src/v3/gate.js?v=2.9.81&t=1787277022915"></script>
-  <script src="src/v3/pool.js?v=2.9.81&t=1787277022915"></script>
+  <script src="src/v3/personas.js?v=2.9.82&t=1787285060918"></script>
+  <script src="src/v3/core3.js?v=2.9.82&t=1787285060918"></script>
+  <script src="src/v3/track.js?v=2.9.82&t=1787285060918"></script>
+  <script src="src/v3/gate.js?v=2.9.82&t=1787285060918"></script>
+  <script src="src/v3/pool.js?v=2.9.82&t=1787285060918"></script>
   <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
-  <script src="src/hotspot.js?v=2.9.81&t=1787277022915"></script>
+  <script src="src/hotspot.js?v=2.9.82&t=1787285060918"></script>
 
 <script>
 // ==================== Config ====================
@@ -617,7 +617,11 @@ async function genCustomScript(){
   var topic = (document.getElementById('customTopicInput').value||'').trim();
   var mood = document.getElementById('customMood').value;
   var productInfo = (document.getElementById('customProductInfo')?(document.getElementById('customProductInfo').value||'').trim():'');
-  if(topic.length < 2){ if(typeof toast==='function') toast('请输入选题（至少2字）'); return; }
+  if(topic.length < 6){ if(typeof toast==='function') toast('请输入更具体的选题/活动（至少6字），如：充100元话费送抽纸礼品'); return; }
+  // 卖点软提示（不阻断）：输入无金额/礼品/优惠/业务要素时提醒，引导用户补充以获得具体卖点
+  if(!/[\d０-９]|元|块|折|免|减|送|赠|得|奖|优惠|立省|半价|礼|宽带|流量|话费|套餐|FTTR|千兆|路由器|5G|学生|老人|家庭|新装|续费|转网|卡|会员|积分|返|存费|充值|到店|免费/.test(topic)){
+    if(typeof toast==='function') toast('提示：输入里没看到具体卖点（金额/礼品/优惠/业务），生成可能泛泛而谈，建议补充后再生成');
+  }
   var btn = document.getElementById('customGenBtn');
   btn.disabled = true; btn.textContent = '⏳ 生成中…';
   try {
