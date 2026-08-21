@@ -935,9 +935,14 @@ function renderQA(rooms, qa) {
       alertForRoom.length > 0 ? 'alert-info' : '';
     const gmv = num(m.gmv) / 100;
     const rid = m.room_id || '';
+    const liveUrl = rid ? 'https://live.douyin.com/' + rid : '';
+    const liveBtn = m.is_live && liveUrl ? `<a href="${liveUrl}" target="_blank" rel="noopener" class="live-link-btn" onclick="event.stopPropagation()" title="进入直播间">进入直播间</a>` : '';
     return `
       <div class="qa-room-card ${alertClass}" onclick="openRoomModal('${rid}', this)">
-        <div class="room-name">${safeNick(m.nickname)}${m.is_live ? '<span class="live-badge">直播中</span>' : '<span class="live-badge offline">已结束</span>'}</div>
+        <div class="room-name-row">
+          <span class="room-name-text">${safeNick(m.nickname)}${m.is_live ? '<span class="live-badge">直播中</span>' : '<span class="live-badge offline">已结束</span>'}</span>
+          ${liveBtn}
+        </div>
         <div style="font-size:11px;color:var(--text-3);margin-bottom:6px">${city} · 开播 ${m.live_start_str || '--'}</div>
         <div class="room-metrics">
           <div class="room-metric"><span class="lbl">在线</span> <b>${m.acu || 0}</b></div>
