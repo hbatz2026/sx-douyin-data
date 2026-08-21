@@ -128,7 +128,7 @@
         '<div class="hs-kit-row"><span class="hk-l">③ BGM</span><span class="hk-v">' + esc(kitBgm) + '</span><button class="hk-btn" onclick="copyKit(\'' + safeId + '_b\')">📋 复制</button></div>' +
       '</div>';
       html += '<div class="hotspot-card" id="hsc-' + esc(h.id) + '">' +
-        '<div class="hs-header" tabindex="0" role="button" aria-label="展开' + esc(h.title) + '脚本" onclick="toggleHotspot(\'' + esc(h.id) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.onclick()}">' +
+        '<div class="hs-header" tabindex="0" role="button" aria-expanded="false" aria-label="展开' + esc(h.title) + '脚本" onclick="toggleHotspot(\'' + esc(h.id) + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.onclick()}">' +
           '<span class="hs-tier ' + tierClasses[h.tier] + '">' + '🥇🥈🥉'.charAt((h.tier || 3) - 1) + ' ' + tiers[h.tier || 3] + '</span>' +
           '<div style="flex:1;min-width:0;">' +
             '<div class="hs-title">' + esc(h.title) + '</div>' +
@@ -177,7 +177,12 @@
 
   function toggleHotspot(id) {
     var card = document.getElementById('hsc-' + id);
-    if (card) card.classList.toggle('open');
+    if (card) {
+      card.classList.toggle('open');
+      // P3（2026-08-21）：同步 aria-expanded，读屏可感知展开状态
+      var h = card.querySelector('.hs-header');
+      if (h) h.setAttribute('aria-expanded', card.classList.contains('open') ? 'true' : 'false');
+    }
   }
 
   function filterHotspot(mode, el) {
