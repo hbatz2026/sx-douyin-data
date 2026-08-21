@@ -15,6 +15,32 @@ const MAX_RETRY = 2;
 // 宽松正则，误判代价=多一次搜索，可接受。
 const ACTIVITY_RE = /[送赠优惠立减返免礼抽奖福利特惠促销折]|\d+\s*(元|块)/;
 
+// 2026-08-21 v5：产品名纠错 + 价格承诺压制（用户实证：AI 把 teleagent 写成 teleagen、编造"免费"）
+// 从文本提取英文产品名 token（如 teleagent / teleagen）
+function extractProductNames(text) {
+  const names = [];
+  const m = String(text || '').match(/[A-Za-z][A-Za-z0-9_-]{3,}/g);
+  if (m) for (const n of m) if (n.length >= 4 && n.length <= 24 && !names.includes(n)) names.push(n);
+  return names;
+}
+// 把文本中产品名的常见拼写变体（漏一个字符 / 小写）替换回正确名，防营业员念错
+function fixProductName(text, names) {
+  if (!text || !names || !names.length) return text;
+  let out = String(text);
+  for (const name of names) {
+    const variants = new Set();
+    for (let i = 0; i < name.length; i++) variants.add(name.slice(0, i) + name.slice(i + 1)); // 漏字变体
+    variants.add(name.toLowerCase());
+    for (const v of variants) {
+      if (!v || v.length < 4) continue;
+      try { out = out.replace(new RegExp('\\b' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'), name); } catch (e) {}
+    }
+  }
+  return out;
+}
+// 价格/免费类承诺（web 调研来源禁止编造：真实资料无价格信息时，AI 不得加"免费/低价/XX元"）
+const PRICE_WORDS = /免费|不要钱|白嫖|低价|优惠价|秒杀价|立省|只要\d+(元|块)|\d+(元|块)\s*(起|就能|搞定)/;
+
 // 6 人设（对齐 index.js PERSONA_STD：sister/sweet/tech/biz/young/master）；
 // 兼容旧 3 语气别名：affinity→sister（亲和=知性姐姐）、professional→tech（专业=技术专家）、young 保留。
 const MOODS = {
@@ -104,8 +130,10 @@ async function runAiScript(ctx) {
     productCtx = '\n\n【产品事实上下文（来源：' + srcLabel + '，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
     if (research.source === 'web') {
       // 2026-08-21 v4：联网调研来源——功能只能来自真实搜索结果；禁"据我了解"免责式编造；禁营业厅业务化定位
-      antiHallucinationNote = '\n⚠️ 产品事实红线（AI 联网调研·真实资料）：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**一律禁止出现**——包括加「据我了解/好像/据说」等前缀的免责式编造也不允许；痛点/反面案例只能用通用营业表达（乱扣费/多花冤枉钱/找不到人/不清楚）。' +
-        '\n【产品定位红线】根据真实调研，该产品是办公/软件/服务类产品（功能见上方）。**禁止**将其描述为营业厅业务工具（查套餐/查流量/查话费/算续费/缴费/办卡/改套餐/宽带故障处理等）——以上功能**均不在**真实调研结果中，属于编造。脚本须围绕上方真实功能展开；营业厅只能作为使用场景背景（如营业员用该产品提升工作效率），不得赋予该产品营业厅业务能力。';
+      // v5 追加：禁价格类承诺（免费/低价/XX元），除非真实资料明确包含
+      antiHallucinationNote = '\n⚠️ 产品事实红线（AI 联网调研·真实资料）：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**一律禁止出现**——包括加「据我了解/好像/据说」等前缀的免责式编造也不允许；**禁止编造价格类承诺（免费/不要钱/低价/XX元/立省等）**——价格信息只能来自上方真实资料；痛点/反面案例只能用通用营业表达（乱扣费/多花冤枉钱/找不到人/不清楚）。' +
+        '\n【产品定位红线】根据真实调研，该产品是办公/软件/服务类产品（功能见上方）。**禁止**将其描述为营业厅业务工具（查套餐/查流量/查话费/算续费/缴费/办卡/改套餐/宽带故障处理等）——以上功能**均不在**真实调研结果中，属于编造。脚本须围绕上方真实功能展开；营业厅只能作为使用场景背景（如营业员用该产品提升工作效率），不得赋予该产品营业厅业务能力。' +
+        '\n【产品名一致】产品名称必须与「选题」中的名称完全一致（拼写/大小写不得改动），禁止写错、缩写或改名。';
     } else {
       antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字；**痛点/反面案例部分也只能用通用营业表达（乱扣费/多花冤枉钱/找不到人/不清楚），禁止引入资料外的具体业务名词（加包/办卡/领流量/充值/查账单/营业厅话费等）**。';
     }
@@ -147,6 +175,17 @@ async function runAiScript(ctx) {
         title: obj.title || topic, script, hookKind: obj.hookKind || 'value',
         beats: obj.beats || {}, tags: obj.tags || []
       };
+      // v5 产品名纠错（后处理兜底）：script/beats/tags/title 里产品名的漏字/小写变体替换回正确名（如 teleagen→teleagent）
+      const pnames = extractProductNames(topic);
+      if (pnames.length) {
+        cand.script = fixProductName(cand.script, pnames);
+        cand.title = fixProductName(cand.title, pnames);
+        if (Array.isArray(cand.tags)) cand.tags = cand.tags.map(t => fixProductName(t, pnames));
+        if (cand.beats && typeof cand.beats === 'object') {
+          for (const k of Object.keys(cand.beats)) cand.beats[k] = fixProductName(cand.beats[k], pnames);
+        }
+        script = cand.script;
+      }
       let r = Q.checkVariant(cand, {});
       if (!r.pass) {
         // ad_002「第一」轻清洗（cand 全字段）后重新过门禁一次
@@ -173,14 +212,18 @@ async function runAiScript(ctx) {
         const r3 = Q.checkVariant(cand, {});
         if (r3.pass) r = r3; else cand.script = orig;
       }
-      // 定位跑偏检测（2026-08-21 v4）：联网调研的办公/软件类产品被写成"营业厅业务工具"（查套餐/流量/续费）→ 重试。
-      // 判定：script 含业务功能词，且真实调研卖点（bullets）完全不含这些词 → 跑偏（真实卖点里没有这些功能）。
+      // 定位跑偏 + 价格编造检测（2026-08-21 v4/v5）：联网调研的办公/软件类产品被写成"营业厅业务工具"，或编造价格承诺 → 重试。
+      // 判定：script 含业务功能词/价格词，且真实调研卖点（bullets）完全不含这些词 → 跑偏（真实卖点里没有这些内容）。
       if (r.pass && research.source === 'web') {
         const BIZ_WORDS = /查流量|查套餐|查话费|比对套餐|算续费|续费|缴费|办卡|改套餐|补卡|销号|宽带故障|查账单|流量用不完|套餐升级/;
         const bulletText = (research.bullets || []).join('');
         if (BIZ_WORDS.test(script) && !BIZ_WORDS.test(bulletText)) {
           lastErr = '产品定位跑偏（真实卖点不含营业厅业务功能，script 却写成业务工具），重试';
           continue; // 直接进下一 attempt（重试）
+        }
+        if (PRICE_WORDS.test(script) && !PRICE_WORDS.test(bulletText)) {
+          lastErr = '价格编造（真实资料无价格/免费承诺，script 却出现），重试';
+          continue;
         }
       }
       if (r.pass) { v = cand; score = r.score || 0; }
