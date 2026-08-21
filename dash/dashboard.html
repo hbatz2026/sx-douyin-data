@@ -648,13 +648,15 @@ function renderSummary(s) {
 function renderQA(rooms, qa) {
   const living = rooms.filter(r => r.meta?.is_live);
   const alerts = qa?.alerts || [];
-  const sevCount = alerts.filter(a => a.level === '严重').length;
-  const noInteract = alerts.filter(a => a.item === '主播人不出单').length;
+  const realAlerts = alerts.filter(a => ['严重', '警告', '提示'].includes(a.level));
+  const clues = alerts.filter(a => a.level === '线索');
+  const sevCount = realAlerts.filter(a => a.level === '严重').length;
+  const noInteract = realAlerts.filter(a => a.item === '主播人不出单').length;
   document.getElementById('qaSummary').innerHTML = [
     { label: '在播直播间', value: living.length, color: 'green' },
-    { label: '告警总数', value: alerts.length, color: 'orange' },
+    { label: '告警总数', value: realAlerts.length, color: 'orange' },
     { label: '严重告警', value: sevCount, color: 'red' },
-    { label: '无互动直播', value: noInteract, color: 'purple' },
+    { label: '挂播线索', value: clues.length, color: 'purple' },
   ].map(it => `
     <div class="kpi-card ${it.color}" style="text-align:center;padding:16px">
       <div class="kpi-value" style="font-size:28px">${it.value}</div>
@@ -689,7 +691,7 @@ function renderQA(rooms, qa) {
   document.getElementById('roomList').innerHTML = roomHTML || '<div style="grid-column:1/-1" class="loading">当前无在播直播间</div>';
 
   // Alerts
-  const levelMap = { '严重': 'sev', '警告': 'warn', '提示': 'info' };
+  const levelMap = { '严重': 'sev', '警告': 'warn', '提示': 'info', '线索': 'info' };
   const alertHTML = alerts.map(a => `
     <div class="alert-item ${levelMap[a.level] || 'info'}">
       <span class="alert-level ${levelMap[a.level] || 'info'}">${a.level}</span>
