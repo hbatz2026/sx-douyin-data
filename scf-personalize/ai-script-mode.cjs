@@ -62,17 +62,24 @@ async function runAiScript(ctx) {
   const { callSiliconFlow, extractJsonObject, hsSanitize } = helpers;
   const mood = (params.mood && MOODS[params.mood]) ? params.mood : 'sister';
   const topic = hsSanitize((params.topic || '').trim());
-  if (!topic || topic.length < 2) throw new Error('选题过短（至少 2 字）');
+  // 2026-08-21 修复：<6 字一律拦截（前端同规则，后端兜底防绕过），提示带示例引导
+  if (!topic || topic.length < 6) throw new Error('选题过短（至少 6 字）：请补充具体活动/卖点，如「充100元话费送抽纸礼品」');
 
-  // —— 产品事实门：用户输入如涉及具体产品/服务，先让 AI 调研真实卖点（基于模型知识），避免瞎编产品功能
-  // 优先级：用户手动填的 productInfo（官方资料） > AI 调研 > 通用营业员口径
+  // —— 产品事实门（2026-08-21 反转假设，根治"输入越具体生成越空"）：
+  // 信任顺序：用户填的 productInfo（官方资料） > 用户输入本身（≥6 字即事实） > AI 调研兜底（仅模糊词）
+  // 旧逻辑拿用户输入去问 AI 认不认识，不认识(known=false) 就禁止输出输入里的具体信息 → 卖点全灭。
+  // 新逻辑：营业员输入的 ≥6 字描述 = 自家真实活动/产品，直接当已知事实，不再调研。
   let research;
   if (params.productInfo && String(params.productInfo).trim().length >= 4) {
     const info = String(params.productInfo).trim();
     // 简化：把整段资料当作 bullets，单条作为"用户提供的官方资料"
     const bullets = info.split(/[\n\r]+|(?:[。！？])|(?:[，；])/).map(s => s.trim()).filter(s => s.length >= 4 && s.length <= 80).slice(0, 6);
     research = { known: true, bullets: bullets.length ? bullets : [info.slice(0, 120)], angle: '', source: 'user' };
+  } else if (topic.length >= 6) {
+    // 用户输入本身即事实：不调研、不降级，直接作为已知卖点上下文（source='user'，前端显示"基于官方资料"青色 chip）
+    research = { known: true, bullets: [topic], angle: '', source: 'user' };
   } else {
+    // 模糊选题（<6 字）才走 AI 调研兜底（标注 AI 参考）
     research = await researchProduct(topic, { apiKey, cfg, helpers }, { timeoutMs: 60000, maxTokens: 700 });
     research.source = 'ai';
   }
@@ -82,8 +89,8 @@ async function runAiScript(ctx) {
     productCtx = '\n\n【产品事实上下文（来源：' + (research.source === 'user' ? '用户提供的官方资料' : 'AI 模型调研（仅基于训练知识，不联网，准确度有限') + '，禁止超出这些事实瞎编）】\n' + research.bullets.map((b, i) => (i + 1) + '. ' + b).join('\n') + (research.angle ? '\n营业员口播角度：' + research.angle : '');
     antiHallucinationNote = '\n⚠️ 产品事实红线：script / beats / title / tags 中关于该产品的功能、参数、承诺**只能从上方「产品事实上下文」取**；未列出的功能/数字/案例**禁止编造**；不确定的内容用「据我了解」或避免具体数字；**痛点/反面案例部分也只能用通用营业表达（乱扣费/多花冤枉钱/找不到人/不清楚），禁止引入资料外的具体业务名词（加包/办卡/领流量/充值/查账单/营业厅话费等）**。';
   } else {
-    // known=false：模型无法确认产品，禁止输出任何具体功能/数字/承诺
-    antiHallucinationNote = '\n⚠️ 产品事实红线（模型无法确认「' + topic + '」的具体卖点，known=false）：script / beats 中**禁止**给出该产品的具体功能列表、数字、参数或承诺，只可写通用营业员口吻（如「来营业厅我帮你看」「进店问问」「查最新政策」）引导用户到店核实；如需承诺具体内容请用户到店。';
+    // known=false（仅模糊词调研失败时触达）：不再反向锁死用户信息（≥6 字已走 ② 分支），只防"无中生有"
+    antiHallucinationNote = '\n⚠️ 素材红线（用户未提供该活动/产品的具体信息）：**禁止编造**具体金额、礼品、套餐档位或服务承诺；可用通用营业员口吻（如「来营业厅我帮你看」「进店问问」「查最新政策」）引导用户到店核实；同时引导用户补充卖点（金额/礼品/优惠）以获得更具体脚本。';
   }
 
   const user = '选题：' + topic + '\n人设要求：' + MOODS[mood] +
@@ -91,6 +98,7 @@ async function runAiScript(ctx) {
     productCtx +
     '\n\n请按 system 要求生成完整口播脚本（五段式 beats、hookKind 四选一、红线零命中），只输出 JSON（含 title/script/beats/hookKind/bgm/tags）。' +
     '\n⚠️ 广告法红线（必须零命中）：script 正文禁止出现「第一」「最」「首家」「国家级」等极限词；列举多个要点时用「首先/其次/再一个」替代。' +
+    '\n⚠️ 强引导（必含，与 beats.cta 一致）：script 正文结尾必须包含可执行的强 CTA（三选一：评论区扣「关键词」/ 点赞过 N 解锁 / 到店报暗号+限时），禁止「来营业厅咨询」「进店问问」类弱引导收尾。' +
     antiHallucinationNote;
 
   let lastErr = null, v = null, score = 0;
@@ -126,6 +134,22 @@ async function runAiScript(ctx) {
           const r2 = Q.checkVariant(cand, {});
           if (r2.pass) r = r2;
         }
+      }
+      // 强 CTA 兜底（2026-08-21）：门禁只查 beats.cta 不查 script 正文，而营业员念的是 script——
+      // 正文无强 CTA 信号时，从 beats.cta 截取强 CTA 句追加到末尾（保字数 ≤246），重新过门禁；失败回滚原稿
+      const STRONG_CTA = /评论区|点赞过|到店报|扣[「“'"]|暗号/;
+      if (r.pass && !STRONG_CTA.test(script) && cand.beats && cand.beats.cta) {
+        const orig = script;
+        const ctaText = String(cand.beats.cta);
+        const ctaSegs = ctaText.split(/(?<=[。！？])/);
+        const strongSeg = ctaSegs.find(seg => STRONG_CTA.test(seg)) || ctaText;
+        const budget = Math.max(150, 246 - strongSeg.length);
+        const sSegs = script.split(/(?<=[。！？])/);
+        let acc = '';
+        for (const seg of sSegs) { if ((acc + seg).length <= budget) acc += seg; else break; }
+        cand.script = acc + (/([。！？!?])$/.test(acc) ? '' : '。') + strongSeg;
+        const r3 = Q.checkVariant(cand, {});
+        if (r3.pass) r = r3; else cand.script = orig;
       }
       if (r.pass) { v = cand; score = r.score || 0; }
       else lastErr = '生成未达内容门禁: ' + r.reasons.map(x => x.msg).join('; ');
