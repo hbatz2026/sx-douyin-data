@@ -902,3 +902,16 @@
   .sk-meta { height:12px; width:45%; }
   .skeleton-card .hs-header { padding:14px 16px; }
   @media (prefers-reduced-motion: reduce) { .sk::after { animation:none; } }
+
+/* ── 深色补齐（2026-08-21）：新增区块硬编码浅色残留覆盖 ── */
+@media (prefers-color-scheme: dark) {
+  .topic-item { background:#232323; border-color:#333; }
+  .bank-filter, .quick-copy { background:#1E1E1E; color:#DDD; border-color:#444; }
+  .quick-copy.copied { background:#1E2540; border-color:#5C7CDB; color:#7AB8FF; }
+  .schedule-day .day-time-rec { background:#12321F; color:#7FE0A8; }
+  .type-review, .meta-week, .badge-seasonal, .fw-warn-bar { background:#3A2E12; color:#F0B36B; border-color:#FFB300; }
+  .price-warning, .tips-bar { background:#3A2E12; border-color:#FFB300; color:#F0B36B; }
+  .hs-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .hs-tab-badge { background:#E0703C; }
+  .topic-item .idx { border:1px solid #333; }
+}

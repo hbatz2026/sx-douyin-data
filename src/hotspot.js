@@ -148,9 +148,13 @@
               (h.voice && h.voice[i] ? '<div class="hs-step-voice">🎤 ' + esc(h.voice[i]) + '</div>' : '') +
             '</div>';
           }).join('') +
-          (h.formTip ? '<div style="margin-top:10px;padding:8px 10px;background:#E8F5E9;border-radius:6px;font-size:12px;color:#2E7D32;"><strong>🎬 形式怎么拍：</strong>' + esc(h.formTip) + '</div>' : '') +
-          (h.rideBeat ? '<div style="margin-top:8px;padding:8px 10px;background:#F1F8E9;border-radius:6px;font-size:12px;color:#33691E;"><strong>🎼 原版节奏拆解：</strong>' + esc(h.rideBeat) + (h.sourceBgm ? '（BGM：' + esc(h.sourceBgm) + '）' : '') + '</div>' : '') +
-          (h.tip ? '<div style="margin-top:8px;padding:8px 10px;background:#FFF3E0;border-radius:6px;font-size:12px;color:#C2410C;"><strong>💡 拍摄提示：</strong>' + esc(h.tip) + '</div>' : '') +
+          (function () {
+            var extra = '';
+            if (h.formTip) extra += '<div style="padding:8px 10px;background:#E8F5E9;border-radius:6px;font-size:12px;color:#2E7D32;margin-bottom:6px;"><strong>🎬 形式怎么拍：</strong>' + esc(h.formTip) + '</div>';
+            if (h.rideBeat) extra += '<div style="padding:8px 10px;background:#F1F8E9;border-radius:6px;font-size:12px;color:#33691E;margin-bottom:6px;"><strong>🎼 原版节奏拆解：</strong>' + esc(h.rideBeat) + (h.sourceBgm ? '（BGM：' + esc(h.sourceBgm) + '）' : '') + '</div>';
+            if (h.tip) extra += '<div style="padding:8px 10px;background:#FFF3E0;border-radius:6px;font-size:12px;color:#C2410C;"><strong>💡 拍摄提示：</strong>' + esc(h.tip) + '</div>';
+            return extra ? '<details style="margin-top:8px;"><summary style="font-size:12px;color:var(--blue-600);cursor:pointer;padding:6px 0;font-weight:600;min-height:32px;display:flex;align-items:center;">🎬 拍摄进阶（形式 / 节奏 / 提示）</summary><div style="margin-top:6px;">' + extra + '</div></details>' : '';
+          })() +
           '<div class="hs-footer">' +
             laneTag + rideTag + formTag +
             '<span class="hs-tag">🎵 ' + esc(h.bgm || '—') + '</span>' +

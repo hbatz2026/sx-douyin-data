@@ -25,6 +25,61 @@
   --radius:12px; --radius-sm:8px; --r-lg:18px; --r-md:13px; --r-sm:9px;
   --glass:rgba(255,255,255,.72);
 }
+/* ===== 深色模式（3.0 补齐 2026-08-21：对齐 2.x styles.css 变量映射，自动跟随系统） ===== */
+@media (prefers-color-scheme: dark){
+:root{
+  --ink:#e8eef7; --muted:#9fb0c8; --line:#26334a; --bg:#0d1526;
+  --text:#E8ECF4; --text-light:#A7B4C8;
+  --blue-light:#16294d; --blue-mid:#2a6fd6;
+  --orange-light:#3a2410;
+  --green-light:#12321f;
+  --red-light:#3a1412;
+  --amber-light:#3a2c10;
+  --gray:#1a2438; --gray-border:#2c3a52;
+  --white:#16213a; --grad-soft:linear-gradient(135deg,#12203f,#16213a);
+  --glass:rgba(22,33,58,.85);
+  --shadow:0 2px 10px rgba(0,0,0,.3); --shadow-card:0 4px 16px rgba(0,0,0,.35);
+  --shadow-md:0 10px 28px rgba(0,0,0,.4); --shadow-lg:0 18px 46px rgba(0,0,0,.5);
+}
+body{background:radial-gradient(1000px 480px at 50% -8%,#12224a 0%,transparent 60%),var(--bg);}
+.tab-bar .tab.active{background:#1c2f57;}
+.tab-bar{background:var(--glass);}
+.p-chip{background:var(--white);}
+.p-chip.active{background:#1c2f57;}
+.week-day{background:var(--white);}
+.week-day.today{background:#1c2f57;}
+.season-bar,.my-section,.modal-sheet{background:var(--white);}
+.modal-close{background:var(--gray);color:var(--text);}
+.toast{background:#2c3a52;}
+.sig-cell{background:var(--gray);}
+.flag-row button{background:var(--white);color:var(--text);border-color:var(--gray-border);}
+.flag-row button.on{background:var(--green-light);color:#7fe0a8;border-color:#1d5c3a;}
+.hs-tab{background:var(--gray);color:var(--text-light);border-color:var(--gray-border);}
+.hs-tab.active{background:var(--blue);color:#fff;}
+.hs-kit{background:linear-gradient(135deg,#33260e,#2a200c);border-color:#8a6d1f;}
+.hs-kit-title{color:#f0b95c;}
+.hs-kit-row .hk-l{color:#f0b95c;}
+.hs-kit-row .hk-v{color:#e0c99a;}
+.hs-kit-row .hk-btn{background:var(--white);color:#f0b95c;border-color:#8a6d1f;}
+.hotspot-card .hs-step{background:#1a2440;border-left-color:var(--blue-400);}
+.hotspot-card .hs-step-sub{background:#16304f;color:#9cc7f5;}
+.hotspot-card .hs-step-voice{background:#33260e;color:#e0c99a;border-left-color:#b98a1f;}
+.sc-preview .preview-text{color:#c6d0e0;}
+.storyboard td{color:#c6d0e0;}
+.storyboard td.sec,.storyboard td.cam{color:#9fb0c8;}
+.hs-plat{background:#16304f;color:#9cc7f5;}
+.hs-plat:hover{background:#1c3f6d;}
+.empty-note{color:#9fb0c8;}
+.hs-tag{background:#1a2438;color:#a7b4c8;}
+.sk-card{background:var(--white);}
+.sk-line{background:linear-gradient(90deg,#1a2438 25%,#223048 37%,#1a2438 63%);}
+.skeleton-card .sk{background:linear-gradient(90deg,#1a2438 25%,#223048 50%,#1a2438 75%);}
+.sc-badge.draft{background:#7a4a10;color:#fff;}
+.ratio-legend{color:#9fb0c8;}
+.issue-free-note{color:#9fb0c8;}
+}
+/* ===== 无障碍工具类 ===== */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 480px at 50% -8%,#d9e6ff 0%,transparent 60%),var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
 
@@ -35,8 +90,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .app-header::before{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.26),transparent 70%);top:-80px;right:-35px;pointer-events:none;}
 .app-header::after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(24,200,255,.4),transparent 70%);bottom:-72px;left:-30px;pointer-events:none;}
 .app-header .top{position:relative;display:flex;align-items:center;justify-content:center;padding:0 64px;}
-.app-header .title{font-size:18px;font-weight:700;letter-spacing:1px;display:flex;align-items:center;gap:5px;}
-.app-header .date{font-size:11px;opacity:.7;margin-top:2px;text-align:center;}
+.app-header .title{font-size:20px;font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:5px;}
+.app-header .date{font-size:11.5px;opacity:.75;margin-top:2px;text-align:center;}
 .app-header .h-badge{position:absolute;right:0;top:0;background:rgba(255,255,255,.15);font-size:10px;padding:2px 10px;border-radius:10px;}
 
 /* Store bar */
@@ -44,13 +99,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .store-bar input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;font-size:11px;color:#fff;outline:none;width:140px;}
 .store-bar input::placeholder{color:rgba(255,255,255,.4);}
 
-/* ===== Button 体系（交付包平移 v2.9.86：8 状态 + 44px 触摸目标） ===== */
-.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--grad);color:#fff;border:none;border-radius:14px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);transition:transform .15s,box-shadow .15s,opacity .15s;min-height:44px;}
+/* ===== Button 体系（交付包平移 v2.9.86：8 状态 + 44px 触摸目标；2026-08-21 字号体系微调） ===== */
+.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--grad);color:#fff;border:none;border-radius:14px;padding:11px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);transition:transform .15s,box-shadow .15s,opacity .15s;min-height:44px;}
 .btn-primary:hover{box-shadow:var(--shadow-lg);}
 .btn-primary:active{transform:scale(.97);}
 .btn-primary:focus-visible{outline:2px solid var(--blue-400);outline-offset:2px;}
 .btn-primary:disabled{opacity:.55;cursor:not-allowed;}
-.btn-accent{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,var(--orange),#ff9a5a);color:#fff;border:none;border-radius:14px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);transition:transform .15s,box-shadow .15s;min-height:44px;}
+.btn-accent{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,var(--orange),#ff9a5a);color:#fff;border:none;border-radius:14px;padding:11px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);transition:transform .15s,box-shadow .15s;min-height:44px;}
 .btn-accent:hover{box-shadow:var(--shadow-lg);}
 .btn-accent:active{transform:scale(.97);}
 .btn-accent:focus-visible{outline:2px solid var(--orange-soft);outline-offset:2px;}
@@ -61,7 +116,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 /* ===== 区块标题（sec-title：借鉴 C 编辑精致 + 交付包 V2，2026-08-20） ===== */
 .sec-title{display:flex;align-items:center;gap:8px;margin:14px 0 10px;}
-.sec-title .zh{font-size:16px;font-weight:800;letter-spacing:.5px;color:var(--ink);white-space:nowrap;}
+.sec-title .zh{font-size:17px;font-weight:800;letter-spacing:.5px;color:var(--ink);white-space:nowrap;}
 .sec-title .en{font-size:10px;letter-spacing:2px;color:var(--blue-600);font-weight:700;text-transform:uppercase;margin-top:2px;white-space:nowrap;}
 .sec-title .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--blue-400),transparent);opacity:.45;margin-left:4px;min-width:24px;}
 .sec-title .trailing{margin-left:auto;font-size:11px;color:var(--text-light);font-weight:400;letter-spacing:0;text-transform:none;white-space:nowrap;}
@@ -80,11 +135,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
 /* ===== Bottom Tab（glassmorphism + 渐变激活条） ===== */
 .tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;z-index:50;padding:4px 0;box-shadow:0 -2px 8px rgba(0,64,152,.06);}
-.tab-bar .tab{flex:1;text-align:center;padding:4px 0;cursor:pointer;color:var(--text-light);transition:all .15s;position:relative;border-top:2px solid transparent;}
+.tab-bar .tab{flex:1;text-align:center;padding:4px 0;cursor:pointer;color:var(--text-light);transition:all .15s;position:relative;border-top:2px solid transparent;background:none;border-left:none;border-right:none;border-bottom:none;font-family:inherit;min-height:48px;}
 .tab-bar .tab.active{color:var(--blue);background:var(--blue-light);}
 .tab-bar .tab.active::after{content:"";position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:30px;height:3px;border-radius:3px;background:var(--grad);}
-.tab-bar .tab .icon{font-size:18px;display:block;}
-.tab-bar .tab .label{font-size:10px;display:block;margin-top:-2px;}
+.tab-bar .tab:focus-visible{outline:2px solid var(--blue-400);outline-offset:-2px;}
+.tab-bar .tab .icon{font-size:18px;display:block;line-height:1;}
+.tab-bar .tab .icon svg{width:20px;height:20px;display:block;margin:0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.tab-bar .tab .label{font-size:11px;display:block;margin-top:1px;}
 
 /* ===== Content ===== */
 .content{padding:10px 14px 12px;}
@@ -94,9 +151,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 /* ===== 今日推荐 ===== */
 .persona-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 .persona-strip::-webkit-scrollbar{display:none;}
-.p-chip{flex-shrink:0;padding:4px 10px;border-radius:14px;font-size:11px;border:1.5px solid var(--gray-border);background:var(--white);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.p-chip{flex-shrink:0;padding:5px 12px;border-radius:16px;font-size:12px;border:1.5px solid var(--gray-border);background:var(--white);cursor:pointer;transition:all .15s;white-space:nowrap;min-height:32px;font-family:inherit;color:var(--text);}
 .p-chip.active{border-color:var(--blue-600);background:var(--grad-soft);color:var(--blue);font-weight:600;}
 .p-chip:active{transform:scale(.96);}
+.p-chip:focus-visible{outline:2px solid var(--blue-400);outline-offset:2px;}
 
 .daily-cards{display:flex;flex-direction:column;gap:10px;}
 .script-card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden;transition:all .15s;cursor:pointer;}
@@ -105,15 +163,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sc-head{display:flex;align-items:center;gap:8px;padding:10px 14px 6px;}
 .sc-head .type-icon{font-size:18px;}
 .sc-head .type-name{font-size:13px;font-weight:600;color:var(--blue);}
-.sc-head .sc-badge{font-size:10px;padding:2px 8px;border-radius:8px;margin-left:auto;}
+.sc-head .sc-badge{font-size:11px;padding:2px 9px;border-radius:8px;margin-left:auto;white-space:nowrap;}
 .sc-badge.passed{background:var(--green-light);color:#0B6B34;}
 .sc-badge.fixed{background:#FFF3CD;color:#856404;}
 .sc-badge.blocked{background:var(--red-light);color:#B3261E;}
 .sc-badge.draft{background:#B45309;color:#fff;}
 
-.sc-hook{font-size:12px;padding:0 14px;color:var(--text-light);margin-bottom:2px;}
-.sc-hook .hook-label{font-size:10px;color:#6b7280;margin-right:4px;}
-.sc-title{font-size:14px;font-weight:500;padding:0 14px;line-height:1.4;}
+.sc-hook{font-size:12.5px;padding:0 14px;color:var(--text-light);margin-bottom:2px;}
+.sc-hook .hook-label{font-size:11px;color:var(--muted);margin-right:4px;}
+.sc-title{font-size:15px;font-weight:600;padding:0 14px;line-height:1.45;}
 
 .sc-preview{padding:8px 14px;}
 .sc-preview .preview-text{font-size:12px;color:#555;line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
@@ -122,25 +180,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .sc-copy{background:var(--blue);color:var(--white);}
 .sc-switch{background:var(--gray);color:var(--text);}
 
-/* Expanded state */
+/* Expanded state（2026-08-21：max-height 过渡动效，尊重 reduced-motion） */
 .script-card.expanded .preview-text{-webkit-line-clamp:unset;max-height:none;}
-.script-card.expanded .storyboard{display:block;}
-.storyboard{display:none;padding:0 14px 12px;}
-.storyboard table{width:100%;border-collapse:collapse;font-size:11px;}
+.storyboard{display:block;max-height:0;overflow:hidden;padding:0 14px;transition:max-height .25s ease;opacity:0;transition:max-height .25s ease,opacity .2s ease;}
+.script-card.expanded .storyboard{max-height:900px;opacity:1;padding:0 14px 12px;}
+@media (prefers-reduced-motion: reduce){.storyboard{transition:none;}}
+.storyboard table{width:100%;border-collapse:collapse;font-size:11.5px;}
 .storyboard td{padding:6px 4px;border-bottom:1px solid var(--gray-border);vertical-align:top;}
 .storyboard td.sec{color:var(--text-light);white-space:nowrap;width:36px;font-weight:600;}
 .storyboard td.cam{color:var(--text-light);font-size:10px;width:60px;}
 
-.sc-persona-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;background:var(--blue-light);color:var(--blue);margin:0 14px 6px;}
+.sc-persona-tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:4px;background:var(--blue-light);color:var(--blue);margin:0 14px 6px;}
 
-/* ===== 排期 ===== */
+/* 卡片操作按钮（2026-08-21：字号 11→12px + 反馈选中态） */
+.sc-actions button{flex:1;padding:7px 4px;border:none;border-radius:6px;font-size:12px;cursor:pointer;min-height:34px;}
+.sc-copy{background:var(--blue);color:var(--white);}
+.sc-switch{background:var(--gray);color:var(--text);}
+.sc-switch.fb-up.on{background:var(--green-light);color:var(--green);}
+.sc-switch.fb-down.on{background:var(--red-light);color:var(--red);}
+.sc-switch:disabled{opacity:.5;cursor:default;}
+
+/* ===== 排期（2026-08-21：字号微调 + 移动端 2 列适配） ===== */
 .week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px;}
 .week-day{background:var(--white);border-radius:10px;padding:10px 4px;text-align:center;box-shadow:var(--shadow);}
 .week-day.today{border:2px solid var(--blue-600);background:var(--grad-soft);}
-.week-day .wd-label{font-size:10px;color:#4B5563;}
+.week-day .wd-label{font-size:11px;color:var(--muted);}
 .week-day .wd-icon{font-size:18px;margin:4px 0;}
-.week-day .wd-topic{font-size:10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.week-day .wd-status{font-size:9px;margin-top:2px;}
+.week-day .wd-topic{font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.week-day .wd-status{font-size:10px;margin-top:2px;}
+@media (max-width:520px){.week-grid{grid-template-columns:repeat(2,1fr);} .week-day{padding:10px 6px;}}
 .wd-done{color:#0B6B34;} .wd-today{color:var(--blue);font-weight:600;}
 
 /* ===== 热点 ===== */
@@ -227,7 +295,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .modal-close{width:100%;padding:10px;border:none;border-radius:var(--radius-sm);font-size:13px;background:var(--gray);color:var(--text);cursor:pointer;margin-top:12px;}
 
 /* ===== v3.0 池状态条（§7.6.2 四级回退可视化） ===== */
-.pool-bar{display:flex;align-items:center;gap:6px;font-size:10px;padding:4px 8px;border-radius:8px;margin-bottom:8px;}
+.pool-bar{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;border-radius:8px;margin-bottom:8px;}
 .pool-bar.lv-day{background:var(--green-light);color:#0B6B34;}
 .pool-bar.lv-week{background:var(--blue-light);color:var(--blue);}
 .pool-bar.lv-cache{background:#FFF3CD;color:#7A5B03;}
@@ -247,7 +315,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .empty-note button{margin-top:10px;padding:7px 16px;border:1px solid var(--gray-border);border-radius:16px;background:var(--white);color:var(--blue);font-size:12px;cursor:pointer;}
 
 /* ===== v3.0 本周新增角标 ===== */
-.badge-new{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;background:var(--orange-light);color:#9A3F00;font-weight:600;margin-left:4px;}
+.badge-new{display:inline-block;font-size:10px;padding:1px 5px;border-radius:4px;background:var(--orange-light);color:#9A3F00;font-weight:600;margin-left:4px;}
 
 /* ===== v3.0 排期季节条 ===== */
 .season-bar{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);padding:10px 12px;box-shadow:var(--shadow-md);margin-bottom:10px;}
@@ -262,18 +330,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 /* ===== v3.0 我的页 · 信号面板 ===== */
 .sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;}
 .sig-cell{background:var(--gray);border-radius:8px;padding:8px 4px;text-align:center;}
-.sig-cell .sg-n{font-size:15px;font-weight:600;color:var(--blue);}
-.sig-cell .sg-l{font-size:9px;color:#55606e;}
+.sig-cell .sg-n{font-size:16px;font-weight:600;color:var(--blue);}
+.sig-cell .sg-l{font-size:11px;color:var(--muted);}
 .flag-row{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--gray-border);}
 .flag-row:last-child{border-bottom:none;}
-.flag-row .fr-label{flex:1;font-size:12px;}
-.flag-row .fr-desc{font-size:10px;color:#55606e;display:block;margin-top:1px;}
+.flag-row .fr-label{flex:1;font-size:12.5px;}
+.flag-row .fr-desc{font-size:11px;color:var(--muted);display:block;margin-top:1px;}
 .flag-row button{border:1px solid var(--gray-border);background:var(--white);border-radius:12px;font-size:10px;padding:3px 10px;cursor:pointer;color:var(--text);}
 .flag-row button.on{background:var(--green-light);color:#0B6B34;border-color:#9BD3B3;}
 
 /* ===== 桌面端适配（方案C：双列 + 放大 + 展开提示，2026-08-18） ===== */
-.expand-hint{display:flex;align-items:center;gap:4px;font-size:10px;color:#5a6470;padding:2px 14px 0;cursor:pointer;user-select:none;}
+.expand-hint{display:flex;align-items:center;gap:4px;font-size:11px;color:#5a6470;padding:2px 14px 0;cursor:pointer;user-select:none;}
 .script-card.expanded .expand-hint{display:none;}
+/* AI 定制入口渐变变体（2026-08-21：内联样式收编） */
+.hs-lane-card.gradient{background:var(--grad);color:#fff;border:none;}
+.hs-lane-card.gradient:active{border-color:transparent;}
+.hs-lane-card.gradient .hs-lane-name{color:#fff;}
+.hs-lane-card.gradient .hs-lane-count{color:rgba(255,255,255,.88);}
+.hs-lane-card.gradient .hs-lane-arrow{color:#fff;}
+/* 弹窗过渡动效（2026-08-21：默认 flex 透明+visibility 隐藏态（不可聚焦），.show 切换 opacity/transform 可过渡；visibility 避免 aria-hidden 与可聚焦元素冲突） */
+.modal-overlay{display:flex;opacity:0;pointer-events:none;visibility:hidden;transition:opacity .18s ease,visibility .18s;}
+.modal-overlay.show{opacity:1;pointer-events:auto;visibility:visible;}
+.modal-sheet{transform:translateY(24px);opacity:0;transition:transform .2s cubic-bezier(0.16,1,0.3,1),opacity .18s ease;}
+.modal-overlay.show .modal-sheet{transform:none;opacity:1;}
+@media (prefers-reduced-motion: reduce){.modal-overlay,.modal-sheet{transition:none;}}
 @media (min-width:768px){
   .app{max-width:980px;}
   .tab-bar{max-width:980px;}
@@ -295,29 +375,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <a class="h-badge" href="index-legacy.html" title="回到旧版（2.x 经典版）" style="cursor:pointer;background:rgba(255,107,0,.28);text-decoration:none;color:#fff;">返回旧版 →</a>
     </div>
     <div class="date" id="dateDisplay"></div>
-    <div class="store-bar">📍 <input id="storeInput" placeholder="输入营业厅名称" value="太原柳巷营业厅"></div>
+    <div class="store-bar">📍 <label class="sr-only" for="storeInput">营业厅名称</label><input id="storeInput" placeholder="输入营业厅名称" aria-label="绑定营业厅名称" value="太原柳巷营业厅"></div>
   </div>
 
   <div class="content">
     <!-- PAGE: 今日 -->
     <div class="page active" id="page-today">
+      <h2 class="sr-only">今日脚本</h2>
       <div class="persona-strip" id="personaStrip"></div>
       <div id="poolBar" role="status" aria-live="polite"></div>
-      <!-- G7 首页显著入口：自定义选题 → AI 生成脚本（6 人设） -->
-      <div class="hs-lane-card" role="button" tabindex="0" aria-label="自定义选题，AI 生成脚本" onclick="openCustomTopic()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}" style="background:var(--grad);color:#fff;margin-bottom:12px;border:none;">
-        <div class="hs-lane-icon" style="font-size:22px;">✏️</div>
+      <!-- G7 首页显著入口：自定义选题 → AI 生成脚本（6 人设，2026-08-21：内联样式收编为 .gradient 变体） -->
+      <div class="hs-lane-card gradient" role="button" tabindex="0" aria-label="自定义选题，AI 生成脚本" onclick="openCustomTopic(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}" style="margin-bottom:12px;">
+        <div class="hs-lane-icon" aria-hidden="true" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></div>
         <div style="flex:1;min-width:0;">
-          <div class="hs-lane-name" style="color:#fff;font-size:15px;">AI 定制脚本</div>
-          <div class="hs-lane-count" style="color:rgba(255,255,255,.88);">输入你的选题 → AI 帮你写口播稿 · 6 种人设可选</div>
+          <div class="hs-lane-name">AI 定制脚本</div>
+          <div class="hs-lane-count">输入你的选题 → AI 帮你写口播稿 · 6 种人设可选</div>
         </div>
-        <span class="hs-lane-arrow" style="color:#fff;">›</span>
+        <span class="hs-lane-arrow" aria-hidden="true">›</span>
       </div>
       <div class="sec-title" style="margin:4px 0 10px;"><span class="zh">✨ 今日脚本</span><span class="en">TODAY PICK</span><span class="rule"></span></div>
       <div class="daily-cards" id="dailyCards"></div>
       <!-- 热点入口（v2.9.79: 仅热门话题，搜索截流已移除） -->
       <div class="hs-lane-cards">
         <div class="hs-lane-card" role="button" tabindex="0" aria-label="进入热点跟拍中心" onclick="enterHotspotLane('hot')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.onclick()}">
-          <div class="hs-lane-icon">🔥</div>
+          <div class="hs-lane-icon" aria-hidden="true" style="width:24px;height:24px;"><svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
           <div style="flex:1;min-width:0;">
             <div class="hs-lane-name">热点跟拍</div>
             <div class="hs-lane-count" id="homeHotCount">点击查看</div>
@@ -329,6 +410,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 排期 -->
     <div class="page" id="page-week">
+      <h2 class="sr-only">本周排期</h2>
       <div class="sec-title"><span class="zh">📅 本周排期</span><span class="en">WEEKLY PLAN</span><span class="rule"></span></div>
       <div class="season-bar" id="seasonBar"></div>
       <div class="week-grid" id="weekGrid"></div>
@@ -340,6 +422,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 热点 -->
     <div class="page" id="page-hot">
+      <h2 class="sr-only">热点跟拍中心</h2>
       <div class="sec-title">
         <span class="zh">🔥 热点跟拍中心</span>
         <span class="en">HOT TRENDS</span>
@@ -350,7 +433,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
         <button class="btn-accent" onclick="manualRefreshHotspot()" id="hotspotRefreshBtn">🤖 刷新热点脚本</button>
         <button class="btn-ghost" onclick="toggleHotspotLibrary()">📚 选题库 <span class="hs-tab-badge" id="libCountBadge"></span></button>
-        <button class="btn-accent" style="background:var(--grad);" onclick="openCustomTopic()">✏️ 自定义选题</button>
+        <button class="btn-accent" style="background:var(--grad);" onclick="openCustomTopic(this)">✏️ 自定义选题</button>
       </div>
       <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;min-height:16px;" id="hotspotRefreshStatus"></div>
 
@@ -390,6 +473,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 直播 -->
     <div class="page" id="page-live">
+      <h2 class="sr-only">直播话术</h2>
       <div class="sec-title" style="margin-top:4px;"><span class="zh">📺 直播话术</span><span class="en">LIVE SCRIPTS</span><span class="rule"></span></div>
       <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;">4 大场景 · 10 分钟循环 · 点击展开完整话术</div>
       <div class="persona-strip" id="livePersonaStrip"></div>
@@ -398,6 +482,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
     <!-- PAGE: 我的 -->
     <div class="page" id="page-mine">
+      <h2 class="sr-only">我的与设置</h2>
       <div class="my-section">
         <h3 class="sec-title" style="margin:0 0 10px;"><span class="zh">📊 使用信号</span><span class="en">SIGNALS</span><span class="rule"></span></h3>
         <div class="sig-grid" id="sigGrid"></div>
@@ -442,53 +527,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
-  <!-- Tab Bar -->
-  <div class="tab-bar">
-    <div class="tab active" data-tab="today" onclick="switchTab('today')"><span class="icon">🎯</span><span class="label">今日</span></div>
-    <div class="tab" data-tab="week" onclick="switchTab('week')"><span class="icon">📅</span><span class="label">排期</span></div>
-    <div class="tab" data-tab="hot" onclick="switchTab('hot')"><span class="icon">🔥</span><span class="label">热点</span></div>
-    <div class="tab" data-tab="live" onclick="switchTab('live')"><span class="icon">📺</span><span class="label">直播</span></div>
-    <div class="tab" data-tab="mine" onclick="switchTab('mine')"><span class="icon">👤</span><span class="label">我的</span></div>
+  <!-- Tab Bar（2026-08-21：div→button + role=tablist/tab + aria-selected + SVG 图标，P0-①/P1-⑥） -->
+  <div class="tab-bar" role="tablist" aria-label="页面导航">
+    <button type="button" class="tab active" data-tab="today" role="tab" aria-selected="true" aria-controls="page-today" onclick="switchTab('today')"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="label">今日</span></button>
+    <button type="button" class="tab" data-tab="week" role="tab" aria-selected="false" aria-controls="page-week" onclick="switchTab('week')"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="label">排期</span></button>
+    <button type="button" class="tab" data-tab="hot" role="tab" aria-selected="false" aria-controls="page-hot" onclick="switchTab('hot')"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span><span class="label">热点</span></button>
+    <button type="button" class="tab" data-tab="live" role="tab" aria-selected="false" aria-controls="page-live" onclick="switchTab('live')"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></span><span class="label">直播</span></button>
+    <button type="button" class="tab" data-tab="mine" role="tab" aria-selected="false" aria-controls="page-mine" onclick="switchTab('mine')"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="label">我的</span></button>
   </div>
-  <!-- FAB：全局「AI 定制脚本」悬浮入口（任何 tab 可调出，借鉴 Material） -->
-  <button class="fab" aria-label="AI 定制脚本" title="AI 定制脚本" onclick="openCustomTopic()">✏️</button>
+  <!-- FAB：全局「AI 定制脚本」悬浮入口（任何 tab 可调出，借鉴 Material；2026-08-21 图标换 SVG） -->
+  <button class="fab" aria-label="AI 定制脚本" title="AI 定制脚本" onclick="openCustomTopic(this)"><svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- G7 自定义选题弹窗 -->
-<div id="customModal" style="display:none;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;">
-  <div class="modal-sheet" style="max-width:480px;">
-    <h3 style="font-size:15px;margin-bottom:10px;">✏️ 自定义选题 · AI 生成脚本</h3>
-    <textarea id="customTopicInput" placeholder="输入你的选题，如：小区宽带总掉线怎么办" style="width:100%;height:64px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;resize:none;"></textarea>
+<!-- G7 自定义选题弹窗（2026-08-21：接入 .modal-overlay 体系 + aria-modal + 焦点管理） -->
+<div id="customModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="customModalTitle">
+  <div class="modal-sheet" role="document">
+    <h3 id="customModalTitle" style="font-size:15px;margin-bottom:10px;">✏️ 自定义选题 · AI 生成脚本</h3>
+    <textarea id="customTopicInput" aria-label="选题内容" placeholder="输入你的选题，如：小区宽带总掉线怎么办" style="width:100%;height:64px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;resize:none;"></textarea>
     <div style="display:flex;gap:8px;margin:10px 0;align-items:center;">
       <span style="font-size:12px;color:var(--text-light);">人设</span>
-      <select id="customMood" aria-label="人设" style="flex:1;padding:6px;border:1px solid var(--gray-border);border-radius:8px;">
+      <select id="customMood" aria-label="人设" style="flex:1;padding:6px;border:1px solid var(--gray-border);border-radius:8px;font-size:14px;min-height:36px;">
         <option value="sister">💝 知性姐姐</option><option value="sweet">🌸 甜美学姐</option><option value="tech">🔧 技术专家</option><option value="biz">💼 商务精英</option><option value="young">😎 活力小哥</option><option value="master">👔 资深店长</option>
       </select>
     </div>
     <details style="margin:0 0 10px;">
-      <summary style="font-size:12px;color:var(--text-light);cursor:pointer;">📎 产品介绍/官方资料（可选 · 防 AI 瞎编功能）</summary>
-      <textarea id="customProductInfo" placeholder="粘贴产品官方介绍/卖点/链接说明等（如「电信智能体 teleagent：1. 24h 业务问答；2. 套餐比价；4. 到店规划」）。留空则 AI 基于训练知识调研（可能不准确）。" style="width:100%;height:72px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;resize:vertical;margin-top:6px;color:#444;"></textarea>
+      <summary style="font-size:12px;color:var(--text-light);cursor:pointer;min-height:32px;display:flex;align-items:center;">📎 产品介绍/官方资料（可选 · 防 AI 瞎编功能）</summary>
+      <textarea id="customProductInfo" aria-label="产品介绍（可选）" placeholder="粘贴产品官方介绍/卖点/链接说明等（如「电信智能体 teleagent：1. 24h 业务问答；2. 套餐比价；4. 到店规划」）。留空则 AI 基于训练知识调研（可能不准确）。" style="width:100%;height:72px;padding:8px;border:1px solid var(--gray-border);border-radius:8px;font-size:12px;resize:vertical;margin-top:6px;color:#444;"></textarea>
     </details>
     <button id="customGenBtn" class="btn-primary" style="width:100%;" onclick="genCustomScript()">🚀 生成脚本</button>
     <div id="customResult" style="margin-top:12px;display:none;"></div>
-    <button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="document.getElementById('customModal').style.display='none'">✕ 关闭</button>
+    <button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="closeCustomTopic()">✕ 关闭</button>
   </div>
 </div>
 
-<!-- Data -->
-<script src="data/bundle.js?v=2.9.87&t=1787273619563"></script>
-  <script src="data/dailyScripts.js?v=2.9.87&t=1787273619563"></script>
-  <script src="data/v3-seedpool.js?v=2.9.87&t=1787273619563"></script>
+<!-- Data（2026-08-21：3.0 移除 bundle.js 大包（234K 含 2.x 专用数据 ~117K），显式加载 3.0 实际依赖的 8 个小数据文件，首屏 JS 净减 ~180K） -->
+  <script src="data/v3-seedpool.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/dailyScripts.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/hotspotData.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/topicPool.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/t1Presets.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/t2Presets.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/t4Presets.js?v=2.9.81&t=1787277022915"></script>
+  <script src="data/weeklyNew.js?v=2.9.81&t=1787277022915"></script>
   <!-- v3.0 内核：共享常量 / 纯函数 / 信号 / 三级池（见 v3.0-完整方案.md §7.5–7.7） -->
-  <script src="src/v3/personas.js?v=2.9.87&t=1787273619563"></script>
-  <script src="src/v3/core3.js?v=2.9.87&t=1787273619563"></script>
-  <script src="src/v3/track.js?v=2.9.87&t=1787273619563"></script>
-  <script src="src/v3/gate.js?v=2.9.87&t=1787273619563"></script>
-  <script src="src/v3/pool.js?v=2.9.87&t=1787273619563"></script>
+  <script src="src/v3/personas.js?v=2.9.81&t=1787277022915"></script>
+  <script src="src/v3/core3.js?v=2.9.81&t=1787277022915"></script>
+  <script src="src/v3/track.js?v=2.9.81&t=1787277022915"></script>
+  <script src="src/v3/gate.js?v=2.9.81&t=1787277022915"></script>
+  <script src="src/v3/pool.js?v=2.9.81&t=1787277022915"></script>
   <!-- 热点跟拍中心（2.x 完整移植：数据链路/卡片/收藏/刷新，见 src/hotspot.js） -->
-  <script src="src/hotspot.js?v=2.9.87&t=1787273619563"></script>
+  <script src="src/hotspot.js?v=2.9.81&t=1787277022915"></script>
 
 <script>
 // ==================== Config ====================
@@ -507,7 +597,22 @@ var TAB_NAMES = { today:'今日', week:'排期', hot:'热点', live:'直播', mi
 var PERSONALIZE_API = 'https://1253338744-6kei9ayy45.ap-guangzhou.tencentscf.com';
 
 // ==================== G7 自定义选题入口 ====================
-function openCustomTopic(){ var m=document.getElementById('customModal'); if(m) m.style.display='flex'; }
+// 2026-08-21：接入 .modal-overlay.show 体系 + 初始聚焦 + 焦点归还（P0-③ 焦点管理）
+function openCustomTopic(triggerEl) {
+  var m = document.getElementById('customModal');
+  if (!m) return;
+  m._returnFocus = triggerEl || null;
+  m.classList.add('show');
+  var inp = document.getElementById('customTopicInput');
+  if (inp) setTimeout(function(){ inp.focus(); }, 80);
+}
+function closeCustomTopic() {
+  var m = document.getElementById('customModal');
+  if (!m) return;
+  m.classList.remove('show');
+  if (m._returnFocus && typeof m._returnFocus.focus === 'function') { try { m._returnFocus.focus(); } catch(e){} }
+  m._returnFocus = null;
+}
 async function genCustomScript(){
   var topic = (document.getElementById('customTopicInput').value||'').trim();
   var mood = document.getElementById('customMood').value;
@@ -589,10 +694,49 @@ document.addEventListener('DOMContentLoaded', function() {
     renderDailyCards();
   });
 
-  // 键盘可达：div[role=button] 支持 Enter / Space 触发（a11y 必测项）
+  // 键盘可达（2026-08-21 扩展）：div[role=button] Enter/Space + ESC 关弹窗 + Tab 圈闭 + Tab 栏方向键
   document.addEventListener('keydown', function(e){
-    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
     var t = e.target;
+    // ① ESC：关闭打开的自定义选题弹窗
+    if (e.key === 'Escape') {
+      var m = document.getElementById('customModal');
+      if (m && m.classList.contains('show')) { closeCustomTopic(); e.preventDefault(); return; }
+    }
+    // ② Tab：弹窗内焦点圈闭（focus trap）
+    if (e.key === 'Tab') {
+      var mm = document.getElementById('customModal');
+      if (mm && mm.classList.contains('show')) {
+        var f = mm.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (f.length) {
+          var first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && (document.activeElement === first || !mm.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
+    }
+    // ③ Tab 栏 ←/→ 方向键切换（P0-①）
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && t && t.classList && t.classList.contains('tab')) {
+      var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab-bar .tab'));
+      var idx = tabs.indexOf(t);
+      if (idx >= 0) {
+        var dir = e.key === 'ArrowRight' ? 1 : -1;
+        var ni = (idx + dir + tabs.length) % tabs.length;
+        e.preventDefault();
+        tabs[ni].focus();
+        switchTab(tabs[ni].getAttribute('data-tab'));
+      }
+    }
+    // ③b 脚本卡片 Enter/Space 展开（今日 card-N / 直播 lc-N，tabindex=0 可聚焦 div，无 role 避免 nested-interactive）
+    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && t && t.classList && t.classList.contains('script-card') && t.tagName !== 'BUTTON') {
+      var m2 = String(t.id || '').match(/^(?:card-|lc-)(\d+)$/);
+      if (m2) {
+        e.preventDefault();
+        if (t.id.indexOf('lc-') === 0) { toggleLiveCard(parseInt(m2[1], 10)); } else { toggleCard(parseInt(m2[1], 10)); }
+        return;
+      }
+    }
+    // ④ div[role=button] Enter / Space 触发（原逻辑）
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
     if (!t || t.getAttribute('role') !== 'button' || t.tagName === 'BUTTON') return;
     e.preventDefault();
     t.click();
@@ -623,7 +767,8 @@ function renderMoodStrip() {
   var html = '';
   for (var i = 0; i < MOODS.length; i++) {
     var m = MOODS[i];
-    html += '<div class="p-chip' + (m.id === curMood ? ' active' : '') + '" onclick="selectMood(\''+m.id+'\',this)">'+m.emoji+' '+m.name+'</div>';
+    var on = (m.id === curMood);
+    html += '<button type="button" class="p-chip' + (on ? ' active' : '') + '" aria-pressed="' + (on ? 'true' : 'false') + '" onclick="selectMood(\''+m.id+'\',this)">'+m.emoji+' '+m.name+'</button>';
   }
   document.getElementById('personaStrip').innerHTML = html;
 }
@@ -631,8 +776,11 @@ function renderMoodStrip() {
 function selectMood(id, el) {
   curMood = id;
   localStorage.setItem('douyin_mood', curMood);
-  document.querySelectorAll('.p-chip').forEach(function(e){e.classList.remove('active');});
-  if (el) el.classList.add('active');
+  document.querySelectorAll('.p-chip').forEach(function(e){
+    e.classList.remove('active');
+    e.setAttribute('aria-pressed', 'false');
+  });
+  if (el) { el.classList.add('active'); el.setAttribute('aria-pressed', 'true'); }
   renderDailyCards();
   if (document.getElementById('page-live').classList.contains('active')) {
     renderLiveCards();
@@ -754,7 +902,7 @@ function renderScriptCard(script, idx, vidOverride) {
   var sbHtml = '';
   var sb = v.storyboard || [];
   if (sb.length > 0) {
-    sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
+    sbHtml = '<div class="storyboard"><table><caption class="sr-only">分镜表：秒数、口播、画面</caption><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
     for (var s = 0; s < sb.length; s++) {
       sbHtml += '<tr><td class="sec">'+sb[s].sec+'</td><td>'+sb[s].speaker+'<br><span style="color:#55606e;font-size:10px;">'+sb[s].text+'</span></td><td class="cam">'+sb[s].camera+'</td></tr>';
     }
@@ -765,7 +913,7 @@ function renderScriptCard(script, idx, vidOverride) {
   // ⑤ 本周新增角标（weeklyNew.js）
   var newBadge = (flagOn('weeklyBadge') && isWeeklyNew(script)) ? '<span class="badge-new">🆕 本周新增</span>' : '';
   // 注意：不展示 _persona（生成端嗓音库），用户只感知 3 语气（见 §7.6.1）
-  return '<div class="script-card" id="card-'+idx+'" data-vid="'+vid+'" data-seed="'+esc(script.seedId||'')+'" data-type="'+esc(script.type||'')+'" data-level="'+esc(script.poolLevel||todayPool.level)+'" onclick="toggleCard('+idx+')">' +
+  return '<div class="script-card" id="card-'+idx+'" role="group" aria-label="脚本卡片：'+esc(script.typeName||'脚本')+' · '+esc(script.topic||'')+'，按回车展开全文" data-vid="'+vid+'" data-seed="'+esc(script.seedId||'')+'" data-type="'+esc(script.type||'')+'" data-level="'+esc(script.poolLevel||todayPool.level)+'" tabindex="0" onclick="toggleCard('+idx+')">' +
     '<div class="sc-head">' +
     '<span class="type-icon" aria-hidden="true">'+(script.typeIcon || '📄')+'</span>' +
     '<span class="type-name">'+ (script.typeName || '脚本') +'</span>' + newBadge +
@@ -780,8 +928,8 @@ function renderScriptCard(script, idx, vidOverride) {
     '<button type="button" class="sc-copy" onclick="event.stopPropagation();copyCardText('+idx+')">📋 复制脚本</button>' +
     '<button type="button" class="sc-switch" onclick="event.stopPropagation();cycleCard('+idx+')">🔄 换一条</button>' +
     '<button type="button" class="sc-switch" onclick="event.stopPropagation();shareCard('+idx+')">📤 分享</button>' +
-    '<button type="button" class="sc-switch fb-up" title="这条对我有用" aria-label="好评" onclick="event.stopPropagation();feedbackCard('+idx+',1)">👍</button>' +
-    '<button type="button" class="sc-switch fb-down" title="这条没帮助" aria-label="差评" onclick="event.stopPropagation();feedbackCard('+idx+',-1)">👎</button>' +
+    '<button type="button" class="sc-switch fb-up" title="这条对我有用" aria-label="好评" aria-pressed="false" onclick="event.stopPropagation();feedbackCard('+idx+',1)">👍</button>' +
+    '<button type="button" class="sc-switch fb-down" title="这条没帮助" aria-label="差评" aria-pressed="false" onclick="event.stopPropagation();feedbackCard('+idx+',-1)">👎</button>' +
     '</div></div>';
 }
 
@@ -831,6 +979,8 @@ function toggleCard(idx) {
   var el = document.getElementById('card-'+idx);
   if (!el) return;
   var expanded = el.classList.toggle('expanded');
+  var lbl = el.getAttribute('aria-label') || '';
+  el.setAttribute('aria-label', lbl.replace(/，按回车展开全文|，已展开全文/, '') + (expanded ? '，已展开全文' : '，按回车展开全文'));
   // 展开/折叠时切换 .preview-text 的内容（折叠时 previewText 120 字截断 + "..."；展开时完整 scriptText）
   var pv = document.getElementById('pv-'+idx);
   if (pv) {
@@ -1024,17 +1174,24 @@ function renderMinePage() {
   grid += '<div class="sig-cell"><div class="sg-n">'+pref.sample+'</div><div class="sg-l">样本量</div></div>';
   document.getElementById('sigGrid').innerHTML = grid;
 
-  // N-6：离线权重快照展示（上次重算结果；未重算给提示）
+  // N-6：离线权重快照展示（上次重算结果；未重算给提示；2026-08-21 加 70/20/10 迷你条形）
   var w = TRK.lastWeights();
   var wBox = document.getElementById('weightsBox');
   if (w && w.sample > 0) {
     var fmt = function(o){ if (!o) return '—'; return Object.keys(o).map(function(k){ return k+':'+o[k]; }).join(' '); };
-    var buck = w.buckets ? ('常规:' + w.buckets.evergreen + ' 本地:' + w.buckets.local + ' 热点:' + w.buckets.hotspot) : '—';
+    var buck = w.buckets ? ('常规:' + Math.round(w.buckets.evergreen*100) + '% 本地:' + Math.round(w.buckets.local*100) + '% 热点:' + Math.round(w.buckets.hotspot*100) + '%') : '—';
+    var barHtml = '';
+    if (w.buckets) {
+      var p1 = Math.round(w.buckets.evergreen*100), p2 = Math.round(w.buckets.local*100), p3 = Math.round(w.buckets.hotspot*100);
+      barHtml = '<div class="ratio-bar" role="img" aria-label="内容配比：常规'+p1+'% 本地'+p2+'% 热点'+p3+'%">' +
+        '<i style="width:'+p1+'%;background:#1A6ED8;"></i><i style="width:'+p2+'%;background:#FF6B00;"></i><i style="width:'+p3+'%;background:#D93025;"></i></div>';
+    }
     wBox.innerHTML = '⏱ ' + new Date(w.generatedAt).toLocaleString() + ' · 样本 ' + w.sample +
+      barHtml +
       '<br>语气权重：' + fmt(w.mood) +
       '<br>类型权重：' + fmt(w.type) +
       '<br>70/20/10 桶（由信号推导）：' + buck +
-      '<br><span style="color:#8a93a3;">（确定性兜底常驻，此表仅离线重算产物，不实时改线上配比）</span>';
+      '<br><span style="color:var(--muted);">（确定性兜底常驻，此表仅离线重算产物，不实时改线上配比）</span>';
   } else {
     wBox.innerHTML = '未重算（信号样本 0）——点上方按钮生成离线权重快照';
   }
@@ -1075,12 +1232,19 @@ function renderMinePage() {
     '扫描规则：营业员视角，禁止攻击运营商类表述';
 }
 
-// N-8 Phase5 反馈闭环：卡片 👍/👎 显式反馈 → 本地信号池（离线重算消费，不实时改线上）
+// N-8 Phase5 反馈闭环：卡片 👍/👎 显式反馈 → 本地信号池（2026-08-21：加按钮态+aria-pressed 防重复点）
 function feedbackCard(idx, rating) {
   var script = scriptAt(idx);
   if (!script) return;
   var grp = variantGroup(script);
   var vid = (cardVid[idx] != null) ? cardVid[idx] : V3.pinnedIndex(operatorId(), script.seedId || ('seed_'+idx), lastISOWeek, grp.length);
+  var card = document.getElementById('card-'+idx);
+  if (card) {
+    var up = card.querySelector('.fb-up');
+    var down = card.querySelector('.fb-down');
+    if (up) { up.classList.toggle('on', rating > 0); up.setAttribute('aria-pressed', rating > 0 ? 'true' : 'false'); up.disabled = rating > 0; }
+    if (down) { down.classList.toggle('on', rating < 0); down.setAttribute('aria-pressed', rating < 0 ? 'true' : 'false'); down.disabled = rating < 0; }
+  }
   TRK.feedback(script.seedId || ('seed_'+idx), curMood, script.type || 'decision', rating);
   showToast(rating > 0 ? '👍 已记好评，这类选题会多推' : '👎 已记差评，这类选题会少推');
 }
@@ -1356,13 +1520,13 @@ function renderLiveCard(s, idx) {
   var sbHtml = '';
   var sb = v.storyboard || [];
   if (sb.length > 0) {
-    sbHtml = '<div class="storyboard"><table><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
+    sbHtml = '<div class="storyboard"><table><caption class="sr-only">分镜表：秒数、口播、画面</caption><tr><td class="sec">秒</td><td>口播</td><td>画面</td></tr>';
     for (var i = 0; i < sb.length; i++) {
       sbHtml += '<tr><td class="sec">'+sb[i].sec+'</td><td>'+sb[i].speaker+'<br><span style="color:#666;font-size:10px;">'+sb[i].text+'</span></td><td class="cam">'+sb[i].camera+'</td></tr>';
     }
     sbHtml += '</table></div>';
   }
-  return '<div class="script-card" onclick="var e=document.getElementById(\'lc-'+idx+'\');if(e)e.classList.toggle(\'expanded\')" id="lc-'+idx+'">' +
+  return '<div class="script-card" role="group" aria-label="直播话术卡片：'+esc(s.typeName||'')+' · '+esc(s.topic||'')+'，按回车展开全文" tabindex="0" onclick="toggleLiveCard('+idx+')" id="lc-'+idx+'">' +
     '<div class="sc-head">' +
     '<span class="type-icon">'+s.typeIcon+'</span>' +
     '<span class="type-name">'+s.typeName+'</span>' +
@@ -1378,6 +1542,14 @@ function renderLiveCard(s, idx) {
     '</div></div>';
 }
 
+function toggleLiveCard(idx) {
+  var e = document.getElementById('lc-'+idx);
+  if (!e) return;
+  var expanded = e.classList.toggle('expanded');
+  var lbl = e.getAttribute('aria-label') || '';
+  e.setAttribute('aria-label', lbl.replace(/，按回车展开全文|，已展开全文/, '') + (expanded ? '，已展开全文' : '，按回车展开全文'));
+}
+
 function copyLiveText(idx) {
   var s = LIVE_SCRIPTS[idx];
   if (!s) return;
@@ -1387,10 +1559,15 @@ function copyLiveText(idx) {
 
 // ==================== Tab ====================
 function switchTab(name, fromPop) {
-  document.querySelectorAll('.tab-bar .tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.tab-bar .tab').forEach(function(t){
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelector('.tab-bar .tab[data-tab="'+name+'"]').classList.add('active');
-  document.getElementById('page-'+name).classList.add('active');
+  var tb = document.querySelector('.tab-bar .tab[data-tab="'+name+'"]');
+  if (tb) { tb.classList.add('active'); tb.setAttribute('aria-selected', 'true'); }
+  var pg = document.getElementById('page-'+name);
+  if (pg) pg.classList.add('active');
   
   // Update hash for browser back/forward
   if (!fromPop) {
