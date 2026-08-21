@@ -16,6 +16,13 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# 2026-08-21：排他锁根治 SCF 部署互撞（大屏数据更新等定时任务逐文件 push 会触发多个 Deploy SCF，
+# 全部撞 UpdateFunctionCode 单函数锁）。同一时刻只允许一个 run 执行，新 push 取消旧 run，
+# 最终部署态永远等于最新代码。
+concurrency:
+  group: deploy-scf-master
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
