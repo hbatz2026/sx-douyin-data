@@ -179,6 +179,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
 .live-badge.offline { background: var(--text-3); }
 
 .alert-list { max-height: 400px; overflow-y: auto; }
+
+/* Room horizontal scroll */
+.room-scroll {
+  display: flex; gap: var(--sp-3); overflow-x: auto; padding-bottom: 8px;
+  scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+}
+.room-scroll .qa-room-card {
+  flex: 0 0 240px; min-width: 240px; max-width: 280px;
+}
+.room-scroll::-webkit-scrollbar { height: 6px; }
+.room-scroll::-webkit-scrollbar-track { background: var(--bg-elevated); border-radius: 3px; }
+.room-scroll::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+.room-scroll::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 .alert-item { display: flex; align-items: start; gap: 8px; padding: 10px 12px; border-radius: var(--radius); margin-bottom: 6px; font-size: 12px; }
 .alert-item.sev { background: #fef2f2; border-left: 3px solid var(--red); }
 .alert-item.warn { background: #fffbeb; border-left: 3px solid var(--orange); }
@@ -482,8 +495,11 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
         <div class="qa-summary" id="qaSummary"></div>
         <div class="qa-layout">
           <div>
-            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1)">在播直播间</div>
-            <div class="kpi-grid kpi-grid-3" id="roomList"></div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1);display:flex;align-items:center;justify-content:space-between">
+              <span>在播直播间</span>
+              <span style="font-size:11px;color:var(--text-3);font-weight:400">← 左右滑动查看 →</span>
+            </div>
+            <div class="room-scroll scrollbar" id="roomList"></div>
           </div>
           <div>
             <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text-1)">告警列表</div>
