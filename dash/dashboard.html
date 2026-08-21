@@ -158,8 +158,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC"
 .kpi-divider::after { content: attr(data-label); position: absolute; left: 50%; top: -10px; transform: translateX(-50%); background: var(--surface); padding: 0 12px; font-size: 12px; color: var(--text-3); }
 
 /* QA Module */
-.qa-layout { display: grid; grid-template-columns: 1fr 360px; gap: var(--sp-4); }
-@media (max-width: 1200px) { .qa-layout { grid-template-columns: 1fr; } }
+.qa-layout { display: grid; grid-template-columns: minmax(0,1fr) 360px; gap: var(--sp-4); }
+@media (max-width: 1200px) { .qa-layout { grid-template-columns: minmax(0,1fr); } }
 .qa-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-4); }
 .qa-room-card {
   background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius);
@@ -354,6 +354,8 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
   /* QA */
   .qa-summary { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .qa-room-card { padding: 10px; }
+  .qa-layout > div { min-width: 0; overflow: hidden; }
+  .room-scroll { width: 100%; }
 
   /* Region tabs */
   .region-tabs { gap: 6px; }
