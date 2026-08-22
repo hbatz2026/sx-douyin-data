@@ -470,12 +470,12 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
             <div class="chart-box-title">开播抖音号 / 直播场次</div>
             <div style="display:flex;gap:24px;align-items:center;flex:1;padding:8px 0">
               <div style="text-align:center;flex:1">
-                <div style="font-size:32px;font-weight:700;color:var(--primary);line-height:1.2">${num(fr.live_author_cnt)}</div>
+                <div id="flowAuthorNum" style="font-size:32px;font-weight:700;color:var(--primary);line-height:1.2">--</div>
                 <div style="font-size:12px;color:var(--text-3);margin-top:4px">开播抖音号</div>
               </div>
               <div style="width:1px;height:48px;background:var(--border-light)"></div>
               <div style="text-align:center;flex:1">
-                <div style="font-size:32px;font-weight:700;color:var(--green);line-height:1.2">${num(fr.live_cnt)}</div>
+                <div id="flowLiveNum" style="font-size:32px;font-weight:700;color:var(--green);line-height:1.2">--</div>
                 <div style="font-size:12px;color:var(--text-3);margin-top:4px">直播场次</div>
               </div>
             </div>
@@ -806,6 +806,10 @@ function renderFlowCharts(fr) {
   
   // 1. Sparkline: 开播抖音号 + 直播场次趋势线
   const barEl = document.getElementById('flowBarChart');
+  const authorNumEl = document.getElementById('flowAuthorNum');
+  const liveNumEl = document.getElementById('flowLiveNum');
+  if (authorNumEl) authorNumEl.textContent = num(fr.live_author_cnt);
+  if (liveNumEl) liveNumEl.textContent = num(fr.live_cnt);
   if (barEl) {
     if (flowBarChart) flowBarChart.dispose();
     flowBarChart = echarts.init(barEl);
