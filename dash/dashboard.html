@@ -475,6 +475,7 @@ footer { padding: var(--sp-3); text-align: center; color: var(--text-3); font-si
       </div>
       <div class="section-body">
         <div class="kpi-grid kpi-grid-6" id="flowGrid"></div>
+        <div id="flowTip" style="font-size:11px;color:var(--text-3);margin:4px 2px 8px;line-height:1.5"></div>
         <div class="chart-row chart-row-3">
           <div class="chart-box" style="display:flex;flex-direction:column;justify-content:center">
             <div class="chart-box-title">开播抖音号 / 直播场次</div>
@@ -781,19 +782,27 @@ function renderFlow(fr) {
     document.getElementById('flowGrid').innerHTML = '<div style="grid-column:1/-1" class="loading">直播间流量数据采集中，请等待下一轮采集完成...</div>';
     return;
   }
+  // 实时口径: 曝光人数可能无数据(页面显示--), 用 0 占位并在 tooltip 体现
+  const showUv = (fr.live_show_uv == null || !fr.live_show_uv) ? '--' : fmt(fr.live_show_uv);
   const items = [
     { label: '开播抖音号', value: fr.live_author_cnt || 0, color: 'blue', unit: '个', spark: [10,15,20,18,25,30,35,42,49] },
     { label: '直播场次', value: fr.live_cnt || 0, color: 'green', unit: '场', spark: [20,25,30,35,40,45,50,52,53] },
-    { label: '曝光人数', value: fmt(fr.live_show_uv || 0), color: 'purple', unit: '人', spark: [5000,8000,10000,12000,14000,15000,16000,16500,16787] },
+    { label: '曝光人数', value: showUv, color: 'purple', unit: '人', spark: [5000,8000,10000,12000,14000,15000,16000,16500,16787] },
     { label: '观看人数', value: fmt(fr.live_watch_uv || 0), color: 'blue', unit: '人', spark: [500,800,1200,1500,2000,2500,2800,2900,2914] },
     { label: '成交金额', value: fmtMoney(fr.live_gmv || 0), color: 'gold', unit: moneyUnit(fr.live_gmv || 0), spark: [100,500,1000,2000,3000,4000,5000,5300,5550] },
     { label: '成交券数', value: fr.live_pay_cert_cnt || 0, color: 'red', unit: '张', spark: [5,10,15,20,30,40,50,55,61] },
   ];
+  // 追加核销/退款券(实时口径有值才显示)
+  if (fr.live_verify_cert_cnt != null) items.push({ label: '核销券数', value: fr.live_verify_cert_cnt || 0, color: 'green', unit: '张', spark: [2,4,6,8,10,12,14,16,20] });
+  if (fr.live_refund_cert_cnt != null) items.push({ label: '退款券数', value: fr.live_refund_cert_cnt || 0, color: 'orange', unit: '张', spark: [1,2,3,4,5,6,7,8,9] });
   document.getElementById('flowGrid').innerHTML = items.map(it => `
     <div class="kpi-card ${it.color}">
       <div class="kpi-label">${it.label}</div>
       <div class="kpi-value">${it.value}<span class="kpi-unit">${it.unit}</span></div>
     </div>`).join('');
+  // 口径提示
+  const tip = document.getElementById('flowTip');
+  if (tip) tip.textContent = '口径: 生意经内容分析·核心数据·实时 | 曝光人数实时口径暂无数据则以--展示';
 }
 
 // ========== Render: Summary ==========
@@ -841,12 +850,16 @@ function renderFlowCharts(fr) {
     });
   }
   
-  // 2. Funnel: 曝光 → 观看 → 成交券
+  // 2. Funnel: 曝光 → 观看 → 成交券 (实时口径曝光无数据时展示 观看→成交)
   const funnelEl = document.getElementById('flowFunnelChart');
   if (funnelEl) {
     if (flowFunnelChart) flowFunnelChart.dispose();
     flowFunnelChart = echarts.init(funnelEl);
     const showUv = num(fr.live_show_uv), watchUv = num(fr.live_watch_uv), payCnt = num(fr.live_pay_cert_cnt);
+    const funnelData = [];
+    if (showUv > 0) funnelData.push({ value: showUv, name: '曝光人数', itemStyle: { color: '#0A5CDE' } });
+    funnelData.push({ value: watchUv, name: '观看人数', itemStyle: { color: '#018B8D' } });
+    funnelData.push({ value: payCnt, name: '成交券数', itemStyle: { color: '#D4A017' } });
     flowFunnelChart.setOption({
       ...EC_LIGHT,
       tooltip: { ...EC_LIGHT.tooltip, trigger: 'item', formatter: p => p.name + ': ' + fmt(p.value) + ' (转化' + p.percent + '%)' },
@@ -858,11 +871,7 @@ function renderFlowCharts(fr) {
         gap: 4,
         label: { show: true, position: 'inside', fontSize: 13, fontWeight: 'bold', color: '#fff', formatter: p => p.name + '\n' + fmt(p.value) },
         itemStyle: { borderColor: '#fff', borderWidth: 1 },
-        data: [
-          { value: showUv, name: '曝光人数', itemStyle: { color: '#0A5CDE' } },
-          { value: watchUv, name: '观看人数', itemStyle: { color: '#018B8D' } },
-          { value: payCnt, name: '成交券数', itemStyle: { color: '#D4A017' } },
-        ]
+        data: funnelData,
       }]
     });
   }
