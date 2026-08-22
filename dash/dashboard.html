@@ -968,7 +968,7 @@ function renderQA(rooms, qa) {
   // Room cards
   const roomHTML = rooms.map(r => {
     const m = r.meta || {};
-    const city = extractCity(m.nickname);
+    const city = m.city || extractCity(m.nickname);
     const alertForRoom = alerts.filter(a => a.room_id === m.room_id);
     const alertClass = alertForRoom.some(a => a.level === '严重') ? 'alert-sev' :
       alertForRoom.some(a => a.level === '警告') ? 'alert-warn' :
@@ -1032,7 +1032,7 @@ function renderRegion(rooms, cities) {
   CITIES.forEach(c => cityData[c] = { pay_gmv: 0, pay_cert_cnt: 0, verify_gmv: 0, verify_cert_cnt: 0, watch_uv: 0, show_uv: 0, like_cnt: 0, comment_cnt: 0, living: 0, total: 0 });
   rooms.forEach(r => {
     const m = r.meta || {};
-    const city = extractCity(m.nickname);
+    const city = m.city || extractCity(m.nickname);
     if (!cityData[city]) cityData[city] = { pay_gmv: 0, pay_cert_cnt: 0, verify_gmv: 0, verify_cert_cnt: 0, watch_uv: 0, show_uv: 0, like_cnt: 0, comment_cnt: 0, living: 0, total: 0 };
     cityData[city].pay_gmv += num(m.gmv) / 100;
     cityData[city].pay_cert_cnt += num(kv(r, 'PayOrderCnt'));
