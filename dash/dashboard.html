@@ -972,7 +972,8 @@ function renderQA(rooms, qa) {
       alertForRoom.length > 0 ? 'alert-info' : '';
     const gmv = num(m.gmv) / 100;
     const rid = m.room_id || '';
-    const liveUrl = rid ? 'https://live.douyin.com/' + rid : '';
+    const liveId = m.unique_id || m.author_id || '';
+    const liveUrl = liveId ? 'https://live.douyin.com/' + liveId : '';
     const liveBtn = m.is_live && liveUrl ? `<a href="${liveUrl}" target="_blank" rel="noopener" class="live-link-btn" onclick="event.stopPropagation()" title="进入直播间">进入直播间</a>` : '';
     const offlineCls = m.is_live ? '' : ' offline';
     return `
