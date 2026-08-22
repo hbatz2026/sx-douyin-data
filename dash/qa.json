@@ -1,6 +1,7 @@
 {
-  "ts": "20260822212847",
-  "generated_at": "2026-08-22 21:29:04",
+  "ts": "20260822213020",
+  "generated_at": "2026-08-22 21:31:26",
   "total_rooms": 1,
-  "alerts": []
+  "alerts": [],
+  "vision_alerts": 0
 }
