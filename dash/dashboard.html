@@ -1462,15 +1462,25 @@ function setSyncStatus(state) {
   text.textContent = state === 'loading' ? '数据同步中' : state === 'error' ? '同步失败' : '数据已同步';
 }
 
-async function loadData() {
+// 统一刷新: 串行加载 data.json + qa.json，避免竞态
+async function refresh() {
   setSyncStatus('loading');
   try {
-    const resp = await fetch(DATA_URL + '?t=' + Date.now());
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const d = await resp.json();
+    // 1. 拉取 data.json
+    const dataResp = await fetch(DATA_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!dataResp.ok) throw new Error('data.json HTTP ' + dataResp.status);
+    const d = await dataResp.json();
     RAW_DATA = d;
     document.getElementById('lastUpdate').textContent = '更新时间: ' + fmtTs(d.ts);
     document.getElementById('livingCnt').textContent = (d.rooms || []).filter(r => r.meta?.is_live).length;
+    // 2. 拉取 qa.json
+    let qaData = null;
+    try {
+      const qaResp = await fetch(QA_URL + '?t=' + Date.now(), { cache: 'no-store' });
+      if (qaResp.ok) qaData = await qaResp.json();
+    } catch(e) { console.error('Load alerts error:', e); }
+    QA_DATA = qaData;
+    // 3. 统一渲染
     renderFlow(d.flow_realtime);
     renderFlowCharts(d.flow_realtime);
     renderSummary(d.summary);
@@ -1486,14 +1496,18 @@ async function loadData() {
   }
 }
 
-async function loadAlerts() {
+// 告警独立刷新 (30秒一次，不重置筛选 tab)
+async function refreshAlerts() {
   try {
-    const resp = await fetch(QA_URL + '?t=' + Date.now());
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const resp = await fetch(QA_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!resp.ok) return;
     QA_DATA = await resp.json();
-    if (RAW_DATA) renderQA(RAW_DATA.rooms || [], QA_DATA);
-  } catch(e) {
-    console.error('Load alerts error:', e);
+    if (RAW_DATA) {
+      renderQA(RAW_DATA.rooms || [], QA_DATA);
+      const el = document.getElementById('alertUpdateTime');
+      if (el) el.textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    }
+  } catch(e) { /* 静默失败 */ }
   }
 }
 
@@ -1502,10 +1516,19 @@ function tickCountdown() {
   countdownVal--;
   if (countdownVal <= 0) {
     countdownVal = 60;
-    loadData();
-    loadAlerts();
+    refresh();
   }
   document.getElementById('countdown').textContent = countdownVal;
+}
+
+// 告警独立刷新倒计时 (30秒)
+let alertCountdown = 30;
+function tickAlertCountdown() {
+  alertCountdown--;
+  if (alertCountdown <= 0) {
+    alertCountdown = 30;
+    refreshAlerts();
+  }
 }
 
 // ========== Init ==========
@@ -1514,9 +1537,9 @@ function start() {
   document.querySelectorAll('.alert-filter-tab').forEach(tab => {
     tab.addEventListener('click', () => filterAlert(tab.dataset.level));
   });
-  loadData();
-  loadAlerts();
+  refresh();
   setInterval(tickCountdown, 1000);
+  setInterval(tickAlertCountdown, 1000);
 }
 
 // Resize handler
